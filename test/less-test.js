@@ -296,15 +296,15 @@ module.exports = function() {
                     }
                     if (err) {
                         fail("ERROR: " + (err && err.message));
-                        if (isVerbose) {
-                            process.stdout.write("\n");
-                            if (err.stack) {
-                                process.stdout.write(err.stack + "\n");
-                            } else {
-                                // this sometimes happen - show the whole error object
-                                console.log(err);
-                            }
+                        // if (isVerbose) {
+                        process.stdout.write("\n");
+                        if (err.stack) {
+                            process.stdout.write(err.stack + "\n");
+                        } else {
+                            // this sometimes happen - show the whole error object
+                            console.log(err);
                         }
+                        // }
                         release();
                         return;
                     }

@@ -12,11 +12,11 @@
   height-keep: (7 * 7) + (8 * 8);
   height-all: 113;
   height-parts: 49 + 64;
-  margin-keep: (4 * (5 + 5) / 2) - (4 * 2);
+  margin-keep: (4 * (5 + 5) \ 2) - (4 * 2);
   margin-parts: 20 - 8;
   margin-all: 12;
-  border-radius-keep: 4px * (1 + 1) / 4 + 3px;
-  border-radius-parts: 8px / 7px;
+  border-radius-keep: 4px * (1 + 1) \ 4 + 3px;
+  border-radius-parts: 8px \ 7px;
   border-radius-all: 5px;
 }
 .negative {
@@ -25,7 +25,7 @@
 }
 .nested-parens {
   width: 2 * (4 * (2 + (1 + 6))) - 1;
-  height: ((2 + 3) * (2 + 3) / (9 - 4)) + 1;
+  height: ((2 + 3) * (2 + 3) \ (9 - 4)) + 1;
 }
 .mixed-units {
   margin: 2px 4em 1 5pc;
