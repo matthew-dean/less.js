@@ -15,21 +15,14 @@ fs.readFile(file, 'utf8', function (e, data) {
 
     var renderBenchmark = []
       , parserBenchmark = []
-      , pegBenchmark = []
-      , nearleyBenchmark = [];
+      , evalBenchmark = [];
 
-    var totalruns = 50;
+    var totalruns = 30;
     var ignoreruns = 5;
-    var PEGparser = require('../lib/less/parser/less_peg_parser');
-
-    var nearley = require("nearley");
-    var grammar = require("../lib/less/parser/less_nearley_parser");
-    var p = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
 
     var i = 0;
 
-    runNearley();
-    //nextRun();
+    nextRun();
 
     function nextRun() {
         var start, renderEnd, parserEnd;
@@ -51,46 +44,17 @@ fs.readFile(file, 'utf8', function (e, data) {
 
             renderBenchmark.push(renderEnd - start);
             parserBenchmark.push(parserEnd - start);
+            evalBenchmark.push(renderEnd - parserEnd);
 
             i += 1;
-            console.log('Less Run #: ' + i);
+            //console.log('Less Run #: ' + i);
             if(i < totalruns) {
                 nextRun();
             }
             else {
-                runPeg();
+                finish();
             }
         });
-    }
-    function runPeg() {
-        var start, pegEnd;
-
-        for(var i = 0; i < totalruns; i++) {
-            start = now();
-            PEGparser.parse(data);
-            console.log('PEG Run #: ' + i);
-            pegEnd = now();
-            pegBenchmark.push(pegEnd - start);
-        }    
-        runNearley();    
-    }
-    function runNearley() {
-        var start, end;
-        for(var i = 0; i < totalruns; i++) {
-            start = now();
-            console.log('Nearley Run #: ' + i);
-            try {
-                p.feed(".box { a: b }");
-            } catch(parseError) {
-                console.log(
-                    "Error at character " + parseError.offset
-                ); // "Error at character 2"
-            }
-
-            end = now();
-            nearleyBenchmark.push(end - start);
-        }    
-        finish();    
     }
 
     function finish() {
@@ -110,19 +74,18 @@ fs.readFile(file, 'utf8', function (e, data) {
             var variation = maxtime - mintime;
             var variationperc = (variation / avgtime) * 100;
 
-            console.log("Min. Time: "+mintime + " ms");
-            console.log("Max. Time: "+maxtime + " ms");
-            console.log("Total Average Time: " + avgtime + " ms (" +
+            console.log("Min. Time: " + Math.round(mintime) + " ms");
+            console.log("Max. Time: " + Math.round(maxtime) + " ms");
+            console.log("Total Average Time: " + Math.round(avgtime) + " ms (" +
                 parseInt(1000 / avgtime *
                 data.length / 1024) + " KB\/s)");
-            console.log("+/- " + variationperc + "%");
+            console.log("+/- " + Math.round(variationperc) + "%");
             console.log("");
         }
        
-        // analyze('Parser Data', parserBenchmark);
-        // analyze('Render Data', renderBenchmark);
-        // analyze('(Experimental) PEG Parser Data', pegBenchmark);
-        analyze('(Experimental) Nearley Parser Data', nearleyBenchmark);
+        analyze('Parsing', parserBenchmark);
+        analyze('Evaluation', evalBenchmark);
+        analyze('Render Time', renderBenchmark);
 
     }
 

@@ -1,3 +1,53 @@
+## 3.0.4
+2018-05-06
+  - Update source-map to 0.6.x (#3180). Enforces node 6+ though.
+
+# 3.0.0
+2018-02-10
+  - Fix `calc()` function to not do math operations on compile
+  - Rename Directive -> AtRule & Rule -> Declaration
+  - Cross-platform `@plugin` loading! (Node & Browser)
+  - Numerous changes / improvements to plugin architecture
+  - Simplified API calls in plugins (`less.atrule()` vs `new less.tree.AtRule()`)
+  - Property accessors (`$width` to refer to `width: 300px` value)
+  - Inline JavaScript disabled by default for security reasons (use `@plugin`)
+  - Improvements in Less error reporting
+  - Added feature: returning `null` / `false` from Less functions will remove that line
+  - Simple `boolean()` and `if()` functions added
+  - Bug fixes
+  - Removal of unnecessary nodes from API (like IE's `alpha()`)
+
+# 2.7.3
+2017-10-23
+
+  - Bump `request` dependency
+
+# 2.7.2
+2017-01-04
+
+  - Revert breaking changes to contrast() function
+  - Fix error reporting of lessc executable
+  - Changed octals to hex for ES6 strict mode
+
+# 2.7.1 HOTFIX
+
+2016-05-09
+
+ - Revert commit 470af20 (source map performance) which broke source maps
+
+# 2.7.0
+
+2016-05-07
+
+ - Fixes for contrast() function
+ - Allow root functions for plugins
+ - Allow semi-colon separators in functions
+ - Performance improvements for source maps
+ - Fix "blank page" issue in browser
+ - Compatibility fixes for Node 6.x
+ - Fix AST to include single-line comments
+ - Fix reversion for "color-like" words (outputting color values)
+
 # 2.6.1
 
 2016-03-04
@@ -141,7 +191,7 @@
  - Improved keyword and anonymous usage with the replace function
  - Added `getCSSAppendage` to sourcemap builder to avoid duplication in plugins
  - Fix problem with plugins when used with the promises version of render
- - If the render callback throws an exception it now propogates instead of calling the callback again with an error
+ - If the render callback throws an exception it now propagates instead of calling the callback again with an error
 
 # 2.1.0
 

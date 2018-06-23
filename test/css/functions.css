@@ -38,7 +38,7 @@
   saturate-filter: saturate(5%);
   contrast-white: #000000;
   contrast-black: #ffffff;
-  contrast-red: #000000;
+  contrast-red: #ffffff;
   contrast-green: #000000;
   contrast-blue: #ffffff;
   contrast-yellow: #000000;
@@ -49,11 +49,11 @@
   contrast-light-thresh: #111111;
   contrast-dark-thresh: #eeeeee;
   contrast-high-thresh: #eeeeee;
-  contrast-low-thresh: #eeeeee;
+  contrast-low-thresh: #111111;
   contrast-light-thresh-per: #111111;
   contrast-dark-thresh-per: #eeeeee;
   contrast-high-thresh-per: #eeeeee;
-  contrast-low-thresh-per: #eeeeee;
+  contrast-low-thresh-per: #111111;
   replace: "Hello, World!";
   replace-captured: "This is a new string.";
   replace-with-flags: "2 + 2 = 4";
@@ -150,6 +150,18 @@
   pixel: true;
   percent: true;
   em: true;
+  ex: true;
+  rem: true;
+  vw: true;
+  vh: true;
+  vmin: true;
+  vmax: true;
+  ch: true;
+  cm: true;
+  mm: true;
+  pt: true;
+  q: true;
+  in: true;
   cat: true;
   no-unit-is-empty: true;
   case-insensitive-1: true;
@@ -198,4 +210,17 @@
 /* comment1 */
 html {
   color: #8080ff;
+}
+#boolean {
+  a: true;
+  b: false;
+  c: false;
+}
+#if {
+  a: 1;
+  b: 2;
+  c: 3;
+  e: ;
+  f: 6;
+  /* results in void */
 }
