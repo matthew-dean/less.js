@@ -76,7 +76,7 @@ Block
 
 # Unlike the root, rules in blocks can have a declaration
 Rule
- -> Declaration (_semi _ Rule):?  {% d => d[0].concat(d[3]) %}
+ -> Declaration (_semi _ Rule):?  {% d => { return d[1] ? [d[0]].concat(d[1][2]) : d[0] } %}
   | Primary
     
 SelectorList 
@@ -133,10 +133,29 @@ ClassOrId
  | Id {% id %}
 
 Declaration
- -> Ident _ ":" _ Value {% d => d %}
+ -> Ident _ ":" _ Value
+    {%
+      d => { 
+        return {
+          type: 'Declaration',
+          name: d[0],
+          value: d[4]
+        }
+	    }
+	  %}
 
 VariableDefinition
- -> Variable _ ":" _ VariableValue {% d => { return { type: 'Declaration', name: d[0], variable: true, value: d[4]} } %}
+ -> Variable _ ":" _ VariableValue
+    {% 
+      d => {
+        return { 
+          type: 'Declaration', 
+          name: d[0],
+          variable: true,
+          value: d[4] 
+        }
+	    }
+    %}
  
 VariableValue
  -> Value | DetachedRuleset
@@ -145,11 +164,11 @@ DetachedRuleset
  -> Block {% d => { return { type: 'DetachedRuleset', ruleset: { type: 'Ruleset', rules: d[0] } }} %}
 
 Value
- -> ExpressionList (_ "!" _ "important"):? {% d => d[0] %}
+ -> ExpressionList (_ "!" _ "important"):? {% d => { return { type: 'Value', value: d[0], important: d[1] ? true : false } } %}
 
 ExpressionList
- -> Expression
-  | ExpressionList _ "," _ Expression
+ -> Expression {% id %}
+  | ExpressionList _ "," _ Expression {% d => d[0].concat([d[4]]) %}
   
 # Expressions either represent mathematical operations,
 # or white-space delimited Entities.
@@ -157,8 +176,7 @@ ExpressionList
 #     1px solid black
 #     @var * 2
 Expression
- -> Entity
-  | Expression (_ Entity)
+ -> Entity (__ Entity):* {% d => d[0].concat(d[1]) %}
 
 # Entities are tokens which can be found inside an Expression
 Entity
@@ -200,15 +218,16 @@ Entity
   #
   #     black border-collapse
   #
-  Keyword    -> AlphaDash AlphaNumDash:*
+  Keyword -> AlphaDash AlphaNumDash:* {% d => d[0][0] + d[1].join('') %}
  
   # FUNCTION CALL
   #
   #     rgb(255, 0, 255)
   #
   FunctionCall
-   -> "if(" Condition ","  ")"
-    | "boolean(" Condition ")"
+   -> "if(" _ Condition _ "," _ CommaArgValue _ "," _ CommaArgValue _ ")"
+    | "if(" _ Condition _ ";" _ SemiArgValue _ ";" _ SemiArgValue _ ")"
+    | "boolean(" _ Condition _ ")"
     | (Ident | "%") "(" Args ")"
 
   Assignment
@@ -249,11 +268,21 @@ MixinSelectors
  -> ClassOrId {% d => { return { type: 'Element', name: d[0] } } %}
   | MixinSelectors _ ">":? _ ClassOrId {% d => d[0].concat([{ type: 'Element', name: d[0], combinator: '>' }]) %}
 
-_semi -> _ ";"
+SemiArgValue
+ -> Expression
+  | DetachedRuleset
+
+CommaArgValue
+ -> ExpressionList
+  | DetachedRuleset
+
+_semi -> _ ";" {% d => null %}
+
+Args
+ -> CommaArgValue (_ "," _ CommaArgValue):*
+  | SemiArgValue _ ";" (_ SemiArgValue):? (_ ";" _ SemiArgValue):*
 
 # TEMP
-Args -> "9"
-Namespace -> "5"
 Guard -> "when" _ Condition
 Condition -> "6"
 
@@ -287,7 +316,7 @@ NameStart
 NameChar
  -> AlphaNumDash | NonAscii | Escape 
 
-AlphaDash -> [a-zA-Z_-]
+AlphaDash -> [a-zA-Z_-] 
 AlphaNumDash -> [A-Za-z0-9_-]
 
 NonAscii
