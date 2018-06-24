@@ -9,57 +9,112 @@
     });
   }
 %}
+
+@builtin "whitespace.ne"
+@builtin "postprocessors.ne"
+
+# Here in, the parsing rules/functions (as originally written by Alexis Sellier)
+#
+# The basic structure of the syntax tree generated is as follows:
+#
+#   Ruleset ->  Declaration -> Value -> Expression -> Entity
+#
+# Here's some Less code:
+#
+#    .class {
+#      color: #fff;
+#      border: 1px solid #000;
+#      width: @w + 4px;
+#      > .child {...}
+#    }
+#
+# And here's what the parse tree might look like:
+#
+#     Ruleset (Selector '.class', [
+#         Declaration ("color",  Value ([Expression [Color #fff]]))
+#         Declaration ("border", Value ([Expression [Dimension 1px][Keyword "solid"][Color #000]]))
+#         Declaration ("width",  Value ([Expression [Operation " + " [Variable "@w"][Dimension 4px]]]))
+#         Ruleset (Selector [Element '>', '.child'], [...])
+#     ])
+
 Stylesheet
- -> _ Root:* _ 
+ -> _ Root {% $({'Stylesheet': 1}) %}
 
 Root
- -> _ Comment _
-  | _ Ruleset _
-  | _ MixinDefinition _
-  | _ VariableDefinition _ (";" (_ Root _):?):?
-  | _ AtRule _ (";" (_ Root _):?):? 
-  | _ MixinCall _ (";" (_ Root _):?):?
-     
+ -> Primary {% d => [d[0]] %}
+  | Root _ Primary {% d => d[0].concat(d[2]) %}
+
+# The `primary` rule is the main part of the parser.
+# The rules here can appear at any level of the parse tree.
+#
+# The `primary` rule is represented by this simplified grammar:
+#
+#     primary  →  (ruleset | declaration)+
+#     ruleset  →  selector+ block
+#     block    →  '{' primary '}'
+#
+# Only at one point is the primary rule not called from the
+# block rule: at the root level.
+
 Primary
- -> _ Rule _ (";" (_ Primary _):?):?
-  | _ Root _
+ -> Ruleset {% id %}
+  | MixinDefinition {% id %}
+  | MixinCall _semi {% id %}
+  | FunctionCall _semi {% $({'Call': 0}) %}
+  | VariableDefinition _semi
+  | VariableDefinition (_semi _ Primary):? {% $({'Variable': 0}) %}
+  | AtRule _semi {% $({'AtRule': 0}) %}
 
 AtRule
- -> "@" Ident _ [^{;]:* _ Block:?  # need arguments etc
-  
-# these need semi-colon separators
-Rule   
- -> Declaration | MixinCall | VariableDefinition | AtRule # | RulesetCall
+ -> "@" Ident _ [^:] Block:?  # need arguments etc
 
 Ruleset
- -> Comment:? _ SelectorList _ Block
+ -> Comment:? SelectorList _ Block {% d => { return { type: 'Ruleset', comment: d[0], selectors: d[1], rules: d[3]} } %}
 
 Block
- -> "{" _ Primary:* _ "}"
+ -> "{" _ Rule:* _ "}" {% d => d[2] %}
+
+# Unlike the root, rules in blocks can have a declaration
+Rule
+ -> Declaration (_semi _ Rule):?  {% d => d[0].concat(d[3]) %}
+  | Primary
     
-SelectorList
- -> Selector:* (_ "," _ Selector:*):* Guard:?
+SelectorList 
+ -> Selector {% d => { return [{ type: 'Selector', elements: d[0]}] } %}
+  | SelectorList _ "," _ Selector {% d => d[0].concat([{ type: 'Selector', elements: d[4]}]) %}
 
 MixinDefinition
- -> ClassOrId _ "(" Args:? ")" _ Block
+ -> ClassOrId "(" Args:? ")" _ (Guard _):? Block {% d => { return { type: 'MixinDefinition', name: d[0], params: d[2], condition: d[4], rules: d[6] } } %}
 
 Selector
- -> Element:? _ Comment:? _ (Combinator _ Selector _)
-   | Element __ Selector
-   | Element _ Comment:? 
-   
+ -> Element {% d => [{ type: 'Element', combinator: '', value: d[0]}] %}
+  | Selector __ Element {% d => d[0].concat([{ type: 'Element', combinator: ' ', value: d[2]} ]) %}
+  | Selector _ Combinator _ Element {% d => d[0].concat([{ type: 'Element', combinator: d[2], value: d[4]}]) %}
+
+Element
+ -> Class {% id %}
+  | Id {% id %}
+  | Ident {% id %}
+  | Attr {% id %}
+  | "&" {% id %}
+  | Pseudo {% id %}
+  | "*" {% id %}
+  
 # Elements
 Class 
- -> "." Ident
+ -> "." Ident {% d => d[0] + d[1] %}
 
 Id
- -> "#" Ident
+ -> "#" Ident {% d => d[0] + d[1] %}
 
-Element 
- -> Class | Id | Ident | Attr | "&" | Pseudo | "*"
-
-Combinator
- -> ">" | "+" | "~" | "|" | "/" Ident "/" | ">>" | "||" | ">>>"      # Current CSS4 combinators on the end
+Combinator  # Current CSS4 combinators on the end
+ -> ">" {% id %}
+ | "+" {% id %}
+ | "~" {% id %}
+ | "|" {% id %}
+ | ">>" {% id %}
+ | "||" {% id %}
+ | ">>>" {% id %}     
 
 Attr
  -> "[" Ident ([|~*$^]:? "=" (Quoted | [^\]]:+)):? (_ "i"):? "]"
@@ -74,32 +129,45 @@ ExtendKeys
  -> "!":? ("all" | "deep" | "ALL" | "DEEP")
 
 ClassOrId 
- -> Class | Id
-
-MixinName -> ClassOrId
+ -> Class {% id %}
+ | Id {% id %}
 
 Declaration
- -> Ident _ ":" _ Value 
+ -> Ident _ ":" _ Value {% d => d %}
 
 VariableDefinition
- -> Variable _ ":" _ Block 
- | Variable _ ":" _ Value 
+ -> Variable _ ":" _ VariableValue {% d => { return { type: 'Declaration', name: d[0], variable: true, value: d[4]} } %}
+ 
+VariableValue
+ -> Value | DetachedRuleset
+
+DetachedRuleset
+ -> Block {% d => { return { type: 'DetachedRuleset', ruleset: { type: 'Ruleset', rules: d[0] } }} %}
 
 Value
- -> Entity (_ ",":? _ Entity):* _ ("!" _ "important"):?
+ -> ExpressionList (_ "!" _ "important"):? {% d => d[0] %}
 
-NonCommaValue
- -> Entity (_ Entity):* _ ("!" _ "important"):?
-
-# ENTITIES
-Entity
+ExpressionList
  -> Expression
-  | Comment   
-  | Literal
-  | Url
-  | Keyword
-  | "/"
-  | Javascript
+  | ExpressionList _ "," _ Expression
+  
+# Expressions either represent mathematical operations,
+# or white-space delimited Entities.
+#
+#     1px solid black
+#     @var * 2
+Expression
+ -> Entity
+  | Expression (_ Entity)
+
+# Entities are tokens which can be found inside an Expression
+Entity
+ -> Comment {% id %}
+  | Literal {% id %}
+  | Url {% id %}
+  | Keyword {% id %}
+  | "/" {% id %}
+  | Javascript {% id %}
 
   Literal
    -> Quoted
@@ -112,6 +180,12 @@ Entity
     | Variable
     | PropReference
  
+  # QUOTED
+  # A string, which supports escaping " and '
+  #
+  #     "milky way" 'he\'s the one!'
+  #
+  # TODO - parse vars directly
   Quoted
    -> "\"" ([^\"\n\r] | "\\\"" ):* "\""
      | "'" ([^\'\n\r] | "\\'"):* "'"
@@ -120,17 +194,22 @@ Entity
   Percentage -> Num "%"
   Dimension  -> Num Ident
   Unit       -> Num ("%" | Ident):?
-  Keyword    -> [_A-Za-z-] [A-Za-z0-9_-]:*
 
-  ExpressionContainer
-   -> "(" _ Expression _ ")"
-  Expression 
-   -> ExpressionContainer (_ Operator _ Expression):? | ExpressionParts (_ Operator _ Expression):?
+  # KEYWORD
+  # A catch-all word, such as:
+  #
+  #     black border-collapse
+  #
+  Keyword    -> AlphaDash AlphaNumDash:*
  
-    
+  # FUNCTION CALL
+  #
+  #     rgb(255, 0, 255)
+  #
   FunctionCall
-   -> (Ident | "%") "(" Args ")" 
-    | "progid:" [^(]:* "(" Assignment ")"
+   -> "if(" Condition ","  ")"
+    | "boolean(" Condition ")"
+    | (Ident | "%") "(" Args ")"
 
   Assignment
    -> Keyword "=" Value 
@@ -143,82 +222,78 @@ Entity
   Interpolator -> VariableCurly | PropReferenceCurly
 
   PropReference
-   -> "$" Ident
+   -> "$" LessIdent
 
   PropReferenceCurly
-   -> "${" _ Namespace:? _ Ident _ "}"  # -- TODO: namespacing needs to be optional
+   -> "${" LessIdent "}"
 
   Variable
-   -> "@" "@":? [A-Za-z0-9_-]:+
+   -> "@" "@":? LessIdent {% d => d.join('') %}
 
   VariableCurly
-   -> "@{" _ Namespace:? _ "@":? [\w-]:+ _ "}"
+   -> "@{" LessIdent "}" {% d => d.join('') %}
 
   Color
-   -> "#" Hex3 Hex3:?
+   -> "#" Hex3 Hex3:? {% d => d.join('') %}
 
   UnicodeDescriptor
-   -> "U+" [0-9a-fA-F?]:+ ("-" [0-9a-fA-F?]:+):?
+   -> "U+" [0-9a-fA-F?]:+ ("-" [0-9a-fA-F?]:+):? {% d => d.join('') %}
 
   Javascript
    -> "~":? "`" [^`]:* "`"
 
 MixinCall
- -> ClassOrId _ ">":? _ MixinCall
-  | MixinName ("(" Args:? ")"):?
+ -> MixinSelectors ("(" Args:? ")"):? {% d => [{ type: 'MixinCall', elements: d[0] }] %}
+ 
+MixinSelectors
+ -> ClassOrId {% d => { return { type: 'Element', name: d[0] } } %}
+  | MixinSelectors _ ">":? _ ClassOrId {% d => d[0].concat([{ type: 'Element', name: d[0], combinator: '>' }]) %}
 
-Args
- -> CommaArgument _ ("," _ CommaArgument):*
- | SemiColonArgument _ (";" _ SemiColonArgument _ ):* ";":?
-
-CommaArgument
- -> Variable (_ ":" _ NonCommaValue)
-  | NonCommaValue
-  | "..."
-
-SemiColonArgument
- -> CommaArgument
- | Value
+_semi -> _ ";"
 
 # TEMP
+Args -> "9"
 Namespace -> "5"
-Guard -> "6"
+Guard -> "when" _ Condition
+Condition -> "6"
 
+# Comments are collected by the main parsing mechanism and then assigned to nodes
+# where the current structure allows it.
+Comment
+ -> _ Comment _
+   | "//" [^\n\r]:* 
+   | "/*" CommentChars:* "*/"
+        
+CommentChars
+ -> "*" [^/] 
+   | [^*]
 
+# Identifiers - move to moo lexer?
+LessIdent -> AlphaNumDash:+ {% d => d[0].join('') %}
 Ident
- -> NameStart NameChar:*
-   # | ident:? variableCurly ident:?  # not sure how to do this
+ -> NameStart NameChar:* {% d => d[0] + d[1].join('') %}
 
-# Primitives
-Operator
+# Primitives - move to moo lexer?
+Op
  -> "*" | "+" | "-" | "/"
 Int
- -> [0-9]:+  
+ -> [0-9]:+ {% d => d.join('') %}
 Hex3
- -> Hex Hex Hex
+ -> Hex Hex Hex {% d => d.join('') %}
 Hex
  -> [a-fA-F0-9]
 NameStart
  -> [a-zA-Z_-] | NonAscii | Escape 
 NameChar
- -> [A-Za-z0-9_-] | NonAscii | Escape 
+ -> AlphaNumDash | NonAscii | Escape 
+
+AlphaDash -> [a-zA-Z_-]
+AlphaNumDash -> [A-Za-z0-9_-]
+
 NonAscii
  -> [\u0080-\uD7FF\uE000-\uFFFD]
 Escape
  -> Unicode | "\\" [\u0020-\u007E\u0080-\uD7FF\uE000-\uFFFD]
 Unicode
- -> "\\" Hex:+ _:?
-
-
-# Whitespace
-_  -> __:?
-__ -> [ \t\r\n\f]:+
-
-Comment
- -> "//" [^\n\r]:* 
-   | "/*" CommentChars:* "*/" 
-        
-CommentChars
- -> "*" [^/] 
-   | [^*]
+ -> "\\" Hex:+
 

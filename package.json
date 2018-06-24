@@ -38,7 +38,10 @@
   },
   "scripts": {
     "test": "grunt test",
-    "grunt": "grunt"
+    "grunt": "grunt",
+    "parse:test": "node node_modules/nearley/bin/nearley-test.js ./lib/less/parser/less_nearley_parser.js --input",
+    "grammar": "node node_modules/nearley/bin/nearleyc.js ./lib/less/parser/grammar.ne -o ./lib/less/parser/less_nearley_parser.js",
+    "parse": "npm run grammar && node ./lib/less/parser/test-parser.js"
   },
   "optionalDependencies": {
     "errno": "^0.1.1",
@@ -67,6 +70,7 @@
     "import-module": "file:test/import-module",
     "jit-grunt": "^0.10.0",
     "less-plugin-clean-css": "^1.5.1",
+    "moo": "^0.4.3",
     "performance-now": "^0.2.0",
     "phantomjs-prebuilt": "^2.1.7",
     "phin": "^2.2.3",
@@ -100,5 +104,7 @@
   ],
   "rawcurrent": "https://raw.github.com/less/less.js/v",
   "sourcearchive": "https://github.com/less/less.js/archive/v",
-  "dependencies": {}
+  "dependencies": {
+    "nearley": "^2.13.0"
+  }
 }
