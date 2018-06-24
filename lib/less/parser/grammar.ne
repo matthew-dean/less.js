@@ -72,17 +72,32 @@ Ruleset
  -> Comment:? SelectorList _ Block {% d => { return { type: 'Ruleset', comment: d[0], selectors: d[1], rules: d[3]} } %}
 
 Block
- -> "{" _ Rule:* _ "}" {% d => d[2] %}
+ -> "{" _ Rule:* _ "}" {% d => d[2][0] %}
 
 # Unlike the root, rules in blocks can have a declaration
 Rule
- -> Declaration (_semi _ Rule):?  {% d => { return d[1] ? [d[0]].concat(d[1][2]) : d[0] } %}
+ -> Declaration _semi:? {% d => [d[0]] %}
+  | Declaration _semi _ Rule  {% d => { return [d[0]].concat(d[3]) } %}
   | Primary
     
 SelectorList 
  -> Selector {% d => { return [{ type: 'Selector', elements: d[0]}] } %}
   | SelectorList _ "," _ Selector {% d => d[0].concat([{ type: 'Selector', elements: d[4]}]) %}
 
+# A Mixin definition, with a list of parameters
+#
+#     .rounded (@radius: 2px, @color) {
+#        ...
+#     }
+#
+# We start by matching `.rounded (`, and then proceed on to
+# the argument list, which has optional default values.
+# We store the parameters in `params`, with a `value` key,
+# if there is a value, such as in the case of `@radius`.
+#
+# Once we've got our params list, and a closing `)`, we parse
+# the `{...}` block.
+#
 MixinDefinition
  -> ClassOrId "(" Args:? ")" _ (Guard _):? Block {% d => { return { type: 'MixinDefinition', name: d[0], params: d[2], condition: d[4], rules: d[6] } } %}
 
@@ -99,13 +114,14 @@ Element
   | "&" {% id %}
   | Pseudo {% id %}
   | "*" {% id %}
+  | Extend
   
 # Elements
 Class 
- -> "." Ident {% d => d[0] + d[1] %}
+ -> "." Ident {% d => '.' + d[1] %}
 
 Id
- -> "#" Ident {% d => d[0] + d[1] %}
+ -> "#" Ident {% d => '#' + d[1] %}
 
 Combinator  # Current CSS4 combinators on the end
  -> ">" {% id %}
@@ -122,6 +138,9 @@ Attr
 Pseudo
  -> ":" ":":? Ident ("(" [^)]:* ")"):?
 
+#
+# :extend(.selector !all) - optional !
+#
 Extend
  -> ":extend(" _ SelectorList (__ ExtendKeys):? ")"
 
@@ -167,23 +186,27 @@ Value
  -> ExpressionList (_ "!" _ "important"):? {% d => { return { type: 'Value', value: d[0], important: d[1] ? true : false } } %}
 
 ExpressionList
- -> Expression {% id %}
+ -> Expression {% d => { return { type: 'Expression', value: d[0] }} %}
   | ExpressionList _ "," _ Expression {% d => d[0].concat([d[4]]) %}
   
 # Expressions either represent mathematical operations,
 # or white-space delimited Entities.
 #
+#  Examples:
 #     1px solid black
 #     @var * 2
+#     @var*(2 / 1)
+#     30px / 1.1
+#
 Expression
- -> Entity (__ Entity):* {% d => d[0].concat(d[1]) %}
+ -> Entity (__ Entity):* {% d => d[1] ? [d[0]].concat(d[1][0]): [d[0]] %}
 
 # Entities are tokens which can be found inside an Expression
 Entity
  -> Comment {% id %}
   | Literal {% id %}
   | Url {% id %}
-  | Keyword {% id %}
+  | Keyword {% d => { return { type: 'Keyword', value: d[0]} } %}
   | "/" {% id %}
   | Javascript {% id %}
 
@@ -261,8 +284,18 @@ Entity
   Javascript
    -> "~":? "`" [^`]:* "`"
 
+#
+# A Mixin call, with an optional argument list
+#
+#   Parses:
+#     #mixins > .square(#fff);
+#     #mixins .square(#fff);
+#     #mixins.square(#fff);
+#     .rounded(4px, { rule: value });
+#     .button;
+#
 MixinCall
- -> MixinSelectors ("(" Args:? ")"):? {% d => [{ type: 'MixinCall', elements: d[0] }] %}
+ -> MixinSelectors ("(" _ Args:? _ ")"):? {% d => [{ type: 'MixinCall', elements: d[0], params: d[1] ? d[1][2] : null }] %}
  
 MixinSelectors
  -> ClassOrId {% d => { return { type: 'Element', name: d[0] } } %}
@@ -273,13 +306,16 @@ SemiArgValue
   | DetachedRuleset
 
 CommaArgValue
- -> ExpressionList
-  | DetachedRuleset
+ -> ExpressionList {% id %}
+  | DetachedRuleset {% id %}
 
 _semi -> _ ";" {% d => null %}
 
 Args
  -> CommaArgValue (_ "," _ CommaArgValue):*
+    {%
+		id
+    %}
   | SemiArgValue _ ";" (_ SemiArgValue):? (_ ";" _ SemiArgValue):*
 
 # TEMP
