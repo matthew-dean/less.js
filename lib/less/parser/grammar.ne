@@ -12,6 +12,7 @@
 
 @builtin "whitespace.ne"
 @builtin "postprocessors.ne"
+@builtin "string.ne"
 
 # Here in, the parsing rules/functions (as originally written by Alexis Sellier)
 #
@@ -103,9 +104,18 @@ MixinDefinition
 
 Selector
  -> Element {% d => [{ type: 'Element', combinator: '', value: d[0]}] %}
+  | Selector NonIdentElement {% d => d[0].concat([d[1]]) %}
   | Selector __ Element {% d => d[0].concat([{ type: 'Element', combinator: ' ', value: d[2]} ]) %}
   | Selector _ Combinator _ Element {% d => d[0].concat([{ type: 'Element', combinator: d[2], value: d[4]}]) %}
 
+NonIdentElement
+ -> Class {% id %}
+  | Id {% id %}
+  | Attr {% id %}
+  | "&" {% id %}
+  | Pseudo {% id %}
+  | Extend
+ 
 Element
  -> Class {% id %}
   | Id {% id %}
@@ -133,7 +143,7 @@ Combinator  # Current CSS4 combinators on the end
  | ">>>" {% id %}     
 
 Attr
- -> "[" Ident ([|~*$^]:? "=" (Quoted | [^\]]:+)):? (_ "i"):? "]"
+ -> "[" Ident ([|~*$^]:? "=" (Quoted | [^\]]:+)):? (_ "i"):? "]" {% d => { return { type: 'Attribute', value: d.join('') } } %}
 
 Pseudo
  -> ":" ":":? Ident ("(" [^)]:* ")"):?
@@ -227,9 +237,8 @@ Entity
   #     "milky way" 'he\'s the one!'
   #
   # TODO - parse vars directly
-  Quoted
-   -> "\"" ([^\"\n\r] | "\\\"" ):* "\""
-     | "'" ([^\'\n\r] | "\\'"):* "'"
+  Quoted -> dqstring | sqstring
+
 
   Num        -> (Int:? "."):? Int
   Percentage -> Num "%"
@@ -340,7 +349,7 @@ Ident
 
 # Primitives - move to moo lexer?
 Op
- -> "*" | "+" | "-" | "/"
+ -> "*" | "+" | "-" | "/" | "./"
 Int
  -> [0-9]:+ {% d => d.join('') %}
 Hex3
