@@ -104,9 +104,9 @@ MixinDefinition
 
 Selector
  -> Element {% d => [{ type: 'Element', combinator: '', value: d[0]}] %}
-  | Selector NonIdentElement {% d => d[0].concat([d[1]]) %}
-  | Selector __ Element {% d => d[0].concat([{ type: 'Element', combinator: ' ', value: d[2]} ]) %}
-  | Selector _ Combinator _ Element {% d => d[0].concat([{ type: 'Element', combinator: d[2], value: d[4]}]) %}
+  | Element NonIdentElement:+
+  | Selector __ Element
+  | Selector _ Combinator _ Element {% d => d[0].concat([d[2]]) %}
 
 NonIdentElement
  -> Class {% id %}
@@ -316,7 +316,7 @@ Entity
 #     .button;
 #
 MixinCall
- -> MixinSelectors ("(" _ Args:? _ ")"):? {% d => [{ type: 'MixinCall', elements: d[0], params: d[1] ? d[1][2] : null }] %}
+ -> MixinSelectors ("(" _ Args _ ")"):? {% d => [{ type: 'MixinCall', elements: d[0], params: d[1] ? d[1][2] : null }] %}
  
 MixinSelectors
  -> ClassOrId {% d => { return { type: 'Element', name: d[0] } } %}
@@ -333,7 +333,8 @@ CommaArgValue
 _semi -> _ ";" {% d => null %}
 
 Args
- -> CommaArgValue (_ "," _ CommaArgValue):*
+ -> null
+  | CommaArgValue (_ "," _ CommaArgValue):*
     {%
 		d => d
     %}
