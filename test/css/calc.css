@@ -4,6 +4,7 @@
   min-height: calc((10vh) + calc(5vh));
   foo: 3 calc(3 + 4) 11;
   bar: calc(1 + 20%);
+  resolve: calc(100% - 40px);
 }
 .b {
   one: calc(100% - (20px));
