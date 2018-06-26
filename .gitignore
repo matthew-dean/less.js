@@ -25,3 +25,5 @@ test/less-bom
 # gradle
 .gradle
 out
+.project
+.settings/org.eclipse.buildship.core.prefs

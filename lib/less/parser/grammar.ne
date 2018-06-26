@@ -114,7 +114,6 @@ NonIdentElement
   | Attr {% id %}
   | "&" {% id %}
   | Pseudo {% id %}
-  | Extend
  
 Element
  -> Class {% id %}
@@ -124,7 +123,6 @@ Element
   | "&" {% id %}
   | Pseudo {% id %}
   | "*" {% id %}
-  | Extend
   
 # Elements
 Class 
@@ -146,16 +144,33 @@ Attr
  -> "[" Ident ([|~*$^]:? "=" (Quoted | [^\]]:+)):? (_ "i"):? "]" {% d => { return { type: 'Attribute', value: d.join('') } } %}
 
 Pseudo
- -> ":" ":":? Ident ("(" [^)]:* ")"):?
+ -> ":" ":":? Ident ("(" PseudoArgs ")"):? 
+    {% 
+      (d, l, reject) => {
+		let name = d[2]
+		let args = d[3] ? d[3][1] : d[3]
+		  
+		// :extend(.selector !all) - optional exclamation
+		if (name === 'extend') {
+			console.log(args) 
+			// :extend can't extend multiple selectors yet
+			if (!args || args.indexOf(',') > -1) {
+				return reject
+			}
+			let flag = args[args.length - 1] 
+			if (flag.match(/[!]?all/)) {  // todo: 'deep'
+				flag = args.pop();
+			}
+			return { type: 'Extend', selector: args }
+		}
+	    return d[0] + (d[1] ? d[1] : '') + d[2]
+		
+	  } 
+	%}
 
-#
-# :extend(.selector !all) - optional !
-#
-Extend
- -> ":extend(" _ SelectorList (__ ExtendKeys):? ")"
-
-ExtendKeys
- -> "!":? ("all" | "deep" | "ALL" | "DEEP")
+PseudoArgs
+ -> "!":? Element {% d => { return d[0] ? '!' + d[1] : d[1] } %}
+  | PseudoArgs (__|_ "," _) "!":? Element {% d => d[0].concat(d[1][1] ? [d[1][1], d[2] ? '!' + d[3] : d[3]] : d[2]) %}
 
 ClassOrId 
  -> Class {% id %}
@@ -197,7 +212,7 @@ Value
 
 ExpressionList
  -> Expression {% d => { return { type: 'Expression', value: d[0] }} %}
-  | ExpressionList _ "," _ Expression {% d => d[0].concat([d[4]]) %}
+  | ExpressionList _ "," _ Expression {% d => { return { type: 'Expression', value: d[0].concat([d[4]]) } } %}
   
 # Expressions either represent mathematical operations,
 # or white-space delimited Entities.
@@ -257,10 +272,7 @@ Entity
   #     rgb(255, 0, 255)
   #
   FunctionCall
-   -> "if(" _ Condition _ "," _ CommaArgValue _ "," _ CommaArgValue _ ")"
-    | "if(" _ Condition _ ";" _ SemiArgValue _ ";" _ SemiArgValue _ ")"
-    | "boolean(" _ Condition _ ")"
-    | (Ident | "%") "(" Args ")"
+   -> (Ident | "%") "(" Args ")"
 
   Assignment
    -> Keyword "=" Value 
@@ -323,7 +335,7 @@ _semi -> _ ";" {% d => null %}
 Args
  -> CommaArgValue (_ "," _ CommaArgValue):*
     {%
-		id
+		d => d
     %}
   | SemiArgValue _ ";" (_ SemiArgValue):? (_ ";" _ SemiArgValue):*
 
@@ -357,12 +369,14 @@ Hex3
 Hex
  -> [a-fA-F0-9]
 NameStart
- -> [a-zA-Z_-] | NonAscii | Escape 
+ -> AlphaDash
+  | NonAscii
+  | Escape 
 NameChar
  -> AlphaNumDash | NonAscii | Escape 
 
-AlphaDash -> [a-zA-Z_-] 
-AlphaNumDash -> [A-Za-z0-9_-]
+AlphaDash -> [a-zA-Z_-] {% d => d.join('') %}
+AlphaNumDash -> [A-Za-z0-9_-] {% d => d.join('') %}
 
 NonAscii
  -> [\u0080-\uD7FF\uE000-\uFFFD]
