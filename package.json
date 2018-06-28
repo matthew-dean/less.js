@@ -105,6 +105,9 @@
   "rawcurrent": "https://raw.github.com/less/less.js/v",
   "sourcearchive": "https://github.com/less/less.js/archive/v",
   "dependencies": {
-    "nearley": "^2.13.0"
+    "benchmark": "^2.1.4",
+    "chevrotain": "^3.7.0",
+    "nearley": "^2.13.0",
+    "xregexp": "^4.2.0"
   }
 }

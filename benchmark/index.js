@@ -3,7 +3,7 @@ var path = require('path'),
     now = require("performance-now");
 
 var less = require('../lib/less-node');
-var file = path.join(__dirname, 'benchmark.less');
+var file = path.join(__dirname, './samples/4k.less');
 
 if (process.argv[2]) { file = path.join(process.cwd(), process.argv[2]) }
 
