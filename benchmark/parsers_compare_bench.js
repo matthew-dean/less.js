@@ -5,7 +5,8 @@ const grammar = require("../lib/less/parser/less_nearley_parser");
 const Benchmark = require("benchmark");
 const fs = require("fs");
 const path = require("path");
-const chevParse = require("../lib/less/parser/chev_css_parser").parseCss;
+const chevCssParse = require("../lib/less/parser/chev_css_parser").parseCss;
+const chevLessParse = require("../lib/less/parser/chev_less_parser").parseLess;
 const pegParse = require("../lib/less/parser/less_peg_parser").parse;
 const less = require("../lib/less-node");
 
@@ -23,8 +24,15 @@ function newSuite(name) {
   });
 }
 
-function parseChevrotain(text) {
-  const parseResult = chevParse(sample);
+function parseCssChevrotain(text) {
+  const parseResult = chevCssParse(sample);
+  if (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) {
+    throw "Oops I did it again";
+  }
+}
+
+function parseLessChevrotain(text) {
+  const parseResult = chevLessParse(sample);
   if (parseResult.lexErrors.length > 0 || parseResult.parseErrors.length > 0) {
     throw "Oops I did it again";
   }
@@ -55,7 +63,10 @@ newSuite("10k pure CSS input")
   // The Chevrotain parser does not output any structure yet so the comparison is unfair.
   // Meaning that Chevrotain has unfair advantage in this benchmark.
   // Although creating the output structure is often very fast relative to parsing
-  .add("Chevrotain", () => parseChevrotain(sample))
+  .add("Chevrotain CSS", () => parseCssChevrotain(sample))
+  // This scenario tests performance of Chevrotain parsers using Grammar inheritance.
+  .add("Chevrotain LESS", () => parseLessChevrotain(sample))
+
   .run({
     async: false
   });
