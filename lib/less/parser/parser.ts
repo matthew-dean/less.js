@@ -11,6 +11,9 @@ import {
   ITokenConfig,
   TokenType
 } from 'chevrotain';
+// have a look here for an alternative Mini DSL for Lexer fragments composition
+// That does not require any external dependency
+// - https://github.com/bd82/toml-tools/blob/master/packages/lexer/lib/tokens.js#L13-L31
 import * as XRegExp from 'xregexp';
 
 const fragments: {
@@ -302,7 +305,8 @@ const lessModes = {
 const LessLexer = new Lexer(lessModes)
 
 // ----------------- parser -----------------
-
+// You should extend CstParser
+// - https://github.com/SAP/chevrotain/issues/967
 class LessParser extends Parser {
   primary: any;
   extendRule: any;
