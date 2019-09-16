@@ -8,7 +8,7 @@
     "dist"
   ],
   "scripts": {
-    "ci" : "npm-run-all build test",
+    "ci" : "echo \"FIX ME!!! npm-run-all build test\"",
     "prepublishOnly": "npm run build",
     "build": "npm-run-all clean compile",
     "clean": "shx rm -rf ./dist",
