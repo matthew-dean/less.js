@@ -12,7 +12,7 @@
     "prepublishOnly": "npm run build",
     "build": "npm-run-all clean compile",
     "clean": "shx rm -rf ./dist",
-    "compile": "tsc -p tsconfig.build.json || true",
+    "compile": "tsc -p tsconfig.build.json",
     "test": "mocha -r ts-node/register **/__tests__/*.ts"
   },
   "author": "Matthew Dean",
