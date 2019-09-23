@@ -1,17 +1,19 @@
-import Node from '../node';
-import Element from './element';
-import LessError from '../less-error';
-
+import { Node, Element } from '.'
 
 // A selector like div .foo@{blah} +/* */ p
 //   
 //  e.g.
 //     elements = ['div',' ','.foo',new Variable('@blah'),'+','p']
 //     text = 'div.foo[bar] +/* */ p'
-//  
-class Selector extends Node {
-  values: Element[]
+//
+/** 
+ * A Selector node is really just an expression wrapper for elements,
+ * so that it can hold pre and post nodes for a selector list.
+ */
+export class Selector extends Node {
+  nodes: Element[]
   options: {
+    /** @todo ? what is media empty? */
     mediaEmpty: boolean
   }
   getElements(els: Element[]) {
@@ -104,5 +106,4 @@ class Selector extends Node {
   }
 }
 
-Selector.prototype.type = 'Selector';
-export default Selector;
+Selector.prototype.type = 'Selector'

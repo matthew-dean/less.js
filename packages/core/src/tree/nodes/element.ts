@@ -1,36 +1,43 @@
-import Node, { IProps, INodeOptions, ILocationInfo } from '../node'
-import Value from './value'
-import Paren from './block'
+import {
+  Node,
+  IProps,
+  IBaseProps,
+  INodeOptions,
+  ILocationInfo,
+  Value,
+  Block
+} from '.'
 
-type IElementProps = [string, string] | IProps
+export type IElementProps = [string, string] | IProps
 /**
  * An element's values list will be exactly two Values,
  * so that they can have normalized values for indexing / lookups
  */
-class Element extends Node {
+export class Element extends Node {
   children: {
-    values: [Value, Value]
+    nodes: [Value, Value]
   }
 
   constructor(props: IElementProps, options?: INodeOptions, location?: ILocationInfo) {
-    let valueNodes: Node[]
+    let nodes: Node[]
     if (props[0].constructor === String) {
-      valueNodes = [new Value(<string>props[0]), new Value(<string>props[1])]
+      nodes = [new Value(<string>props[0]), new Value(<string>props[1])]
     } else {
-      valueNodes = <Node[]>(props.values || props)
+      nodes = <Node[]>((<IBaseProps>props).nodes || props)
     }
-    super(valueNodes, options, location)
+ 
+    super({ nodes }, options, location)
   }
 
   /** Indexable value */
   valueOf() {
-    let combinator = (this.values[0].value || '').toString()
-    let simpleSelector = (this.values[1].value || '').toString()
+    let combinator = (this.nodes[0].value || '').toString()
+    let simpleSelector = (this.nodes[1].value || '').toString()
     return combinator + simpleSelector
   }
 
   toString() {
-    return this.values[0].text + this.values[1].text
+    return this.nodes[0].toString() + this.nodes[1].toString()
   }
 
   toCSS(context = {}) {
@@ -51,5 +58,4 @@ class Element extends Node {
   }
 }
 
-Element.prototype.type = 'Element';
-export default Element;
+Element.prototype.type = 'Element'

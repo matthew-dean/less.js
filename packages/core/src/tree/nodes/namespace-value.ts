@@ -1,9 +1,15 @@
-import Node from '../node';
-import Variable from './variable-ref';
-import Ruleset from './ruleset';
-import Selector from './selector';
+import {
+  Node,
+  Variable,
+  Rules,
+  Selector
+} from '.'
 
-class NamespaceValue extends Node {
+/**
+ * @todo - This should be a lot simpler now that rulesets and qualified rules
+ *         have their rules collections normalized
+ */
+export class NamespaceValue extends Node {
     constructor(ruleCall, lookups, important, index, fileInfo) {
         super();
 
@@ -24,12 +30,12 @@ class NamespaceValue extends Node {
             name = this.lookups[i];
 
             /**
-             * Eval'd DRs return rulesets.
-             * Eval'd mixins return rules, so let's make a ruleset if we need it.
+             * Eval'd DRs return ruless.
+             * Eval'd mixins return rules, so let's make a rules if we need it.
              * We need to do this because of late parsing of values
              */
             if (Array.isArray(rules)) {
-                rules = new Ruleset([new Selector()], rules);
+                rules = new Rules([new Selector()], rules);
             }
 
             if (name === '') {
@@ -67,7 +73,7 @@ class NamespaceValue extends Node {
                         filename: this.fileInfo().filename,
                         index: this.getIndex() };
                 }
-                // Properties are an array of values, since a ruleset can have multiple props.
+                // Properties are an array of values, since a rules can have multiple props.
                 // We pick the last one (the "cascaded" value)
                 rules = rules[rules.length - 1];
             }
@@ -75,13 +81,12 @@ class NamespaceValue extends Node {
             if (rules.value) {
                 rules = rules.eval(context).value;
             }
-            if (rules.ruleset) {
-                rules = rules.ruleset.eval(context);
+            if (rules.rules) {
+                rules = rules.rules.eval(context);
             }
         }
         return rules;
     }
 }
 
-NamespaceValue.prototype.type = 'NamespaceValue';
-export default NamespaceValue;
+NamespaceValue.prototype.type = 'NamespaceValue'

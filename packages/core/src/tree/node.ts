@@ -1,10 +1,19 @@
 import { CstNodeLocation } from 'chevrotain'
-import { RewriteUrlMode } from '../constants'
 import { IOptions } from '../options'
-import { EvalContext } from '../contexts'
+import { EvalContext } from './contexts'
+import { compare } from './util/compare'
+import { Rules, Import, Declaration } from './nodes'
 
-export type SimpleValue = string | number | boolean | number[] | string[]
-export type ISimpleProps = {
+export type SimpleValue = string | number | boolean | number[]
+
+export type IChildren = {
+  [key: string]: Node[]
+}
+
+export type IBaseProps = {
+  /** Each node may have pre or post Nodes for comments or whitespace */
+  pre?: Node | string
+  post?: Node | string
   /**
    * Primitive or simple representation of value.
    * This is used in valueOf() for math operations,
@@ -19,24 +28,25 @@ export type ISimpleProps = {
    *           but a text value of '[foo=bar]' (for normalization)
    */
   text?: string
+
+  /**
+   * Most nodes will have a single sub-node collection under this property
+   */
+  nodes?: Node[]
 }
+
+export type IProps = {
+  [P in keyof IBaseProps]: IBaseProps[P]
+} & IChildren
 
 /**
  * The result of an eval can be one of these types
  */
 export type EvalReturn = Node[] | Node | false
 
-export interface IChildren {
-  /**
-   * Used when the value of a node can be represented by a single list of Nodes
-   */
-  values?: Node[]
-  [key: string]: Node[]
-}
-
 export type ProcessFunction = (node: Node) => EvalReturn
 
-export type IProps = Node[] | (ISimpleProps & IChildren)
+// export type IProps = Node[] | (IChildren & ISimpleProps)
 export interface ILocationInfo extends CstNodeLocation {}
 /**
  * In practice, this will probably be inherited through the prototype chain
@@ -51,21 +61,31 @@ export interface IFileInfo {
   entryPath: string
 }
 
-export type IRootOptions = {
-  /** Passed in for every file root node */
-  fileInfo?: IFileInfo
-  /** Only one node, the root node, should pass this in */
-  options?: IOptions
-}
+export type INodeOptions = {
+  [key: string]: boolean | number | string
+} & Partial<IFileInfo>
 
-export type INodeOptions = IRootOptions & {
-  [key: string]: boolean | number
+export enum MatchOption {
+  /** Return first result */
+  FIRST,
+  /** Return all matches in the ruleset where the first match is found */
+  IN_RULES,
+  /** Return all matches found while searching up the tree */
+  IN_SCOPE
 }
 
 export abstract class Node {
 
-  /** This will always be present as an array, even if it is empty */
-  values: Node[]
+  /**
+   * When nodes only have a single list of sub-nodes, they'll use the nodes prop,
+   * which reduces boilerplate when used. 
+   *
+   * This will always be present as an array, even if it is empty
+   */
+  nodes: Node[]
+  pre: Node | string
+  post: Node | string
+
   children: IChildren
   childKeys: string[]
 
@@ -74,8 +94,10 @@ export abstract class Node {
   text: string
 
   options: INodeOptions
-  evalOptions: IOptions
+  lessOptions: IOptions
   fileInfo: IFileInfo
+
+  allowRoot: boolean
 
   /**
    * This will be the start values from the first token and the end
@@ -84,10 +106,11 @@ export abstract class Node {
   location: ILocationInfo
 
   parent: Node
-  root: Node
-  fileRoot: Node
+  root: Rules
+  fileRoot: Rules
 
   visibilityBlocks: number
+  evalFirst: boolean
   
   // false - the node must not be visible
   // true - the node must be visible
@@ -96,43 +119,57 @@ export abstract class Node {
   isVisible: boolean
 
   type: string
+
+  /** eval() was called */
   evaluated: boolean
 
-  constructor(props: IProps, opts: INodeOptions = {}, location?: ILocationInfo) {
-    if (Array.isArray(props)) {
-      const values = props
-      this.children = { values }
-      this.values = values
-      this.childKeys = ['values']
-    } else {
-      const { value, text, ...children } = props
-
-      this.children = children
-      if (!children.values) {
-        this.children.values = []
-      }
-      this.values = this.children.values
-      this.childKeys = Object.keys(children)
-      this.value = value
-      this.text = text
+  constructor(props: IProps, options: INodeOptions = {}, location?: ILocationInfo) {
+    const { pre, post, value, text, ...children } = props
+      /** nodes is always present as an array, even if empty */  
+    if (!children.nodes) {
+      children.nodes = []
     }
+    this.children = children
+    this.childKeys = Object.keys(children)
+    this.value = value
+    this.text = text
+    this.pre = pre || ''
+    this.post = post || ''
+    
+    /** Puts each children nodes list at root for convenience */
+    this.childKeys.forEach(key => {
+      Object.defineProperty(this, key, {
+        get() {
+          return this.children[key]
+        },
+        set(newValue: Node[]) {
+          this.children[key] = newValue
+        },
+        enumerable: false,
+        configurable: false
+      })
+    })
     
     this.setParent()
     this.location = location
   
-    const { fileInfo, options, ...rest } = opts
-    this.options = rest
-    if (options) {
+    if (options.isRoot && this instanceof Rules) {
       this.root = this
-      this.evalOptions = options
     }
-    if (fileInfo) {
+    if (options.filename && this instanceof Rules) {
       this.fileRoot = this
-      this.fileInfo = fileInfo
+      this.fileInfo = <IFileInfo>options
+    } else {
+      this.options = options
     }
 
     this.evaluated = false
     this.visibilityBlocks = 0
+
+    /**
+     * No node should be adding properties to this.children after the constructor
+     */
+    Object.seal(this.children)
   }
 
   protected setParent() {
@@ -150,16 +187,6 @@ export abstract class Node {
     })
   }
 
-  protected normalizeValues(values: Node | Node[]): Node[] {
-    if (!Array.isArray(values)) {
-      if (values === undefined) {
-        return []
-      }
-      return [values]
-    }
-    return values
-  }
-
   accept(visitor) {
     this.processChildren(this, (node: Node) => visitor.visit(node))
   }
@@ -171,54 +198,179 @@ export abstract class Node {
     if (this.text !== undefined) {
       return this.text
     }
-    return this.values.join('')
+    return this.nodes.map(node => node.valueOf()).join('')
   }
 
   toString() {
+    let text: string
     if (this.text !== undefined) {
-      return this.text
+      text = this.text
+    } else if (this.value !== undefined) {
+      text = this.value.toString()
+    } else {
+      text = this.nodes.join('')
     }
-    if (this.value !== undefined) {
-      return this.value.toString()
-    }
-    return this.values.join('')
+    return this.pre + text + this.post
+  }
+
+  /** Nodes may have individual compare strategies */
+  compare(node: Node) {
+    return compare(this, node)
   }
 
   /**
-   * Derived nodes can pass in context to eval and clone at the same time
+   * Attach properties from inherited node.
+   * This is used when cloning, but also when
+   * doing any kind of node replacement (during eval).
    */
-  clone(context?: EvalContext): any {
+  inherit(inheritFrom: Node): this {
+    this.pre = inheritFrom.pre
+    this.post = inheritFrom.post
+    this.location = inheritFrom.location
+    this.parent = inheritFrom.parent
+    this.root = inheritFrom.root
+    this.fileRoot = inheritFrom.fileRoot
+    this.fileInfo = inheritFrom.fileInfo
+    this.visibilityBlocks = inheritFrom.visibilityBlocks
+    this.isVisible = inheritFrom.isVisible
+    return this
+  }
+
+  /**
+   * Derived nodes can pass in context to eval and clone at the same time.
+   * 
+   * Typically a clone of the entire tree happens at the beginning of the eval cycle,
+   * but it is sometimes re-used by sub-nodes during eval.
+   * 
+   * @param shallow - doesn't deeply clone nodes (retains references)
+   */
+  clone(shallow: boolean = false): this {
     const Clazz = Object.getPrototypeOf(this)
     const newNode = new Clazz({
+      pre: this.pre,
+      post: this.post,
       value: this.value,
-      text: this.text
+      text: this.text,
+      ...this.children
     /** For now, there's no reason to mutate this.location, so its reference is just copied */
     }, {...this.options}, this.location)
+    
+    /**
+     * First copy over Node-specific props
+     * 
+     * @todo - @addtest - make sure methods are not copied
+     */
+    for (let prop in this) {
+      if (this.hasOwnProperty(prop)) {
+        newNode[prop] = this[prop]
+      }
+    }
 
     newNode.childKeys = [...this.childKeys]
-    this.processChildren(newNode, (node: Node) => node.clone(context))
-    newNode.values = newNode.children.values
+
+    /** Copy over props defined in this file */
+    newNode.inherit(this)
+
+    /**
+     * We update the root reference but not fileRoot.
+     * (fileRoot is the original tree)
+     */
+    if (this instanceof Rules && this === this.root) {
+      newNode.root = newNode
+    }
+
+    if (!shallow) {
+      /**
+       * Perform a deep clone
+       * This will overwrite the parent / root props of children nodes.
+       */
+      this.processChildren(newNode, (node: Node) => node.clone(true))
+    }
   
     if (context) {
       newNode.evaluated = true
     } else {
       newNode.evaluated = this.evaluated
     }
-    /** Copy basic node props */
-    newNode.parent = this.parent
-    newNode.root = this.root
-    newNode.fileRoot = this.fileRoot
-    newNode.fileInfo = this.fileInfo
-    newNode.evalOptions = this.evalOptions
-    newNode.visibilityBlocks = this.visibilityBlocks
-    newNode.isVisible = this.isVisible
-    newNode.type = this.type
 
     return newNode
   }
 
   protected getFileInfo(): IFileInfo {
     return this.fileRoot.fileInfo
+  }
+
+  /**
+   * Convenience method if location isn't copied to new nodes
+   * for any reason (such as a custom function)
+   */
+  protected getLocation(): ILocationInfo {
+    let node: Node = this
+    while (node) {
+      if (node.location) {
+        return node.location
+      }
+      node = node.parent
+    }
+  }
+
+  find(matchFunction: Function, option: MatchOption = MatchOption.FIRST): Node | Node[] {
+    let node: Node = this
+    const matches: Node[] = []
+    const crawlRules = (rulesNode: Rules) => {
+      const nodes = rulesNode.nodes
+      const nodeLength = this.nodes.length
+
+      for (let i = nodeLength; i > 0; i--) {
+        const node = nodes[i - 1]
+        const match = matchFunction(node)
+        if (match) {
+          matches.push(match)
+          if (option === MatchOption.FIRST) {
+            break
+          }
+        }
+        if (node instanceof Import) {
+          const content = node.content[0]
+          if (content instanceof Rules) {
+            crawlRules(content)
+          }
+        }
+      }
+    }
+    while (node) {
+      if (node instanceof Rules) {
+        crawlRules(node)
+        if (matches.length && option !== MatchOption.IN_SCOPE) {
+          if (MatchOption.FIRST) {
+            return matches[0]
+          }
+          return matches
+        }
+      }
+
+      node = this.parent
+    }
+
+    return matches.length ? matches : undefined
+  }
+
+  /** Moved from Rules property() method */
+  findProperty(name: string): Declaration[] {
+    return <Declaration[]>this.find((node: Node) => (
+      node instanceof Declaration &&
+      !node.options.isVariable &&
+      node.value === name
+    ), MatchOption.IN_RULES)
+  }
+
+  /** Moved from Rules variable() method */
+  findVariable(name: string): Declaration {
+    return <Declaration>this.find((node: Node) => (
+      node instanceof Declaration &&
+      node.options.isVariable &&
+      node.value === name
+    ), MatchOption.FIRST)
   }
 
   /**
@@ -234,27 +386,27 @@ export abstract class Node {
     let thisLength = nodeArray.length
     for (let i = 0; i < thisLength; i++) {
       const item = nodeArray[i]
-      const node = processFunc(item)
-      if (Array.isArray(node)) {
-        const nodeLength = node.length
-        if (node.length === 0) {
+      const returnValue = processFunc(item)
+      if (Array.isArray(returnValue)) {
+        const nodeLength = returnValue.length
+        if (returnValue.length === 0) {
           nodeArray.splice(i, 1)
           i--
           continue
         }
         else {
-          nodeArray.splice(i, 1, ...node)
+          nodeArray.splice(i, 1, ...returnValue)
           thisLength += nodeLength
           i += nodeLength
           continue
         }
       }
-      if (node === undefined || node === null || node === false) {
+      if (returnValue === undefined || returnValue === null || returnValue === false) {
         nodeArray.splice(i, 1)
         i--
         continue
       }
-      nodeArray[i] = node
+      nodeArray[i] = returnValue
     }
     return nodeArray
   }
@@ -264,8 +416,13 @@ export abstract class Node {
       let nodes = this.children[key]
       if (nodes) {
         if (node !== this) {
+          /** This is during cloning */
           nodes = [...nodes]
           node.children[key] = this.processNodeArray(nodes, processFunc)
+          nodes.forEach((n: Node) => {
+            n.parent = node
+            n.root = node.root
+          })
         } else {
           this.processNodeArray(nodes, processFunc)
         }
@@ -273,16 +430,48 @@ export abstract class Node {
     })
   }
 
+  private inheritChild(node: Node) {
+    node.parent = this
+    node.root = this.root
+    node.fileRoot = this.fileRoot
+  }
+
+  appendNode(nodes: Node[], insertedNode: Node) {
+    this.inheritChild(insertedNode)
+    nodes.push(insertedNode)
+  }
+
+  prependNode(nodes: Node[], insertedNode: Node) {
+    this.inheritChild(insertedNode)
+    nodes.unshift(insertedNode)
+  }
+
   /**
    * By default, nodes will just evaluate nested values
    * However, some nodes after evaluating will of course override
    * this to produce different node types or primitive values
    */
-  eval(context?: EvalContext): any {
+  eval(context?: EvalContext): EvalReturn {
+    /** All nodes that override eval() should (usually) exit if they're evaluated */
     if (!this.evaluated) {
       this.processChildren(this, (node: Node) => node.eval(context))
     }
     this.evaluated = true
+    return this
+  }
+
+  error(context: EvalContext, message: string) {
+    if (context) {
+      context.error({ message }, this.fileRoot)
+      return this
+    }
+    throw new Error(message)
+  }
+
+  warn(context: EvalContext, message: string) {
+    if (context) {
+      context.warning({ message }, this.fileRoot)
+    }
     return this
   }
 
@@ -350,4 +539,3 @@ export abstract class Node {
   }
 }
 
-export default Node

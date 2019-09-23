@@ -1,37 +1,51 @@
-import Node from '../node'
-import Block from './block'
-import Comment from './comment'
-import Dimension from './dimension'
-import { EvalContext } from '../../contexts'
-import { MathMode } from '../../constants'
+import {
+  Node,
+  Block,
+  Comment,
+  Dimension
+} from '.'
 
-type IExpressionOptions = {
+import { EvalContext } from '../contexts'
+
+export type IExpressionOptions = {
   inBlock: boolean
   blockInOp: boolean
 }
 
 /**
- * An expression is a value that collapses blocks after evaluation
+ * An expression is an arbitrary list of nodes,
+ * but has two unique properties:
+ *   1) It switches the way math is evaluated based on blocks
+ *   2) When converted to an array, it discards whitespace and 
+ *      comments as members of the array.
  */
-class Expression extends Node {
+export class Expression extends Node {
   options: IExpressionOptions
 
+  // toArray() {
+  //   return this.nodes.filter(node =>
+  //     (!(node instanceof WS) && !(node instanceof Comment))
+  //   )
+  // }
+
+  /**
+   * @todo - why not just do enter / exit block in the block node?
+   */
   eval(context: EvalContext) {
     const { inBlock, blockInOp } = this.options
     let returnValue: any
     const mathOn = context.isMathOn()
 
-    const inParenthesis = inBlock && 
-      (context.options.math !== MathMode.STRICT_LEGACY || !blockInOp)
+    const inParenthesis = inBlock && !blockInOp
 
     let doubleParen = false
     if (inParenthesis) {
       context.enterBlock()
     }
-    if (this.value.length > 1) {
+    if (this.nodes.length > 1) {
       returnValue = super.eval(context)
-    } else if (this.value.length === 1) {
-      const value = this.value[0]
+    } else if (this.nodes.length === 1) {
+      const value = this.nodes[0]
       if (
         value instanceof Expression && 
         value.options.inBlock &&
@@ -40,7 +54,7 @@ class Expression extends Node {
       ) {
         doubleParen = true
       }
-      returnValue = value.eval(context)
+      returnValue = value.eval(context).inherit(this)
     } else {
       returnValue = this
     }
@@ -49,15 +63,14 @@ class Expression extends Node {
     }
     if (inBlock && blockInOp && !mathOn && !doubleParen 
       && (!(returnValue instanceof Dimension))) {
-      returnValue = new Block(returnValue, {}, this.location)
+      returnValue = new Block(returnValue, {}, this.location).inherit(this)
     }
     return returnValue
   }
 
   throwAwayComments() {
-    this.value = this.value.filter(v => !(v instanceof Comment));
+    this.nodes = this.nodes.filter(v => !(v instanceof Comment));
   }
 }
 
-Expression.prototype.type = 'Expression';
-export default Expression;
+Expression.prototype.type = 'Expression'

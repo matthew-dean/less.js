@@ -1,11 +1,14 @@
-import Ruleset from './ruleset';
-import Value from './list';
+import Rules from './rules';
+import List from './list';
 import Selector from './selector';
-import Anonymous from './generic';
+import Value from './value';
 import Expression from './expression';
-import AtRule from './atrule';
+import AtRule from './at-rule';
 import * as utils from '../utils';
 
+/**
+ * Removed, move "bubbling" to tree-flattening visitor
+ */
 class Media extends AtRule {
     constructor(value, features, index, currentFileInfo, visibilityInfo) {
         super();
@@ -15,33 +18,14 @@ class Media extends AtRule {
 
         const selectors = (new Selector([], null, null, this._index, this._fileInfo)).createEmptySelectors();
 
-        this.features = new Value(features);
-        this.rules = [new Ruleset(selectors, value)];
+        this.features = new List(features);
+        this.rules = [new Rules(selectors, value)];
         this.rules[0].allowImports = true;
         this.copyVisibilityInfo(visibilityInfo);
         this.allowRoot = true;
         this.setParent(selectors, this);
         this.setParent(this.features, this);
         this.setParent(this.rules, this);
-    }
-
-    isRulesetLike() {
-        return true;
-    }
-
-    accept(visitor) {
-        if (this.features) {
-            this.features = visitor.visit(this.features);
-        }
-        if (this.rules) {
-            this.rules = visitor.visitArray(this.rules);
-        }
-    }
-
-    genCSS(context, output) {
-        output.add('@media ', this._fileInfo, this._index);
-        this.features.genCSS(context, output);
-        this.outputRuleset(context, output, this.rules);
     }
 
     eval(context) {
@@ -78,7 +62,7 @@ class Media extends AtRule {
         // Render all dependent Media blocks.
         if (context.mediaBlocks.length > 1) {
             const selectors = (new Selector([], null, null, this.getIndex(), this.fileInfo())).createEmptySelectors();
-            result = new Ruleset(selectors, context.mediaBlocks);
+            result = new Rules(selectors, context.mediaBlocks);
             result.multiMedia = true;
             result.copyVisibilityInfo(this.visibilityInfo());
             this.setParent(result, this);
@@ -109,11 +93,11 @@ class Media extends AtRule {
         //    a and e
         //    b and c and d
         //    b and c and e
-        this.features = new Value(this.permute(path).map(path => {
-            path = path.map(fragment => fragment.toCSS ? fragment : new Anonymous(fragment));
+        this.features = new List(this.permute(path).map(path => {
+            path = path.map(fragment => fragment.toCSS ? fragment : new Value(fragment));
 
             for (i = path.length - 1; i > 0; i--) {
-                path.splice(i, 0, new Anonymous('and'));
+                path.splice(i, 0, new Value('and'));
             }
 
             return new Expression(path);
@@ -121,7 +105,7 @@ class Media extends AtRule {
         this.setParent(this.features, this);
 
         // Fake a tree-node that doesn't output anything.
-        return new Ruleset([], []);
+        return new Rules([]);
     }
 
     permute(arr) {
@@ -145,7 +129,7 @@ class Media extends AtRule {
         if (!selectors) {
             return;
         }
-        this.rules = [new Ruleset(utils.copyArray(selectors), [this.rules[0]])];
+        this.rules = [new Rules(utils.copyArray(selectors), [this.rules[0]])];
         this.setParent(this.rules, this);
     }
 }

@@ -1,133 +1,102 @@
-import Node from '../node';
-import unitConversions from '../data/unit-conversions';
-import Color from './color'
-import Numeric from './numeric'
-import Value from './value'
-import { fround, operate } from '../util'
+import {
+  Node,
+  IProps,
+  INodeOptions,
+  ILocationInfo,
+  NumericNode,
+  NumberValue,
+  Value
+} from '.'
+
+import { convertDimension } from '../util/convert'
+import { EvalContext } from '../contexts'
+import { operate } from '../util/math'
+import { StrictUnitMode } from '../../constants'
+
+export type IDimensionProps = [number | NumberValue, string | Value] | IProps
 
 /**
  * A number with a unit
  * 
- * e.g. props = { value: 1, values: [<Number>, <Value>] }
+ * e.g. props = [<NumberValue>, <Value>], or
+ *      props = [1, 'px']
  */
-class Dimension extends Node {
+export class Dimension extends NumericNode {
   value: number
   /** Second value is the unit */
-  values: [Numeric, Value]
+  nodes: [NumberValue, Value]
 
-  // In an operation between two Dimensions,
-  // we default to the first Dimension's unit,
-  // so `1px + 2` will yield `3px`.
-  operate(context, op: string, other: Node) {
-    const unit = this.values[1].clone()
-    if ()
-    const result = operate(op, this.values[0].value, other.value)
-    // let value = this._operate(context, op, this.value, other.value);
+  constructor(props: IDimensionProps, options?: INodeOptions, location?: ILocationInfo) {
+    let nodes = Array(2)
 
-    if (op === '+' || op === '-') {
-        if (unit.numerator.length === 0 && unit.denominator.length === 0) {
-            unit = other.unit.clone();
-            if (this.unit.backupUnit) {
-                unit.backupUnit = this.unit.backupUnit;
-            }
-        } else if (other.unit.numerator.length === 0 && unit.denominator.length === 0) {
-            // do nothing
-        } else {
-            other = other.convertTo(this.unit.usedUnits());
-
-            if (context.strictUnits && other.unit.toString() !== unit.toString()) {
-                throw new Error(`Incompatible units. Change the units or use the unit function. ` + 
-                    `Bad units: '${unit.toString()}' and '${other.unit.toString()}'.`);
-            }
-
-            value = this._operate(context, op, this.value, other.value);
-        }
-    } else if (op === '*') {
-        unit.numerator = unit.numerator.concat(other.unit.numerator).sort();
-        unit.denominator = unit.denominator.concat(other.unit.denominator).sort();
-        unit.cancel();
-    } else if (op === '/') {
-        unit.numerator = unit.numerator.concat(other.unit.denominator).sort();
-        unit.denominator = unit.denominator.concat(other.unit.numerator).sort();
-        unit.cancel();
+    if (Array.isArray(props)) {
+      const val1 = props[0]
+      const val2 = props[1]
+      nodes[0] = val1.constructor === Number ? new NumberValue(<number>val1) : <NumberValue>val1
+      nodes[1] = val2.constructor === String ? new Value(<string>val2) : <Value>val2
+      props = { nodes }
     }
-    return new Dimension(value, unit);
+    super(props, options, location)
+    /** Sets the value to the value of the NumberValue */
+    this.value = this.nodes[0].value
   }
 
-  compare(other) {
-      let a;
-      let b;
+  operate(op: string, other: Node, context: EvalContext): Node {
+    const strictUnits = context.options.strictUnits
+    if (other instanceof Dimension) {
+      const aUnit = this.nodes[1]
+      const bNode = this.unify(other, aUnit.value)
+      const bUnit = bNode.nodes[1]
 
-      if (!(other instanceof Dimension)) {
-          return undefined;
-      }
-
-      if (this.unit.isEmpty() || other.unit.isEmpty()) {
-          a = this;
-          b = other;
+      if (aUnit.value !== bUnit.value) {
+        if (strictUnits === StrictUnitMode.ERROR) {
+          return this.error(
+            context,
+            `Incompatible units. Change the units or use the unit function. ` + 
+              `Bad units: '${aUnit.value}' and '${bUnit.value}'.`
+          )
+        } else if (strictUnits === StrictUnitMode.LOOSE) {
+          /**
+           * In an operation between two Dimensions,
+           * we default to the first Dimension's unit,
+           * so `1px + 2%` will yield `3px`.
+           * 
+           * This can have un-intuitive behavior for a user,
+           * so it is not a recommended setting.
+           */
+          const result = operate(op, this.value, bNode.value)
+          return new Dimension([result, aUnit.clone()]).inherit(this)
+        } else {
+          return this.warn(
+            context,
+            `Incompatible units. Operation will be preserved.`
+          )
+        }
       } else {
-          a = this.unify();
-          b = other.unify();
-          if (a.unit.compare(b.unit) !== 0) {
-              return undefined;
-          }
+        const result = operate(op, this.value, bNode.value)
+        /** Dividing 8px / 1px will yield 8 */
+        if (op === '/') {
+          return new NumberValue(result).inherit(this)
+        } else if (op === '*') {
+          return this.error(context, `Can't multiply a unit by a unit.`)
+        }
+        return new Dimension([result, aUnit.clone()]).inherit(this)
       }
-
-      return Node.numericCompare(a.value, b.value);
+    } else if (other instanceof NumberValue) {
+      const unit = this.nodes[1].clone()
+      const result = operate(op, this.nodes[0].value, other.value)
+      return new Dimension([result, unit.clone()]).inherit(this)
+    }
+    return this
   }
 
-  unify() {
-      return this.convertTo({ length: 'px', duration: 's', angle: 'rad' });
-  }
-
-  convertTo(conversions) {
-      let value = this.value;
-      const unit = this.unit.clone();
-      let i;
-      let groupName;
-      let group;
-      let targetUnit;
-      let derivedConversions = {};
-      let applyUnit;
-
-      if (typeof conversions === 'string') {
-          for (i in unitConversions) {
-              if (unitConversions[i].hasOwnProperty(conversions)) {
-                  derivedConversions = {};
-                  derivedConversions[i] = conversions;
-              }
-          }
-          conversions = derivedConversions;
-      }
-      applyUnit = (atomicUnit, denominator) => {
-          /* jshint loopfunc:true */
-          if (group.hasOwnProperty(atomicUnit)) {
-              if (denominator) {
-                  value = value / (group[atomicUnit] / group[targetUnit]);
-              } else {
-                  value = value * (group[atomicUnit] / group[targetUnit]);
-              }
-
-              return targetUnit;
-          }
-
-          return atomicUnit;
-      };
-
-      for (groupName in conversions) {
-          if (conversions.hasOwnProperty(groupName)) {
-              targetUnit = conversions[groupName];
-              group = unitConversions[groupName];
-
-              unit.map(applyUnit);
-          }
-      }
-
-      unit.cancel();
-
-      return new Dimension(value, unit);
+  unify(other: Dimension, unit: string) {
+    const newDimension = convertDimension(other, unit)
+    if (newDimension) {
+      return newDimension
+    }
+    return other
   }
 }
 
-Dimension.prototype.type = 'Dimension';
-export default Dimension;
+Dimension.prototype.type = 'Dimension'

@@ -1,6 +1,12 @@
-import Node from '../node'
-import Value from './value'
-import { EvalContext } from '../../contexts'
+import {
+  Node,
+  IProps,
+  ILocationInfo,
+  ImportantNode,
+  Value
+} from '.'
+
+import { EvalContext } from '../contexts'
 
 /**
  * Will merge props using space or comma separators
@@ -10,37 +16,57 @@ export enum MergeType {
   COMMA
 }
 
-class Declaration extends Node {
-  children: {
-    name: Node[]
-    value: Node[]
-    important: Node[]
+export type IDeclarationOptions = {
+  isVariable?: boolean
+  mergeType?: MergeType
+}
+
+export class Declaration extends Node implements ImportantNode {
+  value: string
+  name: Node[]
+  /** Declaration's value */
+  nodes: Node[]
+  important: Node[]
+
+  options: IDeclarationOptions
+
+  constructor(props: IProps, options: IDeclarationOptions, location: ILocationInfo) {
+    const { important } = props
+    if (!important) {
+      props.important = []
+    }
+    super(props, options, location)
   }
 
-  options: {
-    isVariable?: boolean
-    mergeType?: MergeType
+  toString() {
+    return this.pre + this.value + ':' + this.nodes.join('') + this.important.join('') + this.post
   }
 
   eval(context: EvalContext) {
-    context.importantScope.push({})
-    this.processNodeArray(this.values, (node: Node) => node.eval(context))
+    if (!this.evaluated) {
+      const evalFunc = (node: Node) => node.eval(context)
+      context.importantScope.push({})
+      this.processNodeArray(this.name, evalFunc)
+      this.value = this.name.join('')
+      this.processNodeArray(this.nodes, evalFunc)
+      this.processNodeArray(this.important, evalFunc)
 
-    let important = this.children.important[0]
-    const importantResult = context.importantScope.pop()
-    if (!important && importantResult.important) {
-      important.text = importantResult.important
+      this.evaluated = true
+
+      let important = this.important[0]
+      const importantResult = context.importantScope.pop()
+      if (!important && importantResult.important) {
+        this.important = [new Value(importantResult.important)]
+      }
     }
 
-    return super.clone(context)
+    return this
   }
 
   makeImportant() {
-    const decl = this.clone()
-    decl.children.important = [new Value('!important')]
-    return decl
+    this.important = [new Value('!important')]
+    return this
   }
 }
 
-Declaration.prototype.type = 'Declaration';
-export default Declaration;
+Declaration.prototype.type = 'Declaration'

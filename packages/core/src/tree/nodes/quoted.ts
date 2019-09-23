@@ -1,73 +1,44 @@
-import Node from '../node';
-import Variable from './variable-ref';
-import Property from './property-ref';
+import {
+  Node,
+  IProps,
+  ILocationInfo,
+  Value
+} from '.'
 
-/**
- * There's nothing special about a quoted node, other than
- * the first and last member are quote marks
- */
-class Quoted extends Node {
-  constructor(str, content, escaped, index, currentFileInfo) {
-    super();
-
-    this.escaped = (escaped == null) ? true : escaped;
-    this.value = content || '';
-    this.quote = str.charAt(0);
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-    this.variableRegex = /@\{([\w-]+)\}/g;
-    this.propRegex = /\$\{([\w-]+)\}/g;
-    this.allowRoot = escaped;
-  }
-
-    genCSS(context, output) {
-        if (!this.escaped) {
-            output.add(this.quote, this.fileInfo(), this.getIndex());
-        }
-        output.add(this.value);
-        if (!this.escaped) {
-            output.add(this.quote);
-        }
-    }
-
-    containsVariables() {
-        return this.value.match(this.variableRegex);
-    }
-
-    eval(context) {
-        const that = this;
-        let value = this.value;
-        const variableReplacement = (_, name) => {
-            const v = new Variable(`@${name}`, that.getIndex(), that.fileInfo()).eval(context, true);
-            return (v instanceof Quoted) ? v.value : v.toCSS();
-        };
-        const propertyReplacement = (_, name) => {
-            const v = new Property(`$${name}`, that.getIndex(), that.fileInfo()).eval(context, true);
-            return (v instanceof Quoted) ? v.value : v.toCSS();
-        };
-        function iterativeReplace(value, regexp, replacementFnc) {
-            let evaluatedValue = value;
-            do {
-                value = evaluatedValue.toString();
-                evaluatedValue = value.replace(regexp, replacementFnc);
-            } while (value !== evaluatedValue);
-            return evaluatedValue;
-        }
-        value = iterativeReplace(value, this.variableRegex, variableReplacement);
-        value = iterativeReplace(value, this.propRegex, propertyReplacement);
-
-        return new Quoted(this.quote + value + this.quote, value, this.escaped, this.getIndex(), this.fileInfo());
-    }
-
-    compare(other) {
-        // when comparing quoted strings allow the quote to differ
-        if (other.type === 'Quoted' && !this.escaped && !other.escaped) {
-            return Node.numericCompare(this.value, other.value);
-        } else {
-            return other.toCSS && this.toCSS() === other.toCSS() ? 0 : undefined;
-        }
-    }
+export type IQuotedOptions = {
+  escaped?: boolean
 }
 
-Quoted.prototype.type = 'Quoted';
-export default Quoted;
+export type IQuotedNodes = [Value, Node, Value]
+/**
+ * There's nothing special about a quoted node, other than
+ * the first and last member will contain quote marks
+ *   e.g. <Quoted <Value ">, <Value foo>, <Value ">>
+ * 
+ * If interpolated vars are present, the middle value will be an expression, as in:
+ *   e.g. <Quoted <Value ">, <Expression <Value foo>, <Variable @bar>>, <Value "> >
+ * 
+ *   1) it may contain interpolated vars
+ *   2) we can do normalized equality checks with the "inner" nodes
+ */
+export class Quoted extends Node {
+  nodes: IQuotedNodes
+
+  constructor(props: IProps, options: IQuotedOptions = {}, location?: ILocationInfo) {
+    if (options.escaped === undefined) {
+      options.escaped = false
+    }
+    if (Array.isArray(props)) {
+      props = { nodes: props }
+    }
+
+    super(props, options, location)
+    this.allowRoot = options.escaped
+  }
+
+  valueOf() {
+    return this.nodes[1].toString()
+  }
+}
+
+Quoted.prototype.type = 'Quoted'
