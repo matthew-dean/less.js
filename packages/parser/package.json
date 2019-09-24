@@ -8,18 +8,18 @@
     "dist"
   ],
   "scripts": {
-    "ci" : "echo \"FIX ME!!! npm-run-all build test\"",
+    "ci": "echo \"FIX ME!!! npm-run-all build test\"",
     "prepublishOnly": "npm run build",
     "build": "npm-run-all clean compile",
     "clean": "shx rm -rf ./dist",
     "compile": "tsc -p tsconfig.build.json",
-    "test": "mocha -r ts-node/register test/**/*.ts"
+    "test": "ts-mocha test/**/*.ts"
   },
   "author": "Matthew Dean",
   "license": "(Apache-2.0 or MIT)",
   "dependencies": {
-    "chevrotain": "6.4.0",
-    "@less/css-parser": "^4.0.0-dev.1"
+    "@less/css-parser": "^4.0.0-dev.1",
+    "chevrotain": "6.4.0"
   },
   "devDependencies": {
     "@less/test-data": "^4.0.0-dev.1"

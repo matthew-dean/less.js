@@ -1,6 +1,6 @@
 import { MathMode, RewriteUrlMode, EvalErrorMode } from '../constants'
 import { IOptions } from '../options'
-import Rules from './nodes/rules'
+import { Rules } from './nodes'
 import LessError, { ILessError } from '../less-error'
 
 function isPathRelative(path: string) {

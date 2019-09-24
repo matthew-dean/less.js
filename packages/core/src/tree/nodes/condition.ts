@@ -26,8 +26,8 @@ export class Condition extends Node {
     const result = ((op, a, b): boolean => {
       if (a instanceof Node && b instanceof Node) {
         switch (op) {
-          case 'and': return a.valueOf() && b.valueOf()
-          case 'or':  return a.valueOf() || b.valueOf()
+          case 'and': return Boolean(a.valueOf()) && Boolean(b.valueOf())
+          case 'or':  return Boolean(a.valueOf()) || Boolean(b.valueOf())
           default:
             switch (compare(a, b)) {
               case -1:

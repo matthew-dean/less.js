@@ -37,7 +37,9 @@ export type IBaseProps = {
 
 export type IProps = {
   [P in keyof IBaseProps]: IBaseProps[P]
-} & IChildren
+} & {
+  [key: string]: any
+}
 
 /**
  * The result of an eval can be one of these types
@@ -191,14 +193,14 @@ export abstract class Node {
     this.processChildren(this, (node: Node) => visitor.visit(node))
   }
 
+  /**
+   * Return a primitive value, if it exists, otherwise call `.toString()`
+   */
   valueOf() {
     if (this.value !== undefined) {
       return this.value
     }
-    if (this.text !== undefined) {
-      return this.text
-    }
-    return this.nodes.map(node => node.valueOf()).join('')
+    return this.toString()
   }
 
   toString() {
@@ -245,7 +247,7 @@ export abstract class Node {
    * @param shallow - doesn't deeply clone nodes (retains references)
    */
   clone(shallow: boolean = false): this {
-    const Clazz = Object.getPrototypeOf(this)
+    const Clazz = Object.getPrototypeOf(this).constructor
     const newNode = new Clazz({
       pre: this.pre,
       post: this.post,
@@ -379,8 +381,6 @@ export abstract class Node {
    * Unresolved Q: would a new array be more performant than array mutation?
    * The reason we do this is because the array may not mutate at all depending
    * on the result of processing
-   * 
-   * This also allows `this.value` to retain a pointer to `this.children.value`
    */
   protected processNodeArray(nodeArray: Node[], processFunc: ProcessFunction) {
     let thisLength = nodeArray.length

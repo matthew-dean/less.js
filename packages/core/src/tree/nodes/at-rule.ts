@@ -11,9 +11,9 @@ import { EvalContext } from '../contexts'
 export type IAtRuleProps = {
   name: string
   /** Prelude (everything after name and before ; or {) */
-  prelude: Node
+  prelude: Node[]
   /** Optional set of rules */
-  rules?: Rules
+  rules?: Rules[]
 } & IBaseProps
 
 export type IAtRuleOptions = {
@@ -29,31 +29,24 @@ export type IAtRuleOptions = {
 
 export class AtRule extends Node {
   name: string
-  rules: Node[]
+  rules: Rules[]
   prelude: Node[]
   options: IAtRuleOptions
 
   /** @todo - when cloning, will prelude get wrapped twice? - should refactor */
   constructor(props: IAtRuleProps, options: IAtRuleOptions, location: ILocationInfo) {
-    const { name, prelude, rules, pre, post } = props
+    const { name, ...rest } = props
     if (options.bubbleRule === undefined && (/@media|@supports/i.test(name))) {
       options.bubbleRule = true
     }
-    const newProps = <IProps>{ pre, post }
-    newProps.prelude = [prelude]
-
-    if (rules) {
-      newProps.rules = [rules]
-    }
     
     /** Wrap at rule body in an empty rules for proper scoping and collapsing */
-    super(newProps, options, location)
+    super(<IProps>(rest as unknown), options, location)
     this.name = name
     this.allowRoot = true
   }
 
   toString() {
-    console.log('to stringifying')
     let text = this.pre + this.name + this.prelude.join('')
     if (this.rules) {
       text += this.rules.join('')
