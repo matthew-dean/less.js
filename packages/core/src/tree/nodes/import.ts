@@ -7,6 +7,10 @@ import {
 
 import { EvalContext } from '../contexts'
 
+/**
+ * @todo - all imports must resolve to a Less AST, even modules.
+ *         a module essentially returns Rules<FunctionDefinition[]>
+ */
 //
 // CSS @import node
 //
@@ -24,8 +28,7 @@ export type IImportOptions = {
   css?: boolean
   less?: boolean
   inline?: boolean
-  /** import is a JavaScript ES6 module */
-  isModule?: boolean
+  module?: boolean
 }
 /**
  * @todo - rewrite the above to make browser importing not a factor

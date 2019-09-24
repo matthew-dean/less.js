@@ -5,6 +5,9 @@ import {
   FunctionCall
 } from '.'
 
+/**
+ * @todo - Store the variable name without `@` for cross-format compatibility
+ */
 import { EvalContext } from '../contexts'
 
 export type IVariableOptions = {
