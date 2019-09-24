@@ -52,7 +52,7 @@ export class EvalContext {
     this.inCalc = false
     this.mathOn = true
     /** Replacement for function registry */
-    this.scope = Object.create(environment.scope)
+    this.scope = Object.create(environment.scope || null)
   }
 
   error(err: ILessError, fileRoot: Rules) {

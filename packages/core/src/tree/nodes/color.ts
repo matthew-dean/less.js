@@ -13,7 +13,6 @@ import { operate } from '../util/math'
 /**
  * @todo move keywords to CST-to-AST stage
  */
-// import colors from '../data/colors'
 
 export enum ColorFormat {
   HEX,
@@ -115,12 +114,12 @@ export class Color extends NumericNode {
 
     switch (colorFormat) {
       case ColorFormat.RGB:
-        args = rgb.map(c => clamp(Math.round(c), 255))
+        args = rgb.map(c => this.clamp(Math.round(c), 255))
         if (alpha === 1) {
           colorFunction = 'rgb'
         } else {
           colorFunction = 'rgba'
-          args = args.concat(clamp(alpha, 1))
+          args = args.concat(this.clamp(alpha, 1))
         }
         break
       case ColorFormat.HSL:
@@ -134,7 +133,7 @@ export class Color extends NumericNode {
           colorFunction = 'hsl'
         } else {
           colorFunction = 'hsla'
-          args = args.concat(clamp(alpha, 1))
+          args = args.concat(this.clamp(alpha, 1))
         }
     }
 
@@ -143,130 +142,122 @@ export class Color extends NumericNode {
       return `${colorFunction}(${args.join(`, `)})`;
     }
 
-    color = toHex(rgb)
-    return color
+    return this.toHex(rgb)
   }
 
-    //
-    // Operations have to be done per-channel, if not,
-    // channels will spill onto each other. Once we have
-    // our result, in the form of an integer triplet,
-    // we create a new Color node to hold the result.
-    //
-    operate(op: string, other: Node, context?: EvalContext) {
-      let otherVal: [number, number, number, number]
-      if (other instanceof NumberValue) {
-        const val = other.value
-        otherVal = [val, val, val, 1]
+  //
+  // Operations have to be done per-channel, if not,
+  // channels will spill onto each other. Once we have
+  // our result, in the form of an integer triplet,
+  // we create a new Color node to hold the result.
+  //
+  operate(op: string, other: Node, context?: EvalContext) {
+    let otherVal: [number, number, number, number]
+    if (other instanceof NumberValue) {
+      const val = other.value
+      otherVal = [val, val, val, 1]
+    }
+    if (!otherVal && !(other instanceof Color)) {
+      return this.error(context,
+        `Incompatible units. An operation can't be between a color and a non-number`
+      )
+    }
+    
+    if (other instanceof Color) {
+      otherVal = other.value
+    }
+    
+    const rgba = new Array(4)
+    /**
+     * @todo - Someone should document why this alpha result is logical for any math op
+     *         It seems arbitrary at first glance, but maybe it's the best result?
+    */
+    const alpha = this.value[3] * (1 - other.value[3]) + other.value[3]
+    for (let c = 0; c < 3; c++) {
+      rgba[c] = operate(op, this.value[c], other.value[c])
+    }
+    rgba[3] = alpha
+    return new Color({ value: rgba }, {...this.options}).inherit(this)
+  }
+
+  /** Clamp values between 0 and max */
+  private clamp(v: number, max: number) {
+    return Math.min(Math.max(v, 0), max)
+  }
+
+  private hslObject() {
+    const value = this.value
+    const r = value[0] / 255
+    const g = value[1] / 255
+    const b = value[2] / 255
+    const a = value[3]
+    const max = Math.max(r, g, b)
+    const min = Math.min(r, g, b)
+
+    return { r, g, b, a, max, min }
+  }
+
+  toHSL() {
+    const { r, g, b, a, max, min } = this.hslObject()
+    let h: number
+    let s: number
+    const l = (max + min) / 2;
+    const d = max - min;
+
+    if (max === min) {
+      h = s = 0
+    } else {
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2;               break;
+        case b: h = (r - g) / d + 4;               break;
       }
-      if (!otherVal && !(other instanceof Color)) {
-        return this.error(context,
-          `Incompatible units. An operation can't be between a color and a non-number`
-        )
-      }
-      
-      if (other instanceof Color) {
-        otherVal = other.value
-      }
-      
-      const rgba = new Array(4)
-      /**
-       * @todo - Someone should document why this alpha result is logical for any math op
-       *         It seems arbitrary at first glance, but maybe it's the best result?
-      */
-      const alpha = this.value[3] * (1 - other.value[3]) + other.value[3]
-      for (let c = 0; c < 3; c++) {
-        rgba[c] = operate(op, this.value[c], other.value[c])
-      }
-      rgba[3] = alpha
-      return new Color({ value: rgba }, {...this.options}).inherit(this)
+      h /= 6
+    }
+    return { h: h * 360, s, l, a }
+  }
+
+  // Adapted from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
+  toHSV() {
+    const { r, g, b, a, max, min } = this.hslObject()
+    let h: number
+    let s: number
+    const v = max
+
+    const d = max - min;
+    if (max === 0) {
+        s = 0;
+    } else {
+        s = d / max;
     }
 
-    private hslObject() {
-      const value = this.value
-      const r = value[0] / 255
-      const g = value[1] / 255
-      const b = value[2] / 255
-      const a = value[3]
-      const max = Math.max(r, g, b)
-      const min = Math.min(r, g, b)
-
-      return { r, g, b, a, max, min }
-    }
-
-    toHSL() {
-      const { r, g, b, a, max, min } = this.hslObject()
-      let h: number
-      let s: number
-      const l = (max + min) / 2;
-      const d = max - min;
-
-      if (max === min) {
-        h = s = 0
-      } else {
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-
+    if (max === min) {
+      h = 0
+    } else {
         switch (max) {
           case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-          case g: h = (b - r) / d + 2;               break;
-          case b: h = (r - g) / d + 4;               break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
         }
-        h /= 6
-      }
-      return { h: h * 360, s, l, a }
+        h /= 6;
     }
+    return { h: h * 360, s, v, a }
+  }
 
-    // Adapted from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
-    toHSV() {
-      const { r, g, b, a, max, min } = this.hslObject()
-      let h: number
-      let s: number
-      const v = max
-
-      const d = max - min;
-      if (max === 0) {
-          s = 0;
-      } else {
-          s = d / max;
-      }
-
-      if (max === min) {
-          h = 0;
-      } else {
-          switch (max) {
-              case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-              case g: h = (b - r) / d + 2; break;
-              case b: h = (r - g) / d + 4; break;
-          }
-          h /= 6;
-      }
-      return { h: h * 360, s, v, a }
-    }
-
-    toARGB() {
-      const rgb = [...this.value]
-      const alpha = rgb.pop()
-      return toHex([alpha * 255].concat(rgb))
-    }
-
-    // compare(x) {
-    //     return (x.rgb &&
-    //         x.rgb[0] === this.rgb[0] &&
-    //         x.rgb[1] === this.rgb[1] &&
-    //         x.rgb[2] === this.rgb[2] &&
-    //         x.alpha  === this.alpha) ? 0 : undefined;
-    // }
+  toHex(v: number[]) {
+    return `#${v.map(c => {
+      c = this.clamp(Math.round(c), 255);
+      return (c < 16 ? '0' : '') + c.toString(16)
+    }).join('')}`
+  }
+  
+  toARGB() {
+    const rgb = [...this.value]
+    const alpha = rgb.pop()
+    return this.toHex([alpha * 255].concat(rgb))
+  }
 }
 
-Color.prototype.type = 'Color';
-
-function clamp(v, max) {
-  return Math.min(Math.max(v, 0), max)
-}
-
-function toHex(v: number[]) {
-  return `#${v.map(c => {
-    c = clamp(Math.round(c), 255);
-    return (c < 16 ? '0' : '') + c.toString(16)
-  }).join('')}`
-}
+Color.prototype.type = 'Color'
