@@ -89,7 +89,7 @@ export class MixinDefinition extends QualifiedRule {
                 varargs = [];
                 for (j = argIndex; j < argsLength; j++) {
                     varargs.push(args[j].value.eval(context));
-                }RulesRules
+                }
                 frame.prependRule(new Declaration(name, new Expression(varargs).eval(context)));
             } else {
                 val = arg && arg.value;

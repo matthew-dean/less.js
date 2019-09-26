@@ -76,6 +76,8 @@ export enum MatchOption {
   IN_SCOPE
 }
 
+type MatchFunction = (node: Node) => Node
+
 export abstract class Node {
 
   /**
@@ -316,7 +318,7 @@ export abstract class Node {
     }
   }
 
-  find(matchFunction: Function, option: MatchOption = MatchOption.FIRST): Node | Node[] {
+  find(matchFunction: MatchFunction, option: MatchOption = MatchOption.FIRST): Node | Node[] {
     let node: Node = this
     const matches: Node[] = []
     const crawlRules = (rulesNode: Rules) => {
@@ -359,20 +361,28 @@ export abstract class Node {
 
   /** Moved from Rules property() method */
   findProperty(name: string): Declaration[] {
-    return <Declaration[]>this.find((node: Node) => (
-      node instanceof Declaration &&
-      !node.options.isVariable &&
-      node.value === name
-    ), MatchOption.IN_RULES)
+    return <Declaration[]>this.find((node: Node) => {
+      if (
+        node instanceof Declaration &&
+        !node.options.isVariable &&
+        node.value === name
+      ) {
+        return node
+      }
+    }, MatchOption.IN_RULES)
   }
 
   /** Moved from Rules variable() method */
   findVariable(name: string): Declaration {
-    return <Declaration>this.find((node: Node) => (
-      node instanceof Declaration &&
-      node.options.isVariable &&
-      node.value === name
-    ), MatchOption.FIRST)
+    return <Declaration>this.find((node: Node) => {
+      if (
+        node instanceof Declaration &&
+        node.options.isVariable &&
+        node.value === name
+      ) {
+        return node
+      }
+    }, MatchOption.FIRST)
   }
 
   /**

@@ -1,5 +1,8 @@
 import {
   Node,
+  List,
+  Expression,
+  Rules,
   IProps,
   ILocationInfo,
   ImportantNode,
@@ -24,9 +27,12 @@ export type IDeclarationOptions = {
 export class Declaration extends Node implements ImportantNode {
   value: string
   name: Node[]
-  /** Declaration's value */
-  nodes: Node[]
-  important: Node[]
+  /**
+   * Declaration's value, will be a single node,
+   * either a List (of Expressions), an Expression, or Rules
+   */
+  nodes: [List<Expression> | Expression | Rules]
+  important: [Value]
 
   options: IDeclarationOptions
 

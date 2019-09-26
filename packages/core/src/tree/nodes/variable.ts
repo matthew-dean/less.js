@@ -1,5 +1,6 @@
 import {
   Node,
+  Declaration,
   IProps,
   ILocationInfo,
   FunctionCall
@@ -18,8 +19,8 @@ export type IVariableOptions = {
  * The value nodes might contain another variable ref (nested vars)
  * 
  * e.g. 
- *   nodes: @foo = <Value '@foo'>
- *   nodes: @@bar = <Value '@'> <Variable '@bar'>
+ *   nodes: @foo = <Value 'foo'>
+ *   nodes: @@bar = <Variable 'bar'>
  */
 export class Variable extends Node {
   evaluating: boolean
@@ -31,6 +32,14 @@ export class Variable extends Node {
   constructor(props: IProps, options: IVariableOptions, location: ILocationInfo) {
     super(props, options, location)
     this.type = options.propertyRef ? 'Property' : 'Variable'
+  }
+
+  toString() {
+    const name = this.nodes.join('')
+    if (this.options.propertyRef) {
+      return name
+    }
+    return '@' + name
   }
 
   eval(context: EvalContext) {
@@ -51,18 +60,22 @@ export class Variable extends Node {
 
     this.evaluating = true
 
-    const variable = this[`find${type}`](name)
-    if (variable) {
+    const decl: Declaration | Declaration[] = this[`find${type}`](name)
+    if (decl) {
       this.evaluating = false
-      if (Array.isArray(variable)) {
+      if (Array.isArray(decl)) {
         const props = []
-        variable.forEach(node => {
+        decl.forEach(node => {
           props.push(node.eval(context))
         })
+        /** @todo - merge props */
+        return props
+      } else {
+        decl.eval(context)
+        /** Return the evaluated declaration's value */
+        return decl.nodes[0]
       }
-      variable.eval(context)
-      /** Return the evaluated declaration's value */
-      return variable.nodes.join('')
+      
     }
     return this.error(context, `${type} '${name}' is undefined`)
 

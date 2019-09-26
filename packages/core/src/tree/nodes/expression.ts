@@ -1,5 +1,6 @@
 import {
   Node,
+  NodeArray,
   Block,
   Comment,
   Dimension
@@ -19,7 +20,7 @@ export type IExpressionOptions = {
  *   2) When converted to an array, it discards whitespace and 
  *      comments as members of the array.
  */
-export class Expression extends Node {
+export class Expression extends NodeArray {
   options: IExpressionOptions
 
   // toArray() {
@@ -54,7 +55,10 @@ export class Expression extends Node {
       ) {
         doubleParen = true
       }
-      returnValue = value.eval(context).inherit(this)
+      returnValue = value.eval(context)
+      if (returnValue instanceof Node) {
+        returnValue.inherit(this)
+      }
     } else {
       returnValue = this
     }

@@ -1,4 +1,4 @@
-import { Node } from '.'
+import { NodeArray, IProps, INodeOptions, ILocationInfo } from '.'
 import { EvalContext } from '../contexts'
 
 /**
@@ -7,7 +7,7 @@ import { EvalContext } from '../contexts'
  * 
  * nodes will typically be [Value<'('>, Node, Value<')'>]
  */
-export class Block extends Node {
+export class Block extends NodeArray {
   /** 
    * @todo - if block value was an operation, then
    *         we should return the result, not this block

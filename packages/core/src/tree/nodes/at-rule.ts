@@ -33,7 +33,6 @@ export class AtRule extends Node {
   prelude: Node[]
   options: IAtRuleOptions
 
-  /** @todo - when cloning, will prelude get wrapped twice? - should refactor */
   constructor(props: IAtRuleProps, options: IAtRuleOptions, location: ILocationInfo) {
     const { name, ...rest } = props
     if (options.bubbleRule === undefined && (/@media|@supports/i.test(name))) {

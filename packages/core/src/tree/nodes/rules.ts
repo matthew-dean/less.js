@@ -182,10 +182,6 @@ export class Rules extends Node implements ImportantNode {
     return this
   }
 
-  matchArgs(args) {
-    return !args || args.length === 0
-  }
-
   lastDeclaration() {
     const nodes = this.nodes
     const nodeLength = this.nodes.length

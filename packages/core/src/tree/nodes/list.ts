@@ -1,5 +1,6 @@
 import {
   Node,
+  NodeArray,
   IProps,
   INodeOptions,
   ILocationInfo
@@ -11,18 +12,8 @@ export type NodeType<T> = T extends Node ? T : never
  * 
  * This is a any comma-separated list
  */
-export class List<T = Node> extends Node {
+export class List<T = Node> extends NodeArray {
   nodes: NodeType<T>[]
-
-  constructor(props: Node[] | IProps, options?: INodeOptions, location?: ILocationInfo) {
-    let newProps: IProps
-    if (Array.isArray) {
-      newProps = <IProps>{ nodes: props }
-    } else {
-      newProps = <IProps>props
-    }
-    super(newProps, options, location)
-  }
 
   toString() {
     return this.nodes.join(',')
