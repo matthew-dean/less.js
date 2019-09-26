@@ -4,8 +4,6 @@ import {
   Expression,
   Value,
   List,
-  Declaration,
-  Variable,
   Element,
   NumberValue,
 } from '..'
@@ -14,7 +12,7 @@ import { EvalContext } from '../../contexts'
 import Default from '../../../options'
 
 describe('Expression', () => {
-  let context
+  let context: EvalContext
   beforeEach(() => {
     context = new EvalContext({}, Default())
   })

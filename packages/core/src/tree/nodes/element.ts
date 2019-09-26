@@ -67,14 +67,14 @@ export class Element extends Node {
   }
 
   eval(context: EvalContext) {
-    super.eval(context)
     if (!this.evaluated) {
-      this.evaluated = true
+      super.eval(context)
       /**
        * After elements are eval'd, one of the elements might have resolved to a selector
        * list (such as in the case of '&' or '@{var}'), so we need to normalize (flatten)
        * elements
        */
+      const combinator = this.nodes[0]
       const element = this.nodes[1]
       if (!element) {
         return false
@@ -87,6 +87,14 @@ export class Element extends Node {
         } else {
           list = new List<Selector>([this.normalizeElementExpression(element)]).inherit(element)
         }
+        list.nodes.forEach((expr: Selector) => {
+          const prevCombinator = expr.nodes[0].nodes[0]
+          expr.nodes[0].nodes[0] = combinator.clone().inherit(prevCombinator)
+        })
+        if (list.nodes.length === 1) {
+          return list.nodes
+        }
+        return list
       }
     }
     return this

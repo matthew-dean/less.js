@@ -5,7 +5,8 @@ import {
   IProps,
   Rules,
   List,
-  Selector
+  Expression,
+  SelectorList
 } from '.'
 
 import { flattenSelectors } from '../util/selectors'
@@ -23,7 +24,7 @@ export type IQualifiedRuleProps = {
  */
 export class QualifiedRule extends Node {
   rules: Node[]
-  selectors: [List<Selector>]
+  selectors: [SelectorList]
   condition: [Node]
 
   constructor(props: IQualifiedRuleProps, options: INodeOptions, location: ILocationInfo) {
@@ -42,12 +43,12 @@ export class QualifiedRule extends Node {
 
   eval(context: EvalContext) {
     if (!this.evaluated) {
+      this.evaluated = true
+
       /**
-       * After selectors are eval'd, one of the elements might have resolved to a selector
-       * list (such as in the case of '&' or '@{var}'), so we need to normalize (flatten)
-       * selectors before we evaluate rules.
+       * The underlying Expression / Element implementations should merge selectors
        */
-      const selectorList = flattenSelectors(this.selectors[0].eval(context))
+      const selectorList = this.selectors[0].eval(context)
       this.selectors = [selectorList]
 
       // currrent selectors
@@ -55,7 +56,10 @@ export class QualifiedRule extends Node {
       ctxSelectors.unshift(selectorList)
 
       const evalFunc = (node: Node) => node.eval(context)
-       /** @todo - if condition doesn't match, stop. */
+       /** 
+        * @todo - if condition doesn't match, stop and return false,
+        * so that we don't waste time evaluating rules
+        */
       this.processNodeArray(this.condition, evalFunc)
 
       this.processNodeArray(this.rules, evalFunc)
