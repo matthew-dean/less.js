@@ -2,7 +2,8 @@ import {
   Node,
   IProps,
   ILocationInfo,
-  Rules
+  Rules,
+  AtRule
 } from '.'
 
 import { EvalContext } from '../contexts'
@@ -35,9 +36,9 @@ export type IImportOptions = {
  * Also, the import queue should be loaded during evalImports, not parsing
  */
 export class Import extends Node {
-  content: Node[]
-  features: Node[]
-  path: Node[]
+  content: [Node]
+  features: [Node]
+  path: [Node]
   options: IImportOptions
 
   constructor(props: IProps, options: IImportOptions, location: ILocationInfo) {
@@ -52,6 +53,19 @@ export class Import extends Node {
     props.content = []
     super(props, options, location)
     this.allowRoot = true
+  }
+
+  eval(context: EvalContext): AtRule | Import {
+    super.eval(context)
+    if (this.options.css) {
+      return new AtRule({
+        pre: this.pre,
+        post: this.post,
+        name: '@import',
+        prelude: this.path.concat(this.features)
+      }, {}, this.location)
+    }
+    return this
   }
 
   /**

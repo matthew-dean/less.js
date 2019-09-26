@@ -5,16 +5,19 @@ import {
   INodeOptions,
   ILocationInfo
 } from '.'
+import { EvalContext } from '../contexts'
 
-export type NodeType<T> = T extends Node ? T : never
 /**
  * Renamed from 'Value'
  * 
  * This is a any comma-separated list
  */
-export class List<T = Node> extends NodeArray {
-  nodes: NodeType<T>[]
+export class List<T extends Node = Node> extends NodeArray {
+  nodes: T[]
 
+  eval(context: EvalContext): List<Node> {
+    return <List<Node>>super.eval(context)
+  }
   toString() {
     return this.nodes.join(',')
   }

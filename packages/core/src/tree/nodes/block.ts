@@ -1,4 +1,4 @@
-import { NodeArray, IProps, INodeOptions, ILocationInfo } from '.'
+import { NodeArray } from '.'
 import { EvalContext } from '../contexts'
 
 /**

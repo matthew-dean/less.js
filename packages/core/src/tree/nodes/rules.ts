@@ -3,7 +3,9 @@ import {
   Declaration,
   Import,
   EvalReturn,
-  ImportantNode
+  ImportantNode,
+  QualifiedRule,
+  AtRule
 } from '.'
 
 import { EvalContext } from '../contexts'
@@ -35,21 +37,6 @@ export class Rules extends Node implements ImportantNode {
     [key: string]: any
   }
 
-  /** Collect imports to start importing */
-  evalForImports(context: EvalContext) {
-    this.nodes.forEach(node => {
-      node.childKeys.forEach(key => {
-        const nodes = node.children[key]
-        nodes.forEach(n => {
-          if (n instanceof Import) {
-            n.eval(context)
-            
-          }
-        })
-      })
-    })
-  }
-
   /**
    * This runs before full tree eval. We essentially
    * evaluate the tree enough to determine an import list.
@@ -79,20 +66,36 @@ export class Rules extends Node implements ImportantNode {
     // }
   }
 
-  eval(context: EvalContext) {
-    // inherit scope from context, which
-    // inherits from the global scope object
-    const currentScope = context.scope
-    this.scope = Object.create(context.scope)
-    context.scope = this.scope
-
+  eval(context: EvalContext, evalImports?: boolean) {
     /** Shallow clone was here? */
     // const rules = this.clone(true)
     const rules = this
+    const ruleset = rules.nodes
+    const rulesLength = ruleset.length
+    let rule: Node
+
+    /** The first pass of Rules just scans for imports */
+    if (evalImports) {
+      for (let i = 0; i < rulesLength; i++) {
+        rule = rules[i]
+        if (rule instanceof Import) {
+          const imprt = rule.eval(context)
+          rules[i] = imprt
+          if (imprt instanceof Import) {
+            context.importQueue.push(imprt)
+          }
+        } else if (rule instanceof QualifiedRule || rule instanceof AtRule) {
+          rule.rules[0].eval(context, evalImports)
+        } else if (rule instanceof Rules) {
+          rule.eval(context, evalImports)
+        }
+      }
+      return this
+    }
 
     // push the current rules to the frames stack
-    const ctxFrames = context.frames
-    ctxFrames.unshift(rules)
+    // const ctxFrames = context.frames
+    // ctxFrames.unshift(rules)
 
     /** Collect type groups */
     const ruleGroups: {
@@ -105,9 +108,6 @@ export class Rules extends Node implements ImportantNode {
       default: []
     }
 
-    let rule: Node
-    const ruleset = rules.nodes
-    const rulesLength = ruleset.length
     const newRules: EvalReturn[] = Array(rulesLength)
     for (let i = 0; i < rulesLength; i++) {
       if (rule instanceof Import) {
