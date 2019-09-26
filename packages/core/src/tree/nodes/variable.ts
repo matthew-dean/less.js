@@ -2,8 +2,8 @@ import {
   Node,
   Declaration,
   IProps,
-  ILocationInfo,
-  FunctionCall
+  ILocationInfo
+  // FunctionCall
 } from '.'
 
 /**
@@ -13,7 +13,7 @@ import { EvalContext } from '../contexts'
 
 export type IVariableOptions = {
   /** will look up properties instead of variables */
-  propertyRef: boolean
+  propertyRef?: boolean
 }
 /**
  * The value nodes might contain another variable ref (nested vars)
@@ -24,18 +24,28 @@ export type IVariableOptions = {
  */
 export class Variable extends Node {
   evaluating: boolean
-  name: string
   type: string
-
+  value: string
   options: IVariableOptions
 
-  constructor(props: IProps, options: IVariableOptions, location: ILocationInfo) {
-    super(props, options, location)
+  constructor(props: string | IProps, options: IVariableOptions = {}, location?: ILocationInfo) {
+    let newProps: IProps
+    if (props.constructor === String) {
+      newProps = { value: <string>props }
+    } else {
+      newProps = <IProps>props
+    }
+    let val: string = newProps.value.toString()
+    
+    if (options.propertyRef && newProps.value !== undefined && val.charAt(0) === '$') {
+      newProps.value = val.slice(1)
+    }
+    super(newProps, options, location)
     this.type = options.propertyRef ? 'Property' : 'Variable'
   }
 
   toString() {
-    const name = this.nodes.join('')
+    const name = super.toString()
     if (this.options.propertyRef) {
       return name
     }
@@ -44,13 +54,12 @@ export class Variable extends Node {
 
   eval(context: EvalContext) {
     super.eval(context)
-
-    let name = this.nodes.join('')
-    this.name = name
-    const type = this.type
-    if (this.options.propertyRef && name.charAt(0) === '$') {
-      name = name.slice(1)
+    if (!this.value) {
+      this.value = this.nodes.join('')
     }
+    const name = this.value
+    const type = this.type
+
 
     if (this.evaluating) {
       return this.error(context,

@@ -8,8 +8,8 @@ const mockLocation: ILocationInfo = {
 }
 
 describe('Block', () => {
-  it('toString() - at-rule w/o rules', () => {
-    const rule = new Block([new Value('')])
-    expect(rule + '').to.eq('@test this is a prelude;')
+  it('toString()', () => {
+    const rule = new Block([new Value('('), new Value('foo'), new Value(')')])
+    expect(rule + '').to.eq('(foo)')
   })
 })

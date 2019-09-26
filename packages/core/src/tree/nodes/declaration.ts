@@ -47,7 +47,7 @@ export class Declaration extends Node implements ImportantNode {
 
   options: IDeclarationOptions
 
-  constructor(props: IProps, options: IDeclarationOptions, location: ILocationInfo) {
+  constructor(props: IProps, options?: IDeclarationOptions, location?: ILocationInfo) {
     const { important } = props
     if (!important) {
       props.important = []

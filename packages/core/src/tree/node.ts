@@ -2,7 +2,7 @@ import { CstNodeLocation } from 'chevrotain'
 import { IOptions } from '../options'
 import { EvalContext } from './contexts'
 import { compare } from './util/compare'
-import { Rules, Import, Declaration } from './nodes'
+import { Rules, Import, Declaration, Expression, List, Element } from './nodes'
 
 export type SimpleValue = string | number | boolean | number[]
 
@@ -45,8 +45,10 @@ export type IProps = {
  * The result of an eval can be one of these types
  */
 export type EvalReturn = Node[] | Node | false
-
 export type ProcessFunction = (node: Node) => EvalReturn
+
+export type Selector = Expression<Element>
+export type SelectorList = List<Selector>
 
 // export type IProps = Node[] | (IChildren & ISimpleProps)
 export interface ILocationInfo extends CstNodeLocation {}
@@ -465,8 +467,8 @@ export abstract class Node {
     /** All nodes that override eval() should (usually) exit if they're evaluated */
     if (!this.evaluated) {
       this.processChildren(this, (node: Node) => node.eval(context))
+      this.evaluated = true
     }
-    this.evaluated = true
     return this
   }
 

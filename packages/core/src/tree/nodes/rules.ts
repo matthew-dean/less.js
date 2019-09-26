@@ -1,5 +1,6 @@
 import {
   Node,
+  NodeArray,
   Declaration,
   Import,
   EvalReturn,
@@ -32,7 +33,7 @@ import { EvalContext } from '../contexts'
  * @todo This should be broken up so that a rules is _just_ the parts between { ... }
  * @todo move selector logic to qualified rule
  */
-export class Rules extends Node implements ImportantNode {
+export class Rules extends NodeArray implements ImportantNode {
   scope: {
     [key: string]: any
   }
@@ -110,6 +111,7 @@ export class Rules extends Node implements ImportantNode {
 
     const newRules: EvalReturn[] = Array(rulesLength)
     for (let i = 0; i < rulesLength; i++) {
+      rule = ruleset[i]
       if (rule instanceof Import) {
         ruleGroups.imports.push([i, rule])
       } else if (rule.evalFirst) {
@@ -163,13 +165,13 @@ export class Rules extends Node implements ImportantNode {
     /** @removed - merging in & { } */
 
     // Pop the stack
-    ctxFrames.shift()
+    // ctxFrames.shift()
     // ctxSelectors.shift()
 
     /** Restore original scope */
-    context.scope = currentScope
+    // context.scope = currentScope
 
-    return rules;
+    return rules
   }
 
   makeImportant(): this {
