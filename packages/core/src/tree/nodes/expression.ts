@@ -4,7 +4,8 @@ import {
   Block,
   Comment,
   Dimension,
-  List
+  List,
+  WS
 } from '.'
 
 import { EvalContext } from '../contexts'
@@ -18,61 +19,64 @@ export type IExpressionOptions = {
  * An expression is an arbitrary list of nodes,
  * but has two unique properties:
  *   1) It switches the way math is evaluated based on blocks
- *   strike: ~~When converted to an array, it discards whitespace and 
- *      comments as members of the array.~~
+ *   2) When converted to an array, it discards whitespace and 
+ *      comments as members of the array.
  */
 export class Expression<T extends Node = Node> extends NodeArray {
   options: IExpressionOptions
   nodes: T[]
 
-  // toArray() {
-  //   return this.nodes.filter(node =>
-  //     (!(node instanceof WS) && !(node instanceof Comment))
-  //   )
-  // }
+  toArray() {
+    return this.nodes.filter(node =>
+      (!(node instanceof WS) && !(node instanceof Comment))
+    )
+  }
 
   /**
-   * If an evaluated Node in an expression returns a list,
+   * If an evaluated Node in an expression returns a list (such as Element),
    * then we need to merge the list with the surrounding nodes.
    */
   eval(context: EvalContext): Expression | List | Node {
-    super.eval(context)
+    if (!this.evaluated) {
+      super.eval(context)
 
-    const expressions: Expression[] = []
+      const expressions: Expression[] = []
 
-    const processNodes = (nodes: Node[]) => {
-      for(let i = 0; i < nodes.length; i++) {
-        const node = nodes[i]
-        if (node instanceof List) {
-          node.nodes.forEach((listItem: Node) => {
-            const newNodes: Node[] = nodes.map((n: Node, x) => {
-              if (x === i) {
-                return null
-              }
-              return n.clone()
+      const processNodes = (nodes: Node[]) => {
+        for(let i = 0; i < nodes.length; i++) {
+          const node = nodes[i]
+          if (node instanceof List) {
+            node.nodes.forEach((listItem: Node) => {
+              const newNodes: Node[] = nodes.map((n: Node, x) => {
+                if (x === i) {
+                  return null
+                }
+                return n.clone()
+              })
+              newNodes[i] = listItem.clone()
+              expressions.push(new Expression(newNodes))
             })
-            newNodes[i] = listItem.clone()
-            expressions.push(new Expression(newNodes))
-          })
-          expressions.forEach(expr => {
-            processNodes(expr.nodes)
-          })
-          break
+            expressions.forEach(expr => {
+              processNodes(expr.nodes)
+            })
+            break
+          }
         }
       }
+
+      processNodes(this.nodes)
+
+      const numExpressions = expressions.length
+
+      if (numExpressions === 0) {
+        return this
+      } else if (numExpressions === 1) {
+        return expressions[0].inherit(this)
+      } else {
+        return (new List(expressions)).inherit(this)
+      }
     }
-
-    processNodes(this.nodes)
-
-    const numExpressions = expressions.length
-
-    if (numExpressions === 0) {
-      return this
-    } else if (numExpressions === 1) {
-      return expressions[0].inherit(this)
-    } else {
-      return (new List(expressions)).inherit(this)
-    }
+    return this
   }
   /**
    * @todo - why not just do enter / exit block in the block node?

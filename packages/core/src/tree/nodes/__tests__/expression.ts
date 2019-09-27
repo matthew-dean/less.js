@@ -41,5 +41,6 @@ describe('Expression', () => {
     ])
     const val = rule.eval(context)
     expect(val + '').to.eq('.one,.two,.three')
+    console.log(val['nodes'][0])
   })
 })

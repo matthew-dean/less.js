@@ -4,8 +4,7 @@ import {
   Expression,
   Value,
   List,
-  Element,
-  NumberValue,
+  Element
 } from '..'
 
 import { EvalContext } from '../../contexts'
@@ -53,10 +52,16 @@ describe('Element', () => {
       ])
     ])
     const val = rule.eval(context)
+    const expr = val['nodes']
     expect(val + '').to.eq('+ one two three')
+
+    /** Should flatten sub-expressions to only elements */
+    expect(expr[0] instanceof Element).to.eq(true)
+    expect(expr[1] instanceof Element).to.eq(true)
+    expect(expr[2] instanceof Element).to.eq(true)
   })
 
-  it('should apply initial combinator to an nested expressions', () => {
+  it('should apply initial combinator to a nested expressions', () => {
     const rule = new Element([
       new Value({ value: '+', text: '+ ' }),
       new List([
@@ -74,5 +79,11 @@ describe('Element', () => {
     ])
     const val = rule.eval(context)
     expect(val + '').to.eq('+ one two three,+ four five six')
+    const list = val['nodes']
+
+    /** Should be a list of two expressions with 3 elements */
+    expect(list[0]['nodes'].length).to.eq(3)
+    expect(list[1]['nodes'].length).to.eq(3)
+    expect(list[1]['nodes'][0]['nodes'][0].value).to.eq('+')
   })
 })

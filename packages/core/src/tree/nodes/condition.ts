@@ -1,5 +1,6 @@
 import {
   Node,
+  NodeArray,
   IProps,
   ILocationInfo,
   Value,
@@ -13,12 +14,12 @@ export type IConditionOptions = {
   negate: boolean
 }
 
-export class Condition extends Node {
+export class Condition extends NodeArray {
   /** [left, op, right] */
   nodes: [Node, Value, Node]
   options: IConditionOptions
 
-  constructor(props: IProps, options: IConditionOptions, location: ILocationInfo) {
+  constructor(props: IProps, options?: IConditionOptions, location?: ILocationInfo) {
     super(props, options, location)
   }
 

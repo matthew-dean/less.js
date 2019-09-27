@@ -1,4 +1,11 @@
-import { NodeArray } from '.'
+import {
+  NodeArray,
+  Value,
+  Node,
+  Condition,
+  Operation
+} from '.'
+
 import { EvalContext } from '../contexts'
 
 /**
@@ -6,16 +13,24 @@ import { EvalContext } from '../contexts'
  * Previously named 'Paren'
  * 
  * nodes will typically be [Value<'('>, Node, Value<')'>]
+ * 
+ * @todo - define nodes interface for constructor
  */
 export class Block extends NodeArray {
-  /** 
-   * @todo - if block value was an operation, then
-   *         we should return the result, not this block
-   */
+  nodes: [Value, Node, Value]
+
   eval(context: EvalContext) {
+    let content = this.nodes[1]
+    let escape = content instanceof Operation || content instanceof Condition
     context.enterBlock()
     const block = super.eval(context)
     context.exitBlock()
+    content = this.nodes[1]
+
+    /** If the result of an operation or compare reduced to a single result, then return the result */
+    if (escape && !(content instanceof Operation) && !(content instanceof Condition)) {
+      return content
+    }
     return block
   }
 }

@@ -92,7 +92,7 @@ export class Element extends Node {
           expr.nodes[0].nodes[0] = combinator.clone().inherit(prevCombinator)
         })
         if (list.nodes.length === 1) {
-          return list.nodes
+          return list.nodes[0]
         }
         return list
       }
