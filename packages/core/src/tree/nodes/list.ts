@@ -1,29 +1,23 @@
 import {
   Node,
+  NodeArray,
   IProps,
   INodeOptions,
   ILocationInfo
 } from '.'
+import { EvalContext } from '../contexts'
 
-export type NodeType<T> = T extends Node ? T : never
 /**
  * Renamed from 'Value'
  * 
  * This is a any comma-separated list
  */
-export class List<T = Node> extends Node {
-  nodes: NodeType<T>[]
+export class List<T extends Node = Node> extends NodeArray {
+  nodes: T[]
 
-  constructor(props: Node[] | IProps, options?: INodeOptions, location?: ILocationInfo) {
-    let newProps: IProps
-    if (Array.isArray) {
-      newProps = <IProps>{ nodes: props }
-    } else {
-      newProps = <IProps>props
-    }
-    super(newProps, options, location)
+  eval(context: EvalContext): List<T> {
+    return <List<T>>super.eval(context)
   }
-
   toString() {
     return this.nodes.join(',')
   }

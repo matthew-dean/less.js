@@ -1,5 +1,6 @@
 import {
   Node,
+  NodeArray,
   IProps,
   ILocationInfo,
   Value,
@@ -13,12 +14,12 @@ export type IConditionOptions = {
   negate: boolean
 }
 
-export class Condition extends Node {
+export class Condition extends NodeArray {
   /** [left, op, right] */
   nodes: [Node, Value, Node]
   options: IConditionOptions
 
-  constructor(props: IProps, options: IConditionOptions, location: ILocationInfo) {
+  constructor(props: IProps, options?: IConditionOptions, location?: ILocationInfo) {
     super(props, options, location)
   }
 
@@ -26,8 +27,8 @@ export class Condition extends Node {
     const result = ((op, a, b): boolean => {
       if (a instanceof Node && b instanceof Node) {
         switch (op) {
-          case 'and': return a.valueOf() && b.valueOf()
-          case 'or':  return a.valueOf() || b.valueOf()
+          case 'and': return Boolean(a.valueOf()) && Boolean(b.valueOf())
+          case 'or':  return Boolean(a.valueOf()) || Boolean(b.valueOf())
           default:
             switch (compare(a, b)) {
               case -1:

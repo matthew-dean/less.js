@@ -5,9 +5,11 @@ import {
   IProps,
   Rules,
   List,
-  Selector
+  Expression,
+  SelectorList
 } from '.'
 
+import { flattenSelectors } from '../util/selectors'
 import { mergeList } from '../util/math'
 import { EvalContext } from '../contexts'
 
@@ -22,8 +24,8 @@ export type IQualifiedRuleProps = {
  */
 export class QualifiedRule extends Node {
   rules: Node[]
-  selectors: Node[]
-  condition: Node[]
+  selectors: [SelectorList]
+  condition: [Node]
 
   constructor(props: IQualifiedRuleProps, options: INodeOptions, location: ILocationInfo) {
     const { selectors, rules, condition } = props
@@ -40,86 +42,84 @@ export class QualifiedRule extends Node {
   }
 
   eval(context: EvalContext) {
-     /**
-     * Selector eval is not like other evals that flatten arrays into the container array
-     * Instead, we use the mergeList utility
-     */
-    const selectorList = this.children.selectors[0].clone()
-    const selectors = selectorList.nodes
-    const createdSelectors: Selector[] = []
+    if (!this.evaluated) {
+      this.evaluated = true
 
-    if (selectors && selectors.length > 0) {
-      selectors.forEach((sel: Selector) => {
-        sel.eval(context)
-        const elements = sel.nodes
-        const selectorList: Element[][] = mergeList(elements)
-        selectorList.forEach(elementList => {
-          const newSelector = sel.clone()
-          newSelector.nodes = elementList
-          createdSelectors.push(newSelector)
-        })
-      })
-      this.children.selectors[0].nodes = createdSelectors
+      /**
+       * The underlying Expression / Element implementations should merge selectors
+       */
+      const selectorList = this.selectors[0].eval(context)
+      this.selectors = [selectorList]
+
+      // currrent selectors
+      let ctxSelectors = context.selectors
+      ctxSelectors.unshift(selectorList)
+
+      const evalFunc = (node: Node) => node.eval(context)
+       /** 
+        * @todo - if condition doesn't match, stop and return false,
+        * so that we don't waste time evaluating rules
+        */
+      this.processNodeArray(this.condition, evalFunc)
+
+      this.processNodeArray(this.rules, evalFunc)
+
+      /** Restore context selectors to initial state */
+      ctxSelectors.shift()
+
+      // let selCnt: number
+      // let selector: Node
+      // let i: number
+      // let hasVariable: boolean
+      // let hasOnePassingSelector: boolean = false;
+
+      // if (this.children.selectors && (selCnt = this.children.selectors.length)) {
+      // selectors = new Array(selCnt)
+      // defaultFunc.error({
+      //     type: 'Syntax',
+      //     message: 'it is currently only allowed in parametric mixin guards,'
+      // })
+
+      // for (i = 0; i < selCnt; i++) {
+      //     selector = this.selectors[i].eval(context)
+      //     for (var j = 0; j < selector.elements.length; j++) {
+      //         if (selector.elements[j].isVariable) {
+      //             hasVariable = true
+      //             break;
+      //         }
+      //     }
+      //     selectors[i] = selector;
+      //     if (selector.evaldCondition) {
+      //         hasOnePassingSelector = true;
+      //     }
+      // }
+
+      // if (hasVariable) {
+      //     const toParseSelectors = new Array(selCnt);
+      //     for (i = 0; i < selCnt; i++) {
+      //         selector = selectors[i];
+      //         toParseSelectors[i] = selector.toCSS(context);
+      //     }
+      // }
+
+      // defaultFunc.reset()
+      // } else {
+      //     hasOnePassingSelector = true
+      // }
+      // // if (!hasOnePassingSelector) {
+      // //   rules.length = 0;
+      // // }
+      // const { mediaBlocks } = context
+      // const mediaBlockCount = (mediaBlocks && mediaBlocks.length) || 0
+      // /** Bubble selectors up through rules... move to qualified rules probably */
+      
+      // if (mediaBlocks) {
+      //     for (let i = mediaBlockCount; i < mediaBlocks.length; i++) {
+      //     mediaBlocks[i].bubbleSelectors(selectors)
+      //     }
+      // }
     }
-
-     // currrent selectors
-     let ctxSelectors = context.selectors
-     if (!ctxSelectors) {
-       context.selectors = ctxSelectors = []
-     }
-     ctxSelectors.unshift(this.selectors)
-
-    let selCnt: number
-    let selector: Node
-    let i: number
-    let hasVariable: boolean
-    let hasOnePassingSelector: boolean = false;
-
-    if (this.children.selectors && (selCnt = this.children.selectors.length)) {
-      selectors = new Array(selCnt)
-      defaultFunc.error({
-        type: 'Syntax',
-        message: 'it is currently only allowed in parametric mixin guards,'
-      })
-
-      for (i = 0; i < selCnt; i++) {
-        selector = this.selectors[i].eval(context)
-        for (var j = 0; j < selector.elements.length; j++) {
-            if (selector.elements[j].isVariable) {
-                hasVariable = true
-                break;
-            }
-        }
-        selectors[i] = selector;
-        if (selector.evaldCondition) {
-            hasOnePassingSelector = true;
-        }
-      }
-
-      if (hasVariable) {
-          const toParseSelectors = new Array(selCnt);
-          for (i = 0; i < selCnt; i++) {
-              selector = selectors[i];
-              toParseSelectors[i] = selector.toCSS(context);
-          }
-      }
-
-      defaultFunc.reset()
-    } else {
-        hasOnePassingSelector = true
-    }
-    // if (!hasOnePassingSelector) {
-    //   rules.length = 0;
-    // }
-    const { mediaBlocks } = context
-    const mediaBlockCount = (mediaBlocks && mediaBlocks.length) || 0
-    /** Bubble selectors up through rules... move to qualified rules probably */
-    
-    if (mediaBlocks) {
-        for (let i = mediaBlockCount; i < mediaBlocks.length; i++) {
-        mediaBlocks[i].bubbleSelectors(selectors)
-        }
-    }
+    return this
   }
 
     // lets you call a css selector with a guard

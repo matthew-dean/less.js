@@ -1,6 +1,6 @@
 import { MathMode, RewriteUrlMode, EvalErrorMode } from '../constants'
 import { IOptions } from '../options'
-import Rules from './nodes/rules'
+import { Rules, Selector, List, Import } from './nodes'
 import LessError, { ILessError } from '../less-error'
 
 function isPathRelative(path: string) {
@@ -33,6 +33,14 @@ export class EvalContext {
   mediaBlocks: any[]
 
   /**
+   * As we crawl the tree, we build up a stack of
+   * parent selectors we can use for merging into child selectors
+   */
+  selectors: (List<Selector>)[]
+
+  importQueue: Import[]
+
+  /**
    * AFAICT, frames are a stack of Rules nodes, used for scoping (and lookups?)
    * @todo - is this neded?
    */
@@ -47,12 +55,13 @@ export class EvalContext {
   constructor(environment, options: IOptions) {
     this.options = options
     this.environment = environment
+    this.selectors = []
     this.frames = []
     this.importantScope = []
     this.inCalc = false
     this.mathOn = true
     /** Replacement for function registry */
-    this.scope = Object.create(environment.scope)
+    this.scope = Object.create(environment.scope || null)
   }
 
   error(err: ILessError, fileRoot: Rules) {

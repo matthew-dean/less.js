@@ -1,44 +1,65 @@
 import {
   Node,
+  Declaration,
   IProps,
-  ILocationInfo,
-  FunctionCall
+  ILocationInfo
+  // FunctionCall
 } from '.'
 
+/**
+ * @todo - Store the variable name without `@` for cross-format compatibility
+ */
 import { EvalContext } from '../contexts'
 
 export type IVariableOptions = {
   /** will look up properties instead of variables */
-  propertyRef: boolean
+  propertyRef?: boolean
 }
 /**
  * The value nodes might contain another variable ref (nested vars)
  * 
  * e.g. 
- *   nodes: @foo = <Value '@foo'>
- *   nodes: @@bar = <Value '@'> <Variable '@bar'>
+ *   nodes: @foo = <Value 'foo'>
+ *   nodes: @@bar = <Variable 'bar'>
  */
 export class Variable extends Node {
   evaluating: boolean
-  name: string
   type: string
-
+  value: string
   options: IVariableOptions
 
-  constructor(props: IProps, options: IVariableOptions, location: ILocationInfo) {
-    super(props, options, location)
+  constructor(props: string | IProps, options: IVariableOptions = {}, location?: ILocationInfo) {
+    let newProps: IProps
+    if (props.constructor === String) {
+      newProps = { value: <string>props }
+    } else {
+      newProps = <IProps>props
+    }
+    let val: string = newProps.value.toString()
+    
+    if (options.propertyRef && newProps.value !== undefined && val.charAt(0) === '$') {
+      newProps.value = val.slice(1)
+    }
+    super(newProps, options, location)
     this.type = options.propertyRef ? 'Property' : 'Variable'
+  }
+
+  toString() {
+    const name = super.toString()
+    if (this.options.propertyRef) {
+      return name
+    }
+    return '@' + name
   }
 
   eval(context: EvalContext) {
     super.eval(context)
-
-    let name = this.nodes.join('')
-    this.name = name
-    const type = this.type
-    if (this.options.propertyRef && name.charAt(0) === '$') {
-      name = name.slice(1)
+    if (!this.value) {
+      this.value = this.nodes.join('')
     }
+    const name = this.value
+    const type = this.type
+
 
     if (this.evaluating) {
       return this.error(context,
@@ -48,18 +69,22 @@ export class Variable extends Node {
 
     this.evaluating = true
 
-    const variable = this[`find${type}`](name)
-    if (variable) {
+    const decl: Declaration | Declaration[] = this[`find${type}`](name)
+    if (decl) {
       this.evaluating = false
-      if (Array.isArray(variable)) {
+      if (Array.isArray(decl)) {
         const props = []
-        variable.forEach(node => {
+        decl.forEach(node => {
           props.push(node.eval(context))
         })
+        /** @todo - merge props */
+        return props
+      } else {
+        decl.eval(context)
+        /** Return the evaluated declaration's value */
+        return decl.nodes[0]
       }
-      variable.eval(context)
-      /** Return the evaluated declaration's value */
-      return variable.nodes.join('')
+      
     }
     return this.error(context, `${type} '${name}' is undefined`)
 

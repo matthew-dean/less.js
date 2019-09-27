@@ -1,34 +1,34 @@
 import {
   Node,
-  IProps,
-  INodeOptions,
   ILocationInfo,
   Selector,
   List
 } from '.'
+import { SelectorList } from '../node'
 
-export enum ExtendOption {
+export enum ExtendMode {
   ALL
 }
 
 export type IExtendProps = {
-  option: ExtendOption,
-  selectors: Selector[]
+  selectors: Selector[] | [SelectorList]
+}
+
+export type IExtendOptions = {
+  mode: ExtendMode
 }
 
 /**
  * @todo - the extend visitor should run after tree flattening
  */
 export class Extend extends Node {
-  option: ExtendOption
-  constructor(props: IExtendProps, options: INodeOptions, location: ILocationInfo) {
-    const newProps: IProps = {}
-    const { option, selectors } = props
+  options: IExtendOptions
+  constructor(props: IExtendProps, options: IExtendOptions, location: ILocationInfo) {
+    const { selectors } = props
     if (selectors.length !== 1) {
-      newProps.selectors = [new List(selectors)]
+      props.selectors = [new List<Selector>(selectors)]
     }
-    super(newProps, options, location)
-    this.option = option
+    super(props, options, location)
   }
 }
 

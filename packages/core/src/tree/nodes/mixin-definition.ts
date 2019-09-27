@@ -16,6 +16,11 @@ import * as utils from '../utils'
 /**
  * @todo - Is .rule {} a mixin or qualified rule?
  */
+/**
+ * @todo - Store the mixin name without '.' or '#' for cross-format compatibility
+ *         This makes .mixin() {} the equivalent of `@mixin mixin()`
+ *         and .mixin(); is the equivalent of `@include mixin()`
+ */
 export interface IMixinDefinitionProps extends IQualifiedRuleProps {
   args: Node[]
 }
@@ -84,7 +89,7 @@ export class MixinDefinition extends QualifiedRule {
                 varargs = [];
                 for (j = argIndex; j < argsLength; j++) {
                     varargs.push(args[j].value.eval(context));
-                }RulesRules
+                }
                 frame.prependRule(new Declaration(name, new Expression(varargs).eval(context)));
             } else {
                 val = arg && arg.value;

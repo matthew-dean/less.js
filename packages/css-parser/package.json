@@ -8,12 +8,12 @@
     "dist"
   ],
   "scripts": {
-    "ci" : "npm-run-all build test",
+    "ci": "npm-run-all build test",
     "prepublishOnly": "npm run build",
     "build": "npm-run-all clean compile",
     "clean": "shx rm -rf ./dist",
     "compile": "tsc -p tsconfig.build.json",
-    "test": "mocha -r ts-node/register test/**/*.ts"
+    "test": "ts-mocha test/**/*.ts"
   },
   "author": "Matthew Dean",
   "license": "(Apache-2.0 or MIT)",

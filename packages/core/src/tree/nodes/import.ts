@@ -2,11 +2,16 @@ import {
   Node,
   IProps,
   ILocationInfo,
-  Rules
+  Rules,
+  AtRule
 } from '.'
 
 import { EvalContext } from '../contexts'
 
+/**
+ * @todo - all imports must resolve to a Less AST, even modules.
+ *         a module essentially returns Rules<FunctionDefinition[]>
+ */
 //
 // CSS @import node
 //
@@ -24,17 +29,16 @@ export type IImportOptions = {
   css?: boolean
   less?: boolean
   inline?: boolean
-  /** import is a JavaScript ES6 module */
-  isModule?: boolean
+  module?: boolean
 }
 /**
  * @todo - rewrite the above to make browser importing not a factor
  * Also, the import queue should be loaded during evalImports, not parsing
  */
 export class Import extends Node {
-  content: Node[]
-  features: Node[]
-  path: Node[]
+  content: [Node]
+  features: [Node]
+  path: [Node]
   options: IImportOptions
 
   constructor(props: IProps, options: IImportOptions, location: ILocationInfo) {
@@ -49,6 +53,19 @@ export class Import extends Node {
     props.content = []
     super(props, options, location)
     this.allowRoot = true
+  }
+
+  eval(context: EvalContext): AtRule | Import {
+    super.eval(context)
+    if (this.options.css) {
+      return new AtRule({
+        pre: this.pre,
+        post: this.post,
+        name: '@import',
+        prelude: this.path.concat(this.features)
+      }, {}, this.location)
+    }
+    return this
   }
 
   /**

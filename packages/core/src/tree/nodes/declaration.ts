@@ -1,5 +1,8 @@
 import {
   Node,
+  List,
+  Expression,
+  Rules,
   IProps,
   ILocationInfo,
   ImportantNode,
@@ -23,14 +26,28 @@ export type IDeclarationOptions = {
 
 export class Declaration extends Node implements ImportantNode {
   value: string
+  /**
+   * For cross-platform compatability, a variable declaration's name
+   * will not contain '@', but is instead marked as `isVariable: true`
+   */
   name: Node[]
-  /** Declaration's value */
-  nodes: Node[]
-  important: Node[]
+  /**
+   * Declaration's value, will be a single node,
+   * either a List (of Expressions), an Expression, or Rules
+   * 
+   * Note that a custom property's expression will _contain_ initial
+   * and final whitespace, whereas a normal declaration's expression (or list)
+   * will have it assigned to the pre / post properties. This aligns with
+   * the CSS syntax spec, and means that the nodes' value of `--foo: bar`
+   * does _not_ equal the value of `--foo:bar`, but values of `foo: bar`
+   * and `foo:bar` are equal.
+   */
+  nodes: [List<Node> | Node]
+  important: [Value]
 
   options: IDeclarationOptions
 
-  constructor(props: IProps, options: IDeclarationOptions, location: ILocationInfo) {
+  constructor(props: IProps, options?: IDeclarationOptions, location?: ILocationInfo) {
     const { important } = props
     if (!important) {
       props.important = []
@@ -39,7 +56,8 @@ export class Declaration extends Node implements ImportantNode {
   }
 
   toString() {
-    return this.pre + this.value + ':' + this.nodes.join('') + this.important.join('') + this.post
+    return this.pre + (this.options.isVariable ? '@' : '') + 
+      this.value + ':' + this.nodes.join('') + this.important.join('') + this.post
   }
 
   eval(context: EvalContext) {
@@ -64,7 +82,7 @@ export class Declaration extends Node implements ImportantNode {
   }
 
   makeImportant() {
-    this.important = [new Value('!important')]
+    this.important = [new Value({ pre: ' ', text: '!important' })]
     return this
   }
 }

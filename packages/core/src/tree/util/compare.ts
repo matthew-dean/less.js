@@ -1,5 +1,6 @@
 import { Node } from '../nodes'
 
+type primitive = string | number | boolean
 export const compare = (a: Node, b: Node) => {
   /* returns:
    -1: a < b
@@ -61,10 +62,16 @@ export const compare = (a: Node, b: Node) => {
     }
   }
 
-  return primitiveCompare(aVal, <string | number>bVal)
+  return primitiveCompare(aVal, <primitive>bVal)
 }
 
-export const primitiveCompare = (a: (number | string | boolean), b: (number | string | boolean)) => {
+/**
+ * When doing a boolean compare, anything other than 0 is inequal
+ */
+export const primitiveCompare = (
+  a: primitive,
+  b: primitive
+): number | undefined => {
   if (a < b) {
     return -1
   }
@@ -72,7 +79,7 @@ export const primitiveCompare = (a: (number | string | boolean), b: (number | st
     return 1
   }
   /** Type coercion comparison */
-  if ((a + '') === (b + '')) {
+  if (a == b) {
     return 0
   }
 }

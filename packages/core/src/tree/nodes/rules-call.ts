@@ -2,44 +2,76 @@ import {
   Node,
   INodeOptions,
   ILocationInfo,
-  Selector,
   List,
+  Rules,
+  MatchOption,
+  Variable,
   MixinDefinition
 } from '.'
 
-import defaultFunc from '../functions/default'
+import { EvalContext } from '../contexts'
 
-interface IMixinCallProps {
-  args: Node[]
+// import defaultFunc from '../functions/default'
+
+interface IRulesCallProps {
+  /** Can be a Variable reference or mixin name */
+  reference: Node[]
+  args: [List<Node>] | []
 }
-/**
- * @todo - A mixin call should not return an array, it should replace itself with the eval'd rules
- *         This will allow vars / mixins to not "leak" on evaluation
- */
-class MixinCall extends Node {
-  args: [List<Node>]
-  constructor(props: IMixinCallProps, options: INodeOptions, location: ILocationInfo) {
-      super();
 
-      this.selector = new Selector(elements);
-      this.arguments = args || [];
-      this._index = index;
-      this._fileInfo = currentFileInfo;
-      this.important = important;
-      this.allowRoot = true;
-      this.setParent(this.selector, this);
+/**
+ * A Rules Call is an abstraction for any call to a mixin or rules assigned to a variable that we
+ * (optionally) want to pass arguments to.
+ * 
+ *   e.g. .mixin(foo) or #ns.mixin(foo) @rules(foo) or @rules()
+ */
+class RulesCall extends Node {
+  reference: Node[]
+  args: [List<Node>] | []
+
+  constructor(props: IRulesCallProps, options: INodeOptions, location: ILocationInfo) {
+    super(props, options, location)
   }
 
-    accept(visitor) {
-        if (this.selector) {
-            this.selector = visitor.visit(this.selector);
+  matchMixins(mixins: MixinDefinition[], context: EvalContext) {
+
+  }
+
+  eval(context: EvalContext) {
+    const name = this.reference
+
+    if (name.length === 1 && name[0] instanceof Variable) {
+      const varName = name[0].toString()
+      super.eval(context)
+      const result = this.reference[0]
+      if (result instanceof Rules) {
+        if (this.args.length === 0) {
+          return result.clone().inherit(this)
         }
-        if (this.arguments.length) {
-            this.arguments = visitor.visitArray(this.arguments);
-        }
+        return this.error(context, 
+          `Mixin reference '${varName}' does not accept args`
+        )
+      }
+      if (result instanceof MixinDefinition) {
+        return this.matchMixins([result], context)
+      }
     }
 
-    eval(context) {
+    /**
+     * Now name should be a list of elements
+     * 
+     * @todo - #foo .bar() matches #foo { .bar {} } and #foo { @mixin bar() }
+    */
+    name.forEach(ref => {
+      this.find((node: Node) => {
+        if (ref instanceof Element) {
+
+        }
+
+      }, MatchOption.IN_SCOPE)
+    })
+    
+
         let mixins;
         let mixin;
         let mixinPath;
@@ -225,5 +257,5 @@ class MixinCall extends Node {
     }
 }
 
-MixinCall.prototype.type = 'MixinCall';
-export default MixinCall;
+RulesCall.prototype.type = 'RulesCall'
+export default RulesCall
