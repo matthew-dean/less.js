@@ -30,17 +30,20 @@ describe('Expression', () => {
     expect(val + '').to.eq('11,12,13')
   })
 
+  /**
+   * This isn't the way Elements would be parsed (see Element tests),
+   * but it just demonstrates string merging logic
+   */
   it('should merge elements', () => {
     const rule = new Expression([
       new Value('.'),
       new List([
-        new Element(['', 'one']),
-        new Element(['', 'two']),
-        new Element(['', 'three'])
+        new Value('one'),
+        new Value('two'),
+        new Value('three')
       ])
     ])
     const val = rule.eval(context)
     expect(val + '').to.eq('.one,.two,.three')
-    console.log(val['nodes'][0])
   })
 })

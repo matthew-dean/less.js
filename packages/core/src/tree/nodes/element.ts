@@ -48,7 +48,7 @@ export class Element extends Node {
 
     nodes.forEach((node, i) => {
       if (!(node instanceof Element)) {
-        nodes[i] = (new Element(['', node.toString()])).inherit(node)
+        nodes[i] = (new Element(['', node.toString(true)])).inherit(node)
       }
     })
     return <Selector>expr

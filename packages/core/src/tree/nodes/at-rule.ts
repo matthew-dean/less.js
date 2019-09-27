@@ -45,13 +45,15 @@ export class AtRule extends Node {
     this.allowRoot = true
   }
 
-  toString() {
-    let text = this.pre + this.name + this.prelude.join('')
+  toString(omitPrePost?: boolean) {
+    let text = this.name + this.prelude.join('')
     if (this.rules) {
       text += this.rules.join('')
     }
-    text += this.post
-    return text
+    if (omitPrePost) {
+      return text
+    }
+    return this.pre + text + this.post
   }
 
   eval(context: EvalContext) {

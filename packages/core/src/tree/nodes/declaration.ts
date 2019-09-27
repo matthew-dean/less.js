@@ -55,9 +55,15 @@ export class Declaration extends Node implements ImportantNode {
     super(props, options, location)
   }
 
-  toString() {
-    return this.pre + (this.options.isVariable ? '@' : '') + 
-      this.value + ':' + this.nodes.join('') + this.important.join('') + this.post
+  toString(omitPrePost?: boolean) {
+    const text = (this.options.isVariable ? '@' : '') + 
+      this.value + ':' + this.nodes.join('') + this.important.join('')
+    
+    if (omitPrePost) {
+      return text
+    }
+
+    return this.pre + text + this.post
   }
 
   eval(context: EvalContext) {

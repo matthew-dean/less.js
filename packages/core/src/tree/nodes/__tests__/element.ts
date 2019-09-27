@@ -86,4 +86,36 @@ describe('Element', () => {
     expect(list[1]['nodes'].length).to.eq(3)
     expect(list[1]['nodes'][0]['nodes'][0].value).to.eq('+')
   })
+
+  it('should merge expanded values', () => {
+    /**
+     * @var: one, two
+     * .@{var}
+     */
+    const rule = new Element([
+      new Value(''),
+      new Expression([
+        new Value('.'),
+        new List([
+          new Expression([
+            new Element(['', 'one'])
+          ]),
+          new Expression({
+            pre: ' ',
+            nodes: [
+              new Element(['', 'two'])
+            ]
+          })
+        ])
+      ])
+    ])
+    const val = rule.eval(context)
+    expect(val + '').to.eq('.one, .two')
+    const subElement = val['nodes'][1]['nodes'][0]
+    expect(subElement['nodes'][0].value).to.eq('')
+    expect(subElement['nodes'][1].value).to.eq('.two')
+
+    /** Sub element should inherit the expression's pre value */
+    expect(subElement.pre).to.eq(' ')
+  })
 })

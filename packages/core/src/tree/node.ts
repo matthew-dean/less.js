@@ -155,6 +155,18 @@ export abstract class Node {
         configurable: false
       })
     })
+
+    const nodeRefProps = {
+      enumerable: false,
+      configurable: false,
+      writable: true
+    }
+
+    Object.defineProperties(this, {
+      parent: nodeRefProps,
+      root: nodeRefProps,
+      fileRoot: nodeRefProps
+    })
     
     this.setParent()
     this.location = location
@@ -207,7 +219,7 @@ export abstract class Node {
     return this.toString()
   }
 
-  toString() {
+  toString(omitPrePost: boolean = false) {
     let text: string
     if (this.text !== undefined) {
       text = this.text
@@ -215,6 +227,9 @@ export abstract class Node {
       text = this.value.toString()
     } else {
       text = this.nodes.join('')
+    }
+    if (omitPrePost) {
+      return text
     }
     return this.pre + text + this.post
   }

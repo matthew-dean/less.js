@@ -41,9 +41,11 @@ export class Expression<T extends Node = Node> extends NodeArray {
       super.eval(context)
 
       const expressions: Expression[] = []
-
-      const processNodes = (nodes: Node[]) => {
-        for(let i = 0; i < nodes.length; i++) {
+      
+      const processNodes = (node: Node) => {
+        let nodes = node.nodes
+        let nodesLength = nodes.length
+        for(let i = 0; i < nodesLength; i++) {
           const node = nodes[i]
           if (node instanceof List) {
             node.nodes.forEach((listItem: Node) => {
@@ -57,14 +59,22 @@ export class Expression<T extends Node = Node> extends NodeArray {
               expressions.push(new Expression(newNodes))
             })
             expressions.forEach(expr => {
-              processNodes(expr.nodes)
+              processNodes(expr)
             })
             break
+          } else if (node instanceof Expression) {
+            /** Flatten sub-expressions */
+            const exprNodes = node.nodes
+            const exprNodesLength = exprNodes.length
+            nodes = nodes.splice(0, i).concat(exprNodes).concat(nodes.splice(i + 1))
+            node.nodes = nodes
+            nodesLength += exprNodesLength
+            i += exprNodesLength
           }
         }
       }
 
-      processNodes(this.nodes)
+      processNodes(this)
 
       const numExpressions = expressions.length
 
