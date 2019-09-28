@@ -44,7 +44,7 @@ export type IProps = {
 /**
  * The result of an eval can be one of these types
  */
-export type EvalReturn = Node[] | Node | false
+export type EvalReturn = Node[] | Node | false | null | undefined
 export type ProcessFunction = (node: Node) => EvalReturn
 
 export type Selector = Expression<Element>
@@ -428,7 +428,7 @@ export abstract class Node {
           continue
         }
       }
-      if (returnValue === undefined || returnValue === null || returnValue === false) {
+      if (!returnValue) {
         nodeArray.splice(i, 1)
         i--
         continue

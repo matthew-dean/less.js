@@ -21,16 +21,12 @@ describe('Bool', () => {
     expect(rule.toString()).to.eq('FALSE')
   })
   it('works with only a boolean', () => {
-    const rule = new Bool({
-      value: true
-    })
+    const rule = new Bool(true)
     expect(rule.valueOf()).to.eq(true)
     expect(rule.toString()).to.eq('true')
   })
   it('equals other Bools', () => {
-    const A = new Bool({
-      value: true
-    })
+    const A = new Bool(true)
     const B = new Bool({
       text: 'True',
       value: true

@@ -8,13 +8,14 @@ import {
 
 import { EvalContext } from '../contexts'
 
-export type IAtRuleProps = {
+export type IAtRuleProps = IBaseProps & {
   name: string
-  /** Prelude (everything after name and before ; or {) */
-  prelude: Node[]
-  /** Optional set of rules */
-  rules?: Rules[]
-} & IBaseProps
+  /**
+   * nodes[0] - Prelude
+   * nodes[1] - Rules (optional)
+   */
+  nodes: [Node] | [Node, Rules]
+}
 
 export type IAtRuleOptions = {
   /**
@@ -29,8 +30,7 @@ export type IAtRuleOptions = {
 
 export class AtRule extends Node {
   name: string
-  rules: Rules[]
-  prelude: Node[]
+  nodes: [Node] | [Node, Rules]
   options: IAtRuleOptions
 
   constructor(props: IAtRuleProps, options: IAtRuleOptions, location: ILocationInfo) {
@@ -46,10 +46,7 @@ export class AtRule extends Node {
   }
 
   toString(omitPrePost?: boolean) {
-    let text = this.name + this.prelude.join('')
-    if (this.rules) {
-      text += this.rules.join('')
-    }
+    let text = this.name + this.nodes.join('')
     if (omitPrePost) {
       return text
     }

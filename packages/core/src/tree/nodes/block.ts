@@ -27,7 +27,10 @@ export class Block extends NodeArray {
     context.exitBlock()
     content = this.nodes[1]
 
-    /** If the result of an operation or compare reduced to a single result, then return the result */
+    /**
+     * If the result of an operation or compare reduced to a single result,
+     * then return the result (remove block marker)
+     */
     if (escape && !(content instanceof Operation) && !(content instanceof Condition)) {
       return content
     }

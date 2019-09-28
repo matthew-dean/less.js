@@ -9,7 +9,7 @@ const mockLocation: ILocationInfo = {
 
 const makeRule = () => new AtRule({
   name: '@test',
-  prelude: [new Value(' this is a prelude')],
+  nodes: [new Value(' this is a prelude')],
   post: new Value(';')
 }, {}, mockLocation)
 
@@ -22,7 +22,7 @@ describe('AtRule', () => {
     const rule = makeRule()
     const clone = rule.clone()
     expect(clone.name).to.eq('@test')
-    expect(clone.prelude.join('')).to.eq(' this is a prelude')
+    expect(clone.nodes.join('')).to.eq(' this is a prelude')
     expect(clone.post + '').to.eq(';')
   })
 })
