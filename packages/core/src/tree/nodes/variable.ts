@@ -68,10 +68,10 @@ export class Variable extends Node {
     }
 
     this.evaluating = true
+    const decl: Declaration | Declaration[] = this[`find${type}`](context, name)
+    this.evaluating = false
 
-    const decl: Declaration | Declaration[] = this[`find${type}`](name)
     if (decl) {
-      this.evaluating = false
       if (Array.isArray(decl)) {
         const props = []
         decl.forEach(node => {

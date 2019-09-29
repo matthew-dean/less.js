@@ -66,6 +66,7 @@ export interface IFileInfo {
 }
 
 export type INodeOptions = {
+  atRoot?: boolean
   [key: string]: boolean | number | string
 } & Partial<IFileInfo>
 
@@ -254,6 +255,7 @@ export abstract class Node {
     this.fileInfo = inheritFrom.fileInfo
     this.visibilityBlocks = inheritFrom.visibilityBlocks
     this.isVisible = inheritFrom.isVisible
+    this.evaluated = inheritFrom.evaluated
     return this
   }
 
@@ -335,12 +337,16 @@ export abstract class Node {
     }
   }
 
-  find(matchFunction: MatchFunction, option: MatchOption = MatchOption.FIRST): Node | Node[] {
+  find(
+    context: EvalContext,
+    matchFunction: MatchFunction,
+    option: MatchOption = MatchOption.FIRST
+  ): Node | Node[] {
     let node: Node = this
     const matches: Node[] = []
     const crawlRules = (rulesNode: Rules) => {
       const nodes = rulesNode.nodes
-      const nodeLength = this.nodes.length
+      const nodeLength = nodes.length
 
       for (let i = nodeLength; i > 0; i--) {
         const node = nodes[i - 1]
@@ -359,30 +365,41 @@ export abstract class Node {
         }
       }
     }
+
+    let maxTreeDepth = 1000
+    let currDepth = 0
     while (node) {
+      currDepth++
+      /**
+       * If we end up in an infinite loop because something has set
+       * node.parent to a child (or itself), we need to exit at some point.
+       */
+      if (currDepth > maxTreeDepth) {
+        return this.error(context, 'Maximum tree depth exceeded')
+      }
       if (node instanceof Rules) {
         crawlRules(node)
         if (matches.length && option !== MatchOption.IN_SCOPE) {
-          if (MatchOption.FIRST) {
+          if (option === MatchOption.FIRST) {
             return matches[0]
           }
           return matches
         }
       }
 
-      node = this.parent
+      node = node.parent
     }
 
     return matches.length ? matches : undefined
   }
 
   /** Moved from Rules property() method */
-  findProperty(name: string): Declaration[] {
-    return <Declaration[]>this.find((node: Node) => {
+  findProperty(context: EvalContext, name: string): Declaration[] {
+    return <Declaration[]>this.find(context, (node: Node) => {
       if (
         node instanceof Declaration &&
         !node.options.isVariable &&
-        node.value === name
+        node.evalName(context) === name
       ) {
         return node
       }
@@ -390,12 +407,12 @@ export abstract class Node {
   }
 
   /** Moved from Rules variable() method */
-  findVariable(name: string): Declaration {
-    return <Declaration>this.find((node: Node) => {
+  findVariable(context: EvalContext, name: string): Declaration {
+    return <Declaration>this.find(context, (node: Node) => {
       if (
         node instanceof Declaration &&
         node.options.isVariable &&
-        node.value === name
+        node.evalName(context) === name
       ) {
         return node
       }
@@ -457,7 +474,7 @@ export abstract class Node {
     })
   }
 
-  private inheritChild(node: Node) {
+  protected inheritChild(node: Node) {
     node.parent = this
     node.root = this.root
     node.fileRoot = this.fileRoot

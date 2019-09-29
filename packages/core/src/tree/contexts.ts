@@ -52,7 +52,7 @@ export class EvalContext {
     [key: string]: any
   }
 
-  constructor(environment, options: IOptions) {
+  constructor(environment?, options?: IOptions) {
     this.options = options
     this.environment = environment
     this.selectors = []
@@ -61,7 +61,7 @@ export class EvalContext {
     this.inCalc = false
     this.mathOn = true
     /** Replacement for function registry */
-    this.scope = Object.create(environment.scope || null)
+    // this.scope = Object.create(environment.scope || null)
   }
 
   error(err: ILessError, fileRoot: Rules) {

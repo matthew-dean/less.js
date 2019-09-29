@@ -3,6 +3,7 @@ import {
   List,
   Expression,
   Rules,
+  ProcessFunction,
   IProps,
   ILocationInfo,
   ImportantNode,
@@ -15,8 +16,8 @@ import { EvalContext } from '../contexts'
  * Will merge props using space or comma separators
  */
 export enum MergeType {
-  SPACED,
-  COMMA
+  SPACED = 1,
+  COMMA = 2
 }
 
 export type IDeclarationOptions = {
@@ -24,8 +25,13 @@ export type IDeclarationOptions = {
   mergeType?: MergeType
 }
 
+export type IDeclarationProps = IProps & {
+  name: string | Node[]
+}
+
 export class Declaration extends Node implements ImportantNode {
   value: string
+  evaluatingName: boolean
   /**
    * For cross-platform compatability, a variable declaration's name
    * will not contain '@', but is instead marked as `isVariable: true`
@@ -47,12 +53,22 @@ export class Declaration extends Node implements ImportantNode {
 
   options: IDeclarationOptions
 
-  constructor(props: IProps, options?: IDeclarationOptions, location?: ILocationInfo) {
-    const { important } = props
+  constructor(props: IDeclarationProps, options: IDeclarationOptions = {}, location?: ILocationInfo) {
+    let { name, important } = props
+    if (name.constructor === String) {
+      if ((<string>name).charAt(0) === '@') {
+        name = (<string>name).slice(1)
+        options.isVariable = true
+      }
+      props.name = [new Value(name)]
+    }
     if (!important) {
       props.important = []
     }
     super(props, options, location)
+    if (name.constructor === String) {
+      this.value = <string>name
+    }
   }
 
   toString(omitPrePost?: boolean) {
@@ -65,13 +81,32 @@ export class Declaration extends Node implements ImportantNode {
 
     return this.pre + text + this.post
   }
+  /** Resolve identifiers first */
+  evalName(context: EvalContext, evalFunc?: ProcessFunction) {
+    let value = this.value
+    if (!value) {
+      if (this.evaluatingName) {
+        return ''
+      }
+      /**
+       * Don't look at (and try to eval) this declaration when resolving
+       * a name that references a variable.
+       */
+      this.evaluatingName = true
+      evalFunc = evalFunc || ((node: Node) => node.eval(context))
+      this.processNodeArray(this.name, evalFunc)
+      value = this.name.join('')
+      this.value = value
+      this.evaluatingName = false
+    }
+    return value
+  }
 
   eval(context: EvalContext) {
     if (!this.evaluated) {
       const evalFunc = (node: Node) => node.eval(context)
+      this.evalName(context, evalFunc)
       context.importantScope.push({})
-      this.processNodeArray(this.name, evalFunc)
-      this.value = this.name.join('')
       this.processNodeArray(this.nodes, evalFunc)
       this.processNodeArray(this.important, evalFunc)
 

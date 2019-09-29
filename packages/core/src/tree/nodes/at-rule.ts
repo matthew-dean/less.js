@@ -3,50 +3,44 @@ import {
   Rules,
   IBaseProps,
   IProps,
+  INodeOptions,
   ILocationInfo
 } from '.'
 
 import { EvalContext } from '../contexts'
 
-export type IAtRuleProps = IBaseProps & {
+export type IAtRuleProps = {
   name: string
-  /**
-   * nodes[0] - Prelude
-   * nodes[1] - Rules (optional)
-   */
-  nodes: [Node] | [Node, Rules]
-}
-
-export type IAtRuleOptions = {
-  /**
-   * For cases like @media and @supports,
-   * this option will bubble the rule to the root.
-   * 
-   * If two media of the same type are nested, their expression
-   * lists (prelude) will be merged with 'and'
-   */
-  bubbleRule?: boolean
-}
+  /** Prelude (everything after name and before ; or {) */
+  prelude: [Node]
+  /** Optional set of rules */
+  rules?: [Rules]
+} & IBaseProps
 
 export class AtRule extends Node {
   name: string
-  nodes: [Node] | [Node, Rules]
-  options: IAtRuleOptions
+  prelude: [Node]
+  rules: [Rules] | []
+  options: { atRoot?: boolean }
 
-  constructor(props: IAtRuleProps, options: IAtRuleOptions, location: ILocationInfo) {
+  constructor(props: IAtRuleProps, options: INodeOptions = {}, location: ILocationInfo) {
     const { name, ...rest } = props
-    if (options.bubbleRule === undefined && (/@media|@supports/i.test(name))) {
-      options.bubbleRule = true
+
+    if (options.atRoot === undefined && (/@media|@supports/i.test(name))) {
+      options.atRoot = true
     }
     
     /** Wrap at rule body in an empty rules for proper scoping and collapsing */
     super(<IProps>(rest as unknown), options, location)
+
     this.name = name
-    this.allowRoot = true
   }
 
   toString(omitPrePost?: boolean) {
-    let text = this.name + this.nodes.join('')
+    let text = this.name + this.prelude[0].toString()
+    if (this.rules) {
+      text += this.rules[0].toString()
+    }
     if (omitPrePost) {
       return text
     }
@@ -77,3 +71,5 @@ export class AtRule extends Node {
 }
 
 AtRule.prototype.type = 'AtRule'
+AtRule.prototype.evalFirst = true
+AtRule.prototype.allowRoot = true

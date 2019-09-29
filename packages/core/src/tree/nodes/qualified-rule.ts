@@ -5,15 +5,17 @@ import {
   IProps,
   Rules,
   List,
-  SelectorList
+  SelectorList,
+  Selector,
+  Expression
 } from '.'
 
 import { EvalContext } from '../contexts'
 
 export type IQualifiedRuleProps = {
-  selectors: Node[]
-  rules: Rules,
-  condition?: Node
+  selectors: [SelectorList] | Selector[]
+  rules: [Rules],
+  condition?: [Node]
 }
 
 /**
@@ -26,17 +28,19 @@ export class QualifiedRule extends Node {
   condition: [Node] | undefined
 
   constructor(props: IQualifiedRuleProps, options: INodeOptions, location: ILocationInfo) {
-    const { selectors, rules, condition } = props
-    const newProps: IProps = {
-      rules: [rules]
+    const { selectors } = props
+    if (selectors.length !== 1 || selectors[0] instanceof Expression) {
+      props.selectors = [new List<Selector>(<Selector[]>selectors)]
     }
-    if (selectors.length !== 1) {
-      newProps.selectors = [new List(selectors)]
+    super(props, options, location)
+  }
+
+  toString(omitPrePost?: boolean) {
+    let text = this.selectors[0].toString() + this.rules[0].toString()
+    if (omitPrePost) {
+      return text
     }
-    if (condition) {
-      newProps.condition = [condition]
-    }
-    super(newProps, options, location)
+    return this.pre + text + this.post
   }
 
   eval(context: EvalContext) {
@@ -125,3 +129,4 @@ export class QualifiedRule extends Node {
 }
 
 QualifiedRule.prototype.type = 'QualifiedRule'
+QualifiedRule.prototype.evalFirst = true

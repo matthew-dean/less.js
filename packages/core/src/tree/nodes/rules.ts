@@ -6,7 +6,10 @@ import {
   EvalReturn,
   ImportantNode,
   QualifiedRule,
-  AtRule
+  AtRule,
+  IProps,
+  INodeOptions,
+  ILocationInfo
 } from '.'
 
 import { EvalContext } from '../contexts'
@@ -34,8 +37,29 @@ import { EvalContext } from '../contexts'
  * @todo move selector logic to qualified rule
  */
 export class Rules extends NodeArray implements ImportantNode {
-  scope: {
-    [key: string]: any
+  // context: EvalContext
+  constructor(props: IProps, options?: INodeOptions, location?: ILocationInfo) {
+    super(props, options, location)
+    // this.context = new EvalContext()
+  }
+  toString() {
+    let text = '{'
+    this.nodes.forEach((node, i) => {
+      const nextNode = this.nodes[i + 1]
+      text += node.toString()
+      /**
+       * Sanity check, in case something adds a declaration without a
+       * semi-colon post-separator.
+       */
+      if (nextNode && node instanceof Declaration) {
+        const post = node.post.toString()
+        if (post.indexOf(';') === -1) {
+          text += ';'
+        }
+      }
+    })
+    text += '}'
+    return text
   }
 
   /**
@@ -112,6 +136,9 @@ export class Rules extends NodeArray implements ImportantNode {
     const newRules: EvalReturn[] = Array(rulesLength)
     for (let i = 0; i < rulesLength; i++) {
       rule = ruleset[i]
+      if (rule instanceof Declaration) {
+        rule.evalName(context)
+      }
       if (rule instanceof Import) {
         ruleGroups.imports.push([i, rule])
       } else if (rule.evalFirst) {
@@ -122,13 +149,13 @@ export class Rules extends NodeArray implements ImportantNode {
     }
 
     // Evaluate imports
-    if (this.fileInfo || !context.options.strictImports) {
+    if (this.fileRoot === this || !context.options.strictImports) {
       ruleGroups.imports.forEach(([i, node]) => {
         newRules[i] = node.eval(context)
       })
     }
 
-    /** Evaluate early nodes (not sure if this is still needed) */
+    /** Evaluate early nodes */
     ruleGroups.first.forEach(([i, node]) => {
       newRules[i] = node.eval(context)
     })
@@ -148,11 +175,7 @@ export class Rules extends NodeArray implements ImportantNode {
         }
       }
     })
-    replaceRules.forEach(rule => {
-      rule.parent = rules
-      rule.root = rules.root
-      rule.fileRoot = rules.fileRoot
-    })
+    replaceRules.forEach(rule => this.inheritChild(rule))
 
     rules.nodes = replaceRules
 
@@ -203,6 +226,10 @@ export class Rules extends NodeArray implements ImportantNode {
 
   prependRule(rule: Node) {
     this.prependNode(this.nodes, rule)
+  }
+
+  appendRule(rule: Node) {
+    this.appendNode(this.nodes, rule)
   }
 
   // find(selector, self = this, filter) {

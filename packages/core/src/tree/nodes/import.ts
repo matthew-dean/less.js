@@ -3,7 +3,8 @@ import {
   IProps,
   ILocationInfo,
   Rules,
-  AtRule
+  AtRule,
+  Expression
 } from '.'
 
 import { EvalContext } from '../contexts'
@@ -36,49 +37,51 @@ export type IImportOptions = {
  * Also, the import queue should be loaded during evalImports, not parsing
  */
 export class Import extends Node {
-  content: [Node]
+  content: [Node] | []
   features: [Node]
   path: [Node]
   options: IImportOptions
 
+  /**
+   * Note that when an import is added to the import queue, it's eventually passed 
+   * to the file manager, which may decide to alter the options based on file
+   * content or extension. So, for example, by default the Less file manager
+   * will treat a `.css` extension as a `css` option, and will set that option
+   * on the import node.
+   */
   constructor(props: IProps, options: IImportOptions, location: ILocationInfo) {
-    if (options.less !== undefined || options.inline) {
-      options.css = !options.less || options.inline
-    }
     /**
      * We add an empty content object, because this.children can't be mutated after
      * the constructor. After the file is resolved, content will be populated either
-     * by a single Rules node, or a Value node (in the case of inline or a JS module)
+     * by a single Rules node, or a Value node (such as in the case of inline)
      */
     props.content = []
     super(props, options, location)
-    this.allowRoot = true
   }
 
   eval(context: EvalContext): AtRule | Import {
-    super.eval(context)
-    if (this.options.css) {
-      return new AtRule({
-        pre: this.pre,
-        post: this.post,
-        name: '@import',
-        prelude: this.path.concat(this.features)
-      }, {}, this.location)
+    if (!this.evaluated) {
+      if (this.content.length === 0) {
+        super.eval(context)
+        if (this.options.css) {
+          this.evaluated = true
+          return new AtRule({
+            pre: this.pre,
+            post: this.post,
+            name: '@import',
+            prelude: [new Expression(this.path.concat(this.features)).inherit(this.path[0])]
+          }, {}, this.location).inherit(this)
+        }
+      } else {
+        this.content[0].eval(context)
+        this.evaluated = true
+      }
     }
     return this
   }
 
-  /**
-   * If @import still exists in the tree, that means it was preserved
-   * Note, both `path` and `features` should have `pre` whitespace preserved. 
-   */
   toString() {
-    if (this.options.css) {
-      return `@import${this.path}${this.features}`
-    }
-    if (this.options.inline || this.options.less) {
-      return this.content[0].toString()
-    }
+    return this.content[0].toString()
   }
 
   // eval(context: EvalContext) {
@@ -150,3 +153,4 @@ export class Import extends Node {
 }
 
 Import.prototype.type = 'Import'
+Import.prototype.allowRoot = true

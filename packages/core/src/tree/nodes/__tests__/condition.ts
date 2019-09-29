@@ -19,9 +19,9 @@ describe('Condition', () => {
 
   it('should evaluate a simple condition', () => {
     const node = new Condition([
-      new Bool({ value: true }),
+      new Bool(true),
       new Value('and'),
-      new Bool({ value: true })
+      new Bool(true)
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(true)
