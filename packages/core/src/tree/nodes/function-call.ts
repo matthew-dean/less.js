@@ -3,9 +3,9 @@ import {
   IProps,
   INodeOptions,
   ILocationInfo,
-  Value,
-  FunctionCaller
+  Value
 } from '.'
+import { EvalContext } from '../contexts'
 
 export type IFunctionCallProps = {
   name: string
@@ -24,7 +24,7 @@ export class FunctionCall extends Node {
     super(<IProps>rest, options, location)
 
     this.name = name
-    this.isCalc = name === 'calc('
+    this.isCalc = name === 'calc'
   }
 
   //
@@ -38,22 +38,23 @@ export class FunctionCall extends Node {
   // we try to pass a variable to a function, like: `saturate(@color)`.
   // The function should receive the value, not the variable.
   //
-  eval(context) {
+  eval(context: EvalContext) {
     /**
      * Turn off math for calc(), and switch back on for evaluating nested functions
      */
     const currentMathContext = context.mathOn
     context.mathOn = !this.isCalc
     if (this.isCalc || context.inCalc) {
-        context.enterCalc()
+      context.enterCalc()
     }
     const args = this.args.map(a => a.eval(context));
-    if (this.calc || context.inCalc) {
-        context.exitCalc();
+    if (this.isCalc || context.inCalc) {
+      context.exitCalc()
     }
-    context.mathOn = currentMathContext;
+    context.mathOn = currentMathContext
 
-    let result;
+
+    let result
     const funcCaller = new FunctionCaller(this.name, context, this.getIndex(), this.fileInfo());
 
     if (funcCaller.isValid()) {

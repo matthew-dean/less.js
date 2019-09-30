@@ -1,4 +1,35 @@
-import Expression from '../tree/expression';
+import { Node, Func, MatchOption } from '../nodes'
+import { EvalContext } from '../contexts'
+
+/**
+ * This will return a function-like construct, that we can call with arguments
+ */
+export const getFunction = (callingNode: Node, name: string, context: EvalContext) => {
+  const result = callingNode.find(context, (node: Node) => {
+    if (node instanceof Func && node.name === name) {
+      return node
+    }
+  }, MatchOption.FIRST)
+
+  if (result) {
+    /** This is an AST Func Node */
+    return {
+      call(args: Node[]) {
+
+      }
+    }
+  } else {
+    const jsFunction = context.scope[name]
+    if (jsFunction && jsFunction.constructor === Function) {
+      return {
+        call(args: Node[]) {
+          const result = jsFunction.apply(context, args)
+        }
+      }
+    }
+  }
+}
+
 
 class functionCaller {
     constructor(name, context, index, currentFileInfo) {
