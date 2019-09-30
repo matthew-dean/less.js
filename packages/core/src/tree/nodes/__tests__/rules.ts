@@ -80,13 +80,13 @@ describe('Rules', () => {
     expect(val.valueOf()).to.eq('{prop:foo;@varname:var;@var:foo}')
   })
 
-  // it('should merge props', () => {
-  //   const node = new Rules([
-  //     new Declaration({ name: 'merge', nodes: [new Value('foo')] }, { mergeType: MergeType.COMMA }),
-  //     new Declaration({ name: 'merge', nodes: [new Value('bar')] }, { mergeType: MergeType.COMMA }),
-  //     new Declaration({ name: 'prop', nodes: [new Variable('merge', { propertyRef: true })] })
-  //   ])
-  //   const val = node.eval(context)
-  //   expect(val.valueOf()).to.eq('{@var:foo;prop:foo}')
-  // })
+  it('should merge props', () => {
+    const node = new Rules([
+      new Declaration({ name: 'merge', nodes: [new Value('foo')] }, { mergeType: MergeType.COMMA }),
+      new Declaration({ name: 'merge', nodes: [new Value('bar')] }, { mergeType: MergeType.COMMA }),
+      new Declaration({ name: 'prop', nodes: [new Variable('merge', { propertyRef: true })] })
+    ])
+    const val = node.eval(context)
+    expect(val.valueOf()).to.eq('{@var:foo;prop:foo}')
+  })
 })

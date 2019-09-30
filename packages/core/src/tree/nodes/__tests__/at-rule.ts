@@ -16,7 +16,7 @@ const makeRule = () => new AtRule({
 describe('AtRule', () => {
   it('toString() - at-rule w/o rules', () => {
     const rule = makeRule()
-    expect(rule + '').to.eq('@test this is a prelude;')
+    expect(rule.toString()).to.eq('@test this is a prelude;')
   })
   it('should clone correctly', () => {
     const rule = makeRule()

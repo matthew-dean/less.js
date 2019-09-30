@@ -21,6 +21,13 @@ export type IExpressionOptions = {
  *   1) It switches the way math is evaluated based on blocks
  *   2) When converted to an array, it discards whitespace and 
  *      comments as members of the array.
+ * 
+ * e.g. one + two: [<Value 'one'><Op { pre: ' ', value: '+', post: ' '}><Value 'two'>]
+ *      one two [<Value 'one'><WS><Value 'two'>]
+ *      prop: foo --> value part is <Expression { pre: ' ', nodes: [<Value 'foo'>] }>
+ * 
+ * A selector expression is just:
+ *      #foo ~ .bar [<Value '#foo'><Op { pre: ' ', value: '~', post: ' '}><Value '.bar'>]
  */
 export class Expression<T extends Node = Node> extends NodeArray {
   options: IExpressionOptions
@@ -35,6 +42,8 @@ export class Expression<T extends Node = Node> extends NodeArray {
   /**
    * If an evaluated Node in an expression returns a list (such as Element),
    * then we need to merge the list with the surrounding nodes.
+   * 
+   * We also flatten expressions within expressions to be a flat node list.
    */
   eval(context: EvalContext): Expression | List | Node {
     if (!this.evaluated) {
@@ -42,8 +51,8 @@ export class Expression<T extends Node = Node> extends NodeArray {
 
       const expressions: Expression[] = []
       
-      const processNodes = (node: Node) => {
-        let nodes = node.nodes
+      const processNodes = (expr: Node) => {
+        let nodes = expr.nodes
         let nodesLength = nodes.length
         for(let i = 0; i < nodesLength; i++) {
           const node = nodes[i]
@@ -67,9 +76,10 @@ export class Expression<T extends Node = Node> extends NodeArray {
             const exprNodes = node.nodes
             const exprNodesLength = exprNodes.length
             nodes = nodes.splice(0, i).concat(exprNodes).concat(nodes.splice(i + 1))
-            node.nodes = nodes
+            expr.nodes = nodes
             nodesLength += exprNodesLength
             i += exprNodesLength
+            processNodes(node)
           }
         }
       }

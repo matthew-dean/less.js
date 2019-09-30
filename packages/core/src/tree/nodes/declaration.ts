@@ -41,12 +41,14 @@ export class Declaration extends Node implements ImportantNode {
    * Declaration's value, will be a single node,
    * either a List (of Expressions), an Expression, or Rules
    * 
-   * Note that a custom property's expression will _contain_ initial
+   * Note that a custom property's value will be a Expression containing
+   * just Value nodes and any interpolated Variables, since it can contain
+   * nearly anything. This Expression will contain initial
    * and final whitespace, whereas a normal declaration's expression (or list)
    * will have it assigned to the pre / post properties. This aligns with
    * the CSS syntax spec, and means that the nodes' value of `--foo: bar`
-   * does _not_ equal the value of `--foo:bar`, but values of `foo: bar`
-   * and `foo:bar` are equal.
+   * does _not_ equal the value of `--foo:bar`, but values within the 
+   * declarations of `foo: bar` and `foo:bar` are equal.
    */
   nodes: [List<Node> | Node]
   important: [Value]

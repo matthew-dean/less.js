@@ -5,7 +5,6 @@ export type IValueProps = string | IProps
  * This is any generic (unquoted string fragment) value
  *   e.g. new Value('this is an unquoted value')
  *        new Value({ text: '[id=foo]', value: '[id="foo"]' }) */
- //       new Value({ text: ' >/* combine */ ', value: '>' })
  /* 
  * Renamed from 'Anonymous'
  */

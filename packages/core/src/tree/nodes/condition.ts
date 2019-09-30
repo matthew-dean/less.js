@@ -3,7 +3,7 @@ import {
   NodeArray,
   IProps,
   ILocationInfo,
-  Value,
+  Op,
   Bool
 } from '.'
 
@@ -16,7 +16,7 @@ export type IConditionOptions = {
 
 export class Condition extends NodeArray {
   /** [left, op, right] */
-  nodes: [Node, Value, Node]
+  nodes: [Node, Op, Node]
   options: IConditionOptions
 
   constructor(props: IProps, options?: IConditionOptions, location?: ILocationInfo) {

@@ -47,9 +47,6 @@ export type IProps = {
 export type EvalReturn = Node[] | Node | false | null | undefined
 export type ProcessFunction = (node: Node) => EvalReturn
 
-export type Selector = Expression<Element>
-export type SelectorList = List<Selector>
-
 // export type IProps = Node[] | (IChildren & ISimpleProps)
 export interface ILocationInfo extends CstNodeLocation {}
 /**
@@ -217,7 +214,7 @@ export abstract class Node {
     if (this.value !== undefined) {
       return this.value
     }
-    return this.toString()
+    return this.toString(true)
   }
 
   toString(omitPrePost: boolean = false) {
@@ -281,7 +278,7 @@ export abstract class Node {
     /**
      * First copy over Node-specific props
      * 
-     * @todo - @addtest - make sure methods are not copied
+     * @todo - this is wrong; it copies over Node enumerable props
      */
     for (let prop in this) {
       if (this.hasOwnProperty(prop)) {

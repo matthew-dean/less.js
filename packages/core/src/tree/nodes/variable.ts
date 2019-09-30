@@ -6,9 +6,7 @@ import {
   // FunctionCall
 } from '.'
 
-/**
- * @todo - Store the variable name without `@` for cross-format compatibility
- */
+import { mergeProperties } from '../util/selectors'
 import { EvalContext } from '../contexts'
 
 export type IVariableOptions = {
@@ -73,12 +71,13 @@ export class Variable extends Node {
 
     if (decl) {
       if (Array.isArray(decl)) {
-        const props = []
+        const props: Declaration[] = []
         decl.forEach(node => {
           props.push(node.eval(context))
         })
+        mergeProperties(props, true)
         /** @todo - merge props */
-        return props
+        return props[props.length - 1].nodes
       } else {
         decl.eval(context)
         /** Return the evaluated declaration's value */
