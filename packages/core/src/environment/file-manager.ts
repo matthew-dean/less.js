@@ -1,5 +1,14 @@
 import { IOptions } from '../options'
 import Environment from './environment'
+import {
+  Node,
+  IImportOptions
+} from '../tree/nodes'
+
+export type FileObject = {
+  filename: string
+  contents: string
+}
 
 export default abstract class FileManager {
   /**
@@ -38,9 +47,13 @@ export default abstract class FileManager {
 
   /**
    * Returns whether this file manager supports this file for syncronous file retrieval
-   * @removed - all files are returned asynchronously
    */
-  protected supportsSync(): boolean { return false }
+  abstract supportsSync(
+    filename: string,
+    currentDirectory: string,
+    options: IOptions,
+    environment: Environment
+  ): boolean
 
   /**
    * Returns whether this file manager supports this file
@@ -63,16 +76,27 @@ export default abstract class FileManager {
     currentDirectory: string,
     options: IOptions,
     environment: Environment
-  ): Promise<{ filename: string, contents: string }>
+  ): Promise<FileObject>
 
   /**
    * Loads a file synchronously.
-   * 
-   * @removed
    */
-  protected loadFileSync() {
-    throw Error('Synchronous loading is not supported')
-  }
-  // helper function, not part of API
+  abstract loadFileSync(
+    filename: string,
+    currentDirectory: string,
+    options: IOptions,
+    environment: Environment
+  ): FileObject
 
+  /**
+   * Given file contents and import options, returns a single node
+   */
+  protected parseFile(
+    parser,
+    file: FileObject,
+    options: IOptions,
+    importOptions: IImportOptions
+  ): Node {
+    
+  }
 }
