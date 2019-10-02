@@ -12,12 +12,12 @@ interface IMerges {
 export const Fragments = [...CSSFragments]
 export let Tokens = [...CSSTokens]
 
-Fragments.push(['lineComment', '\\/\\/[^\\n\\r]*'])
+Fragments.unshift(['lineComment', '\\/\\/[^\\n\\r]*'])
 Fragments.push(['interpolated', '({{ident}}?[@$]{[\\w-]+}{{ident}}?)+'])
 
 Fragments.forEach((fragment, i) => {
   if (fragment[0].indexOf('wsorcomment') !== -1) {
-    fragment[1] = '(?:(?<ws>{{ws}})|(?<comment>{{comment}}|{{lineComment}}))'
+    fragment[1] = '(?:(?<ws>{{ws}})|(?<comment>{{comment}})|(?<line>{{lineComment}}))'
   }
 })
 

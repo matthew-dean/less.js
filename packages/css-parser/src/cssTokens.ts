@@ -199,7 +199,9 @@ export const Tokens: rawTokenConfig[] = [
         const str = match[0]
         strMatches.push(str)
         pos += str.length
-        matches.push(match)
+        if (match['ws'] || match['comment']) {
+          matches.push(match)
+        }
       }
       if (lastMatch !== null) {
         /**
