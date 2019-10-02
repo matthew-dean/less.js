@@ -1,4 +1,6 @@
-import { rawTokenConfig, LexerType } from './util';
+import { rawTokenConfig, LexerType } from './util'
+import * as XRegExp from 'xregexp'
+import { start } from 'repl'
 /**
  * references:
  * https://github.com/antlr/grammars-v4/blob/master/css3/css3.g4
@@ -8,7 +10,7 @@ import { rawTokenConfig, LexerType } from './util';
  * Fragments and Tokens must be defined in order
  * ({{references}} must follow definitions) 
  */
-export const Fragments: string[][] = [
+export const Fragments: [string, string][] = [
   ['newline', '\\n|\\r\\n?|\\f'],
   ['whitespace', '[ ]|\\t|{{newline}}'],
   ['ws', '{{whitespace}}+'],
@@ -28,7 +30,8 @@ export const Fragments: string[][] = [
 
   ['integer', '[+-]?\\d+'],
   /** Any number that's not simply an integer e.g. 1.1 or 1e+1 */
-  ['number', '[+-]?(?:\\d*\\.\\d+(?:[eE][+-]\\d+)?|\\d+(?:[eE][+-]\\d+))']
+  ['number', '[+-]?(?:\\d*\\.\\d+(?:[eE][+-]\\d+)?|\\d+(?:[eE][+-]\\d+))'],
+  ['wsorcomment', '(?:(?<ws>{{ws}})|(?<comment>{{comment}}))']
 ]
 
 /**
@@ -174,12 +177,47 @@ export const Tokens: rawTokenConfig[] = [
   { name: 'SignedInt', pattern: /[+-]\d+/, longer_alt: 'DimensionInt', categories: ['Unit', 'Integer'] },
   { name: 'UnsignedInt', pattern: /\d+/, longer_alt: 'DimensionInt', categories: ['Unit', 'Integer'] },
   { name: 'Number', pattern: '{{number}}', longer_alt: 'DimensionNum', categories: ['Unit'] },
-  { name: 'WS', pattern: '(?:{{ws}}|{{comment}})+', categories: ['BlockMarker'] },
+  // { name: 'WS', pattern: '(?:{{ws}}|{{comment}})+', categories: ['BlockMarker'] },
+  // {
+  //   name: 'Comment',
+  //   pattern: '{{comment}}',
+  //   line_breaks: true,
+  //   group: LexerType.SKIPPED,
+  //   longer_alt: 'WS'
+  // }
   {
-    name: 'Comment',
-    pattern: '{{comment}}',
+    name: 'WS',
+    pattern: ['{{wsorcomment}}', function(this: RegExp, text: string, startOffset: number) {
+      let pos = startOffset
+      let match: RegExpExecArray
+      let lastMatch: RegExpExecArray = null
+      const strMatches: string[] = []
+      const matches: RegExpExecArray[] = []
+
+      while (match = XRegExp.exec(text, this, pos, true)) {
+        lastMatch = match
+        const str = match[0]
+        strMatches.push(str)
+        pos += str.length
+        matches.push(match)
+      }
+      if (lastMatch !== null) {
+        /**
+         * In case Chevrotain is doing any sort of location tracking,
+         * we make a new fake RegExp result as if exec was run once.
+         */
+        const returnExp: any = [
+          strMatches.join('')
+        ]
+        returnExp.index = startOffset
+        returnExp.input = text
+        lastMatch = returnExp
+        lastMatch['payload'] = matches
+      }
+      return lastMatch
+    }],
+    start_chars_hint: [' ', '\t', '\n', '\r', '\f', '/'],
     line_breaks: true,
-    group: LexerType.SKIPPED,
-    longer_alt: 'WS'
+    categories: ['BlockMarker']
   }
 ]

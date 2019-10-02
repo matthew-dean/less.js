@@ -15,6 +15,12 @@ export let Tokens = [...CSSTokens]
 Fragments.push(['lineComment', '\\/\\/[^\\n\\r]*'])
 Fragments.push(['interpolated', '({{ident}}?[@$]{[\\w-]+}{{ident}}?)+'])
 
+Fragments.forEach((fragment, i) => {
+  if (fragment[0].indexOf('wsorcomment') !== -1) {
+    fragment[1] = '(?:(?<ws>{{ws}})|(?<comment>{{comment}}|{{lineComment}}))'
+  }
+})
+
 /** Keyed by what to insert after */
 const merges: IMerges = {
   'Unknown': [
@@ -94,10 +100,6 @@ for (let i = 0; i < tokenLength; i++) {
     case 'Interpolated':
       copyToken()
       token.pattern = LexerType.NA
-      break
-    case 'WS':
-      copyToken()
-      token.pattern = '(?:{{ws}}|{{lineComment}}|{{comment}})+'
       break
     case 'DotName':
       copyToken()
