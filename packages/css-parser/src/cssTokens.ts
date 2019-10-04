@@ -1,4 +1,4 @@
-import { rawTokenConfig, LexerType } from './util'
+import { rawTokenConfig, LexerType, CommentOptions } from './util'
 import * as XRegExp from 'xregexp'
 import { start } from 'repl'
 /**
@@ -30,9 +30,11 @@ export const Fragments: [string, string][] = [
 
   ['integer', '[+-]?\\d+'],
   /** Any number that's not simply an integer e.g. 1.1 or 1e+1 */
-  ['number', '[+-]?(?:\\d*\\.\\d+(?:[eE][+-]\\d+)?|\\d+(?:[eE][+-]\\d+))'],
-  ['wsorcomment', '(?:(?<ws>{{ws}})|(?<comment>{{comment}}))']
+  ['number', '[+-]?(?:\\d*\\.\\d+(?:[eE][+-]\\d+)?|\\d+(?:[eE][+-]\\d+))']
+  // ['wsorcomment', '(?:(?<ws>{{ws}})|(?<comment>{{comment}}))']
 ]
+
+type RegExpLikeArray = [string] & { index: number }
 
 /**
  * Anything that is not 'BlockMarker' will be parsed as a generic 'Value'
@@ -187,39 +189,158 @@ export const Tokens: rawTokenConfig[] = [
   // }
   {
     name: 'WS',
-    pattern: ['{{wsorcomment}}', function(this: RegExp, text: string, startOffset: number) {
-      let pos = startOffset
-      let match: RegExpExecArray
-      let lastMatch: RegExpExecArray = null
-      const strMatches: string[] = []
-      const matches: RegExpExecArray[] = []
+    pattern: [{ allowLineComment: false }, function(this: CommentOptions, text: string, startOffset: number) {
+      const { allowLineComment } = this
+      let endOffset = startOffset
+      let char: string = text.charAt(endOffset)
+      let currentWs: string = ''
+      let currentComment: string = ''
+      let loop: boolean = true
+      const ws: [string, number][] = []
+      const comments: [string, number][] = []
 
-      while (match = XRegExp.exec(text, this, pos, true)) {
-        lastMatch = match
-        const str = match[0]
-        strMatches.push(str)
-        pos += str.length
-        if (match['ws'] || match['comment']) {
-          matches.push(match)
+      let inBlockComment: boolean
+      let inLineComment: boolean
+      let inWS: boolean
+
+      const closeWS = () => {
+        if (inWS) {
+          ws[0][0] = currentWs
+          currentWs = ''
+          inWS = false
         }
       }
-      if (lastMatch !== null) {
-        /**
-         * In case Chevrotain is doing any sort of location tracking,
-         * we make a new fake RegExp result as if exec was run once.
-         */
-        const returnExp: any = [
-          strMatches.join('')
-        ]
-        returnExp.index = startOffset
-        returnExp.input = text
-        lastMatch = returnExp
-        lastMatch['payload'] = matches
+
+      while (loop) {
+        switch (char) {
+          case '\n':
+          case '\r':
+            if (allowLineComment && inLineComment) {
+              comments[0][0] = currentComment
+              currentComment = ''
+              inLineComment = false
+            }
+          case ' ':
+          case '\t':
+          case '\f':
+            if (!inBlockComment && !inLineComment) {
+              currentWs += char
+              if (!inWS) {
+                const wsp: [string, number] = [null, endOffset]
+                ws.unshift(wsp)
+                inWS = true
+              }
+            } else {
+              currentComment += char
+            }
+            break
+          case '/':
+            if (inBlockComment || inLineComment) {
+              currentComment += char
+            } else {
+              const nextChar = text.charAt(endOffset + 1)
+              if (!inBlockComment && nextChar === '*') {
+                closeWS()
+                currentComment += char + '*'
+                inBlockComment = true
+                const comment: [string, number] = [null, endOffset]
+                endOffset++
+                comments.unshift(comment)
+              } else if (allowLineComment && nextChar === '/') {
+                closeWS()
+                currentComment += char
+                inLineComment = true
+                const comment: [string, number] = [null, endOffset]
+                comments.unshift(comment)
+              } else {
+                loop = false
+              }
+            }
+            break
+          case '*':
+            if (inBlockComment || inLineComment) {
+              if (inBlockComment && text.charAt(endOffset + 1) === '/') {
+                comments[0][0] = currentComment + '/'
+                endOffset++
+                currentComment = ''
+                inBlockComment = false
+              } else {
+                currentComment += char
+              }
+            } else {
+              loop = false
+            }
+            break
+          default:
+            if (inBlockComment || inLineComment) {
+              if (char) {
+                currentComment += char
+              } else if (allowLineComment && inLineComment) {
+                comments[0][0] = currentComment
+                loop = false
+              } else {
+                endOffset = startOffset
+                loop = false
+              }
+            } else {
+              closeWS()
+              loop = false
+            }
+        }
+        if (loop) {
+          endOffset++
+          char = text.charAt(endOffset)
+        }
       }
-      return lastMatch
+
+      if (startOffset === endOffset) {
+        return null
+      }
+
+      const match = [text.substring(startOffset, endOffset)]
+      match['payload'] = { ws, comments }
+      
+      return match
     }],
     start_chars_hint: [' ', '\t', '\n', '\r', '\f', '/'],
     line_breaks: true,
     categories: ['BlockMarker']
   }
+  // {
+  //   name: 'WS',
+  //   pattern: ['{{wsorcomment}}', function(this: RegExp, text: string, startOffset: number) {
+  //     let pos = startOffset
+  //     let match: RegExpExecArray
+  //     let lastMatch: RegExpExecArray = null
+  //     const strMatches: string[] = []
+  //     const matches: RegExpExecArray[] = []
+
+  //     while (match = XRegExp.exec(text, this, pos, true)) {
+  //       lastMatch = match
+  //       const str = match[0]
+  //       strMatches.push(str)
+  //       pos += str.length
+  //       if (match['ws'] || match['comment']) {
+  //         matches.push(match)
+  //       }
+  //     }
+  //     if (lastMatch !== null) {
+  //       /**
+  //        * In case Chevrotain is doing any sort of location tracking,
+  //        * we make a new fake RegExp result as if exec was run once.
+  //        */
+  //       const returnExp: any = [
+  //         strMatches.join('')
+  //       ]
+  //       returnExp.index = startOffset
+  //       returnExp.input = text
+  //       lastMatch = returnExp
+  //       lastMatch['payload'] = matches
+  //     }
+  //     return lastMatch
+  //   }],
+  //   start_chars_hint: [' ', '\t', '\n', '\r', '\f', '/'],
+  //   line_breaks: true,
+  //   categories: ['BlockMarker']
+  // }
 ]

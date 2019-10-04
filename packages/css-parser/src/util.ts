@@ -19,8 +19,10 @@ export interface TokenMap {
   [key: string]: TokenType
 }
 
+export type CommentOptions = { allowLineComment?: boolean }
+
 export interface rawTokenConfig extends Omit<ITokenConfig, 'longer_alt' | 'categories' | 'pattern' | 'group'> {
-  pattern: TokenPattern | LexerType | [string, Function]
+  pattern: TokenPattern | LexerType | [CommentOptions, Function]
   group?: ITokenConfig['group'] | LexerType
   longer_alt?: string;
   categories?: string[];
@@ -61,7 +63,7 @@ export const createLexer = (rawFragments: string[][], rawTokens: rawTokenConfig[
       if (pattern instanceof RegExp) {
         regExpPattern = pattern
       } else if (Array.isArray(pattern)) {
-        regExpPattern = pattern[1].bind(XRegExp.build(pattern[0], fragments, 'y'))
+        regExpPattern = pattern[1].bind(pattern[0])
       } else {
         regExpPattern = XRegExp.build(<string>pattern, fragments)
       }
