@@ -3,7 +3,8 @@ import {
   createToken,
   ITokenConfig,
   TokenType,
-  TokenPattern
+  TokenPattern,
+  CustomPatternMatcherFunc
 } from 'chevrotain'
 
 // TODO: get rid of xRegExp dep
@@ -18,8 +19,10 @@ export interface TokenMap {
   [key: string]: TokenType
 }
 
+export type CommentOptions = { allowLineComment?: boolean }
+
 export interface rawTokenConfig extends Omit<ITokenConfig, 'longer_alt' | 'categories' | 'pattern' | 'group'> {
-  pattern: TokenPattern | LexerType
+  pattern: TokenPattern | LexerType | [CommentOptions, Function]
   group?: ITokenConfig['group'] | LexerType
   longer_alt?: string;
   categories?: string[];
@@ -44,7 +47,7 @@ export const createLexer = (rawFragments: string[][], rawTokens: rawTokenConfig[
   })
   rawTokens.forEach((rawToken: rawTokenConfig) => {
     let { name, pattern, longer_alt, categories, group, ...rest } = rawToken
-    let regExpPattern: RegExp
+    let regExpPattern: RegExp | CustomPatternMatcherFunc
     if (pattern !== LexerType.NA) {
       const category = !categories || categories[0]
       if (!category || (group !== LexerType.SKIPPED && category !== 'BlockMarker')) {
@@ -57,11 +60,12 @@ export const createLexer = (rawFragments: string[][], rawTokens: rawTokenConfig[
           categories.push('NonIdent')
         }
       }
-      if(!(pattern instanceof RegExp)) {
-          regExpPattern = XRegExp.build(<string>pattern, fragments)
-      }
-      else {
+      if (pattern instanceof RegExp) {
         regExpPattern = pattern
+      } else if (Array.isArray(pattern)) {
+        regExpPattern = pattern[1].bind(pattern[0])
+      } else {
+        regExpPattern = XRegExp.build(<string>pattern, fragments)
       }
     } else {
       regExpPattern = Lexer.NA

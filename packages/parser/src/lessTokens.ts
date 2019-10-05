@@ -12,8 +12,14 @@ interface IMerges {
 export const Fragments = [...CSSFragments]
 export let Tokens = [...CSSTokens]
 
-Fragments.push(['lineComment', '\\/\\/[^\\n\\r]*'])
+Fragments.unshift(['lineComment', '\\/\\/[^\\n\\r]*'])
 Fragments.push(['interpolated', '({{ident}}?[@$]{[\\w-]+}{{ident}}?)+'])
+
+// Fragments.forEach((fragment, i) => {
+//   if (fragment[0].indexOf('wsorcomment') !== -1) {
+//     fragment[1] = '(?:(?<ws>{{ws}})|(?<comment>{{comment}})|(?<line>{{lineComment}}))'
+//   }
+// })
 
 /** Keyed by what to insert after */
 const merges: IMerges = {
@@ -83,6 +89,10 @@ for (let i = 0; i < tokenLength; i++) {
   let alterations = true
 
   switch (name) {
+    case 'WS':
+      copyToken()
+      token.pattern[0] = { allowLineComment: true }
+      break
     case 'Divide':
       copyToken()
       token.pattern = /\.?\//
@@ -94,10 +104,6 @@ for (let i = 0; i < tokenLength; i++) {
     case 'Interpolated':
       copyToken()
       token.pattern = LexerType.NA
-      break
-    case 'WS':
-      copyToken()
-      token.pattern = '(?:{{ws}}|{{lineComment}}|{{comment}})+'
       break
     case 'DotName':
       copyToken()
