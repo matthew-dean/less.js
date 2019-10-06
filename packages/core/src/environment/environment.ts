@@ -11,7 +11,7 @@ import Logger from './logger'
  * e.g. When Less encounters an @import, it passes the URL to the environment,
  *      with a Promise that is either fulfilled or rejected by the environment.
  */
-export abstract class Environment {
+abstract class Environment {
   fileManagers: FileManager[]
   logger: Logger
 

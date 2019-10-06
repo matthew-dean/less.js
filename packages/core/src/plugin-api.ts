@@ -37,7 +37,7 @@ class PluginManager {
             this.pluginCache[filename] = plugin;
         }
         if (plugin.install) {
-            plugin.install(this.less, this, functionRegistry || this.less.functions.functionRegistry);
+            plugin.install(this.less, this)
         }
     }
 

@@ -1,8 +1,14 @@
-let PromiseConstructor;
-import * as utils from './utils';
+import { ParseTree } from './parse-tree'
+import { ImportManager } from './import-manager'
+import { ParseFunction } from './parse'
 
-export default (environment, ParseTree, ImportManager) => {
-    const render = function (input, options, callback) {
+
+const RenderFactory = (
+  less: Environment,
+  parseTree: typeof ParseTree,
+  importManager: typeof ImportManager
+) => {
+    const render: ParseFunction = (input, options, callback) => {
         if (typeof options === 'function') {
             callback = options;
             options = utils.copyOptions(this.options, {});
@@ -39,4 +45,6 @@ export default (environment, ParseTree, ImportManager) => {
     };
 
     return render;
-};
+}
+
+export default RenderFactory
