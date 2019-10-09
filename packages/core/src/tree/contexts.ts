@@ -2,6 +2,7 @@ import { MathMode, RewriteUrlMode, EvalErrorMode } from '../constants'
 import { IOptions } from '../options'
 import { Rules, Selector, List, Import } from './nodes'
 import LessError, { ILessError } from '../less-error'
+import { Less } from '../index'
 
 function isPathRelative(path: string) {
     return !/^(?:[a-z-]+:|\/|#)/i.test(path);
@@ -45,14 +46,14 @@ export class EvalContext {
    * @todo - is this neded?
    */
   frames: Rules[]
-  environment
+  
   private errors: ILessError[]
   private warnings: ILessError[]
   scope: {
     [key: string]: any
   }
 
-  constructor(environment?, options?: IOptions) {
+  constructor(less: Less, options: IOptions) {
     this.options = options
     this.environment = environment
     this.selectors = []

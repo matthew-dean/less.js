@@ -1,65 +1,50 @@
+import Visitor from './visitor/visitor'
+import { Less } from './index'
+import { Plugin } from './types'
+import FileManager from './environment/file-manager'
+
 /**
- * Plugin Manager
+ * Public plugin interface
  */
 class PluginManager {
-    constructor(less) {
-        this.less = less;
-        this.visitors = [];
-        this.preProcessors = [];
-        this.postProcessors = [];
-        this.installedPlugins = [];
-        this.fileManagers = [];
-        this.iterator = -1;
-        this.pluginCache = {};
-        this.Loader = new less.PluginLoader(less);
-    }
+  visitors: Visitor[] = []
+  less: Less
+  plugins: Plugin[] = []
+  fileManagers: FileManager[] = []
+  iterator: number = -1
 
-    /**
-     * Adds all the plugins in the array
-     * @param {Array} plugins
-     */
-    addPlugins(plugins) {
-        if (plugins) {
-            for (let i = 0; i < plugins.length; i++) {
-                this.addPlugin(plugins[i]);
-            }
-        }
-    }
+  constructor(less: Less) {
+    this.less = less
+  }
 
-    /**
-     *
-     * @param plugin
-     * @param {String} filename
-     */
-    addPlugin(plugin, filename, functionRegistry) {
-        this.installedPlugins.push(plugin);
-        if (filename) {
-            this.pluginCache[filename] = plugin;
-        }
-        if (plugin.install) {
-            plugin.install(this.less, this)
-        }
+  protected addPlugin(plugin: Plugin, filename: string) {
+    this.plugins.push(plugin)
+    if (filename) {
+      this.pluginCache[filename] = plugin
     }
+    if (plugin.install) {
+        plugin.install(this.less, this)
+    }
+  }
 
     /**
      *
      * @param filename
      */
     get(filename) {
-        return this.pluginCache[filename];
+      return this.pluginCache[filename];
     }
 
     /**
      * Adds a visitor. The visitor object has options on itself to determine
      * when it should run.
-     * @param visitor
      */
-    addVisitor(visitor) {
-        this.visitors.push(visitor);
+    addVisitor(visitor: Visitor) {
+      this.visitors.push(visitor)
     }
 
     /**
-     * Adds a pre processor object
+     * Adds a pre processor object - a pre-processor receives 
      * @param {object} preProcessor
      * @param {number} priority - guidelines 1 = before import, 1000 = import, 2000 = after import
      */

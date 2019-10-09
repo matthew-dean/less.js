@@ -30,7 +30,8 @@ export type IImportOptions = {
   css?: boolean
   less?: boolean
   inline?: boolean
-  module?: boolean
+  js?: boolean
+  [key: string]: boolean
 }
 /**
  * @todo - rewrite the above to make browser importing not a factor
@@ -38,7 +39,7 @@ export type IImportOptions = {
  */
 export class Import extends Node {
   content: [Node] | []
-  features: [Node]
+  features: [Node] | undefined
   path: [Node]
   options: IImportOptions
 

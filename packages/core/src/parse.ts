@@ -2,24 +2,19 @@ import Parser from './parser/parser'
 import PluginManager from './plugin-api'
 import LessError from './less-error'
 import { EvalContext } from './tree/contexts'
-import { IOptions } from './options'
 import { ParseTree } from './parse-tree'
-import { ImportManager } from './import-manager'
+import { AssetManager } from './asset-manager'
 import { Less } from './index'
 
-export type ParseOptions = IOptions & {
-  plugins: any[]
-}
-
-export type ParseFunction = (input: string, options?: ParseOptions, callback?: Function) => Promise<any>
+import { ParseFunction, ParseOptions } from './types'
 
 const ParseFactory = (
   less: Less,
   parseTree: typeof ParseTree,
-  importManager: typeof ImportManager
+  importManager: typeof AssetManager
 ) => {
   const parse: ParseFunction = (input: string, options?: ParseOptions, callback?: Function): Promise<any> => {
-    options = environment
+    options = {...less.options, ...(options || {})}
     if (!callback) {
       return new Promise((resolve, reject) => {
         parse.call(this, input, options, (err, output) => {

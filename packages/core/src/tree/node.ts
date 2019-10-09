@@ -2,7 +2,7 @@ import { CstNodeLocation } from 'chevrotain'
 import { IOptions } from '../options'
 import { EvalContext } from './contexts'
 import { compare } from './util/compare'
-import { Rules, Import, Declaration, Expression, List, Element } from './nodes'
+import { Rules, Import, Declaration, Expression, List } from './nodes'
 
 export type SimpleValue = string | number | boolean | number[]
 

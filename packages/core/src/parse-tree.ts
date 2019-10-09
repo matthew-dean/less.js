@@ -3,7 +3,7 @@ import { SourceMapBuilder } from './source-map-builder'
 import transformTree from './transform-tree'
 
 export class ParseTree {
-  SourceMapBuilder: SourceMapBuilder
+  SourceMapBuilder: typeof SourceMapBuilder
 
   constructor(root, imports) {
     this.root = root
@@ -57,7 +57,7 @@ export class ParseTree {
   }
 }
 
-export default (SourceMapBuilder: SourceMapBuilder) => {
-  ParseTree.prototype.SourceMapBuilder = SourceMapBuilder
+export default (sourceMapBuilder: typeof SourceMapBuilder) => {
+  ParseTree.prototype.SourceMapBuilder = sourceMapBuilder
   return ParseTree
 }

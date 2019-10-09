@@ -40,8 +40,8 @@ abstract class Environment {
    */
   abstract getSourceMapGenerator(): Function
 
-  getFileManager(filename: string, currentDirectory: string, options: IOptions) {
-    const fileManagers = this.fileManagers
+  getFileManager(filename: string, currentDirectory: string, options: IOptions, addedFileManagers: FileManager[] = []) {
+    const fileManagers = [...this.fileManagers, ...addedFileManagers]
 
     if (!filename || !currentDirectory) {
       return

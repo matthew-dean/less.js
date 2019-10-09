@@ -1,5 +1,5 @@
 import { ParseTree } from './parse-tree'
-import { ImportManager } from './import-manager'
+import { ImportManager } from './asset-manager'
 import { ParseFunction } from './parse'
 
 

@@ -1,4 +1,6 @@
 import { EvalContext } from './tree/contexts'
+import { Less } from './index'
+import { IOptions } from './options'
 
 export enum TextFormat {
   RESET,
@@ -15,22 +17,30 @@ export type TextStyleFunction = {
   (str: string, color?: TextFormat)
 }
 
-export type Plugin = {
+export type ParseOptions = IOptions & {
+  plugins?: Plugin[]
+}
+
+export type ParseFunction = (input: string, options?: ParseOptions, callback?: Function) => Promise<any>
+
+export type IPlugin = {
   /* Called immediately after the plugin is 
     * first imported, only once. */
-  install(less, context): void
+  install(less: Less, context: EvalContext): void
 
-  /* Passes an arbitrary string to your plugin 
-    * e.g. @plugin (args) "file";
-    * This string is not parsed for you, 
-    * so it can contain (almost) anything */
-  setOptions: function(argumentString) { },
+  /**
+   * Passes an arbitrary string to your plugin from the command line.
+   * Note, to receive parsed args, export a function instead of an object
+   */
+  setOptions?(argumentString: string): void
 
   /* Set a minimum Less compatibility string
     * You can also use an array, as in [3, 0] */
-  minVersion: ['3.0'],
+  minVersion?: [string] | number[]
 
   /* Used for lessc only, to explain 
     * options in a Terminal */
-  printUsage: function() { },
+  printUsage?(): string
 }
+
+export type Plugin = IPlugin | ((args: { [key: string]: any }) => IPlugin)

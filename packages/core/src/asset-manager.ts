@@ -1,28 +1,38 @@
-import contexts from './contexts'
-import Parser from './parser/parser'
-import LessError from './less-error'
 
-export class ImportManager {
-  // FileInfo = {
-  //  'rewriteUrls' - option - whether to adjust URL's to be relative
-  //  'filename' - full resolved filename of current file
-  //  'rootpath' - path to append to normal URLs for this node
-  //  'currentDirectory' - path to the current file, absolute
-  //  'rootFilename' - filename of the base file
-  //  'entryPath' - absolute path to the entry file
-  //  'reference' - whether the file should not be output and only output parts that are referenced
-  constructor(less, context, rootFileInfo) {
-      this.less = less;
-      this.rootFilename = rootFileInfo.filename;
-      this.paths = context.paths || [];  // Search paths, when importing
-      this.contents = {};             // map - filename to contents of all the files
-      this.contentsIgnoredChars = {}; // map - filename to lines at the beginning of each file to ignore
-      this.mime = context.mime;
-      this.error = null;
-      this.context = context;
-      // Deprecated? Unused outside of here, could be useful.
-      this.queue = [];        // Files which haven't been imported yet
-      this.files = {};        // Holds the imported parse trees.
+import LessError from './less-error'
+import Visitor from './visitor/visitor'
+import { Less } from './index'
+import { Plugin } from './types'
+import FileManager from './environment/file-manager'
+import { IFileInfo, Node, IImportOptions } from './tree/nodes'
+import { EvalContext } from './tree/contexts'
+
+/**
+ * Manages assets dynamically added per "parse/eval session"
+ * -- specifically imports and plugins
+ */
+export class AssetManager {
+  less: Less
+  context: EvalContext
+  rootFileInfo: IFileInfo
+  visitors: Visitor[] = []
+  fileManagers: FileManager[] = []
+  pluginIterator: number = -1
+  queue: Set<string>
+
+  plugins: Plugin[] = []
+  // A map of files to Abstract Syntax Trees
+  imports: { [filename: string]: Node }
+
+  constructor(less: Less, context: EvalContext, rootFileInfo: IFileInfo) {
+    this.less = less
+    this.context = context
+    this.rootFileInfo = rootFileInfo
+    // this.contents = {};             // map - filename to contents of all the files
+    // this.contentsIgnoredChars = {}; // map - filename to lines at the beginning of each file to ignore
+    // this.mime = context.mime
+    this.imports = {}
+    this.queue = new Set()
   }
 
   /**
@@ -33,11 +43,15 @@ export class ImportManager {
    * @param importOptions - import options
    * @param callback - callback for when it is imported
    */
-  push(path, tryAppendExtension, currentFileInfo, importOptions, callback) {
-      const importManager = this;
-      const pluginLoader = this.context.pluginManager.Loader;
-
-      this.queue.push(path);
+  addImport(
+    path: string,
+    tryAppendExtension: boolean | string,
+    currentFileInfo: IFileInfo,
+    importOptions: IImportOptions,
+    callback: Function
+  ) {
+    const environment = this.less.environment
+    this.queue.add(path)
 
       const fileParsedFunc = (e, root, fullPath) => {
           importManager.queue.splice(importManager.queue.indexOf(path), 1); // Remove the path from the queue
@@ -57,14 +71,7 @@ export class ImportManager {
               if (e && !importManager.error) { importManager.error = e; }
               callback(e, root, importedEqualsRoot, fullPath);
           }
-      };
-
-      const newFileInfo = {
-          rewriteUrls: this.context.rewriteUrls,
-          entryPath: currentFileInfo.entryPath,
-          rootpath: currentFileInfo.rootpath,
-          rootFilename: currentFileInfo.rootFilename
-      };
+      }
 
       const fileManager = environment.getFileManager(path, currentFileInfo.currentDirectory, this.context, environment);
 
