@@ -7,7 +7,7 @@ import {
   ILocationInfo
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 export type IAtRuleProps = {
   name: string
@@ -47,7 +47,7 @@ export class AtRule extends Node {
     return this.pre + text + this.post
   }
 
-  eval(context: EvalContext) {
+  eval(context: Context) {
     let mediaPathBackup
     let mediaBlocksBackup
 

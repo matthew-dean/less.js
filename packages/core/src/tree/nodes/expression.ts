@@ -8,7 +8,7 @@ import {
   WS
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 export type IExpressionOptions = {
   inBlock: boolean
@@ -45,7 +45,7 @@ export class Expression<T extends Node = Node> extends NodeArray {
    * 
    * We also flatten expressions within expressions to be a flat node list.
    */
-  eval(context: EvalContext): Expression | List | Node {
+  eval(context: Context): Expression | List | Node {
     if (!this.evaluated) {
       super.eval(context)
 
@@ -101,7 +101,7 @@ export class Expression<T extends Node = Node> extends NodeArray {
   /**
    * @todo - why not just do enter / exit block in the block node?
    */
-  // eval(context: EvalContext) {
+  // eval(context: Context) {
   //   const { inBlock, blockInOp } = this.options
   //   let returnValue: any
   //   const mathOn = context.isMathOn()

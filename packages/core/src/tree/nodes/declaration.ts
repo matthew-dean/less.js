@@ -10,7 +10,7 @@ import {
   Value
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 /**
  * Will merge props using space or comma separators
@@ -84,7 +84,7 @@ export class Declaration extends Node implements ImportantNode {
     return this.pre + text + this.post
   }
   /** Resolve identifiers first */
-  evalName(context: EvalContext, evalFunc?: ProcessFunction) {
+  evalName(context: Context, evalFunc?: ProcessFunction) {
     let value = this.value
     if (!value) {
       if (this.evaluatingName) {
@@ -104,7 +104,7 @@ export class Declaration extends Node implements ImportantNode {
     return value
   }
 
-  eval(context: EvalContext) {
+  eval(context: Context) {
     if (!this.evaluated) {
       const evalFunc = (node: Node) => node.eval(context)
       this.evalName(context, evalFunc)

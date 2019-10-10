@@ -8,7 +8,7 @@ import {
   Color
 } from '.'
 
-import { EvalContext } from 'core/src/tree/contexts'
+import { Context } from 'core/src/tree/context'
 import { operate } from '../util/math'
 
 export type INumberProps = number | IProps
@@ -33,7 +33,7 @@ export class NumberValue extends NumericNode {
   }
 
   /** @todo */
-  operate(op: string, other: Node, context?: EvalContext) {
+  operate(op: string, other: Node, context?: Context) {
     if (other instanceof NumericNode) {
       if (!(other instanceof NumberValue)) {
         if (op === '/') {

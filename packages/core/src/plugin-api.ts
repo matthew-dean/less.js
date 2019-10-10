@@ -17,16 +17,6 @@ class PluginManager {
     this.less = less
   }
 
-  protected addPlugin(plugin: Plugin, filename: string) {
-    this.plugins.push(plugin)
-    if (filename) {
-      this.pluginCache[filename] = plugin
-    }
-    if (plugin.install) {
-        plugin.install(this.less, this)
-    }
-  }
-
     /**
      *
      * @param filename

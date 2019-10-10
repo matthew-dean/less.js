@@ -1,10 +1,12 @@
 import Parser from './parser/parser'
 import PluginManager from './plugin-api'
 import LessError from './less-error'
-import { EvalContext } from './tree/contexts'
+import { Context } from './tree/context'
+import { IFileInfo } from './tree/nodes'
 import { ParseTree } from './parse-tree'
-import { AssetManager } from './asset-manager'
+import AssetManager from './asset-manager'
 import { Less } from './index'
+import Environment from './environment/environment'
 
 import { ParseFunction, ParseOptions } from './types'
 
@@ -14,7 +16,26 @@ const ParseFactory = (
   importManager: typeof AssetManager
 ) => {
   const parse: ParseFunction = (input: string, options?: ParseOptions, callback?: Function): Promise<any> => {
+    /**
+     * Context options is a combination of Less (default) options, usually set by the environment,
+     * and the options passed into this function.
+     */
     options = {...less.options, ...(options || {})}
+    const { plugins, filename, ...opts } = options
+
+    const lessEnvironment = less.environment
+
+    /**
+     * This type is to indicate to TypeScript that we're not creating
+     * a new instance of the abstract class Environment directly.
+     */
+    type EnvironmentClass = typeof Environment
+    interface DerivedEnvironment extends EnvironmentClass {}
+
+    /** Create an environment copy, so that file managers are not permanently mutated during parse */
+    const LocalEnvironment: DerivedEnvironment = Object.getPrototypeOf(lessEnvironment).constructor
+    const environment = new LocalEnvironment([...lessEnvironment.fileManagers], lessEnvironment.logger)
+
     if (!callback) {
       return new Promise((resolve, reject) => {
         parse.call(this, input, options, (err, output) => {
@@ -26,55 +47,15 @@ const ParseFactory = (
         })
       })
     } else {
-      const pluginManager = new PluginManager(this, !options.reUsePluginManager);
+      const context = new Context(less, environment, opts)
+      const fileInfo: IFileInfo = environment.getFileInfo(filename)
+      const assets = new AssetManager(this.less, context, fileInfo)
 
-      options.pluginManager = pluginManager;
-
-      const context = new EvalContext(options);
-
-      if (options.rootFileInfo) {
-          rootFileInfo = options.rootFileInfo;
-      } else {
-          const filename = options.filename || 'input';
-          const entryPath = filename.replace(/[^\/\\]*$/, '');
-          rootFileInfo = {
-              filename,
-              rewriteUrls: context.rewriteUrls,
-              rootpath: context.rootpath || '',
-              currentDirectory: entryPath,
-              entryPath,
-              rootFilename: filename
-          };
-          // add in a missing trailing slash
-          if (rootFileInfo.rootpath && rootFileInfo.rootpath.slice(-1) !== '/') {
-              rootFileInfo.rootpath += '/';
-          }
+      if (plugins) {
+        plugins.forEach(plugin => assets.)
       }
 
-      const imports = new ImportManager(this, context, rootFileInfo);
-      this.importManager = imports;
-
-      // TODO: allow the plugins to be just a list of paths or names
-      // Do an async plugin queue like lessc
-
-      if (options.plugins) {
-          options.plugins.forEach(plugin => {
-              let evalResult;
-              let contents;
-              if (plugin.fileContent) {
-                  contents = plugin.fileContent.replace(/^\uFEFF/, '');
-                  evalResult = pluginManager.Loader.evalPlugin(contents, context, imports, plugin.options, plugin.filename);
-                  if (evalResult instanceof LessError) {
-                      return callback(evalResult);
-                  }
-              }
-              else {
-                  pluginManager.addPlugin(plugin);
-              }
-          });
-      }
-
-      new Parser(context, imports, rootFileInfo)
+      new Parser(context, assets, fileInfo)
         .parse(input, (e, root) => {
             if (e) { return callback(e); }
             callback(null, root, imports, options);

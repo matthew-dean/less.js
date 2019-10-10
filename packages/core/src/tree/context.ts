@@ -3,6 +3,7 @@ import { IOptions } from '../options'
 import { Rules, Selector, List, Import } from './nodes'
 import LessError, { ILessError } from '../less-error'
 import { Less } from '../index'
+import Environment from '../environment/environment'
 
 function isPathRelative(path: string) {
     return !/^(?:[a-z-]+:|\/|#)/i.test(path);
@@ -21,12 +22,14 @@ function isPathLocalRelative(path: string) {
  * and exits blocks, in order to determine what math settings
  * should be applied.
 */
-export class EvalContext {
+export class Context {
+  less: Less
+  environment: Environment
   inCalc: boolean
   mathOn: boolean
   importantScope: { important?: string }[]
-  calcStack: true[]
-  blockStack: true[]
+  calcStack: boolean[]
+  blockStack: boolean[]
   options: IOptions
 
   /** @todo - remove or explain */
@@ -53,12 +56,14 @@ export class EvalContext {
     [key: string]: any
   }
 
-  constructor(less: Less, options: IOptions) {
+  constructor(less: Less, environment: Environment, options: IOptions) {
+    this.less = less
     this.options = options
     this.environment = environment
     this.selectors = []
     this.frames = []
     this.importantScope = []
+    this.blockStack = []
     this.inCalc = false
     this.mathOn = true
     /** Replacement for function registry */
@@ -90,15 +95,18 @@ export class EvalContext {
     this.inCalc = this.calcStack.length !== 0
   }
 
-  enterBlock() {
-    if (!this.blockStack) {
-      this.blockStack = []
-    }
-    this.blockStack.push(true)
+  /**
+   * When entering a parens `(` or bracket block `[`,
+   * this will be true. However, when entering a function or mixin, we push
+   * `false` into the stack, to 'reset' for the purposes of figuring out
+   * if math should be applied.
+   */
+  enterBlock(blockValue: boolean = true) {
+    this.blockStack.unshift(blockValue)
   }
 
   exitBlock() {
-    this.blockStack.pop()
+    this.blockStack.shift()
   }
 
   isMathOn(op?: string) {
@@ -106,11 +114,11 @@ export class EvalContext {
       return false
     }
     const mathMode = this.options.math
-    if (op === '/' && (!this.blockStack || !this.blockStack.length)) {
+    if (op === '/' && this.blockStack[0] !== true) {
       return false
     }
     if (mathMode > MathMode.NO_DIVISION) {
-      return this.blockStack && this.blockStack.length
+      return this.blockStack[0]
     }
     return true
   }

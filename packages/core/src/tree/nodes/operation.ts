@@ -8,7 +8,7 @@ import {
   Op
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 /**
  * Values can only be 3 Nodes
@@ -28,7 +28,7 @@ export class Operation extends Node {
     super(props, options, location)
   }
 
-  eval(context: EvalContext) {
+  eval(context: Context) {
     super.eval(context)
 
     const nodes = this.nodes

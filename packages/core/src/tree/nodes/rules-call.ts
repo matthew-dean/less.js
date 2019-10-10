@@ -9,7 +9,7 @@ import {
   MixinDefinition
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 // import defaultFunc from '../functions/default'
 
@@ -33,11 +33,11 @@ class RulesCall extends Node {
     super(props, options, location)
   }
 
-  matchMixins(mixins: MixinDefinition[], context: EvalContext) {
+  matchMixins(mixins: MixinDefinition[], context: Context) {
 
   }
 
-  eval(context: EvalContext) {
+  eval(context: Context) {
     const name = this.reference
 
     if (name.length === 1 && name[0] instanceof Variable) {

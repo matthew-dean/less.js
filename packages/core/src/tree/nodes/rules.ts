@@ -12,7 +12,7 @@ import {
   ILocationInfo
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 // import contexts from '../contexts';
 // import globalFunctionRegistry from '../functions/function-registry';
@@ -37,10 +37,10 @@ import { EvalContext } from '../contexts'
  * @todo move selector logic to qualified rule
  */
 export class Rules extends NodeArray implements ImportantNode {
-  // context: EvalContext
+  // context: Context
   constructor(props: IProps, options?: INodeOptions, location?: ILocationInfo) {
     super(props, options, location)
-    // this.context = new EvalContext()
+    // this.context = new Context()
   }
   toString() {
     let text = '{'
@@ -68,7 +68,7 @@ export class Rules extends NodeArray implements ImportantNode {
    * 
    * ...wait, no, that's not what this does
    */
-  evalImports(context: EvalContext) {
+  evalImports(context: Context) {
     // const rules = this.nodes
     // const numRules = rules.length
     // let importRules: EvalReturn
@@ -91,7 +91,7 @@ export class Rules extends NodeArray implements ImportantNode {
     // }
   }
 
-  eval(context: EvalContext, evalImports?: boolean) {
+  eval(context: Context, evalImports?: boolean) {
     /** Shallow clone was here? */
     // const rules = this.clone(true)
     const rules = this

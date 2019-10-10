@@ -9,7 +9,7 @@ import {
 } from '.'
 
 import { convertDimension } from '../util/convert'
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 import { operate } from '../util/math'
 import { StrictUnitMode } from '../../constants'
 
@@ -41,7 +41,7 @@ export class Dimension extends NumericNode {
     this.value = this.nodes[0].value
   }
 
-  operate(op: string, other: Node, context: EvalContext): Node {
+  operate(op: string, other: Node, context: Context): Node {
     const strictUnits = context.options.strictUnits
     if (other instanceof Dimension) {
       const aUnit = this.nodes[1]

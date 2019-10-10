@@ -1,10 +1,10 @@
 import { Node, Func, MatchOption } from '../nodes'
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 /**
  * This will return a function-like construct, that we can call with arguments
  */
-export const getFunction = (callingNode: Node, name: string, context: EvalContext) => {
+export const getFunction = (callingNode: Node, name: string, context: Context) => {
   const result = callingNode.find(context, (node: Node) => {
     if (node instanceof Func && node.name === name) {
       return node

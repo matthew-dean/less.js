@@ -5,7 +5,7 @@ import {
   ILocationInfo,
   Value
 } from '.'
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 export type IFunctionCallProps = {
   name: string
@@ -38,7 +38,7 @@ export class FunctionCall extends Node {
   // we try to pass a variable to a function, like: `saturate(@color)`.
   // The function should receive the value, not the variable.
   //
-  eval(context: EvalContext) {
+  eval(context: Context) {
     /**
      * Turn off math for calc(), and switch back on for evaluating nested functions
      */

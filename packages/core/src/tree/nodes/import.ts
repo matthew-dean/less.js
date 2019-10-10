@@ -7,7 +7,7 @@ import {
   Expression
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 /**
  * @todo - all imports must resolve to a Less AST, even modules.
@@ -60,7 +60,7 @@ export class Import extends Node {
     super(props, options, location)
   }
 
-  eval(context: EvalContext): AtRule | Import {
+  eval(context: Context): AtRule | Import {
     if (!this.evaluated) {
       if (this.content.length === 0) {
         super.eval(context)
@@ -85,7 +85,7 @@ export class Import extends Node {
     return this.content[0].toString()
   }
 
-  // eval(context: EvalContext) {
+  // eval(context: Context) {
   //   const hasContent = this.content.length === 1
   //   if (hasContent) {
   //     if (this.options.reference || !this.isVisible) {

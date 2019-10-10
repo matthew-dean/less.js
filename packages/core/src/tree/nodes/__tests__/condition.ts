@@ -8,13 +8,13 @@ import {
   NumberValue
 } from '..'
 
-import { EvalContext } from '../../contexts'
+import { Context } from '../../context'
 import Default from '../../../options'
 
 describe('Condition', () => {
-  let context: EvalContext
+  let context: Context
   beforeEach(() => {
-    context = new EvalContext({}, Default())
+    context = new Context({}, Default())
   })
 
   it('should evaluate a simple condition', () => {

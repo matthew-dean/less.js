@@ -6,7 +6,7 @@ import {
   WS
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 export type SelectorList = List<Selector>
 
@@ -21,7 +21,7 @@ export type SelectorList = List<Selector>
  * with some additional processing to merge combinators / whitespace
  */
 export class Selector extends Expression {
-  eval(context: EvalContext): List<Selector> | Selector {
+  eval(context: Context): List<Selector> | Selector {
     if (!this.evaluated) {
       let expressions: Expression[]
       const output: Node = super.eval(context)

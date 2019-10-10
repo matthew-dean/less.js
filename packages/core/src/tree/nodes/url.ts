@@ -1,8 +1,8 @@
 import { Node } from '.'
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 export class URL extends Node {
-  eval(context: EvalContext) {
+  eval(context: Context) {
     super.eval(context)
 
     let rootpath

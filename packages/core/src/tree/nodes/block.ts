@@ -9,7 +9,7 @@ import {
   Op
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 /**
  * A () [] or {} block that holds an expression
@@ -22,7 +22,7 @@ import { EvalContext } from '../contexts'
 export class Block extends NodeArray {
   nodes: [Value, Node, Value]
 
-  eval(context: EvalContext) {
+  eval(context: Context) {
     let content = this.nodes[1]
     let escape = content instanceof Operation || content instanceof Condition
     context.enterBlock()

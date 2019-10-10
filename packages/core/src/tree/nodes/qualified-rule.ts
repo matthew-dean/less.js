@@ -10,7 +10,7 @@ import {
   Expression
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 export type IQualifiedRuleProps = {
   selectors: [SelectorList] | Selector[]
@@ -43,7 +43,7 @@ export class QualifiedRule extends Node {
     return this.pre + text + this.post
   }
 
-  eval(context: EvalContext) {
+  eval(context: Context) {
     if (!this.evaluated) {
       this.evaluated = true
 

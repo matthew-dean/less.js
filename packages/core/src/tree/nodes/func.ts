@@ -6,7 +6,7 @@ import {
   Rules,
   Value
 } from '.'
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 export type IFuncProps = {
   name: string

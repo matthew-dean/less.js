@@ -1,5 +1,5 @@
 import { Node } from '.';
-import { EvalContext } from '../contexts';
+import { Context } from '../context';
 import * as utils from '../utils';
 
 /**

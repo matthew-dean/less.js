@@ -1,50 +1,11 @@
 import { IOptions } from '../options'
-import Environment from './environment'
+import Environment, { FileObject } from './environment'
 import {
   Node,
   IImportOptions
 } from '../tree/nodes'
 
-export type FileObject = {
-  filename: string
-  contents: string
-}
-
 export default abstract class FileManager {
-  /**
-   * Given the full path to a file, return the path component
-   */
-  abstract getPath(filename: string): string
-  abstract tryAppendExtension(path: string, ext: string): string
-
-  /* Append a .less extension if appropriate. Only called if less thinks one could be added. */
-  protected tryAppendLessExtension(path: string) {
-    return this.tryAppendExtension(path, '.less')
-  }
-
-  /**
-   * Whether the rootpath should be converted to be absolute.
-   * The browser ovverides this to return true because urls must be absolute.
-   */
-  abstract alwaysMakePathsAbsolute(): boolean
-
-  /**
-   * Returns whether a path is absolute
-   */
-  abstract isPathAbsolute(path: string): boolean
-
-  /**
-   * Joins together 2 paths
-   */
-  abstract joinPath(basePath: string, path: string): string
-
-  /**
-   * Returns the difference between 2 paths
-   * E.g. url = a/ baseUrl = a/b/ returns ../
-   * url = a/b/ baseUrl = a/ returns b/
-   */
-  abstract pathDiff(url: string, baseUrl: string): string
-
   /**
    * Returns whether this file manager supports this file for syncronous file retrieval
    */
@@ -71,22 +32,26 @@ export default abstract class FileManager {
    *  { filename: - full resolved path to file
    *    contents: - the contents of the file, as a string }
    */
-  abstract loadFile(
+  protected loadFile(
     filename: string,
     currentDirectory: string,
     options: IOptions,
     environment: Environment
-  ): Promise<FileObject>
+  ): Promise<FileObject> {
+    return environment.loadFile(filename)
+  }
 
   /**
    * Loads a file synchronously.
    */
-  abstract loadFileSync(
+  protected loadFileSync(
     filename: string,
     currentDirectory: string,
     options: IOptions,
     environment: Environment
-  ): FileObject
+  ): FileObject {
+    return environment.loadFileSync(filename)
+  }
 
   /**
    * Given file contents and import options, returns a single node

@@ -1,7 +1,7 @@
 import Environment from './environment/environment'
 import * as tree from './tree/nodes'
 import Functions from './functions'
-import contexts from './contexts'
+import { Context } from './tree/context'
 import SourceMapOutputFactory, { SourceMapOutput } from './source-map-output'
 import SourceMapBuilderFactory from './source-map-builder'
 import ParseTreeFactory, { ParseTree } from './parse-tree'

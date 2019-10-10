@@ -5,7 +5,7 @@ import {
   ILocationInfo,
   Value
 } from '.'
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 export type IQuotedOptions = {
   escaped?: boolean
@@ -34,7 +34,7 @@ export class Quoted extends NodeArray {
     this.allowRoot = options.escaped
   }
 
-  eval(context: EvalContext) {
+  eval(context: Context) {
     if (!this.evaluated) {
       super.eval(context)
       if (!this.options.escaped) {

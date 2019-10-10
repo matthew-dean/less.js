@@ -5,13 +5,13 @@ import {
   Value
 } from '..'
 
-import { EvalContext } from '../../contexts'
+import { Context } from '../../context'
 import Default from '../../../options'
 
 describe('Quoted', () => {
-  let context: EvalContext
+  let context: Context
   beforeEach(() => {
-    context = new EvalContext({}, Default())
+    context = new Context({}, Default())
   })
 
   it('should output a quote', () => {

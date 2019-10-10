@@ -1,6 +1,6 @@
 import { CstNodeLocation } from 'chevrotain'
 import { IOptions } from '../options'
-import { EvalContext } from './contexts'
+import { Context } from './context'
 import { compare } from './util/compare'
 import { Rules, Import, Declaration, Expression, List } from './nodes'
 
@@ -58,8 +58,7 @@ export interface ILocationInfo extends CstNodeLocation {}
  */
 export interface IFileInfo {
   filename: string
-  currentDirectory: string
-  entryPath: string
+  path: string
 }
 
 export type INodeOptions = {
@@ -335,7 +334,7 @@ export abstract class Node {
   }
 
   find(
-    context: EvalContext,
+    context: Context,
     matchFunction: MatchFunction,
     option: MatchOption = MatchOption.FIRST
   ): Node | Node[] {
@@ -391,7 +390,7 @@ export abstract class Node {
   }
 
   /** Moved from Rules property() method */
-  findProperty(context: EvalContext, name: string): Declaration[] {
+  findProperty(context: Context, name: string): Declaration[] {
     return <Declaration[]>this.find(context, (node: Node) => {
       if (
         node instanceof Declaration &&
@@ -404,7 +403,7 @@ export abstract class Node {
   }
 
   /** Moved from Rules variable() method */
-  findVariable(context: EvalContext, name: string): Declaration {
+  findVariable(context: Context, name: string): Declaration {
     return <Declaration>this.find(context, (node: Node) => {
       if (
         node instanceof Declaration &&
@@ -492,7 +491,7 @@ export abstract class Node {
    * However, some nodes after evaluating will of course override
    * this to produce different node types or primitive values
    */
-  eval(context?: EvalContext): EvalReturn {
+  eval(context?: Context): EvalReturn {
     /** All nodes that override eval() should (usually) exit if they're evaluated */
     if (!this.evaluated) {
       this.processChildren(this, (node: Node) => node.eval(context))
@@ -501,7 +500,7 @@ export abstract class Node {
     return this
   }
 
-  error(context: EvalContext, message: string) {
+  error(context: Context, message: string) {
     if (context) {
       context.error({ message }, this.fileRoot)
       return this
@@ -509,7 +508,7 @@ export abstract class Node {
     throw new Error(message)
   }
 
-  warn(context: EvalContext, message: string) {
+  warn(context: Context, message: string) {
     if (context) {
       context.warning({ message }, this.fileRoot)
     }
@@ -521,7 +520,7 @@ export abstract class Node {
    * @todo - All genCSS and toCSS will get moved out of the AST and
    *         into visitor processing.
   */
-  genCSS(output: any, context?: EvalContext) {
+  genCSS(output: any, context?: Context) {
     output.add(this.toString())
   }
 

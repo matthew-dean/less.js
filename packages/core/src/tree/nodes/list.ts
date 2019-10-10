@@ -5,7 +5,7 @@ import {
   INodeOptions,
   ILocationInfo
 } from '.'
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 /**
  * Renamed from 'Value'
@@ -15,7 +15,7 @@ import { EvalContext } from '../contexts'
 export class List<T extends Node = Node> extends NodeArray {
   nodes: T[]
 
-  eval(context: EvalContext): List<T> {
+  eval(context: Context): List<T> {
     return <List<T>>super.eval(context)
   }
   toString() {

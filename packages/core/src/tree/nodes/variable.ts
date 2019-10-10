@@ -7,7 +7,7 @@ import {
 } from '.'
 
 import { mergeProperties } from '../util/selectors'
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 
 export type IVariableOptions = {
   /** will look up properties instead of variables */
@@ -50,7 +50,7 @@ export class Variable extends Node {
     return '@' + name
   }
 
-  eval(context: EvalContext) {
+  eval(context: Context) {
     super.eval(context)
     if (!this.value) {
       this.value = this.nodes.join('')

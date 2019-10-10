@@ -7,7 +7,7 @@ import {
 } from '.'
 
 import { fround } from '../util/math'
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 import { operate } from '../util/math'
 
 /**
@@ -151,7 +151,7 @@ export class Color extends NumericNode {
   // our result, in the form of an integer triplet,
   // we create a new Color node to hold the result.
   //
-  operate(op: string, other: Node, context?: EvalContext) {
+  operate(op: string, other: Node, context?: Context) {
     let otherVal: [number, number, number, number]
     if (other instanceof NumberValue) {
       const val = other.value

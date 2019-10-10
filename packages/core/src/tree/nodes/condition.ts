@@ -7,7 +7,7 @@ import {
   Bool
 } from '.'
 
-import { EvalContext } from '../contexts'
+import { Context } from '../context'
 import { compare } from '../util/compare'
 
 export type IConditionOptions = {
@@ -23,7 +23,7 @@ export class Condition extends NodeArray {
     super(props, options, location)
   }
 
-  eval(context: EvalContext) {
+  eval(context: Context) {
     const result = ((op, a, b): boolean => {
       if (a instanceof Node && b instanceof Node) {
         switch (op) {
