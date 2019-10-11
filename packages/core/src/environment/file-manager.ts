@@ -9,22 +9,26 @@ export default abstract class FileManager {
   /**
    * Returns whether this file manager supports this file for syncronous file retrieval
    */
-  abstract supportsSync(
-    filename: string,
+  supportsSync(
+    path: string,
     currentDirectory: string,
-    options: IOptions,
+    options: IOptions & IImportOptions,
     environment: Environment
-  ): boolean
+  ): boolean {
+    return environment.supportsSync(path, currentDirectory, options)
+  }
 
   /**
    * Returns whether this file manager supports this file
    */
-  abstract supports(
-    filename: string,
+  supports(
+    path: string,
     currentDirectory: string,
-    options: IOptions,
+    options: IOptions & IImportOptions,
     environment: Environment
-  ): boolean
+  ): boolean {
+    return environment.supports(path, currentDirectory, options)
+  }
 
   /**
    * Loads a file asynchronously. Expects a promise that either rejects with an error or fulfills with an
@@ -32,36 +36,32 @@ export default abstract class FileManager {
    *  { filename: - full resolved path to file
    *    contents: - the contents of the file, as a string }
    */
-  protected loadFile(
-    filename: string,
+  loadFile(
+    path: string,
     currentDirectory: string,
-    options: IOptions,
+    options: IOptions & IImportOptions,
     environment: Environment
   ): Promise<FileObject> {
-    return environment.loadFile(filename)
+    return environment.loadFile(path)
   }
 
   /**
-   * Loads a file synchronously.
+   * Loads a file synchronously. This is still normalized as a Promise to make code paths easier.
    */
-  protected loadFileSync(
-    filename: string,
+  loadFileSync(
+    path: string,
     currentDirectory: string,
-    options: IOptions,
+    options: IOptions & IImportOptions,
     environment: Environment
-  ): FileObject {
-    return environment.loadFileSync(filename)
+  ): Promise<FileObject> {
+    return environment.loadFileSync(path)
   }
 
   /**
-   * Given file contents and import options, returns a single node
+   * Given file object and options, returns a single Less AST node
    */
-  protected parseFile(
-    parser,
+  abstract parseFile(
     file: FileObject,
-    options: IOptions,
-    importOptions: IImportOptions
-  ): Node {
-    
-  }
+    options: IOptions & IImportOptions
+  ): Promise<Node>
 }

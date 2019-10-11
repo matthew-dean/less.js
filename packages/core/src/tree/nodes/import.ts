@@ -31,7 +31,7 @@ export type IImportOptions = {
   less?: boolean
   inline?: boolean
   js?: boolean
-  [key: string]: boolean
+  [key: string]: boolean | any
 }
 /**
  * @todo - rewrite the above to make browser importing not a factor

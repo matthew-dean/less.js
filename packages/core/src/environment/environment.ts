@@ -1,7 +1,7 @@
 import FileManager from './file-manager'
 import { IOptions } from '../options'
 import Logger from './logger'
-import { IFileInfo } from '../tree/nodes'
+import { IFileInfo, IImportOptions } from '../tree/nodes'
 
 export type FileObject = {
   filename: string
@@ -49,10 +49,10 @@ abstract class Environment {
    */
   abstract getSourceMapGenerator(): Function
 
-  getFileManager(filename: string, currentDirectory: string, options: IOptions) {
+  getFileManager(path: string, currentDirectory: string, options: IOptions & IImportOptions) {
     const fileManagers = this.fileManagers
 
-    if (!filename || !currentDirectory) {
+    if (!path || !currentDirectory) {
       return
     }
 
@@ -62,7 +62,7 @@ abstract class Environment {
      */
     for (let i = fileManagers.length - 1; i >= 0 ; i--) {
       const fileManager = fileManagers[i]
-      if (fileManager.supports(filename, currentDirectory, options, this)) {
+      if (fileManager.supports(path, currentDirectory, options, this)) {
         return fileManager
       }
     }
@@ -115,7 +115,7 @@ abstract class Environment {
   /**
    * @note - The following were moved up from file managers to the environment, as this is
    *         again more logically part of the environment interface, but individual
-   *         file managers can decide to alter text or reject based on the returned string
+   *         file managers can decide to essentially override the 
    */
 
   /**
@@ -124,12 +124,30 @@ abstract class Environment {
    *  { filename: - full resolved path to file
    *    contents: - the contents of the file, as a string }
    */
-  abstract loadFile(filename: string): Promise<FileObject>
+  abstract loadFile(path: string): Promise<FileObject>
 
   /**
    * Loads a file synchronously.
    */
-  abstract loadFileSync(filename: string): FileObject
+  abstract loadFileSync(path: string): Promise<FileObject>
+
+  /**
+   * Returns whether this environment supports this file for syncronous file retrieval
+   */
+  abstract supportsSync(
+    path: string,
+    currentDirectory?: string,
+    options?: IOptions & IImportOptions
+  ): boolean
+
+  /**
+   * Returns whether this environment supports this file
+   */
+  abstract supports(
+    path: string,
+    currentDirectory?: string,
+    options?: IOptions & IImportOptions
+  ): boolean
 }
 
 export default Environment

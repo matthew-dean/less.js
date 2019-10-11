@@ -1,6 +1,7 @@
 import { Context } from './tree/context'
 import { Less } from './index'
 import { IOptions } from './options'
+import AssetManager from './'
 
 export enum TextFormat {
   RESET,
@@ -34,7 +35,7 @@ export type Plugin = {
    * Called immediately after the plugin is 
    * first imported, only once.
    */
-  install(less: Less, context: Context): void
+  install(less: Less, assetManager: , context: Context): void
 
   /**
    * Passes options to your plugin, if used from lessc

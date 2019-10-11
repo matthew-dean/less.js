@@ -6,7 +6,9 @@ import { Plugin } from './types'
 import FileManager from './environment/file-manager'
 import { IFileInfo, Node, IImportOptions } from './tree/nodes'
 import { Context } from './tree/context'
-import Environment from './environment/environment'
+import Environment, { FileObject } from './environment/environment'
+import options from './options'
+import { Parser } from '@less/parser'
 
 /**
  * Manages assets dynamically added per "parse/eval session"
@@ -40,11 +42,11 @@ export default class AssetManager {
 
   /**
    * Add an import to be imported
-   * @param path - the raw path
-   * @param tryAppendExtension - whether to try appending a file extension (.less or .js if the path has no extension)
-   * @param currentFileInfo - the current file info (used for instance to work out relative paths)
+   * @param path - the raw path (can be just the filename, a relative path, an absolute path...
+   *               the @import is not opinionated - It's up to the file manager to decide if it's valid)
+   * @param currentFileInfo - the current file info (the parent file root's fileInfo props)
    * @param importOptions - import options
-   * @param callback - callback for when it is imported
+   * @param callback - callback for when it is imported (or returns an error)
    */
   addImport(
     path: string,
@@ -54,6 +56,8 @@ export default class AssetManager {
     callback: Function
   ) {
     const environment = this.environment
+    const currentDirectory = currentFileInfo.path
+
     this.queue.add(path)
 
       // const fileParsedFunc = (e, root, fullPath) => {
@@ -75,11 +79,11 @@ export default class AssetManager {
       //         callback(e, root, importedEqualsRoot, fullPath);
       //     }
       // }
-
-    const fileManager = environment.getFileManager(path, currentFileInfo.path, this.context.options);
+    const fileManagerOptions = {...this.context.options, ...importOptions}
+    const fileManager = environment.getFileManager(path, currentFileInfo.path, fileManagerOptions)
 
     if (!fileManager) {
-      return callback(new LessError({ message: `Could not find a file-manager for ${path}` }))
+      return callback(new LessError({ message: `Could not find a file-manager for '${path}'` }))
     }
 
       // const loadFileCallback = loadedFile => {
@@ -145,28 +149,28 @@ export default class AssetManager {
       // };
       // let promise;
       // const context = utils.clone(this.context);
+      const loadFile = fileManager.supportsSync(path, currentDirectory, fileManagerOptions, environment)
+        ? fileManager.loadFileSync : fileManager.loadFile
 
-      if (tryAppendExtension) {
-        context.ext = importOptions.isPlugin ? '.js' : '.less';
-      }
-
-      if (importOptions.isPlugin) {
-          context.mime = 'application/javascript';
-          promise = pluginLoader.loadPlugin(path, currentFileInfo.currentDirectory, context, environment, fileManager);
-      }
-      else {
-          promise = fileManager.loadFile(path, currentFileInfo.currentDirectory, context, environment,
-              (err, loadedFile) => {
-                  if (err) {
-                      fileParsedFunc(err);
-                  } else {
-                      loadFileCallback(loadedFile);
-                  }
-              });
-      }
-      if (promise) {
-          promise.then(loadFileCallback, fileParsedFunc);
-      }
+      let resolvedFile: FileObject
+      loadFile(path, currentDirectory, fileManagerOptions, environment)
+        .then((file: FileObject) => {
+          resolvedFile = file
+          const ast = this.imports[file.filename]
+          if (ast) {
+            return callback(null, ast)
+          }
+          return fileManager.parseFile(file, fileManagerOptions)
+        })
+        .then((ast: Node) => {
+          if (ast) {
+            this.imports[resolvedFile.filename] = ast
+            callback(null, ast)
+          }
+        })
+        .catch(err => {
+          callback(err)
+        })
   }
 
   addPlugin(plugin: Plugin, filename: string) {
