@@ -5,8 +5,8 @@ import {
   Rules,
   Declaration,
   Expression,
-  QualifiedRule,
-  IQualifiedRuleProps
+  Rule,
+  IRuleProps
 } from '.'
 
 import { Context } from '../context'
@@ -21,12 +21,12 @@ import * as utils from '../utils'
  *         This makes .mixin() {} the equivalent of `@mixin mixin()`
  *         and .mixin(); is the equivalent of `@include mixin()`
  */
-export interface IMixinDefinitionProps extends IQualifiedRuleProps {
+export interface IMixinProps extends IRuleProps {
   args: Node[]
 }
-export class Mixin extends QualifiedRule {
+export class Mixin extends Rule {
   args: Node[]
-  constructor(props: IMixinDefinitionProps, options: INodeOptions, location: ILocationInfo) {
+  constructor(props: IMixinProps, options: INodeOptions, location: ILocationInfo) {
     super(props, options, location)
   }
 
