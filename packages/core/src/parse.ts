@@ -1,68 +1,80 @@
-import Parser from './parser/parser'
+import Parser from './parser'
 import PluginManager from './plugin-api'
 import LessError from './less-error'
 import { Context } from './tree/context'
-import { IFileInfo } from './tree/nodes'
-import { ParseTree } from './parse-tree'
+import { IFileInfo, Rules } from './tree/nodes'
 import AssetManager from './asset-manager'
 import { Less } from './index'
 import Environment from './environment/environment'
 
-import { ParseFunction, ParseOptions } from './types'
+import { ParseOptions } from './types'
 
-const ParseFactory = (
-  less: Less,
-  parseTree: typeof ParseTree,
-  importManager: typeof AssetManager
-) => {
-  const parse: ParseFunction = (input: string, options?: ParseOptions, callback?: Function): Promise<any> => {
-    /**
-     * Context options is a combination of Less (default) options, usually set by the environment,
-     * and the options passed into this function.
-     */
-    options = {...less.options, ...(options || {})}
-    const { plugins, filename, ...opts } = options
+/** @todo - refine callback definition */
+export type ParseFunction = (input: string, options?: ParseOptions, callback?: Function) => Promise<any>
 
-    const lessEnvironment = less.environment
+export const parse: ParseFunction = function(
+  this: Less,
+  input: string,
+  options?: ParseOptions,
+  callback?: Function
+): Promise<any> {
+  const less = this
+  /**
+   * Context options is a combination of Less (default) options, usually set by the environment,
+   * and the options passed into this function.
+   */
+  options = {...less.options, ...(options || {})}
+  const { plugins, filePath, ...opts } = options
 
-    /**
-     * This type is to indicate to TypeScript that we're not creating
-     * a new instance of the abstract class Environment directly.
-     */
-    type EnvironmentClass = typeof Environment
-    interface DerivedEnvironment extends EnvironmentClass {}
+  const lessEnvironment = less.environment
 
-    /** Create an environment copy, so that file managers are not permanently mutated during parse */
-    const LocalEnvironment: DerivedEnvironment = Object.getPrototypeOf(lessEnvironment).constructor
-    const environment = new LocalEnvironment([...lessEnvironment.fileManagers], lessEnvironment.logger)
+  /**
+   * This type is to indicate to TypeScript that we're not creating
+   * a new instance of the abstract class Environment directly.
+   */
+  type EnvironmentClass = typeof Environment
+  interface DerivedEnvironment extends EnvironmentClass {}
 
-    if (!callback) {
-      return new Promise((resolve, reject) => {
-        parse.call(this, input, options, (err, output) => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve(output)
-          }
-        })
+  /**
+   * Create an environment copy, so that file managers and visitors
+   * are not permanently mutated by plugins during parse.
+   */
+  const LocalEnvironment: DerivedEnvironment = Object.getPrototypeOf(lessEnvironment).constructor
+  const environment = new LocalEnvironment([...lessEnvironment.fileManagers], [...lessEnvironment.visitors], lessEnvironment.logger)
+
+  if (!callback) {
+    return new Promise((resolve, reject) => {
+      parse.call(this, input, options, (err, output) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve(output)
+        }
       })
-    } else {
-      const context = new Context(less, environment, opts)
-      const fileInfo: IFileInfo = environment.getFileInfo(filename)
-      const assets = new AssetManager(this.less, context, fileInfo)
+    })
+  } else {
+    const context = new Context(less, environment, opts)
+    const fileInfo: IFileInfo = environment.getFileInfo(filePath)
+    const { filename, path } = fileInfo
+    const assets = new AssetManager(less, environment, context, fileInfo)
 
-      if (plugins) {
-        plugins.forEach(plugin => assets.)
-      }
-
-      new Parser(context, assets, fileInfo)
-        .parse(input, (e, root) => {
-            if (e) { return callback(e); }
-            callback(null, root, imports, options);
-        }, options)
+    if (plugins) {
+      plugins.forEach(plugin => assets.addPlugin(plugin))
     }
+
+    /** We treat the entry Less content like any other import */
+    const fileManager = environment.getFileManager(filename, path, options)
+    fileManager.parseFile({
+      contents: input,
+      filename,
+      path
+    }, options)
+      .then((root: Rules) => {
+        root.evalImports(context)
+        callback(null, root, assets, options)
+      })
+      .catch(err => callback(err))
   }
-  return parse
 }
 
 export default ParseFactory

@@ -5,12 +5,12 @@ export class URL extends Node {
   eval(context: Context) {
     super.eval(context)
 
-    let rootpath
+    let rootpath: string
     if (!this.evaluated) {
       // Add the rootpath if the URL requires a rewrite
-      rootpath = this.root.fileInfo.entryPath
-      if (typeof rootpath === 'string' &&
-        typeof val.value === 'string' &&
+      rootpath = this.root.fileInfo.path
+      if (rootpath.constructor === String &&
+        this.value.constructor === String &&
         context.pathRequiresRewrite(val.value)
       ) {
         if (!val.quote) {

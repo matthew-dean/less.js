@@ -2,7 +2,7 @@ import { CstNodeLocation } from 'chevrotain'
 import { IOptions } from '../options'
 import { Context } from './context'
 import { compare } from './util/compare'
-import { Rules, Import, Declaration, Expression, List } from './nodes'
+import { Rules, ImportRule, Declaration, Expression, List } from './nodes'
 
 export type SimpleValue = string | number | boolean | number[]
 
@@ -353,7 +353,7 @@ export abstract class Node {
             break
           }
         }
-        if (node instanceof Import) {
+        if (node instanceof ImportRule) {
           const content = node.content[0]
           if (content instanceof Rules) {
             crawlRules(content)
@@ -494,8 +494,10 @@ export abstract class Node {
   eval(context?: Context): EvalReturn {
     /** All nodes that override eval() should (usually) exit if they're evaluated */
     if (!this.evaluated) {
-      this.processChildren(this, (node: Node) => node.eval(context))
-      this.evaluated = true
+      const node = this.clone(true)
+      this.processChildren(node, (node: Node) => node.eval(context))
+      node.evaluated = true
+      return node
     }
     return this
   }

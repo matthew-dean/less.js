@@ -5,29 +5,29 @@ import {
   IImportOptions
 } from '../tree/nodes'
 
-export default abstract class FileManager {
+export abstract class FileManager {
   /**
    * Returns whether this file manager supports this file for syncronous file retrieval
    */
   supportsSync(
-    path: string,
+    filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,
     environment: Environment
   ): boolean {
-    return environment.supportsSync(path, currentDirectory, options)
+    return environment.supportsSync(filePath, currentDirectory, options)
   }
 
   /**
    * Returns whether this file manager supports this file
    */
   supports(
-    path: string,
+    filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,
     environment: Environment
   ): boolean {
-    return environment.supports(path, currentDirectory, options)
+    return environment.supports(filePath, currentDirectory, options)
   }
 
   /**
@@ -37,24 +37,24 @@ export default abstract class FileManager {
    *    contents: - the contents of the file, as a string }
    */
   loadFile(
-    path: string,
+    filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,
     environment: Environment
   ): Promise<FileObject> {
-    return environment.loadFile(path)
+    return environment.loadFile(filePath)
   }
 
   /**
    * Loads a file synchronously. This is still normalized as a Promise to make code paths easier.
    */
   loadFileSync(
-    path: string,
+    filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,
     environment: Environment
   ): Promise<FileObject> {
-    return environment.loadFileSync(path)
+    return environment.loadFileSync(filePath)
   }
 
   /**
@@ -65,3 +65,5 @@ export default abstract class FileManager {
     options: IOptions & IImportOptions
   ): Promise<Node>
 }
+
+export default FileManager

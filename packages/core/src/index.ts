@@ -4,14 +4,16 @@ import Functions from './functions'
 import { Context } from './tree/context'
 import SourceMapOutputFactory, { SourceMapOutput } from './source-map-output'
 import SourceMapBuilderFactory from './source-map-builder'
-import ParseTreeFactory, { ParseTree } from './parse-tree'
-import ImportManagerFactory from './asset-manager'
-import RenderFactory from './render'
-import ParseFactory, { ParseFunction } from './parse'
+import { RenderTree } from './render-tree'
+import AssetManagerFactory from './asset-manager'
+import { render, RenderFunction } from './render'
+import { parse, ParseFunction } from './parse'
 import LessError from './less-error'
 import TransformTree from './transform-tree'
-import PluginManager from './plugin-api'
 import Default, { IOptions } from './options'
+import { Node } from './tree/nodes'
+
+type GetConstructorArgs<T> = T extends new (...args: infer U) => any ? U : never
 
 export type Less = {
   version: number[]
@@ -19,14 +21,25 @@ export type Less = {
   environment: Environment
   functions
   parse: ParseFunction
-  render: ParseFunction
-  LessError: typeof LessError
-  SourceMapOutput: typeof SourceMapOutput
-  ParseTree: typeof ParseTree,
-  ImportManager
-  transformTree?
-  PluginManager?
+  render: RenderFunction
+
+  /** @todo - is there any way to generate these types or make a generic type? */
+  atrule?(...args: GetConstructorArgs<typeof tree.AtRule>): tree.AtRule
+  block?(...args: GetConstructorArgs<typeof tree.Block>): tree.Block
+  bool?(...args: GetConstructorArgs<typeof tree.Bool>): tree.Bool
+  color?(...args: GetConstructorArgs<typeof tree.Color>): tree.Color
+  comment?(...args: GetConstructorArgs<typeof tree.Comment>): tree.Comment
+  condition?(...args: GetConstructorArgs<typeof tree.Condition>): tree.Condition
+  declaration?(...args: GetConstructorArgs<typeof tree.Declaration>): tree.Declaration
+  dimension?(...args: GetConstructorArgs<typeof tree.Dimension>): tree.Dimension
+  expression?(...args: GetConstructorArgs<typeof tree.Expression>): tree.Expression
+  func?(...args: GetConstructorArgs<typeof tree.Func>): tree.Func
+  // functioncall?(...args: GetConstructorArgs<typeof tree.FunctionCall>): tree.Func
+  list?(...args: GetConstructorArgs<typeof tree.List>): tree.List
+  // mixin?(...args: GetConstructorArgs<typeof tree.Mixin>): tree.Mixin
+  
 }
+
 
 /**
  * The Node.js environment will pass in an Environment instance,
@@ -40,51 +53,27 @@ export default (environment: Environment, options?: IOptions): Less => {
    * Many classes / modules currently add side-effects / mutations to passed in objects,
    * which makes it hard to refactor and reason about. 
    */
-  const SourceMapOutput = SourceMapOutputFactory(environment)
-  const SourceMapBuilder = SourceMapBuilderFactory(SourceMapOutput, environment)
-  const ParseTree = ParseTreeFactory(SourceMapBuilder)
-  const ImportManager = ImportManagerFactory(environment)
 
   // const parse = ParseFactory(environment, ParseTree, ImportManager)
   // const render = RenderFactory(environment, ParseTree, ImportManager)
   const functions = Functions(environment)
 
-  const lessConstructor = {
-    SourceMapOutput,
-    LessError,
-    ParseTree,
-    ImportManager
-  }
   /**
    * @todo
    * This root properties / methods need to be organized.
    * It's not clear what should / must be public and why.
    */
-  const less: Less = Object.create(lessConstructor, {
-    version: {
-      value: [4, 0, 0]
-    },
-    environment: {
-      value: environment
-    },
-    options: {
-      value: opts
-    },
-    functions: {
-      value: functions
-    },
-    parse: {
-      value: null,
-      writable: true
-    },
-    render: {
-      value: null,
-      writable: true
-    }
-  })
+  const less: Less = {
+    version: [4, 0, 0],
+    environment,
+    options: opts,
+    functions: functions,
+    parse: null,
+    render: null
+  }
 
-  less.parse = ParseFactory(less, ParseTree, ImportManager)
-  less.render = RenderFactory(less, ParseTree, ImportManager)
+  less.parse = parse.bind(less)
+  less.render = render.bind(less)
 
   /**
    * Copy Node interfaces onto the less object so that the new keyword

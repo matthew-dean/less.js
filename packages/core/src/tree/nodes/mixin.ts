@@ -24,7 +24,7 @@ import * as utils from '../utils'
 export interface IMixinDefinitionProps extends IQualifiedRuleProps {
   args: Node[]
 }
-export class MixinDefinition extends QualifiedRule {
+export class Mixin extends QualifiedRule {
   args: Node[]
   constructor(props: IMixinDefinitionProps, options: INodeOptions, location: ILocationInfo) {
     super(props, options, location)
@@ -207,5 +207,5 @@ export class MixinDefinition extends QualifiedRule {
   }
 }
 
-MixinDefinition.prototype.type = 'MixinDefinition'
-MixinDefinition.prototype.evalFirst = true
+Mixin.prototype.type = 'Mixin'
+Mixin.prototype.evalFirst = true

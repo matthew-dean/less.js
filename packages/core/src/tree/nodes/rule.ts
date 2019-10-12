@@ -12,22 +12,25 @@ import {
 
 import { Context } from '../context'
 
-export type IQualifiedRuleProps = {
+export type IRuleProps = {
   selectors: [SelectorList] | Selector[]
   rules: [Rules],
   condition?: [Node]
 }
 
 /**
- * A Qualified Rule is a rules preceded by selectors.
+ * This is what's known as a "qualified rule" in the CSS spec,
+ * but no-one uses that term, so we just call this the generic 'Rule'
+ *   i.e. selector(s) with a rules block (`.a { b: c; }`)
+ * 
  * In Less, it may also have a condition node.
  */
-export class QualifiedRule extends Node {
+export class Rule extends Node {
   rules: [Rules]
   selectors: [SelectorList]
   condition: [Node] | undefined
 
-  constructor(props: IQualifiedRuleProps, options: INodeOptions, location: ILocationInfo) {
+  constructor(props: IRuleProps, options: INodeOptions, location: ILocationInfo) {
     const { selectors } = props
     if (selectors.length !== 1 || selectors[0] instanceof Expression) {
       props.selectors = [new List<Selector>(<Selector[]>selectors)]
@@ -128,5 +131,5 @@ export class QualifiedRule extends Node {
   }
 }
 
-QualifiedRule.prototype.type = 'QualifiedRule'
-QualifiedRule.prototype.evalFirst = true
+Rule.prototype.type = 'Rule'
+Rule.prototype.evalFirst = true

@@ -13,13 +13,13 @@ import { operate } from '../util/math'
 
 export type INumberProps = number | IProps
 /**
- * A NumberValue is any number (dimension without a unit)
- *   e.g. new NumberValue(2, ...)
+ * A Num is any number (dimension without a unit)
+ *   e.g. new Num(2, ...)
  * 
- * @todo - does this need to store the text representation?
+ * @todo - make sure this stores the text representation
  *   e.g. a CSS number can be '+1', the plus would be lost in conversion
  */
-export class NumberValue extends NumericNode {
+export class Num extends NumericNode {
   value: number
   constructor(props: INumberProps, options?: INodeOptions, location?: ILocationInfo) {
     if (props.constructor === Number) {
@@ -35,7 +35,7 @@ export class NumberValue extends NumericNode {
   /** @todo */
   operate(op: string, other: Node, context?: Context) {
     if (other instanceof NumericNode) {
-      if (!(other instanceof NumberValue)) {
+      if (!(other instanceof Num)) {
         if (op === '/') {
           return this.error(context, `Can't divide a number by a non-number.`)
         }
@@ -58,10 +58,10 @@ export class NumberValue extends NumericNode {
           return other.operate(op, this)
         }
       } else {
-        return new NumberValue(operate(op, this.valueOf(), other.valueOf()), this.options, this.location)
+        return new Num(operate(op, this.valueOf(), other.valueOf()), this.options, this.location)
       }
     }
     return this
   }
 }
-NumberValue.prototype.type = 'NumberValue'
+Num.prototype.type = 'Num'

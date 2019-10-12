@@ -3,7 +3,7 @@ import { Environment } from './environment/environment'
 export class SourceMapOutput {
   environment: Environment
 
-  constructor(options) {
+  constructor(options, environment: Environment) {
       this._css = [];
       this._rootNode = options.rootNode;
       this._contentsMap = options.contentsMap;
@@ -148,7 +148,4 @@ export class SourceMapOutput {
   }
 }
 
-export default (environment: Environment) => {
-  SourceMapOutput.prototype.environment = environment
-  return SourceMapOutput
-}
+export default SourceMapOutput

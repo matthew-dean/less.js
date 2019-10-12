@@ -58,8 +58,8 @@ export class Context {
 
   constructor(less: Less, environment: Environment, options: IOptions) {
     this.less = less
-    this.options = options
     this.environment = environment
+    this.options = options
     this.selectors = []
     this.frames = []
     this.importantScope = []

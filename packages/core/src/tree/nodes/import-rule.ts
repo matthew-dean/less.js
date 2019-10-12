@@ -37,7 +37,7 @@ export type IImportOptions = {
  * @todo - rewrite the above to make browser importing not a factor
  * Also, the import queue should be loaded during evalImports, not parsing
  */
-export class Import extends Node {
+export class ImportRule extends Node {
   content: [Node] | []
   features: [Node] | undefined
   path: [Node]
@@ -60,7 +60,7 @@ export class Import extends Node {
     super(props, options, location)
   }
 
-  eval(context: Context): AtRule | Import {
+  eval(context: Context): AtRule | ImportRule {
     if (!this.evaluated) {
       if (this.content.length === 0) {
         super.eval(context)
@@ -153,5 +153,5 @@ export class Import extends Node {
   //   }
 }
 
-Import.prototype.type = 'Import'
-Import.prototype.allowRoot = true
+ImportRule.prototype.type = 'ImportRule'
+ImportRule.prototype.allowRoot = true

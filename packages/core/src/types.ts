@@ -1,7 +1,7 @@
 import { Context } from './tree/context'
 import { Less } from './index'
 import { IOptions } from './options'
-import AssetManager from './'
+import AssetManager from './asset-manager'
 
 export enum TextFormat {
   RESET,
@@ -20,10 +20,9 @@ export type TextStyleFunction = {
 
 export type ParseOptions = IOptions & {
   plugins?: Plugin[]
-  filename?: string
+  /** Full path of the file, including the filename */
+  filePath?: string
 }
-
-export type ParseFunction = (input: string, options?: ParseOptions, callback?: Function) => Promise<any>
 
 export type Plugin = {
   /**
@@ -35,7 +34,7 @@ export type Plugin = {
    * Called immediately after the plugin is 
    * first imported, only once.
    */
-  install(less: Less, assetManager: , context: Context): void
+  install(less: Less, assetManager: AssetManager): void
 
   /**
    * Passes options to your plugin, if used from lessc

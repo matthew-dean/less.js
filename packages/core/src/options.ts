@@ -60,6 +60,11 @@ export interface IOptions {
   strictImports: boolean
 
   /**
+   * Load files synchronously, if possible
+   */
+  syncImport: boolean
+
+  /**
    * color output in the terminal
    * @todo - move to lessc options only
    * @moved 
@@ -143,6 +148,7 @@ export default () => ({
   lint: false,
   evalErrors: EvalErrorMode.THROW,
   strictImports: false,
+  syncImport: false,
   math: MathMode.NO_DIVISION,
   strictUnits: StrictUnitMode.WARN
 });

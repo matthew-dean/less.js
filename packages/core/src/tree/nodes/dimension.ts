@@ -4,7 +4,7 @@ import {
   INodeOptions,
   ILocationInfo,
   NumericNode,
-  NumberValue,
+  Num,
   Value
 } from '.'
 
@@ -13,18 +13,18 @@ import { Context } from '../context'
 import { operate } from '../util/math'
 import { StrictUnitMode } from '../../constants'
 
-export type IDimensionProps = [number | NumberValue, string | Value] | IProps
+export type IDimensionProps = [number | Num, string | Value] | IProps
 
 /**
  * A number with a unit
  * 
- * e.g. props = [<NumberValue>, <Value>], or
+ * e.g. props = [<Num>, <Value>], or
  *      props = [1, 'px']
  */
 export class Dimension extends NumericNode {
   value: number
   /** Second value is the unit */
-  nodes: [NumberValue, Value]
+  nodes: [Num, Value]
 
   constructor(props: IDimensionProps, options?: INodeOptions, location?: ILocationInfo) {
     let nodes = Array(2)
@@ -32,12 +32,12 @@ export class Dimension extends NumericNode {
     if (Array.isArray(props)) {
       const val1 = props[0]
       const val2 = props[1]
-      nodes[0] = val1.constructor === Number ? new NumberValue(<number>val1) : <NumberValue>val1
+      nodes[0] = val1.constructor === Number ? new Num(<number>val1) : <Num>val1
       nodes[1] = val2.constructor === String ? new Value(<string>val2) : <Value>val2
       props = { nodes }
     }
     super(props, options, location)
-    /** Sets the value to the value of the NumberValue */
+    /** Sets the value to the value of the Num */
     this.value = this.nodes[0].value
   }
 
@@ -76,13 +76,13 @@ export class Dimension extends NumericNode {
         const result = operate(op, this.value, bNode.value)
         /** Dividing 8px / 1px will yield 8 */
         if (op === '/') {
-          return new NumberValue(result).inherit(this)
+          return new Num(result).inherit(this)
         } else if (op === '*') {
           return this.error(context, `Can't multiply a unit by a unit.`)
         }
         return new Dimension([result, aUnit.clone()]).inherit(this)
       }
-    } else if (other instanceof NumberValue) {
+    } else if (other instanceof Num) {
       const unit = this.nodes[1].clone()
       const result = operate(op, this.nodes[0].value, other.value)
       return new Dimension([result, unit.clone()]).inherit(this)

@@ -1,50 +1,42 @@
-import { ParseTree } from './parse-tree'
-import { ImportManager } from './asset-manager'
-import { ParseFunction } from './parse'
+import { ParseTree } from './render-tree'
+import { ParseOptions } from './types'
+import Environment from './environment/environment'
+import { Less } from './index'
+import { Node } from './tree/nodes'
+import AssetManager from './asset-manager'
 
+/** @todo - refine callback definition */
+export type RenderFunction = (input: string, options?: ParseOptions, callback?: Function) => Promise<any>
 
-const RenderFactory = (
-  less: Environment,
-  parseTree: typeof ParseTree,
-  importManager: typeof ImportManager
-) => {
-    const render: ParseFunction = (input, options, callback) => {
-        if (typeof options === 'function') {
-            callback = options;
-            options = utils.copyOptions(this.options, {});
-        }
-        else {
-            options = utils.copyOptions(this.options, options || {});
-        }
-
-        if (!callback) {
-            const self = this;
-            return new Promise((resolve, reject) => {
-                render.call(self, input, options, (err, output) => {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        resolve(output);
-                    }
-                });
-            });
+export const render: RenderFunction = function(
+  this: Less,
+  input: string,
+  options?: ParseOptions,
+  callback?: Function
+): Promise<any> {
+  if (!callback) {
+    return new Promise((resolve, reject) => {
+      render.call(this, input, options, (err: Error, output) => {
+        if (err) {
+          reject(err)
         } else {
-            this.parse(input, options, (err, root, imports, options) => {
-                if (err) { return callback(err); }
-
-                let result;
-                try {
-                    const parseTree = new ParseTree(root, imports);
-                    result = parseTree.toCSS(options);
-                }
-                catch (err) { return callback(err); }
-
-                callback(null, result);
-            });
+          resolve(output)
         }
-    };
+      })
+    })
+  } else {
+    this.parse(input, options, (err: Error, root: Node, assetManager, options) => {
+      if (err) { return callback(err) }
 
-    return render;
+      let result;
+      try {
+          const parseTree = new ParseTree(root, imports);
+          result = parseTree.toCSS(options);
+      }
+      catch (err) { return callback(err); }
+
+      callback(null, result);
+    })
+  }
 }
 
-export default RenderFactory

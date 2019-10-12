@@ -1,6 +1,6 @@
 
 import LessError from './less-error'
-import Visitor from './visitor/visitor'
+import Visitor from './visitors/visitor'
 import { Less } from './index'
 import { Plugin } from './types'
 import FileManager from './environment/file-manager'
@@ -14,15 +14,13 @@ import { Parser } from '@less/parser'
  * Manages assets dynamically added per "parse/eval session"
  * -- specifically imports and plugins
  */
-export default class AssetManager {
-  less: Less
-  environment: Environment
-  context: Context
-  rootFileInfo: IFileInfo
-  visitors: Visitor[] = []
-  fileManagers: FileManager[] = []
-  pluginIterator: number = -1
-  queue: Set<string>
+export class AssetManager {
+  private less: Less
+  private environment: Environment
+  private context: Context
+  private rootFileInfo: IFileInfo
+  private pluginIterator: number = -1
+  private queue: Set<string>
 
   plugins: Plugin[] = []
   // A map of files to Abstract Syntax Trees
@@ -50,11 +48,11 @@ export default class AssetManager {
    */
   addImport(
     path: string,
-    tryAppendExtension: boolean | string,
     currentFileInfo: IFileInfo,
     importOptions: IImportOptions,
     callback: Function
   ) {
+    const options = this.context.options
     const environment = this.environment
     const currentDirectory = currentFileInfo.path
 
@@ -79,7 +77,7 @@ export default class AssetManager {
       //         callback(e, root, importedEqualsRoot, fullPath);
       //     }
       // }
-    const fileManagerOptions = {...this.context.options, ...importOptions}
+    const fileManagerOptions = {...options, ...importOptions}
     const fileManager = environment.getFileManager(path, currentFileInfo.path, fileManagerOptions)
 
     if (!fileManager) {
@@ -149,16 +147,18 @@ export default class AssetManager {
       // };
       // let promise;
       // const context = utils.clone(this.context);
-      const loadFile = fileManager.supportsSync(path, currentDirectory, fileManagerOptions, environment)
+      const loadFile = options.syncImport && fileManager.supportsSync(path, currentDirectory, fileManagerOptions, environment)
         ? fileManager.loadFileSync : fileManager.loadFile
 
       let resolvedFile: FileObject
+      /** @todo - guard against circular imports */
       loadFile(path, currentDirectory, fileManagerOptions, environment)
         .then((file: FileObject) => {
           resolvedFile = file
           const ast = this.imports[file.filename]
+          this.queue.delete(path)
           if (ast) {
-            return callback(null, ast)
+            return callback(null, ast.clone())
           }
           return fileManager.parseFile(file, fileManagerOptions)
         })
@@ -169,18 +169,44 @@ export default class AssetManager {
           }
         })
         .catch(err => {
+          this.queue.delete(path)
           callback(err)
         })
   }
 
-  addPlugin(plugin: Plugin, filename: string) {
+  addPlugin(plugin: Plugin) {
     if (plugin instanceof Function) {
       plugin = plugin()
     }
     this.plugins.push(plugin)
 
     if (plugin.install) {
-      plugin.install(this.less, this, this.context)
+      plugin.install(this.less, this)
     }
   }
+
+  /**
+   * Adds a visitor. The visitor object has options on itself to determine
+   * when it should run.
+   */
+  addVisitor(visitor: Visitor) {
+    this.environment.visitors.push(visitor)
+  }
+
+  /**
+   * Adds a file manager to the (currently building) environment
+   */
+  addFileManager(manager: FileManager) {
+    this.environment.fileManagers.push(manager)
+  }
+
+  protected getFileManagers(): FileManager[] {
+    return this.environment.fileManagers
+  }
+
+  protected getVisitors(): Visitor[] {
+    return this.environment.visitors
+  }
 }
+
+export default AssetManager

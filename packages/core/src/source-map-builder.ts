@@ -1,9 +1,9 @@
 import { SourceMapOutput } from './source-map-output'
+import { Environment } from './environment/environment'
 
 export class SourceMapBuilder {
-  SourceMapOutput: typeof SourceMapOutput
 
-  constructor(options) {
+  constructor(options, environment: Environment) {
     this.options = options
   }
 
@@ -76,7 +76,4 @@ export class SourceMapBuilder {
   }
 }
 
-export default (sourceMapOutput: typeof SourceMapOutput, environment) => {
-  SourceMapBuilder.prototype.SourceMapOutput = sourceMapOutput
-  return SourceMapBuilder
-}
+export default SourceMapBuilder

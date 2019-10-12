@@ -26,14 +26,6 @@ class PluginManager {
     }
 
     /**
-     * Adds a visitor. The visitor object has options on itself to determine
-     * when it should run.
-     */
-    addVisitor(visitor: Visitor) {
-      this.visitors.push(visitor)
-    }
-
-    /**
      * Adds a pre processor object - a pre-processor receives 
      * @param {object} preProcessor
      * @param {number} priority - guidelines 1 = before import, 1000 = import, 2000 = after import
@@ -61,14 +53,6 @@ class PluginManager {
             }
         }
         this.postProcessors.splice(indexToInsertAt, 0, {postProcessor, priority});
-    }
-
-    /**
-     *
-     * @param manager
-     */
-    addFileManager(manager) {
-        this.fileManagers.push(manager);
     }
 
     /**
@@ -118,15 +102,6 @@ class PluginManager {
                 return self.visitors[self.iterator];
             }
         };
-    }
-
-    /**
-     *
-     * @returns {Array}
-     * @private
-     */
-    getFileManagers() {
-        return this.fileManagers;
     }
 }
 

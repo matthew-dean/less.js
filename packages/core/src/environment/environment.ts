@@ -2,9 +2,11 @@ import FileManager from './file-manager'
 import { IOptions } from '../options'
 import Logger from './logger'
 import { IFileInfo, IImportOptions } from '../tree/nodes'
+import Visitor from '../visitors/visitor'
 
 export type FileObject = {
   filename: string
+  path: string
   contents: string
 }
 
@@ -18,16 +20,18 @@ export type FileObject = {
  * e.g. When Less encounters an @import, it passes the URL to the environment,
  *      with a Promise that is either fulfilled or rejected by the environment.
  */
-abstract class Environment {
+export abstract class Environment {
   fileManagers: FileManager[]
+  visitors: Visitor[]
   logger: Logger
 
-  constructor(fileManagers: FileManager[], logger: Logger) {
+  constructor(fileManagers: FileManager[], visitors: Visitor[], logger: Logger) {
     this.fileManagers = fileManagers || []
+    this.visitors = visitors
     this.logger = logger
   }
 
-  abstract getFileInfo(filename: string): IFileInfo
+  abstract getFileInfo(filePath: string): IFileInfo
 
   /**
    * Converts a string to a base 64 string
@@ -49,10 +53,10 @@ abstract class Environment {
    */
   abstract getSourceMapGenerator(): Function
 
-  getFileManager(path: string, currentDirectory: string, options: IOptions & IImportOptions) {
+  getFileManager(filePath: string, currentDirectory: string, options: IOptions & IImportOptions) {
     const fileManagers = this.fileManagers
 
-    if (!path || !currentDirectory) {
+    if (!filePath || !currentDirectory) {
       return
     }
 
@@ -62,7 +66,7 @@ abstract class Environment {
      */
     for (let i = fileManagers.length - 1; i >= 0 ; i--) {
       const fileManager = fileManagers[i]
-      if (fileManager.supports(path, currentDirectory, options, this)) {
+      if (fileManager.supports(filePath, currentDirectory, options, this)) {
         return fileManager
       }
     }
@@ -75,7 +79,7 @@ abstract class Environment {
   /**
    * Given the full path to a file, return the path component
    */
-  abstract getPath(filename: string): string
+  abstract getPath(filePath: string): string
   abstract tryAppendExtension(path: string, ext: string): string
 
   /* Append a .less extension if appropriate. Only called if less thinks one could be added. */
@@ -121,21 +125,21 @@ abstract class Environment {
   /**
    * Loads a file asynchronously. Expects a promise that either rejects with an error or fulfills with an
    * object containing
-   *  { filename: - full resolved path to file
+   *  { filePath: - full resolved path to file
    *    contents: - the contents of the file, as a string }
    */
-  abstract loadFile(path: string): Promise<FileObject>
+  abstract loadFile(filePath: string): Promise<FileObject>
 
   /**
    * Loads a file synchronously.
    */
-  abstract loadFileSync(path: string): Promise<FileObject>
+  abstract loadFileSync(filePath: string): Promise<FileObject>
 
   /**
    * Returns whether this environment supports this file for syncronous file retrieval
    */
   abstract supportsSync(
-    path: string,
+    filePath: string,
     currentDirectory?: string,
     options?: IOptions & IImportOptions
   ): boolean
@@ -144,7 +148,7 @@ abstract class Environment {
    * Returns whether this environment supports this file
    */
   abstract supports(
-    path: string,
+    filePath: string,
     currentDirectory?: string,
     options?: IOptions & IImportOptions
   ): boolean
