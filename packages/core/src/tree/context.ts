@@ -1,6 +1,6 @@
 import { MathMode, RewriteUrlMode, EvalErrorMode } from '../constants'
 import { IOptions } from '../options'
-import { Rules, Selector, List, Import } from './nodes'
+import { Rules, Selector, List, ImportRule, Color, Dimension, Node } from './nodes'
 import LessError, { ILessError } from '../less-error'
 import { Less } from '../index'
 import Environment from '../environment/environment'
@@ -42,7 +42,7 @@ export class Context {
    */
   selectors: (List<Selector>)[]
 
-  importQueue: Import[]
+  importQueue: ImportRule[]
 
   /**
    * AFAICT, frames are a stack of Rules nodes, used for scoping (and lookups?)

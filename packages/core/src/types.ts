@@ -2,6 +2,7 @@ import { Context } from './tree/context'
 import { Less } from './index'
 import { IOptions } from './options'
 import AssetManager from './asset-manager'
+import { EvalReturn, Node } from './tree/nodes'
 
 export enum TextFormat {
   RESET,
@@ -61,3 +62,10 @@ export type Plugin = {
  * Otherwise, lessc will look for a `setOptions` method, and call it with raw args.
  */
 export type PluginExport = Plugin | ((args?: { [key: string]: any }) => Plugin)
+
+export interface LessFunction {
+  (this: Context, ...args: Node[]): EvalReturn
+  evalArgs?: boolean
+}
+
+export type FunctionError = Error & { pos?: number }

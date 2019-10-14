@@ -207,6 +207,20 @@ export class AssetManager {
   protected getVisitors(): Visitor[] {
     return this.environment.visitors
   }
+
+  /** Still needed? */
+  visitor() {
+    return {
+      first: () => {
+        this.pluginIterator = -1
+        return this.environment.visitors[this.pluginIterator]
+      },
+      get: function() {
+        this.pluginIterator += 1
+        return this.environment.visitors[this.pluginIterator]
+      }
+    }
+  }
 }
 
 export default AssetManager
