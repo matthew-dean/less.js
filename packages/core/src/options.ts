@@ -92,11 +92,8 @@ export interface IOptions {
    * that references an image, exactly the same URL will be output in the css. 
    * This option allows you to re-write URL's in imported files so that the 
    * URL is always relative to the base imported file
-   * 
-   * @todo - move to file manager options
-   * @moved
    */
-  // rewriteUrls: RewriteUrlMode
+  rewriteUrls: RewriteUrlMode
 
   /**
    * How to process math 
@@ -134,12 +131,9 @@ export interface IOptions {
   // modifyVars: Object
 
   /**
-   * An argument to be appended to every URL
-   *
-   * @todo - move to file manager
-   * @moved
+   * An argument to be appended to every URL (post-eval)
    */
-  // urlArgs: string
+  urlArgs: string
 }
 
 // Export a new default each time
@@ -149,6 +143,8 @@ export default () => ({
   evalErrors: EvalErrorMode.THROW,
   strictImports: false,
   syncImport: false,
+  rewriteUrls: RewriteUrlMode.OFF,
   math: MathMode.NO_DIVISION,
-  strictUnits: StrictUnitMode.WARN
+  strictUnits: StrictUnitMode.WARN,
+  urlArgs: ''
 });

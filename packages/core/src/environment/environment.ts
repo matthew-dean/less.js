@@ -122,18 +122,22 @@ export abstract class Environment {
    *         file managers can decide to essentially override the 
    */
 
+
+  /** A Promise-based abstraction between loadFileAsync / loadFileSync */
+  abstract loadFile(filePath: string): Promise<FileObject>
+
   /**
    * Loads a file asynchronously. Expects a promise that either rejects with an error or fulfills with an
    * object containing
    *  { filePath: - full resolved path to file
    *    contents: - the contents of the file, as a string }
    */
-  abstract loadFile(filePath: string): Promise<FileObject>
+  abstract loadFileAsync(filePath: string): Promise<FileObject>
 
   /**
    * Loads a file synchronously.
    */
-  abstract loadFileSync(filePath: string): Promise<FileObject>
+  abstract loadFileSync(filePath: string): FileObject
 
   /**
    * Returns whether this environment supports this file for syncronous file retrieval
@@ -145,13 +149,44 @@ export abstract class Environment {
   ): boolean
 
   /**
-   * Returns whether this environment supports this file
+   * Returns whether this environment supports this file for asyncronous retrieval
    */
   abstract supports(
     filePath: string,
     currentDirectory?: string,
     options?: IOptions & IImportOptions
   ): boolean
+
+  /**
+   * Collapse '.' and '..' in paths
+   */
+  abstract normalizePath(path: string): string
+
+  // normalizePath(path) {
+  //   const segments = path.split('/').reverse()
+  //   let segment;
+
+  //   path = [];
+  //   while (segments.length !== 0) {
+  //     segment = segments.pop();
+  //     switch ( segment ) {
+  //       case '.':
+  //         break;
+  //       case '..':
+  //         if ((path.length === 0) || (path[path.length - 1] === '..')) {
+  //             path.push( segment );
+  //         } else {
+  //             path.pop();
+  //         }
+  //         break;
+  //       default:
+  //         path.push(segment);
+  //         break;
+  //     }
+  //   }
+
+  //   return path.join('/')
+  // }
 }
 
 export default Environment

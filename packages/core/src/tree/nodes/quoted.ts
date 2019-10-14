@@ -24,6 +24,7 @@ export type IQuotedOptions = {
  */
 export class Quoted extends NodeArray {
   options: IQuotedOptions
+  value: string
 
   constructor(props: IProps, options: IQuotedOptions = { quote: '"' }, location?: ILocationInfo) {
     if (options.escaped === undefined) {
@@ -37,10 +38,13 @@ export class Quoted extends NodeArray {
   eval(context: Context) {
     if (!this.evaluated) {
       super.eval(context)
+      const node = this.clone()
+      node.value = this.nodes.join('')
       if (!this.options.escaped) {
         this.nodes.unshift(new Value(this.options.quote))
         this.nodes.push(new Value(this.options.quote))
       }
+      return node
     }
     return this
   }

@@ -1,46 +1,60 @@
-import { Node } from '.'
+import {
+  Node,
+  Value,
+  Quoted
+} from '.'
 import { Context } from '../context'
 
-export class URL extends Node {
+/**
+ * A Url node contains a single Value or Quoted node
+ */
+export class Url extends Node {
+  nodes: [Value | Quoted]
+
   eval(context: Context) {
     super.eval(context)
 
-    let rootpath: string
     if (!this.evaluated) {
+      let rootpath: string
+      const url = this.nodes[0].clone()
       // Add the rootpath if the URL requires a rewrite
       rootpath = this.root.fileInfo.path
       if (rootpath.constructor === String &&
         this.value.constructor === String &&
-        context.pathRequiresRewrite(val.value)
+        context.pathRequiresRewrite(url.value)
       ) {
-        if (!val.quote) {
+        if (url instanceof Value) {
           rootpath = escapePath(rootpath)
         }
-        val.value = context.rewritePath(val.value, rootpath)
+        url.value = context.rewritePath(url.value, rootpath)
       } else {
-        val.value = context.normalizePath(val.value);
+        url.value = context.environment.normalizePath(url.value)
       }
 
+      let urlArgs = context.options.urlArgs
       // Add url args if enabled
-      if (context.urlArgs) {
-        if (!val.value.match(/^\s*data:/)) {
-          const delimiter = val.value.indexOf('?') === -1 ? '?' : '&';
-          const urlArgs = delimiter + context.urlArgs;
-          if (val.value.indexOf('#') !== -1) {
-              val.value = val.value.replace('#', `${urlArgs}#`);
+      if (urlArgs) {
+        if (!url.value.match(/^\s*data:/)) {
+          const delimiter = url.value.indexOf('?') === -1 ? '?' : '&';
+          urlArgs = delimiter + urlArgs
+          if (url.value.indexOf('#') !== -1) {
+            url.value = url.value.replace('#', `${urlArgs}#`)
           } else {
-              val.value += urlArgs;
+            url.value += urlArgs
           }
         }
       }
+      const node = this.clone(true)
+      node.nodes[0] = url
+      return node
     }
 
-    return new URL(val, this.getIndex(), this.fileInfo(), true);
+    return this
   }
 }
 
-URL.prototype.type = 'Url';
+Url.prototype.type = 'Url'
 
 function escapePath(path) {
-    return path.replace(/[\(\)'"\s]/g, match => `\\${match}`);
+  return path.replace(/[\(\)'"\s]/g, match => `\\${match}`)
 }

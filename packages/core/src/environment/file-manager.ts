@@ -42,7 +42,26 @@ export abstract class FileManager {
     options: IOptions & IImportOptions,
     environment: Environment
   ): Promise<FileObject> {
-    return environment.loadFile(filePath)
+    if (options.syncImport && this.supportsSync(filePath, currentDirectory, options, environment)) {
+      return new Promise((resolve, reject) => {
+        const result = this.loadFileSync(filePath, currentDirectory, options, environment)
+        if (result.contents) {
+          resolve(result)
+        } else {
+          reject(result)
+        }
+      })
+    }
+    return this.loadFileAsync(filePath, currentDirectory, options, environment)
+  }
+
+  loadFileAsync(
+    filePath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions,
+    environment: Environment
+  ): Promise<FileObject> {
+    return environment.loadFileAsync(filePath)
   }
 
   /**
@@ -53,7 +72,7 @@ export abstract class FileManager {
     currentDirectory: string,
     options: IOptions & IImportOptions,
     environment: Environment
-  ): Promise<FileObject> {
+  ): FileObject {
     return environment.loadFileSync(filePath)
   }
 

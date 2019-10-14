@@ -147,12 +147,10 @@ export class AssetManager {
       // };
       // let promise;
       // const context = utils.clone(this.context);
-      const loadFile = options.syncImport && fileManager.supportsSync(path, currentDirectory, fileManagerOptions, environment)
-        ? fileManager.loadFileSync : fileManager.loadFile
 
       let resolvedFile: FileObject
       /** @todo - guard against circular imports */
-      loadFile(path, currentDirectory, fileManagerOptions, environment)
+      fileManager.loadFile(path, currentDirectory, fileManagerOptions, environment)
         .then((file: FileObject) => {
           resolvedFile = file
           const ast = this.imports[file.filename]

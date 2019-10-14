@@ -5,14 +5,6 @@ import LessError, { ILessError } from '../less-error'
 import { Less } from '../index'
 import Environment from '../environment/environment'
 
-function isPathRelative(path: string) {
-    return !/^(?:[a-z-]+:|\/|#)/i.test(path);
-}
-
-function isPathLocalRelative(path: string) {
-  return path.charAt(0) === '.';
-}
-
 /** 
  * @note Renamed from contexts.Eval 
  * 
@@ -25,6 +17,8 @@ function isPathLocalRelative(path: string) {
 export class Context {
   less: Less
   environment: Environment
+  currentNode: Node
+
   inCalc: boolean
   mathOn: boolean
   importantScope: { important?: string }[]
@@ -46,7 +40,7 @@ export class Context {
 
   /**
    * AFAICT, frames are a stack of Rules nodes, used for scoping (and lookups?)
-   * @todo - is this neded?
+   * @todo - is this needed?
    */
   frames: Rules[]
   
@@ -128,54 +122,34 @@ export class Context {
     const obj = this.environment
   }
 
-  // pathRequiresRewrite(path: string) {
-  //   const isRelative = this.options.rewriteUrls === RewriteUrlMode.LOCAL ? isPathLocalRelative : isPathRelative
+  private isPathRelative(path: string) {
+    return !/^(?:[a-z-]+:|\/|#)/i.test(path)
+  }
+  
+  private isPathLocalRelative(path: string) {
+    return path.charAt(0) === '.'
+  }
 
-  //   return isRelative(path)
-  // }
+  pathRequiresRewrite(path: string): boolean {
+    const isRelative = this.options.rewriteUrls === RewriteUrlMode.LOCAL ? this.isPathLocalRelative : this.isPathRelative
 
-  /** @todo - break into environment */
-  // rewritePath(path: string, rootpath) {
-  //   let newPath;
+    return isRelative(path)
+  }
 
-  //   rootpath = rootpath || ''
-  //   newPath = this.normalizePath(rootpath + path)
+  rewritePath(path: string, rootpath: string): string {
+    let newPath: string
 
-  //   // If a path was explicit relative and the rootpath was not an absolute path
-  //   // we must ensure that the new path is also explicit relative.
-  //   if (isPathLocalRelative(path) &&
-  //     isPathRelative(rootpath) &&
-  //     isPathLocalRelative(newPath) === false) {
-  //     newPath = `./${newPath}`
-  //   }
+    rootpath = rootpath || ''
+    newPath = this.environment.normalizePath(rootpath + path)
 
-  //   return newPath
-  // }
+    // If a path was explicit relative and the rootpath was not an absolute path
+    // we must ensure that the new path is also explicit relative.
+    if (this.isPathLocalRelative(path) &&
+      this.isPathRelative(rootpath) &&
+      this.isPathLocalRelative(newPath) === false) {
+      newPath = `./${newPath}`
+    }
 
-  /** @todo - should be on environment fileManager */
-  // normalizePath(path) {
-  //   const segments = path.split('/').reverse()
-  //   let segment;
-
-  //   path = [];
-  //   while (segments.length !== 0) {
-  //     segment = segments.pop();
-  //     switch ( segment ) {
-  //       case '.':
-  //         break;
-  //       case '..':
-  //         if ((path.length === 0) || (path[path.length - 1] === '..')) {
-  //             path.push( segment );
-  //         } else {
-  //             path.pop();
-  //         }
-  //         break;
-  //       default:
-  //         path.push(segment);
-  //         break;
-  //     }
-  //   }
-
-  //   return path.join('/')
-  // }
+    return newPath
+  }
 }

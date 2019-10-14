@@ -3,7 +3,7 @@ import {
   IProps,
   ILocationInfo,
   NumericNode,
-  NumberValue
+  Num
 } from '.'
 
 import { fround } from '../util/math'
@@ -153,7 +153,7 @@ export class Color extends NumericNode {
   //
   operate(op: string, other: Node, context?: Context) {
     let otherVal: [number, number, number, number]
-    if (other instanceof NumberValue) {
+    if (other instanceof Num) {
       const val = other.value
       otherVal = [val, val, val, 1]
     }
@@ -197,12 +197,17 @@ export class Color extends NumericNode {
     return { r, g, b, a, max, min }
   }
 
-  toHSL() {
+  toHSL(): {
+    h: number
+    s: number
+    l: number
+    a: number
+  } {
     const { r, g, b, a, max, min } = this.hslObject()
     let h: number
     let s: number
-    const l = (max + min) / 2;
-    const d = max - min;
+    const l = (max + min) / 2
+    const d = max - min
 
     if (max === min) {
       h = s = 0
@@ -210,9 +215,9 @@ export class Color extends NumericNode {
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
 
       switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2;               break;
-        case b: h = (r - g) / d + 4;               break;
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break
+        case g: h = (b - r) / d + 2;               break
+        case b: h = (r - g) / d + 4;               break
       }
       h /= 6
     }
@@ -220,28 +225,33 @@ export class Color extends NumericNode {
   }
 
   // Adapted from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
-  toHSV() {
+  toHSV(): {
+    h: number
+    s: number
+    v: number
+    a: number
+  } {
     const { r, g, b, a, max, min } = this.hslObject()
     let h: number
     let s: number
     const v = max
 
-    const d = max - min;
+    const d = max - min
     if (max === 0) {
-        s = 0;
+      s = 0
     } else {
-        s = d / max;
+      s = d / max
     }
 
     if (max === min) {
       h = 0
     } else {
-        switch (max) {
-          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-          case g: h = (b - r) / d + 2; break;
-          case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break
+        case g: h = (b - r) / d + 2; break
+        case b: h = (r - g) / d + 4; break
+      }
+      h /= 6
     }
     return { h: h * 360, s, v, a }
   }

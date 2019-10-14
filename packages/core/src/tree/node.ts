@@ -491,10 +491,12 @@ export abstract class Node {
    * However, some nodes after evaluating will of course override
    * this to produce different node types or primitive values
    */
-  eval(context?: Context): EvalReturn {
+  eval(context: Context): EvalReturn {
+    context.currentNode = this
     /** All nodes that override eval() should (usually) exit if they're evaluated */
     if (!this.evaluated) {
       const node = this.clone(true)
+      context.currentNode = node
       this.processChildren(node, (node: Node) => node.eval(context))
       node.evaluated = true
       return node

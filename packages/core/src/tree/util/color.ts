@@ -154,9 +154,9 @@ const Colors = {
   yellowgreen: 10145074
 }
 
-export const valueFromKeyword = (keyword: string): Node => {
+export const colorFromKeyword = (keyword: string): Color | Value => {
   const key = keyword.toLowerCase()
-  let c: Node
+  let c: Color | Value
   if (Colors.hasOwnProperty(key)) {
     const int = Colors[key]
     const value = []
