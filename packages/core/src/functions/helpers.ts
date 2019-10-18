@@ -18,26 +18,29 @@ export const define = (func: LessFunction, ...params: any[][]) => {
 }
 
 export function expect<T = any>(value: any, types: (new(...args: any[]) => T)[]): value is (T extends typeof value ? T : never) {
-  let matchingTypes = 0
+  let match = false
   const expected: string[] = []
   types.forEach(t => {
-    if (t.constructor === Function
-      && (value instanceof <Function>(t as unknown))) {
-      matchingTypes += 1
-    } else if (t === undefined) {
+    if (match) {
+      return
+    }
+    if (t === undefined) {
       if (value === undefined) {
+        match = true
         return true
       }
-      throw new SyntaxError(`Value expected.`)
+    } else if (t.constructor === Function
+      && (value instanceof <Function>(t as unknown))) {
+      match = true
     } else {
-      const expectedType = t && t.constructor.name
+      const expectedType = t && t.prototype.constructor.name
       if (expectedType) {
         expected.push(expectedType)
       }
     }
   })
-  if (matchingTypes === 0) {
-    let errorMsg = `Value is not an expected type.`
+  if (!match) {
+    let errorMsg = `value '${value}' is not an expected type.`
     if (expected.length > 0) {
       errorMsg += ` Expected: ` + expected.join(' or ')
     }
@@ -48,8 +51,8 @@ export function expect<T = any>(value: any, types: (new(...args: any[]) => T)[])
 
 export const validateParam = (param: any, pos: number) => {
   if (param === undefined) {
-    const err: FunctionError = new SyntaxError(`Value expected.`)
-    err.pos = 2
+    const err: FunctionError = new SyntaxError(`value expected.`)
+    err.pos = pos
     throw err
   }
 }

@@ -1,6 +1,6 @@
 import Environment from './environment/environment'
 import * as tree from './tree/nodes'
-import Functions from './functions'
+// import Functions from './functions'
 import { Context } from './tree/context'
 import SourceMapOutputFactory, { SourceMapOutput } from './source-map-output'
 import SourceMapBuilderFactory from './source-map-builder'
@@ -9,7 +9,7 @@ import AssetManagerFactory from './asset-manager'
 import { render, RenderFunction } from './render'
 import { parse, ParseFunction } from './parse'
 import LessError from './less-error'
-import TransformTree from './transform-tree'
+// import TransformTree from './transform-tree'
 import Default, { IOptions } from './options'
 import { Node } from './tree/nodes'
 
@@ -19,7 +19,7 @@ export type Less = {
   version: number[]
   options: IOptions
   environment: Environment
-  functions
+  // functions
   parse: ParseFunction
   render: RenderFunction
 
@@ -56,7 +56,7 @@ export default (environment: Environment, options?: IOptions): Less => {
 
   // const parse = ParseFactory(environment, ParseTree, ImportManager)
   // const render = RenderFactory(environment, ParseTree, ImportManager)
-  const functions = Functions(environment)
+  // const functions = Functions(environment)
 
   /**
    * @todo
@@ -67,7 +67,7 @@ export default (environment: Environment, options?: IOptions): Less => {
     version: [4, 0, 0],
     environment,
     options: opts,
-    functions: functions,
+    // functions: functions,
     parse: null,
     render: null
   }

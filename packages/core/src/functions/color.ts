@@ -79,11 +79,11 @@ colorFunctions = {
      * e.g. rgba(#fff, 0.5)
      */
     if (r instanceof Color) {
-      r.options.colorFormat = colorFormat
+      const rgba = r.value
       if (g) {
-        r.value[3] = number(g)
+        rgba[3] = number(g)
       }
-      return r
+      return new Color(rgba, { colorFormat })
     }
 
     /**
@@ -92,9 +92,9 @@ colorFunctions = {
     validateParam(b, 2)
     validateParam(a, 3)
 
-    const rgb = [r, g, b].map(c => scaled(c, 255))
-    rgb.push(number(a))
-    return new Color(rgb, { colorFormat })
+    const rgba = [r, g, b].map(c => scaled(c, 255))
+    rgba.push(number(a))
+    return new Color(rgba, { colorFormat })
   }, [Color, Num], [Num, undefined], [Num, undefined], [Num, undefined]),
 
   hsl: define(function (h, s, l) {
@@ -104,11 +104,11 @@ colorFunctions = {
   hsla: define(function (h: Color | Num, s?: Num, l?: Num, a?: Num) {
     const colorFormat = ColorFormat.HSL
     if (h instanceof Color) {
-      h.options.colorFormat = colorFormat
+      const rgba = h.value
       if (s) {
-        h.value[3] = number(s)
+        rgba[3] = number(s)
       }
-      return h
+      return new Color(rgba, { colorFormat })
     }
 
     validateParam(l, 2)
