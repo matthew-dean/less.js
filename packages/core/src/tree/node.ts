@@ -2,7 +2,7 @@ import { CstNodeLocation } from 'chevrotain'
 import { IOptions } from '../options'
 import { Context } from './context'
 import { compare } from './util/compare'
-import { Rules, ImportRule, Declaration, Expression, List } from './nodes'
+import { ImportRule, Declaration, Expression, List } from './nodes'
 
 export type SimpleValue = string | number | boolean | number[]
 
@@ -114,8 +114,8 @@ export abstract class Node {
   location: ILocationInfo
 
   parent: Node
-  root: Rules
-  fileRoot: Rules
+  root: Node
+  fileRoot: Node
 
   visibilityBlocks: number
   evalFirst: boolean
@@ -173,10 +173,10 @@ export abstract class Node {
     this.setParent()
     this.location = location
   
-    if (options.isRoot && this instanceof Rules) {
+    if (options.isRoot && this.type === 'Rules') {
       this.root = this
     }
-    if (options.filename && this instanceof Rules) {
+    if (options.filename && this.type === 'Rules') {
       this.fileRoot = this
       this.fileInfo = <IFileInfo>options
     } else {
@@ -299,7 +299,7 @@ export abstract class Node {
      * We update the root reference but not fileRoot.
      * (fileRoot is the original tree)
      */
-    if (this instanceof Rules && this === this.root) {
+    if (this.type === 'Rules' && this === this.root) {
       newNode.root = newNode
     }
 
@@ -345,7 +345,7 @@ export abstract class Node {
   ): Node | Node[] {
     let node: Node = this
     const matches: Node[] = []
-    const crawlRules = (rulesNode: Rules) => {
+    const crawlRules = (rulesNode: Node) => {
       const nodes = rulesNode.nodes
       const nodeLength = nodes.length
 
@@ -360,7 +360,7 @@ export abstract class Node {
         }
         if (node instanceof ImportRule) {
           const content = node.content[0]
-          if (content instanceof Rules) {
+          if (content.type === 'Rules') {
             crawlRules(content)
           }
         }
@@ -378,7 +378,7 @@ export abstract class Node {
       if (currDepth > maxTreeDepth) {
         return this.error(context, 'Maximum tree depth exceeded')
       }
-      if (node instanceof Rules) {
+      if (node.type === 'Rules') {
         crawlRules(node)
         if (matches.length && option !== MatchOption.IN_SCOPE) {
           if (option === MatchOption.FIRST) {

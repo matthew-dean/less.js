@@ -1,6 +1,6 @@
 import {
   Node,
-  Rules,
+  // Rules,
   IBaseProps,
   IProps,
   INodeOptions,
@@ -14,13 +14,13 @@ export type IAtRuleProps = {
   /** Prelude (everything after name and before ; or {) */
   prelude: [Node]
   /** Optional set of rules */
-  rules?: [Rules]
+  rules?: [Node]
 } & IBaseProps
 
 export class AtRule extends Node {
   name: string
   prelude: [Node]
-  rules: [Rules] | []
+  rules: [Node] | []
   options: { atRoot?: boolean }
 
   constructor(props: IAtRuleProps, options: INodeOptions = {}, location: ILocationInfo) {

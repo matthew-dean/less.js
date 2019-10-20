@@ -5,7 +5,7 @@ import {
   Block,
   Condition,
   Value,
-  NumberValue
+  Num
 } from '..'
 
 import { Context } from '../../context'
@@ -49,9 +49,9 @@ describe('Condition', () => {
 
   it('1 < 1', () => {
     const node = new Condition([
-      new NumberValue(1),
+      new Num(1),
       new Value('<'),
-      new NumberValue(1)
+      new Num(1)
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(false)
@@ -59,9 +59,9 @@ describe('Condition', () => {
 
   it('1 <= 1', () => {
     const node = new Condition([
-      new NumberValue(1),
+      new Num(1),
       new Value('<='),
-      new NumberValue(1)
+      new Num(1)
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(true)
@@ -69,9 +69,9 @@ describe('Condition', () => {
 
   it('2 > 1', () => {
     const node = new Condition([
-      new NumberValue(2),
+      new Num(2),
       new Value('>'),
-      new NumberValue(1)
+      new Num(1)
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(true)
@@ -79,9 +79,9 @@ describe('Condition', () => {
 
   it('1 >= 2', () => {
     const node = new Condition([
-      new NumberValue(1),
+      new Num(1),
       new Value('>='),
-      new NumberValue(2)
+      new Num(2)
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(false)
@@ -89,9 +89,9 @@ describe('Condition', () => {
 
   it('1 = 1', () => {
     const node = new Condition([
-      new NumberValue(1),
+      new Num(1),
       new Value('='),
-      new NumberValue(1)
+      new Num(1)
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(true)
@@ -102,9 +102,9 @@ describe('Condition', () => {
       new Bool({ value: true }),
       new Value('and'),
       new Condition([
-        new NumberValue(1),
+        new Num(1),
         new Value('='),
-        new NumberValue(2)
+        new Num(2)
       ])
     ])
     const val = node.eval(context)
@@ -118,9 +118,9 @@ describe('Condition', () => {
       new Block([
         new Value('('),
         new Condition([
-          new NumberValue(1),
+          new Num(1),
           new Value('='),
-          new NumberValue(2)
+          new Num(2)
         ]),
         new Value(')')
       ])
@@ -136,9 +136,9 @@ describe('Condition', () => {
       new Block([
         new Value('('),
         new Condition([
-          new NumberValue(1),
+          new Num(1),
           new Value('='),
-          new NumberValue(1)
+          new Num(1)
         ]),
         new Value(')')
       ])

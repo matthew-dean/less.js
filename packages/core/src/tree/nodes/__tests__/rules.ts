@@ -8,11 +8,16 @@ import {
   Variable
 } from '..'
 
+import * as tree from '..'
+
 import { Context } from '../../context'
 import Default from '../../../options'
 
 describe('Rules', () => {
   let context: Context
+  Object.entries(tree).forEach(entry => {
+    console.log(entry[0], entry[1])
+  })
   beforeEach(() => {
     context = new Context({}, Default())
   })
