@@ -23,8 +23,8 @@ export class Condition extends NodeArray {
     super(props, options, location)
   }
 
-  eval(context: Context) {
-    const result = ((op, a, b): boolean => {
+  eval(context: Context): Bool {
+    const result = ((op, a, b) => {
       if (a instanceof Node && b instanceof Node) {
         switch (op) {
           case 'and': return Boolean(a.valueOf()) && Boolean(b.valueOf())
@@ -38,11 +38,11 @@ export class Condition extends NodeArray {
               case 1:
                 return op === '>' || op === '>='
               default:
-                return false
+                return new Bool({ value: false })
             }
         }
       } else {
-        return false
+        return new Bool({ value: false })
       }
     })(this.nodes[1].value, this.nodes[0].eval(context), this.nodes[2].eval(context))
 

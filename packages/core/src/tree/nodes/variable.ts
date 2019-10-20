@@ -12,10 +12,12 @@ import { Context } from '../context'
 export type IVariableOptions = {
   /** will look up properties instead of variables */
   propertyRef?: boolean
-  /** `@rest...` */
-  variadic?: boolean
 }
+
 /**
+ * Note that this is, specifically, a variable/property reference,
+ * and not an assignment to a variable identifier.
+ *
  * The value nodes might contain another variable ref (nested vars)
  * 
  * e.g. 
@@ -24,7 +26,6 @@ export type IVariableOptions = {
  */
 export class Variable extends Node {
   evaluating: boolean
-  evaluatingName: boolean
   type: string
   value: string
   options: IVariableOptions
@@ -53,29 +54,13 @@ export class Variable extends Node {
     return '@' + name
   }
 
-  evalName(context: Context) {
-    let value = this.value
-    if (!value) {
-      if (this.evaluatingName) {
-        return ''
-      }
-      /**
-       * Don't look at (and try to eval) this declaration when resolving
-       * a name that references a variable.
-       */
-      this.evaluatingName = true
-      const evalFunc = ((node: Node) => node.eval(context))
-      this.processNodeArray(this.nodes, evalFunc)
-      value = this.nodes.join('')
-      this.value = value
-      this.evaluatingName = false
-    }
-    return value
-  }
-
   eval(context: Context) {
     super.eval(context)
-    const name = this.evalName(context)
+    let name = this.value
+    if (!name) {
+      name = this.nodes.join('')
+      this.value = name
+    }
     const type = this.type
 
     if (this.evaluating) {

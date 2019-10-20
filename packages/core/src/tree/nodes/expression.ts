@@ -11,8 +11,10 @@ import {
 import { Context } from '../context'
 
 export type IExpressionOptions = {
-  inBlock: boolean
-  blockInOp: boolean
+  inBlock?: boolean
+  blockInOp?: boolean
+  /** Insert spaces automatically when stringified */
+  spaced?: boolean
 }
 
 /**
@@ -37,6 +39,13 @@ export class Expression<T extends Node = Node> extends NodeArray {
     return this.nodes.filter(node =>
       (!(node instanceof WS) && !(node instanceof Comment))
     )
+  }
+
+  toString() {
+    if (this.options.spaced) {
+      return this.nodes.join(' ')
+    }
+    return this.nodes.join('')
   }
 
   /**

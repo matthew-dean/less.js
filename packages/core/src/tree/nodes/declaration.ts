@@ -1,6 +1,7 @@
 import {
   Node,
   List,
+  Name,
   Expression,
   Rules,
   ProcessFunction,
@@ -26,20 +27,16 @@ export type IDeclarationOptions = {
 }
 
 export type IDeclarationProps = IProps & {
-  name: string | Node[]
+  name: string | [Name]
 }
 
 export class Declaration extends Node implements ImportantNode {
   value: string
   evaluatingName: boolean
   /**
-   * For cross-platform compatability, a variable declaration's name
-   * will not contain '@', but is instead marked as `isVariable: true`
-   */
-  name: Node[]
-  /**
-   * Declaration's value, will be a single node,
-   * either a List (of Expressions), an Expression, or Rules
+   * Declaration's nodes are are an array of [Value, Important],
+   * The value is either a List (of Expressions), an Expression, or
+   * Rules (an anonymous mixin definition)
    * 
    * Note that a custom property's value will be a Expression containing
    * just Value nodes and any interpolated Variables, since it can contain
@@ -49,23 +46,20 @@ export class Declaration extends Node implements ImportantNode {
    * the CSS syntax spec, and means that the nodes' value of `--foo: bar`
    * does _not_ equal the value of `--foo:bar`, but values within the 
    * declarations of `foo: bar` and `foo:bar` are equal.
+   * 
    */
-  nodes: [List<Node> | Node]
-  important: [Value]
-
+  nodes: [(List<Node> | Node)] | [(List<Node> | Node), Value]
+  name: [Name]
   options: IDeclarationOptions
 
   constructor(props: IDeclarationProps, options: IDeclarationOptions = {}, location?: ILocationInfo) {
-    let { name, important } = props
+    let { name } = props
     if (name.constructor === String) {
       if ((<string>name).charAt(0) === '@') {
         name = (<string>name).slice(1)
         options.isVariable = true
       }
-      props.name = [new Value(name)]
-    }
-    if (!important) {
-      props.important = []
+      props.name = [new Name([new Value(name)], { isVariable: !!options.isVariable })]
     }
     super(props, options, location)
     if (name.constructor === String) {
@@ -75,7 +69,7 @@ export class Declaration extends Node implements ImportantNode {
 
   toString(omitPrePost?: boolean) {
     const text = (this.options.isVariable ? '@' : '') + 
-      this.value + ':' + this.nodes.join('') + this.important.join('')
+      this.name.join('') + ':' + this.nodes.join('')
     
     if (omitPrePost) {
       return text
@@ -85,40 +79,28 @@ export class Declaration extends Node implements ImportantNode {
   }
 
   /** Resolve identifiers first */
-  evalName(context: Context, evalFunc?: ProcessFunction) {
+  evalName(context: Context): string {
     let value = this.value
-    if (!value) {
-      if (this.evaluatingName) {
-        return ''
-      }
-      /**
-       * Don't look at (and try to eval) this declaration when resolving
-       * a name that references a variable.
-       */
-      this.evaluatingName = true
-      evalFunc = evalFunc || ((node: Node) => node.eval(context))
-      this.processNodeArray(this.name, evalFunc)
-      value = this.name.join('')
+    if (value === undefined) {
+      const name = this.name[0]
+      name.eval(context)
+      value = name.value
       this.value = value
-      this.evaluatingName = false
     }
     return value
   }
 
   eval(context: Context) {
     if (!this.evaluated) {
-      const evalFunc = (node: Node) => node.eval(context)
-      this.evalName(context, evalFunc)
       context.importantScope.push({})
-      this.processNodeArray(this.nodes, evalFunc)
-      this.processNodeArray(this.important, evalFunc)
+      this.processNodeArray(this.nodes, (node: Node) => node.eval(context))
 
       this.evaluated = true
 
-      let important = this.important[0]
+      let important = this.nodes[1]
       const importantResult = context.importantScope.pop()
       if (!important && importantResult.important) {
-        this.important = [new Value(importantResult.important)]
+        this.nodes[1] = new Value(importantResult.important)
       }
     }
 
@@ -126,7 +108,7 @@ export class Declaration extends Node implements ImportantNode {
   }
 
   makeImportant() {
-    this.important = [new Value({ pre: ' ', text: '!important' })]
+    this.nodes[1] = new Value({ pre: ' ', text: '!important' })
     return this
   }
 }

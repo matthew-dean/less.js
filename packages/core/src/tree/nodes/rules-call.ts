@@ -4,12 +4,15 @@ import {
   ILocationInfo,
   List,
   Rules,
+  Rule,
   MatchOption,
   Variable,
+  Mixin,
   MixinDefinition
 } from '.'
 
 import { Context } from '../context'
+import { Selector } from './selector'
 
 // import defaultFunc from '../functions/default'
 
@@ -56,20 +59,69 @@ class RulesCall extends Node {
         return this.matchMixins([result], context)
       }
     }
+    super.eval(context)
 
     /**
      * Now name should be a list of elements
-     * 
-     * @todo - #foo .bar() matches #foo { .bar {} } and #foo { @mixin bar() }
+     * Each element is therefore a rules call, passed to the next segment
     */
-    name.forEach(ref => {
-      this.find((node: Node) => {
-        if (ref instanceof Element) {
+    const collectedRules = []
+    const selector = new Selector(this.reference).eval(context)
+    if (!(selector instanceof Selector)) {
+      return this.error(context, `Mixin name ${this.reference[0].toString(true)} could not be evaluated.`)
+    }
+    const findValues = selector.getMixinCompareValue().split(/[#.]/)
 
-        }
+    const walk = (start: Node[], findValues: string[], scope: MatchOption) => {
+      let results = []
+      findValues.forEach((val, i) => {
+        const mixinName = val.replace(/^[#.]/, '')
 
-      }, MatchOption.IN_SCOPE)
+        start.forEach(ctx => {
+          const result = ctx.find(context, (node: Node) => {
+            let hasMatch = false
+            if (node instanceof Rule) {
+              const selectors = node.selectors[0]
+              const selLength = selectors.nodes.length
+              for (let i = 0; i < selLength; i++) {
+                const sel = selectors[i]
+                if (sel.getMixinCompareValue() === val) {
+                  hasMatch = true
+                  break
+                }
+              }
+              if (hasMatch) {
+                return node.rules[0]
+              }
+            } else if (node instanceof Mixin) {
+              if (node.nodes[0].valueOf() === val) {
+                return node.nodes[1].rules[0]
+              }
+            }
+          }, scope)
+
+          if (Array.isArray(result)) {
+            results = results.concat(result)
+          }
+        })
+      })
+      return results
+    }
+
+    let parentContext = [this]
+    const valuesLength = findValues.length
+
+    findValues.forEach((val, i) => {
+      let findSegments = [val]
+      if (i === 0) {
+        parentContext = walk(parentContext, findSegments, MatchOption.IN_SCOPE)
+      } else {
+        findSegments = findSegments.concat([findValues.slice(0, i).join('')])
+        parentContext = walk(parentContext, findSegments, MatchOption.IN_RULES)
+      }
     })
+
+    /** parentContext should now be the list of matches */
     
 
         let mixins;

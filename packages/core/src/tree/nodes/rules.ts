@@ -2,10 +2,10 @@ import {
   Node,
   NodeArray,
   Declaration,
-  Import,
+  ImportRule,
   EvalReturn,
   ImportantNode,
-  QualifiedRule,
+  Rule,
   AtRule,
   IProps,
   INodeOptions,
@@ -103,14 +103,14 @@ export class Rules extends NodeArray implements ImportantNode {
     if (evalImports) {
       for (let i = 0; i < rulesLength; i++) {
         rule = rules[i]
-        if (rule instanceof Import) {
+        if (rule instanceof ImportRule) {
           const imprt = rule.eval(context)
           rules[i] = imprt
-          if (imprt instanceof Import) {
+          if (imprt instanceof ImportRule) {
             context.importQueue.push(imprt)
           }
-        } else if (rule instanceof QualifiedRule || rule instanceof AtRule) {
-          (<QualifiedRule | AtRule>rule).rules[0].eval(context, evalImports)
+        } else if (rule instanceof Rule || rule instanceof AtRule) {
+          (<Rule | AtRule>rule).rules[0].eval(context, evalImports)
         } else if (rule instanceof Rules) {
           rule.eval(context, evalImports)
         }
@@ -139,7 +139,7 @@ export class Rules extends NodeArray implements ImportantNode {
       if (rule instanceof Declaration) {
         rule.evalName(context)
       }
-      if (rule instanceof Import) {
+      if (rule instanceof ImportRule) {
         ruleGroups.imports.push([i, rule])
       } else if (rule.evalFirst) {
         ruleGroups.first.push([i, rule])

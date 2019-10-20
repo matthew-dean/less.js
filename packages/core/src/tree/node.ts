@@ -69,8 +69,13 @@ export type INodeOptions = {
 export enum MatchOption {
   /** Return first result */
   FIRST,
+
   /** Return all matches in the ruleset where the first match is found */
+  ALL_RULES,
+
+  /** Same as all rules, except does not search parent */
   IN_RULES,
+
   /** Return all matches found while searching up the tree */
   IN_SCOPE
 }
@@ -382,8 +387,9 @@ export abstract class Node {
           return matches
         }
       }
-
-      node = node.parent
+      if (option !== MatchOption.IN_RULES) {
+        node = node.parent
+      }
     }
 
     return matches.length ? matches : undefined
@@ -399,7 +405,7 @@ export abstract class Node {
       ) {
         return node
       }
-    }, MatchOption.IN_RULES)
+    }, MatchOption.ALL_RULES)
   }
 
   /** Moved from Rules variable() method */

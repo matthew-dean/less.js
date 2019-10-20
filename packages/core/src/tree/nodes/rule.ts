@@ -7,7 +7,10 @@ import {
   List,
   SelectorList,
   Selector,
-  Expression
+  Expression,
+  WS,
+  Op,
+  Comment
 } from '.'
 
 import { Context } from '../context'
