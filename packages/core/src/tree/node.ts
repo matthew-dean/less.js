@@ -504,6 +504,10 @@ export abstract class Node {
     return this
   }
 
+  toArray() {
+    return this.children.nodes
+  }
+
   error(context: Context, message: string) {
     if (context) {
       context.error({ message }, this.fileRoot)

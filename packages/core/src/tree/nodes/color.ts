@@ -10,10 +10,6 @@ import { fround } from '../util/math'
 import { Context } from '../context'
 import { operate } from '../util/math'
 
-/**
- * @todo move keywords to CST-to-AST stage
- */
-
 export enum ColorFormat {
   HEX,
   RGB,

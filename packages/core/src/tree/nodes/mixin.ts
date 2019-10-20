@@ -1,128 +1,28 @@
 import {
   Node,
+  NodeArray,
   INodeOptions,
   ILocationInfo,
   Rules,
   Declaration,
   Expression,
   Rule,
-  IRuleProps
+  IRuleProps,
+  MixinDefinition
 } from '.'
 
 import { Context } from '../context'
-import * as utils from '../utils'
 
-
-/**
- * @todo - Is .rule {} a mixin or qualified rule?
- */
 /**
  * @todo - Store the mixin name without '.' or '#' for cross-format compatibility
  *         This makes .mixin() {} the equivalent of `@mixin mixin()`
  *         and .mixin(); is the equivalent of `@include mixin()`
  */
-export interface IMixinProps extends IRuleProps {
-  args: Node[]
-}
-export class Mixin extends Rule {
-  args: Node[]
-  constructor(props: IMixinProps, options: INodeOptions, location: ILocationInfo) {
-    super(props, options, location)
-  }
-
+export class Mixin extends NodeArray {
   /**
-   * Evaluates the mixin arguments
+   * First node is the mixin name, second is the definition
    */
-  evalParams(context, mixinEnv, args, evaldArguments) {
-    const frame = this.rules[0].clone()
-
-    let varargs;
-    let arg;
-    const params = utils.copyArray(this.params);
-    let i;
-    let j;
-    let val;
-    let name;
-    let isNamedFound;
-    let argIndex;
-    let argsLength = 0;
-
-    if (mixinEnv.frames && mixinEnv.frames[0] && mixinEnv.frames[0].functionRegistry) {
-        frame.functionRegistry = mixinEnv.frames[0].functionRegistry.inherit();
-    }
-    mixinEnv = new contexts.Eval(mixinEnv, [frame].concat(mixinEnv.frames));
-
-    if (args) {
-        args = utils.copyArray(args);
-        argsLength = args.length;
-
-        for (i = 0; i < argsLength; i++) {
-            arg = args[i];
-            if (name = (arg && arg.name)) {
-                isNamedFound = false;
-                for (j = 0; j < params.length; j++) {
-                    if (!evaldArguments[j] && name === params[j].name) {
-                        evaldArguments[j] = arg.value.eval(context);
-                        frame.prependRule(new Declaration(name, arg.value.eval(context)));
-                        isNamedFound = true;
-                        break;
-                    }
-                }
-                if (isNamedFound) {
-                    args.splice(i, 1);
-                    i--;
-                    continue;
-                } else {
-                    throw { type: 'Runtime', message: `Named argument for ${this.name} ${args[i].name} not found` };
-                }
-            }
-        }
-    }
-    argIndex = 0;
-    for (i = 0; i < params.length; i++) {
-        if (evaldArguments[i]) { continue; }
-
-        arg = args && args[argIndex];
-
-        if (name = params[i].name) {
-            if (params[i].variadic) {
-                varargs = [];
-                for (j = argIndex; j < argsLength; j++) {
-                    varargs.push(args[j].value.eval(context));
-                }
-                frame.prependRule(new Declaration(name, new Expression(varargs).eval(context)));
-            } else {
-                val = arg && arg.value;
-                if (val) {
-                    // This was a mixin call, pass in a detached rules of it's eval'd rules
-                    if (Array.isArray(val)) {
-                        val = new DetachedRules(new Rules('', val));
-                    }
-                    else {
-                        val = val.eval(context);
-                    }
-                } else if (params[i].value) {
-                    val = params[i].value.eval(mixinEnv);
-                    frame.resetCache();
-                } else {
-                    throw { type: 'Runtime', message: `wrong number of arguments for ${this.name} (${argsLength} for ${this.arity})` };
-                }
-
-                frame.prependRule(new Declaration(name, val));
-                evaldArguments[i] = val;
-            }
-        }
-
-        if (params[i].variadic && args) {
-            for (j = argIndex; j < argsLength; j++) {
-                evaldArguments[j] = args[j].value.eval(context);
-            }
-        }
-        argIndex++;
-    }
-
-    return frame;
-  }
+  nodes: [Node, MixinDefinition]
 
   makeImportant() {
     const rules = !this.rules ? this.rules : this.rules.map(r => {

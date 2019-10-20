@@ -47,7 +47,7 @@ export class FunctionCall extends Node {
     if (this.isCalc || context.inCalc) {
       context.enterCalc()
     }
-    const args = this.args.map(a => a.eval(context));
+    const args = this.args.map(a => a.eval(context))
     if (this.isCalc || context.inCalc) {
       context.exitCalc()
     }

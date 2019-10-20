@@ -6,7 +6,7 @@ import {
 import { define } from './helpers'
 import { RewriteUrlMode } from '../constants'
 
-const fallback = (functionThis, node) => new Url(node, functionThis.index, functionThis.currentFileInfo).eval(functionThis.context);    
+const fallback = (value: string) => new Url([new Quoted(value)])
 
 export default {
   'data-uri': define(function(mimeType: Value, filePath?: Value) {
@@ -36,7 +36,7 @@ export default {
     const fileManager = environment.getFileManager(path, currentDirectory, options)
 
     if (!fileManager) {
-      return fallback(this, path)
+      return fallback(path)
     }
 
     let useBase64 = false
@@ -61,18 +61,18 @@ export default {
     const fileSync = fileManager.loadFileSync(path, currentDirectory, options, environment)
     if (!fileSync.contents) {
       this.currentNode.warn(this, `Skipped data-uri embedding of ${path} because file not found`)
-      return fallback(this, path || mime)
+      return fallback(path || mime)
     }
     let buf = fileSync.contents
 
     if (useBase64 && !environment.encodeBase64) {
-      return fallback(this, path)
+      return fallback(path)
     }
 
     buf = useBase64 ? environment.encodeBase64(buf) : encodeURIComponent(buf)
 
     const uri = `data:${mime},${buf}${fragment}`
 
-    return new Url([new Quoted(`"${uri}"`, uri, false, this.index, this.currentFileInfo), this.index, this.currentFileInfo);
+    return new Url([new Quoted(uri)])
   }, [Value], [Value, undefined])
 }

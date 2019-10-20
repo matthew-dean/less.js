@@ -26,12 +26,18 @@ export class Quoted extends NodeArray {
   options: IQuotedOptions
   value: string
 
-  constructor(props: IProps, options: IQuotedOptions = { quote: '"' }, location?: ILocationInfo) {
+  constructor(props: string | IProps, options: IQuotedOptions = { quote: '"' }, location?: ILocationInfo) {
     if (options.escaped === undefined) {
       options.escaped = false
     }
+    let newProps: IProps
+    if (props.constructor === String) {
+      newProps = [new Value(<string>props)]
+    } else {
+      newProps = <IProps>props
+    }
 
-    super(props, options, location)
+    super(newProps, options, location)
     this.allowRoot = options.escaped
   }
 

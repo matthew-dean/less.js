@@ -1,12 +1,9 @@
 import {
   NodeArray,
   Value,
-  NumberValue,
   Node,
-  NumericNode,
   Condition,
-  Operation,
-  Op
+  Operation
 } from '.'
 
 import { Context } from '../context'

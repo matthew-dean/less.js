@@ -32,7 +32,7 @@ export class Rule extends Node {
 
   constructor(props: IRuleProps, options: INodeOptions, location: ILocationInfo) {
     const { selectors } = props
-    if (selectors.length !== 1 || selectors[0] instanceof Expression) {
+    if (selectors && (selectors.length !== 1 || selectors[0] instanceof Expression)) {
       props.selectors = [new List<Selector>(<Selector[]>selectors)]
     }
     super(props, options, location)

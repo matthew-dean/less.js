@@ -83,6 +83,7 @@ export class Declaration extends Node implements ImportantNode {
 
     return this.pre + text + this.post
   }
+
   /** Resolve identifiers first */
   evalName(context: Context, evalFunc?: ProcessFunction) {
     let value = this.value
