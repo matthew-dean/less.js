@@ -7,12 +7,16 @@ import {
   WS
 } from '../nodes'
 
-export const mergeProperties = (rules: Node[], clone?: boolean) => {
+export const mergeProperties = <T extends Node = Node>(rules: T[], clone?: boolean): T[] => {
   const groups: {
     [key: string]: Declaration[]
   } = {}
   const groupsArr: Declaration[][] = []
   const rulesLength = rules.length
+
+  if (clone) {
+    rules = rules.map(rule => rule.clone())
+  }
 
   for (let i = 0; i < rulesLength; i++) {
     const rule = rules[i]
@@ -32,7 +36,7 @@ export const mergeProperties = (rules: Node[], clone?: boolean) => {
 
   groupsArr.forEach(group => {
     if (group.length > 0) {
-      const result = clone ? group[0].clone() : group[0]
+      const result = group[0]
 
       if (result.options.mergeType === MergeType.SPACED) {
         const nodes = group.reduce((nodes, rule, i) => {
@@ -51,6 +55,8 @@ export const mergeProperties = (rules: Node[], clone?: boolean) => {
       }
     }
   })
+
+  return rules
 }
 
 // export const flattenSelectors = (selectorList: List<Selector>): List<Selector> => {

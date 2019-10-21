@@ -1,6 +1,5 @@
 // import * as utils from './utils';
-import Rules from './tree/nodes/rules'
-import { ILocationInfo } from './tree/node'
+import { ILocationInfo, Rules } from './tree/nodes'
 import { TextFormat, TextStyleFunction } from './types'
 
 export interface ILessError {

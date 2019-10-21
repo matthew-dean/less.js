@@ -1,6 +1,6 @@
 import { MathMode, RewriteUrlMode, EvalErrorMode } from '../constants'
 import { IOptions } from '../options'
-import { Selector, List, ImportRule, Node } from './nodes'
+import { Selector, List, ImportRule, Node, Rules } from './nodes'
 import LessError, { ILessError } from '../less-error'
 import { Less } from '../index'
 import Environment from '../environment/environment'
@@ -42,7 +42,7 @@ export class Context {
    * AFAICT, frames are a stack of Rules nodes, used for scoping (and lookups?)
    * @todo - is this needed?
    */
-  // frames: Rules[]
+  frames: Rules[]
   
   private errors: ILessError[]
   private warnings: ILessError[]
@@ -55,26 +55,28 @@ export class Context {
     this.environment = environment
     this.options = options
     this.selectors = []
-    // this.frames = []
+    this.frames = []
     this.importantScope = []
     this.blockStack = []
     this.inCalc = false
     this.mathOn = true
+    this.errors = []
+    this.warnings = []
     /** Replacement for function registry */
     // this.scope = Object.create(environment.scope || null)
   }
 
-  // error(err: ILessError, fileRoot: Rules) {
-  //   if (this.options.evalErrors === EvalErrorMode.THROW) {
-  //     throw err
-  //   }
-  //   this.errors.push(new LessError(err, fileRoot))
-  // }
+  error(err: ILessError, fileRoot: Rules) {
+    if (this.options.evalErrors === EvalErrorMode.THROW) {
+      throw err
+    }
+    this.errors.push(new LessError(err, fileRoot))
+  }
 
-  // warning(warn: ILessError, fileRoot: Rules) {
-  //   warn.type = 'Warning'
-  //   this.warnings.push(new LessError(warn, fileRoot))
-  // }
+  warning(warn: ILessError, fileRoot: Rules) {
+    warn.type = 'Warning'
+    this.warnings.push(new LessError(warn, fileRoot))
+  }
 
   enterCalc() {
     if (!this.calcStack) {

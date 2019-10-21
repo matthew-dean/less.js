@@ -75,11 +75,11 @@ export class Variable extends Node {
 
     if (decl) {
       if (Array.isArray(decl)) {
-        const props: Declaration[] = []
+        let props: Declaration[] = []
         decl.forEach(node => {
           props.push(node.eval(context))
         })
-        mergeProperties(props, true)
+        props = mergeProperties(props, true)
         /** @todo - merge props */
         return props[props.length - 1].nodes
       } else {

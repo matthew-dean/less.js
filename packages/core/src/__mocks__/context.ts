@@ -1,4 +1,4 @@
-import { Context } from '../tree/context'
+import { Context } from '../tree/nodes'
 // import Less from '../index'
 import Environment, { FileObject } from '../environment/environment'
 import Logger from '../environment/logger'

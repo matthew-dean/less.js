@@ -103,7 +103,7 @@ export class Rules extends NodeArray implements ImportantNode {
             context.importQueue.push(imprt)
           }
         } else if (rule instanceof Rule || rule instanceof AtRule) {
-          (<Rules>(<Rule | AtRule>rule).rules[0]).eval(context, evalImports)
+          (<Rule | AtRule>rule).rules[0].eval(context, evalImports)
         } else if (rule instanceof Rules) {
           rule.eval(context, evalImports)
         }

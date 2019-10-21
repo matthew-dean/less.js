@@ -2,7 +2,7 @@ import { CstNodeLocation } from 'chevrotain'
 import { IOptions } from '../options'
 import { Context } from './context'
 import { compare } from './util/compare'
-import { ImportRule, Declaration, Expression, List } from './nodes'
+import { ImportRule, Declaration, Expression, List, Rules } from './nodes'
 
 export type SimpleValue = string | number | boolean | number[]
 
@@ -114,8 +114,8 @@ export abstract class Node {
   location: ILocationInfo
 
   parent: Node
-  root: Node
-  fileRoot: Node
+  root: Rules
+  fileRoot: Rules
 
   visibilityBlocks: number
   evalFirst: boolean
@@ -177,10 +177,10 @@ export abstract class Node {
     this.setParent()
     this.location = location
   
-    if (options.isRoot && this.type === 'Rules') {
+    if (options.isRoot && this instanceof Rules) {
       this.root = this
     }
-    if (options.filename && this.type === 'Rules') {
+    if (options.filename && this instanceof Rules) {
       this.fileRoot = this
       this.fileInfo = <IFileInfo>options
     } else {
@@ -303,7 +303,7 @@ export abstract class Node {
      * We update the root reference but not fileRoot.
      * (fileRoot is the original tree)
      */
-    if (this.type === 'Rules' && this === this.root) {
+    if (this instanceof Rules && this === this.root) {
       newNode.root = newNode
     }
 
@@ -364,7 +364,7 @@ export abstract class Node {
         }
         if (node instanceof ImportRule) {
           const content = node.content[0]
-          if (content.type === 'Rules') {
+          if (content instanceof Rules) {
             crawlRules(content)
           }
         }
@@ -382,7 +382,7 @@ export abstract class Node {
       if (currDepth > maxTreeDepth) {
         return this.error(context, 'Maximum tree depth exceeded')
       }
-      if (node.type === 'Rules') {
+      if (node instanceof Rules) {
         crawlRules(node)
         if (matches.length && option !== MatchOption.IN_SCOPE) {
           if (option === MatchOption.FIRST) {

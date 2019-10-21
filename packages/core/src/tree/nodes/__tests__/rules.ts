@@ -71,7 +71,7 @@ describe('Rules', () => {
 
       /** We can use @varname for easy shorthand, will set `isVariable: true` */
       new Declaration({ name: '@varname', nodes: [new Value('var')] }),
-      new Declaration({ name: [new Name(new Variable('varname'))], nodes: [new Value('foo')] }, { isVariable: true }),
+      new Declaration({ name: [new Name([new Variable('varname')])], nodes: [new Value('foo')] }, { isVariable: true }),
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq('{prop:foo;@varname:var;@var:foo}')
