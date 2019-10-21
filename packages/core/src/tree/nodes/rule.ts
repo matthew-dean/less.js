@@ -1,18 +1,18 @@
 import {
+  Context,
   Node,
   INodeOptions,
   ILocationInfo,
   List,
   SelectorList,
   Selector,
+  Rules,
   Expression
 } from '.'
 
-import { Context } from '../context'
-
 export type IRuleProps = {
   selectors: [SelectorList] | Selector[]
-  rules: [Node],
+  rules: [Rules],
   condition?: [Node]
 }
 
@@ -24,7 +24,7 @@ export type IRuleProps = {
  * In Less, it may also have a condition node.
  */
 export class Rule extends Node {
-  rules: [Node]
+  rules: [Rules]
   selectors: [SelectorList]
   condition: [Node] | undefined
 

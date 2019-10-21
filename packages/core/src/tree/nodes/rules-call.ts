@@ -1,18 +1,17 @@
 import {
+  Context,
   Node,
   INodeOptions,
   ILocationInfo,
   List,
   Rules,
   Rule,
+  Selector,
   MatchOption,
   Variable,
   Mixin,
   MixinDefinition
 } from '.'
-
-import { Context } from '../context'
-import { Selector } from './selector'
 
 // import defaultFunc from '../functions/default'
 

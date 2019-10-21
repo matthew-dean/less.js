@@ -1,18 +1,9 @@
 import {
   Node,
   NodeArray,
-  INodeOptions,
-  ILocationInfo,
-  Rules,
-  Declaration,
-  Expression,
-  Rule,
-  IRuleProps,
   MixinDefinition,
   ImportantNode
 } from '.'
-
-import { Context } from '../context'
 
 /**
  * @todo - Store the mixin name without '.' or '#' for cross-format compatibility

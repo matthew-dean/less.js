@@ -1,4 +1,5 @@
 import {
+  Context,
   Node,
   NodeArray,
   IProps,
@@ -7,7 +8,6 @@ import {
   Bool
 } from '.'
 
-import { Context } from '../context'
 import { compare } from '../util/compare'
 
 export type IConditionOptions = {

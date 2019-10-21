@@ -1,4 +1,5 @@
 import {
+  Context,
   Condition,
   Declaration,
   Expression,
@@ -8,11 +9,8 @@ import {
   ILocationInfo,
   Rules,
   Name,
-  Value,
   ImportantNode
 } from '.'
-
-import { Context } from '../context'
 
 export type IMixinDefinitionProps = IProps & {
   rules: [Rules]

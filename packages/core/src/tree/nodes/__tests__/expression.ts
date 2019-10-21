@@ -4,25 +4,19 @@ import {
   Expression,
   Value,
   List,
-  NumberValue,
+  Num,
 } from '..'
 
-import { Context } from '../../context'
-import Default from '../../../options'
+import { context } from '../../../__mocks__/context'
 
 describe('Expression', () => {
-  let context: Context
-  beforeEach(() => {
-    context = new Context({}, Default())
-  })
-
   it('should merge expressions', () => {
     const rule = new Expression([
-      new NumberValue(1),
+      new Num(1),
       new List([
-        new NumberValue(1),
-        new NumberValue(2),
-        new NumberValue(3)
+        new Num(1),
+        new Num(2),
+        new Num(3)
       ])
     ])
     const val = rule.eval(context)

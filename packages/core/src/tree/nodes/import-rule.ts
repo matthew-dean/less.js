@@ -1,12 +1,11 @@
 import {
+  Context,
   Node,
   IProps,
   ILocationInfo,
   AtRule,
   Expression
 } from '.'
-
-import { Context } from '../context'
 
 /**
  * @todo - all imports must resolve to a Less AST, even modules.

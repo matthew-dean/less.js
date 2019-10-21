@@ -1,12 +1,11 @@
 import {
+  Context,
   Node,
   Expression,
   List,
   Op,
   WS
 } from '.'
-
-import { Context } from '../context'
 
 export type SelectorList = List<Selector>
 

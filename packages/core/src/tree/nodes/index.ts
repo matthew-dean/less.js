@@ -3,6 +3,7 @@ export * from '../node'
 export * from '../numeric-node'
 export * from '../important-node'
 export * from '../node-array'
+export * from '../context'
 
 export * from './at-rule'
 export * from './block'

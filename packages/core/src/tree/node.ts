@@ -130,8 +130,12 @@ export abstract class Node {
 
   /** eval() was called */
   evaluated: boolean
+  access: number
 
   constructor(props: IProps, options: INodeOptions = {}, location?: ILocationInfo) {
+    if (props instanceof Node) {
+      throw { message: 'Node props cannot be a Node' }
+    }
     const { pre, post, value, text, ...children } = props
       /** nodes is always present as an array, even if empty */  
     if (!children.nodes) {

@@ -1,12 +1,11 @@
 import {
+  Context,
   NodeArray,
   Value,
   Node,
   Condition,
   Operation
 } from '.'
-
-import { Context } from '../context'
 
 /**
  * A () [] or {} block that holds an expression

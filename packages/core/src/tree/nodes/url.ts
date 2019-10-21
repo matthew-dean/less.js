@@ -1,9 +1,9 @@
 import {
+  Context,
   Node,
   Value,
   Quoted
 } from '.'
-import { Context } from '../context'
 
 /**
  * A Url node contains a single Value or Quoted node

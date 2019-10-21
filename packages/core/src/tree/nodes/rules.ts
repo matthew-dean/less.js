@@ -1,4 +1,5 @@
 import {
+  Context,
   Node,
   NodeArray,
   Declaration,
@@ -11,14 +12,6 @@ import {
   INodeOptions,
   ILocationInfo
 } from '.'
-
-import { Context } from '../context'
-
-// import contexts from '../contexts';
-// import globalFunctionRegistry from '../functions/function-registry';
-// import defaultFunc from '../functions/default';
-// import getDebugInfo from './debug-info';
-// import * as utils from '../utils';
 
 /**
  * @todo - rewrite

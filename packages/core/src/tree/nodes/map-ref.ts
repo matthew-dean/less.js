@@ -1,12 +1,11 @@
 import {
+  Context,
   Node,
   Variable,
   Rules,
   RulesCall,
   Selector
 } from '.'
-
-import { Context } from '../context'
 
 /**
  * References a value like .mixin[$ref]

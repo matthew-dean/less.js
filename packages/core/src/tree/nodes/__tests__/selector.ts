@@ -5,20 +5,13 @@ import {
   Value,
   Op,
   List,
-  // Element,
   Selector,
   WS
 } from '..'
 
-import { Context } from '../../context'
-import Default from '../../../options'
+import { context } from '../../../__mocks__/context'
 
 describe('Selector', () => {
-  let context: Context
-  beforeEach(() => {
-    context = new Context({}, Default())
-  })
-
   it('should expand lists in selectors', () => {
     const rule = new Selector([
       new List([

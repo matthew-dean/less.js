@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import 'mocha'
 import { Color, Operation, Value } from '..'
-import { Context } from '../../context'
+import { context } from '../../../__mocks__/context'
 import Default from '../../../options'
 
 describe('Color', () => {
@@ -27,7 +27,7 @@ describe('Color', () => {
 
   it('removes the text value during ops', () => {
     let A = new Operation([new Color('#111'), new Value({ text: ' + ', value: '+' }), new Color('#222')])
-    const val = A.eval(new Context({}, Default()))
+    const val = A.eval(context)
     expect(val.toString()).to.eq('#333333')
     /** Just checks that this operation can be stringified */
     expect(A.toString()).to.eq('#111 + #222')

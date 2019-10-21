@@ -1,11 +1,11 @@
 import {
+  Context,
   Node,
   IProps,
   INodeOptions,
   ILocationInfo,
   Value
 } from '.'
-import { Context } from '../context'
 
 export type IFunctionCallProps = {
   name: string

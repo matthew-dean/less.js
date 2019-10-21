@@ -1,6 +1,7 @@
 import { expect } from 'chai'
 import 'mocha'
 import {
+  Name,
   Rules,
   Declaration,
   MergeType,
@@ -10,18 +11,9 @@ import {
 
 import * as tree from '..'
 
-import { Context } from '../../context'
-import Default from '../../../options'
+import { context } from '../../../__mocks__/context'
 
 describe('Rules', () => {
-  let context: Context
-  Object.entries(tree).forEach(entry => {
-    console.log(entry[0], entry[1])
-  })
-  beforeEach(() => {
-    context = new Context({}, Default())
-  })
-
   it('should serialize rules', () => {
     const node = new Rules([
       new Declaration({ name: 'prop1', nodes: [new Value('foo')], post: ';' }),
@@ -67,7 +59,7 @@ describe('Rules', () => {
   it('should resolve variables (3)', () => {
     const node = new Rules([
       new Declaration({ name: 'prop', nodes: [new Variable('var')] }),
-      new Declaration({ name: [new Value('var')], nodes: [new Value('foo')] }, { isVariable: true }),
+      new Declaration({ name: 'var', nodes: [new Value('foo')] }, { isVariable: true }),
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq('{prop:foo;@var:foo}')
@@ -79,7 +71,7 @@ describe('Rules', () => {
 
       /** We can use @varname for easy shorthand, will set `isVariable: true` */
       new Declaration({ name: '@varname', nodes: [new Value('var')] }),
-      new Declaration({ name: [new Variable('varname')], nodes: [new Value('foo')] }, { isVariable: true }),
+      new Declaration({ name: [new Name(new Variable('varname'))], nodes: [new Value('foo')] }, { isVariable: true }),
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq('{prop:foo;@varname:var;@var:foo}')

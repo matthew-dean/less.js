@@ -1,26 +1,25 @@
 import {
+  Context,
   Node,
-  // Rules,
+  Rules,
   IBaseProps,
   IProps,
   INodeOptions,
   ILocationInfo
 } from '.'
 
-import { Context } from '../context'
-
 export type IAtRuleProps = {
   name: string
   /** Prelude (everything after name and before ; or {) */
   prelude: [Node]
   /** Optional set of rules */
-  rules?: [Node]
+  rules?: [Rules]
 } & IBaseProps
 
 export class AtRule extends Node {
   name: string
   prelude: [Node]
-  rules: [Node] | []
+  rules: [Rules] | []
   options: { atRoot?: boolean }
 
   constructor(props: IAtRuleProps, options: INodeOptions = {}, location: ILocationInfo) {

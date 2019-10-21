@@ -1,4 +1,5 @@
 import {
+  Context,
   Node,
   ILocationInfo,
   IProps,
@@ -8,7 +9,6 @@ import {
   Color
 } from '.'
 
-import { Context } from 'core/src/tree/context'
 import { operate } from '../util/math'
 
 export type INumberProps = number | IProps

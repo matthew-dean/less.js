@@ -1,4 +1,5 @@
 import {
+  Context,
   Node,
   List,
   Name,
@@ -7,8 +8,6 @@ import {
   ImportantNode,
   Value
 } from '.'
-
-import { Context } from '../context'
 
 /**
  * Will merge props using space or comma separators

@@ -1,6 +1,4 @@
-import { Node } from '.';
-import { Context } from '../context';
-import * as utils from '../utils';
+import { Node, Context } from '.'
 
 /**
  * @todo - remove and merge with rules

@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import 'mocha'
 import { Bool } from '..'
 
-
 describe('Bool', () => {
   it('true', () => {
     const rule = new Bool({

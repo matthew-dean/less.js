@@ -1,11 +1,11 @@
 import {
+  Context,
   Node,
   NodeArray,
   IProps,
   INodeOptions,
   ILocationInfo
 } from '.'
-import { Context } from '../context'
 
 /**
  * Renamed from 'Value'

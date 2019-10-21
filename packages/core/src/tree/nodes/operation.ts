@@ -1,4 +1,5 @@
 import {
+  Context,
   Expression,
   Node,
   IProps,
@@ -7,8 +8,6 @@ import {
   NumericNode,
   Op
 } from '.'
-
-import { Context } from '../context'
 
 /**
  * Values can only be 3 Nodes

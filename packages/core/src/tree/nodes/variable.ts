@@ -1,4 +1,5 @@
 import {
+  Context,
   Node,
   Declaration,
   IProps,
@@ -7,7 +8,6 @@ import {
 } from '.'
 
 import { mergeProperties } from '../util/selectors'
-import { Context } from '../context'
 
 export type IVariableOptions = {
   /** will look up properties instead of variables */

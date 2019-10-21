@@ -1,11 +1,10 @@
 import {
+  Context,
   Node,
   NodeArray,
   IProps,
   ILocationInfo
 } from '.'
-
-import { Context } from '../context'
 
 export type INameOptions = {
   /** Name of a variable (v. a property) */

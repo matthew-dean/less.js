@@ -1,5 +1,4 @@
-import { Node } from '.'
-import { Context } from '../context'
+import { Context, Node } from '.'
 
 /**
  * The Ampersand ('&')

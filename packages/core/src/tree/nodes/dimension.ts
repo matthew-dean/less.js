@@ -1,4 +1,5 @@
 import {
+  Context,
   Node,
   IProps,
   INodeOptions,
@@ -9,7 +10,6 @@ import {
 } from '.'
 
 import { convertDimension } from '../util/convert'
-import { Context } from '../context'
 import { operate } from '../util/math'
 import { StrictUnitMode } from '../../constants'
 

@@ -2,9 +2,9 @@ import {
   Node,
   ILocationInfo,
   Selector,
-  List
+  List,
+  SelectorList
 } from '.'
-import { SelectorList } from '../node'
 
 export enum ExtendMode {
   ALL

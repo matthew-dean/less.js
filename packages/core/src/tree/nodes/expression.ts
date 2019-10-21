@@ -1,4 +1,5 @@
 import {
+  Context,
   Node,
   NodeArray,
   Block,
@@ -7,8 +8,6 @@ import {
   List,
   WS
 } from '.'
-
-import { Context } from '../context'
 
 export type IExpressionOptions = {
   inBlock?: boolean

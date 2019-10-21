@@ -8,15 +8,9 @@ import {
   Num
 } from '..'
 
-import { Context } from '../../context'
-import Default from '../../../options'
+import { context } from '../../../__mocks__/context'
 
 describe('Condition', () => {
-  let context: Context
-  beforeEach(() => {
-    context = new Context({}, Default())
-  })
-
   it('should evaluate a simple condition', () => {
     const node = new Condition([
       new Bool(true),

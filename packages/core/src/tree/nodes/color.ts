@@ -1,4 +1,5 @@
 import {
+  Context,
   Node,
   IProps,
   ILocationInfo,
@@ -6,9 +7,7 @@ import {
   Num
 } from '.'
 
-import { fround } from '../util/math'
-import { Context } from '../context'
-import { operate } from '../util/math'
+import { fround, operate } from '../util/math'
 
 export enum ColorFormat {
   HEX,

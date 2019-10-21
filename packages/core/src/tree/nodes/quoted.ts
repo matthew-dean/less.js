@@ -1,11 +1,10 @@
 import {
-  Node,
+  Context,
   NodeArray,
   IProps,
   ILocationInfo,
   Value
 } from '.'
-import { Context } from '../context'
 
 export type IQuotedOptions = {
   escaped?: boolean

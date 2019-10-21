@@ -5,15 +5,9 @@ import {
   Value
 } from '..'
 
-import { Context } from '../../context'
-import Default from '../../../options'
+import { context } from '../../../__mocks__/context'
 
 describe('Quoted', () => {
-  let context: Context
-  beforeEach(() => {
-    context = new Context({}, Default())
-  })
-
   it('should output a quote', () => {
     const node = new Quoted([new Value('this is the string contents')], { quote: '"' })
     const val = node.eval(context)
