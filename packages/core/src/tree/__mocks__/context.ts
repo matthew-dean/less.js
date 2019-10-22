@@ -1,7 +1,7 @@
-import { Context } from '../tree/nodes'
+import { Context } from '../nodes'
 // import Less from '../index'
-import Environment, { FileObject } from '../environment/environment'
-import Logger from '../environment/logger'
+import Environment, { FileObject } from '../../environment/environment'
+import Logger from '../../environment/logger'
 
 export class MockEnvironment extends Environment {
   getFileInfo(filePath: string) {

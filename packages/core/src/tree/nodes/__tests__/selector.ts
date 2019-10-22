@@ -9,7 +9,7 @@ import {
   WS
 } from '..'
 
-import { context } from '../../../__mocks__/context'
+import { context } from '../../__mocks__/context'
 
 describe('Selector', () => {
   it('should expand lists in selectors', () => {

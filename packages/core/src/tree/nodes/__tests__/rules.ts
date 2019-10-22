@@ -11,7 +11,7 @@ import {
 
 import * as tree from '..'
 
-import { context } from '../../../__mocks__/context'
+import { context } from '../../__mocks__/context'
 
 describe('Rules', () => {
   it('should serialize rules', () => {

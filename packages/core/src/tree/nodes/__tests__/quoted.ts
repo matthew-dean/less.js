@@ -5,7 +5,7 @@ import {
   Value
 } from '..'
 
-import { context } from '../../../__mocks__/context'
+import { context } from '../../__mocks__/context'
 
 describe('Quoted', () => {
   it('should output a quote', () => {

@@ -8,7 +8,7 @@ import {
   Num
 } from '..'
 
-import { context } from '../../../__mocks__/context'
+import { context } from '../../__mocks__/context'
 
 describe('Condition', () => {
   it('should evaluate a simple condition', () => {

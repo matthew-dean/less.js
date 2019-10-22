@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import 'mocha'
 
-import { context } from '../../__mocks__/context'
+import { context } from '../../tree/__mocks__/context'
 import { Color, Num, Value } from '../../tree/nodes'
 import colorFunctions from '../color'
 

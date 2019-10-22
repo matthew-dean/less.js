@@ -7,7 +7,7 @@ import {
   Num,
 } from '..'
 
-import { context } from '../../../__mocks__/context'
+import { context } from '../../__mocks__/context'
 
 describe('Expression', () => {
   it('should merge expressions', () => {
