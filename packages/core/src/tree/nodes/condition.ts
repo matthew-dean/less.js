@@ -24,6 +24,9 @@ export class Condition extends NodeArray {
   }
 
   eval(context: Context): Bool {
+    const op = this.nodes[1].value
+    const a = this.nodes[0].eval(context)
+    const b = this.nodes[2].eval(context)
     const result = ((op, a, b) => {
       if (a instanceof Node && b instanceof Node) {
         switch (op) {
@@ -38,16 +41,16 @@ export class Condition extends NodeArray {
               case 1:
                 return op === '>' || op === '>='
               default:
-                return new Bool({ value: false })
+                return false
             }
         }
       } else {
-        return new Bool({ value: false })
+        return new Bool({ value: false }).inherit(this)
       }
-    })(this.nodes[1].value, this.nodes[0].eval(context), this.nodes[2].eval(context))
+    })(op, a, b)
 
     const value = this.options.negate ? !result : result
-    return new Bool(<IProps>{ value })
+    return new Bool(<IProps>{ value }).inherit(this)
   }
 }
 

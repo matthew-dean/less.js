@@ -4,7 +4,7 @@ import {
   IProps,
   INodeOptions,
   ILocationInfo,
-  Rules
+  MixinDefinition
 } from '.'
 
 export type IFuncProps = {
@@ -19,16 +19,14 @@ export type IFuncProps = {
  * This is a class abstraction for functions added by JS, but can also be
  * added as nodes by plugins or other extensions of the Less AST
  * 
- * This can be set up to return eval'd rules like a mixin, or will return the result
- * of a bound JS function.
+ * This can be set up to return the last declaration of eval'd rules like a
+ * mixin with a `[]` lookup, or will return the result of a bound JS function.
  */
 export class Func extends Node {
   name: string
   jsFunction: Function | undefined
   /** This can be specified as a lookup value */
-  returnName: [Node]
-  args: Node[]
-  rules: [Rules] | undefined
+  nodes: [MixinDefinition] | undefined
 
   constructor(props: IFuncProps, options?: INodeOptions, location?: ILocationInfo) {
     const { name, jsFunction, ...rest } = props

@@ -132,6 +132,27 @@ export abstract class Node {
   evaluated: boolean
   access: number
 
+  private static inheritanceKeys = [
+    'pre',
+    'post',
+    'location',
+    'parent',
+    'root',
+    'fileRoot',
+    'fileInfo',
+    'visibilityBlocks',
+    'isVisible',
+    'evaluated'
+  ]
+
+  private static nodeKeys = Node.inheritanceKeys.concat([
+    'children',
+    'childKeys',
+    'value',
+    'text',
+    'options'
+  ])
+
   constructor(props: IProps, options: INodeOptions = {}, location?: ILocationInfo) {
     if (props instanceof Node) {
       throw { message: 'Node props cannot be a Node' }
@@ -251,16 +272,13 @@ export abstract class Node {
    * doing any kind of node replacement (during eval).
    */
   inherit(inheritFrom: Node): this {
-    this.pre = inheritFrom.pre
-    this.post = inheritFrom.post
-    this.location = inheritFrom.location
-    this.parent = inheritFrom.parent
-    this.root = inheritFrom.root
-    this.fileRoot = inheritFrom.fileRoot
-    this.fileInfo = inheritFrom.fileInfo
-    this.visibilityBlocks = inheritFrom.visibilityBlocks
-    this.isVisible = inheritFrom.isVisible
-    this.evaluated = inheritFrom.evaluated
+    Node.inheritanceKeys.forEach(key => {
+      const ref = inheritFrom[key]
+      if (ref !== undefined) {
+        this[key] = ref
+      }
+    })
+
     return this
   }
 
@@ -284,23 +302,22 @@ export abstract class Node {
     }, {...this.options}, this.location)
     
     /**
-     * First copy over Node-specific props
-     * 
-     * @todo - this is wrong; it copies over Node enumerable props
+     * First copy over Node-derived-specific props. We eliminate any props specific
+     * to the base Node class.
      */
     for (let prop in this) {
-      if (this.hasOwnProperty(prop)) {
+      if (this.hasOwnProperty(prop) && Node.nodeKeys.indexOf(prop) === -1) {
         newNode[prop] = this[prop]
       }
     }
 
     newNode.childKeys = [...this.childKeys]
 
-    /** Copy over props defined in this file */
+    /** Copy inheritance props */
     newNode.inherit(this)
 
     /**
-     * We update the root reference but not fileRoot.
+     * If this is the root node, we update the root reference but _not_ fileRoot.
      * (fileRoot is the original tree)
      */
     if (this instanceof Rules && this === this.root) {
@@ -314,13 +331,6 @@ export abstract class Node {
        */
       this.processChildren(newNode, (node: Node) => node.clone(true))
     }
-  
-    if (context) {
-      newNode.evaluated = true
-    } else {
-      newNode.evaluated = this.evaluated
-    }
-
     return newNode
   }
 
@@ -462,13 +472,13 @@ export abstract class Node {
   }
 
   protected processChildren(node: Node, processFunc: ProcessFunction) {
-    this.childKeys.forEach(key => {
-      let nodes = this.children[key]
+    node.childKeys.forEach(key => {
+      let nodes = node.children[key]
       if (nodes) {
         if (node !== this) {
           /** This is during cloning */
           nodes = [...nodes]
-          node.children[key] = this.processNodeArray(nodes, processFunc)
+          node.children[key] = node.processNodeArray(nodes, processFunc)
           nodes.forEach((n: Node) => {
             n.parent = node
             n.root = node.root

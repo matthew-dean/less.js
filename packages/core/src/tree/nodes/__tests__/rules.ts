@@ -84,6 +84,6 @@ describe('Rules', () => {
       new Declaration({ name: 'prop', nodes: [new Variable('merge', { propertyRef: true })] })
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{@var:foo;prop:foo}')
+    expect(val.valueOf()).to.eq('{merge:foo;merge:bar;prop:bar,foo}')
   })
 })

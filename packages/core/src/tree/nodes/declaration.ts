@@ -61,6 +61,7 @@ export class Declaration extends Node implements ImportantNode {
     if (name.constructor === String) {
       this.value = <string>name
     }
+    this.evaluatingName = false
   }
 
   toString(omitPrePost?: boolean) {
