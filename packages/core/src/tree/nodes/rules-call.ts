@@ -9,6 +9,7 @@ import {
   Selector,
   MatchOption,
   Variable,
+  Value,
   Mixin,
   MixinDefinition
 } from '.'
@@ -17,8 +18,8 @@ import {
 
 interface IRulesCallProps {
   /** Can be a Variable reference or mixin name */
-  reference: Node[]
-  args: [List<Node>] | []
+  name: string | Node[]
+  args?: [List<Node>] | []
 }
 
 /**
@@ -28,10 +29,17 @@ interface IRulesCallProps {
  *   e.g. .mixin(foo) or #ns.mixin(foo) @rules(foo) or @rules()
  */
 export class RulesCall extends Node {
-  reference: Node[]
+  name: Node[]
   args: [List<Node>] | []
 
-  constructor(props: IRulesCallProps, options: INodeOptions, location: ILocationInfo) {
+  constructor(props: IRulesCallProps, options?: INodeOptions, location?: ILocationInfo) {
+    const { name, args, ...rest } = props
+    if (name.constructor === String) {
+      props.name = [new Value(name)]
+    }
+    if (args === undefined) {
+      props.args = []
+    }
     super(props, options, location)
   }
 
@@ -40,12 +48,12 @@ export class RulesCall extends Node {
   }
 
   eval(context: Context) {
-    const name = this.reference
+    const name = this.name
 
     if (name.length === 1 && name[0] instanceof Variable) {
       const varName = name[0].toString()
       super.eval(context)
-      const result = this.reference[0]
+      const result = this.name[0]
       if (result instanceof Rules) {
         if (this.args.length === 0) {
           return result.clone().inherit(this)
@@ -65,9 +73,9 @@ export class RulesCall extends Node {
      * Each element is therefore a rules call, passed to the next segment
     */
     const collectedRules = []
-    const selector = new Selector(this.reference).eval(context)
+    const selector = new Selector(this.name).eval(context)
     if (!(selector instanceof Selector)) {
-      return this.error(context, `Mixin name ${this.reference[0].toString(true)} could not be evaluated.`)
+      return this.error(context, `Mixin name ${this.name[0].toString(true)} could not be evaluated.`)
     }
     const findValues = selector.getMixinCompareValue().split(/[#.]/)
 

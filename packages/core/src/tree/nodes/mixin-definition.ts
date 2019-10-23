@@ -41,7 +41,7 @@ export class MixinDefinition extends Node implements ImportantNode {
   }
 
   makeImportant() {
-    const oldRules = this.rules[0]
+    const oldRules = this.rules[0].clone()
     const rules = oldRules.nodes.map(r => {
       if (r.hasOwnProperty('makeImportant')) {
         (<ImportantNode>r).makeImportant()
