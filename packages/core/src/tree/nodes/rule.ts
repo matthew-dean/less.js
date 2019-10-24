@@ -38,7 +38,7 @@ export class Rule extends Node {
   }
 
   toString(omitPrePost?: boolean) {
-    let text = this.selectors[0].toString() + this.rules[0].toString()
+    let text = this.selectors.toString() + this.rules.toString()
     if (omitPrePost) {
       return text
     }

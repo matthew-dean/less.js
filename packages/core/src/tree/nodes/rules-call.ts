@@ -84,7 +84,7 @@ export class RulesCall extends Node {
     const collectedRules = []
     const selector = new Selector([this.name]).eval(context)
     if (!(selector instanceof Selector)) {
-      return this.error(context, `Mixin name ${this.name[0].toString(true)} could not be evaluated.`)
+      return this.error(context, `Mixin name ${this.name.toString(true)} could not be evaluated.`)
     }
     const findValues = selector.getMixinCompareValue().split(/[#.]/)
 
