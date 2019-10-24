@@ -9,9 +9,6 @@ import {
 
 export type IFuncProps = {
   name: string
-  /**
-   * 
-   */
   jsFunction?: Function
 } & IProps
 
@@ -26,7 +23,7 @@ export class Func extends Node {
   name: string
   jsFunction: Function | undefined
   /** This can be specified as a lookup value */
-  nodes: [MixinDefinition] | undefined
+  nodes: [MixinDefinition] | []
 
   constructor(props: IFuncProps, options?: INodeOptions, location?: ILocationInfo) {
     const { name, jsFunction, ...rest } = props

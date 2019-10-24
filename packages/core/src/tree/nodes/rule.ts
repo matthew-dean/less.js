@@ -1,5 +1,6 @@
 import {
   Context,
+  Condition,
   Node,
   INodeOptions,
   ILocationInfo,
@@ -11,9 +12,9 @@ import {
 } from '.'
 
 export type IRuleProps = {
-  selectors: [SelectorList] | Selector[]
-  rules: [Rules],
-  condition?: [Node]
+  selectors: SelectorList | Selector[]
+  rules: Rules,
+  condition?: Condition
 }
 
 /**
@@ -24,14 +25,14 @@ export type IRuleProps = {
  * In Less, it may also have a condition node.
  */
 export class Rule extends Node {
-  rules: [Rules]
-  selectors: [SelectorList]
-  condition: [Node] | undefined
+  rules: Rules
+  selectors: SelectorList
+  condition: Condition | undefined
 
   constructor(props: IRuleProps, options: INodeOptions, location: ILocationInfo) {
     const { selectors } = props
-    if (selectors && (selectors.length !== 1 || selectors[0] instanceof Expression)) {
-      props.selectors = [new List<Selector>(<Selector[]>selectors)]
+    if (selectors && (Array.isArray(selectors) && (selectors.length !== 1 || selectors[0] instanceof Expression))) {
+      props.selectors = new List<Selector>(<Selector[]>selectors)
     }
     super(props, options, location)
   }
@@ -47,12 +48,13 @@ export class Rule extends Node {
   eval(context: Context) {
     if (!this.evaluated) {
       this.evaluated = true
+      const children = this.children
 
       /**
        * The underlying Expression / Element implementations should merge selectors
        */
-      const selectorList = this.selectors[0].eval(context)
-      this.selectors = [selectorList]
+      const selectorList = this.selectors.eval(context)
+      this.selectors = selectorList
 
       // currrent selectors
       let ctxSelectors = context.selectors
@@ -60,15 +62,15 @@ export class Rule extends Node {
 
       const evalFunc = (node: Node) => node.eval(context)
 
-      if (this.condition && this.condition.length === 1) {
-        this.processNodeArray(this.condition, evalFunc)
+      if (children.condition) {
+        this.processNodeArray(children.condition, evalFunc)
 
-        if (this.condition[0].valueOf() === false) {
+        if (this.condition.valueOf() === false) {
           return false
         }
       }
 
-      this.processNodeArray(this.rules, evalFunc)
+      this.processNodeArray(children.rules, evalFunc)
 
       /** Restore context selectors to initial state */
       ctxSelectors.shift()

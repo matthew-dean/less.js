@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import 'mocha'
 import {
   Mixin,
-  MixinDefinition,
   Rules,
   RulesCall,
   Declaration,
@@ -21,7 +20,8 @@ describe('Mixin', () => {
     })
     const call = new RulesCall({ name: '#foo', args: []})
     const rules = new Rules([mixin, call])
-    rules.eval(context)
+    const result = rules.eval(context)
     console.log(call.toString())
+    console.log(result.toString())
   })
 })

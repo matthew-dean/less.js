@@ -36,9 +36,9 @@ export type IImportOptions = {
  * Also, the import queue should be loaded during evalImports, not parsing
  */
 export class ImportRule extends Node {
-  content: [Node] | []
-  features: [Node] | undefined
-  path: [Node]
+  content: Node | null
+  features: Node | undefined
+  path: Node
   options: IImportOptions
 
   /**
@@ -54,13 +54,13 @@ export class ImportRule extends Node {
      * the constructor. After the file is resolved, content will be populated either
      * by a single Rules node, or a Value node (such as in the case of inline)
      */
-    props.content = []
+    props.content = null
     super(props, options, location)
   }
 
   eval(context: Context): AtRule | ImportRule {
     if (!this.evaluated) {
-      if (this.content.length === 0) {
+      if (!this.content) {
         super.eval(context)
         if (this.options.css) {
           this.evaluated = true
@@ -68,11 +68,11 @@ export class ImportRule extends Node {
             pre: this.pre,
             post: this.post,
             name: '@import',
-            prelude: [new Expression(this.path.concat(this.features)).inherit(this.path[0])]
+            prelude: new Expression([this.path, this.features]).inherit(this.path)
           }, {}, this.location).inherit(this)
         }
       } else {
-        this.content[0].eval(context)
+        this.content.eval(context)
         this.evaluated = true
       }
     }
@@ -80,7 +80,7 @@ export class ImportRule extends Node {
   }
 
   toString() {
-    return this.content[0].toString()
+    return this.content.toString()
   }
 
   // eval(context: Context) {

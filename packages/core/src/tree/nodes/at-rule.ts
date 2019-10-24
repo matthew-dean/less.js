@@ -11,15 +11,15 @@ import {
 export type IAtRuleProps = {
   name: string
   /** Prelude (everything after name and before ; or {) */
-  prelude: [Node]
+  prelude: Node
   /** Optional set of rules */
-  rules?: [Rules]
+  rules?: Rules
 } & IBaseProps
 
 export class AtRule extends Node {
   name: string
-  prelude: [Node]
-  rules: [Rules] | []
+  prelude: Node
+  rules: Rules | undefined
   options: { atRoot?: boolean }
 
   constructor(props: IAtRuleProps, options: INodeOptions = {}, location: ILocationInfo) {
@@ -36,9 +36,9 @@ export class AtRule extends Node {
   }
 
   toString(omitPrePost?: boolean) {
-    let text = this.name + this.prelude[0].toString()
+    let text = this.name + this.prelude.toString()
     if (this.rules) {
-      text += this.rules[0].toString()
+      text += this.rules.toString()
     }
     if (omitPrePost) {
       return text

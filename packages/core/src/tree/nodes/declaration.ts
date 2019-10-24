@@ -23,7 +23,7 @@ export type IDeclarationOptions = {
 }
 
 export type IDeclarationProps = IProps & {
-  name: string | [Name]
+  name: string | Name
 }
 
 export class Declaration extends Node implements ImportantNode {
@@ -45,7 +45,7 @@ export class Declaration extends Node implements ImportantNode {
    * 
    */
   nodes: [(List<Node> | Node)] | [(List<Node> | Node), Value]
-  name: [Name]
+  name: Name
   options: IDeclarationOptions
 
   constructor(props: IDeclarationProps, options: IDeclarationOptions = {}, location?: ILocationInfo) {
@@ -55,7 +55,7 @@ export class Declaration extends Node implements ImportantNode {
         name = (<string>name).slice(1)
         options.isVariable = true
       }
-      props.name = [new Name([new Value(name)], { isVariable: !!options.isVariable })]
+      props.name = new Name([new Value(name)], { isVariable: !!options.isVariable })
     }
     super(props, options, location)
     if (name.constructor === String) {
@@ -66,7 +66,7 @@ export class Declaration extends Node implements ImportantNode {
 
   toString(omitPrePost?: boolean) {
     const text = (this.options.isVariable ? '@' : '') + 
-      this.name.join('') + ':' + this.nodes.join('')
+      this.name.toString() + ':' + this.nodes.join('')
     
     if (omitPrePost) {
       return text
@@ -79,7 +79,7 @@ export class Declaration extends Node implements ImportantNode {
   evalName(context: Context): string {
     let value = this.value
     if (value === undefined) {
-      const name = this.name[0]
+      const name = this.name
       name.eval(context)
       value = name.value
       this.value = value

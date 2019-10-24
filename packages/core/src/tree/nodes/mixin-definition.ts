@@ -13,31 +13,44 @@ import {
 } from '.'
 
 export type IMixinDefinitionProps = IProps & {
-  rules: [Rules]
+  rules: Rules
   params?: (Declaration | Name)[]
-  condition?: [Condition]
+  condition?: Condition
 }
 
 /**
  * This is an abstraction from a mixin, formerly
- * a "detached ruleset". This is a set of rules with arguments.
+ * a "detached ruleset". This is a set of rules with optional parameters,
+ * which can be attached to a variable or a mixin name, or passed
+ * into an each() function.
  */
 export class MixinDefinition extends Node implements ImportantNode {
-  rules: [Rules]
+  rules: Rules
   /**
    * e.g. `@var`        <Name 'var'> or
    *      `@var: value` <Declaration {name: var, nodes: [value] }>
    */
-  params: (Declaration | Name)[] | undefined
-  condition: [Condition] | undefined
+  params: (Declaration | Name)[]
+  condition: Condition | undefined
   arity: number
   required: number
   optionalParameters: string[]
   hasVariadic: boolean
 
   constructor(props: IMixinDefinitionProps, options?: INodeOptions, location?: ILocationInfo) {
+    const { params, ...rest } = props
+    if (params) {
+      props.nodes = params
+    }
     super(props, options, location)
-    this.arity = props.params ? props.params.length : 0
+    Object.defineProperty(this, 'params', {
+      get() {
+        return this.children.nodes
+      },
+      enumerable: false,
+      configurable: false
+    })
+    this.arity = params ? params.length : 0
   }
 
   makeImportant() {

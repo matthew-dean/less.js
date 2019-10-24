@@ -1,6 +1,7 @@
 import {
   Context,
   Node,
+  IProps,
   INodeOptions,
   ILocationInfo,
   List,
@@ -16,10 +17,10 @@ import {
 
 // import defaultFunc from '../functions/default'
 
-interface IRulesCallProps {
+type IRulesCallProps = IProps & {
   /** Can be a Variable reference or mixin name */
-  name: string | Node[]
-  args?: [List<Node>] | []
+  name: string | Node
+  args?: Node[]
 }
 
 /**
@@ -29,18 +30,26 @@ interface IRulesCallProps {
  *   e.g. .mixin(foo) or #ns.mixin(foo) @rules(foo) or @rules()
  */
 export class RulesCall extends Node {
-  name: Node[]
-  args: [List<Node>] | []
+  name: Node
+  args: Node[]
 
   constructor(props: IRulesCallProps, options?: INodeOptions, location?: ILocationInfo) {
-    const { name, args, ...rest } = props
+    const { name } = props
+    const { args, ...rest } = props
     if (name.constructor === String) {
-      props.name = [new Value(name)]
+      rest.name = new Value(name)
     }
-    if (args === undefined) {
-      props.args = []
+    if (args !== undefined) {
+      rest.nodes = args
     }
-    super(props, options, location)
+    super(rest, options, location)
+    Object.defineProperty(this, 'args', {
+      get() {
+        return this.children.nodes
+      },
+      enumerable: false,
+      configurable: false
+    })
   }
 
   matchMixins(mixins: MixinDefinition[], context: Context) {
@@ -50,10 +59,10 @@ export class RulesCall extends Node {
   eval(context: Context) {
     const name = this.name
 
-    if (name.length === 1 && name[0] instanceof Variable) {
-      const varName = name[0].toString()
+    if (name instanceof Variable) {
+      const varName = name.toString()
       super.eval(context)
-      const result = this.name[0]
+      const result = this.name
       if (result instanceof Rules) {
         if (this.args.length === 0) {
           return result.clone().inherit(this)
@@ -73,7 +82,7 @@ export class RulesCall extends Node {
      * Each element is therefore a rules call, passed to the next segment
     */
     const collectedRules = []
-    const selector = new Selector(this.name).eval(context)
+    const selector = new Selector([this.name]).eval(context)
     if (!(selector instanceof Selector)) {
       return this.error(context, `Mixin name ${this.name[0].toString(true)} could not be evaluated.`)
     }
@@ -88,7 +97,7 @@ export class RulesCall extends Node {
           const result = ctx.find(context, (node: Node) => {
             let hasMatch = false
             if (node instanceof Rule) {
-              const selectors = node.selectors[0]
+              const selectors = node.selectors
               const selLength = selectors.nodes.length
               for (let i = 0; i < selLength; i++) {
                 const sel = selectors[i]
@@ -98,11 +107,11 @@ export class RulesCall extends Node {
                 }
               }
               if (hasMatch) {
-                return node.rules[0]
+                return node.rules
               }
             } else if (node instanceof Mixin) {
-              if (node.nodes[0].valueOf() === val) {
-                return node.nodes[1].rules[0]
+              if (node.value === val) {
+                return node.definition.rules
               }
             }
           }, scope)
@@ -116,9 +125,10 @@ export class RulesCall extends Node {
     }
 
     let parentContext = [this]
-    const valuesLength = findValues.length
 
     findValues.forEach((val, i) => {
+      if (!val) return
+
       let findSegments = [val]
       if (i === 0) {
         parentContext = walk(parentContext, findSegments, MatchOption.IN_SCOPE)

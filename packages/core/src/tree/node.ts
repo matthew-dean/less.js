@@ -162,21 +162,50 @@ export abstract class Node {
     if (!children.nodes) {
       children.nodes = []
     }
-    this.children = children
-    this.childKeys = Object.keys(children)
+    this.children = {}
+    this.childKeys = []
+    const childColl = this.children
+    const keys = this.childKeys
+    /**
+     * Normalize children collection
+     */
+    Object.entries(children).forEach(entry => {
+      const key = entry[0]
+      let val = entry[1]
+      if (val !== undefined) {
+        childColl[key] = Array.isArray(val) ? val : [val]
+        keys.push(key)
+      }
+    })
     this.value = value
     this.text = text
     this.pre = pre || ''
     this.post = post || ''
     
-    /** Puts each children nodes list at root for convenience */
+    /**
+     * Puts each children nodes list at root for convenience
+     * Note: in the Less API, only `nodes` is represented by this.nodes
+     *       as an array. All other keys from this.children are the first
+     *       value of the array.
+     */
     this.childKeys.forEach(key => {
       Object.defineProperty(this, key, {
         get() {
-          return this.children[key]
+          const val = this.children[key]
+          if (val === undefined) {
+            return undefined
+          }
+          if (key === 'nodes') {
+            return val
+          }
+          return val[0]
         },
-        set(newValue: Node[]) {
-          this.children[key] = newValue
+        set(newValue: Node | Node[]) {
+          if (key === 'nodes') {
+            this.children[key] = newValue
+          } else {
+            this.children[key] = [newValue]
+          }
         },
         enumerable: false,
         configurable: false

@@ -11,6 +11,7 @@ import {
 
 export type IMixinProps = IMixinDefinitionProps & {
   name: string | Node
+  definition: MixinDefinition
 }
 
 /**
@@ -22,19 +23,19 @@ export class Mixin extends Node implements ImportantNode {
   /**
    * First node is the mixin name, second is the definition
    */
-  nodes: [Node, MixinDefinition]
+  name: Node
+  definition: MixinDefinition
   value: string
 
   constructor(props: IMixinProps, options?: INodeOptions, location?: ILocationInfo) {
-    const { name, rules, params, condition, ...rest } = props
+    const { name } = props
+    const { rules, params, condition, ...rest } = props
     /** The mixin definition can be passed through the Mixin API */
     if (name && rules) {
       if (name.constructor === String) {
-        rest.nodes = [new Value(name)]
-      } else {
-        rest.nodes = [<Node>name]
+        rest.name = new Value(name)
       }
-      rest.nodes.push(new MixinDefinition({ rules, params, condition }))
+      rest.definition = new MixinDefinition({ rules, params, condition })
     }
     super(rest, options, location)
   }
@@ -42,7 +43,7 @@ export class Mixin extends Node implements ImportantNode {
   eval(context: Context) {
     if (!this.evaluated) {
       super.eval(context)
-      const name = this.nodes[0].toString().replace(/^[.#]/, '')
+      const name = this.name.toString().replace(/^[.#]/, '')
       this.value = name
     }
     return this
@@ -50,7 +51,7 @@ export class Mixin extends Node implements ImportantNode {
 
   makeImportant() {
     const mixin = this.clone(true)
-    mixin.nodes[1] = mixin.nodes[1].makeImportant()
+    mixin.nodes[1] = mixin.definition.makeImportant()
     return mixin
   }
 }

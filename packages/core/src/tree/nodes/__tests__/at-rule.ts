@@ -22,7 +22,7 @@ describe('AtRule', () => {
     const rule = makeRule()
     const clone = rule.clone()
     expect(clone.name).to.eq('@test')
-    expect(clone.prelude.join('')).to.eq(' this is a prelude')
+    expect(clone.prelude.toString()).to.eq(' this is a prelude')
     expect(clone.post + '').to.eq(';')
   })
 })
