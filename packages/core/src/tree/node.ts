@@ -2,13 +2,9 @@ import { CstNodeLocation } from 'chevrotain'
 import { IOptions } from '../options'
 import { Context } from './context'
 import { compare } from './util/compare'
-import { ImportRule, Declaration, Expression, List, Rules } from './nodes'
+import { ImportRule, Declaration, Rules } from './nodes'
 
 export type SimpleValue = string | number | boolean | number[]
-
-export type IChildren = {
-  [key: string]: Node[]
-}
 
 export type IBaseProps = {
   /** Each node may have pre or post Nodes for comments or whitespace */
@@ -44,8 +40,8 @@ export type IProps = {
 /**
  * The result of an eval can be one of these types
  */
-export type EvalReturn = Node[] | Node | false | null | undefined
-export type ProcessFunction = (node: Node) => EvalReturn
+export type EvalReturn<T extends Node = Node> = T[] | T | false | null | undefined
+export type ProcessFunction<T extends Node = Node> = (node: T) => EvalReturn
 
 // export type IProps = Node[] | (IChildren & ISimpleProps)
 export interface ILocationInfo extends CstNodeLocation {}
@@ -94,7 +90,6 @@ export abstract class Node {
   pre: Node | string
   post: Node | string
 
-  children: IChildren
   childKeys: string[]
 
   /** Used if string does not equal normalized primitive */
@@ -116,6 +111,8 @@ export abstract class Node {
   parent: Node
   root: Rules
   fileRoot: Rules
+
+  children: { [key: string]: Node | Node[] }
 
   visibilityBlocks: number
   evalFirst: boolean
@@ -146,7 +143,6 @@ export abstract class Node {
   ]
 
   private static nodeKeys = Node.inheritanceKeys.concat([
-    'children',
     'childKeys',
     'value',
     'text',
@@ -159,13 +155,10 @@ export abstract class Node {
     }
     const { pre, post, value, text, ...children } = props
       /** nodes is always present as an array, even if empty */  
-    if (!children.nodes) {
-      children.nodes = []
-    }
-    this.children = {}
-    this.childKeys = []
-    const childColl = this.children
-    const keys = this.childKeys
+
+    const keys = []
+    this.childKeys = keys
+
     /**
      * Normalize children collection
      */
@@ -173,45 +166,33 @@ export abstract class Node {
       const key = entry[0]
       let val = entry[1]
       if (val !== undefined) {
-        childColl[key] = Array.isArray(val) ? val : [val]
+        this[key] = val
         keys.push(key)
       }
     })
+
+    if (keys.indexOf('nodes') === -1) {
+      this.nodes = []
+      keys.push('nodes')
+    }
+
+    Object.defineProperty(this, 'children', {
+      get() {
+        const children = {}
+        this.childKeys.forEach((key: string) => {
+          children[key] = this[key]
+        })
+        return children
+      },
+      configurable: false,
+      enumerable: false
+    })
+
     this.value = value
     this.text = text
     this.pre = pre || ''
     this.post = post || ''
     
-    /**
-     * Puts each children nodes list at root for convenience
-     * Note: in the Less API, only `nodes` is represented by this.nodes
-     *       as an array. All other keys from this.children are the first
-     *       value of the array.
-     */
-    this.childKeys.forEach(key => {
-      Object.defineProperty(this, key, {
-        get() {
-          const val = this.children[key]
-          if (val === undefined) {
-            return undefined
-          }
-          if (key === 'nodes') {
-            return val
-          }
-          return val[0]
-        },
-        set(newValue: Node | Node[]) {
-          if (key === 'nodes') {
-            this.children[key] = newValue
-          } else {
-            this.children[key] = [newValue]
-          }
-        },
-        enumerable: false,
-        configurable: false
-      })
-    })
-
     const nodeRefProps = {
       enumerable: false,
       configurable: false,
@@ -239,16 +220,14 @@ export abstract class Node {
 
     this.evaluated = false
     this.visibilityBlocks = 0
-
-    /**
-     * No node should be adding properties to this.children after the constructor
-     */
-    Object.seal(this.children)
   }
 
   protected setParent() {
     this.childKeys.forEach(key => {
-      const nodes = this.children[key]
+      let nodes = this[key]
+      if (!Array.isArray(nodes)) {
+        nodes = [nodes]
+      }
       nodes.forEach(node => {
         node.parent = this
         if (!node.fileRoot) {
@@ -402,7 +381,7 @@ export abstract class Node {
           }
         }
         if (node instanceof ImportRule) {
-          const content = node.content[0]
+          const content = node.content
           if (content instanceof Rules) {
             crawlRules(content)
           }
@@ -432,6 +411,8 @@ export abstract class Node {
       }
       if (option !== MatchOption.IN_RULES) {
         node = node.parent
+      } else {
+        node = undefined
       }
     }
 
@@ -471,49 +452,67 @@ export abstract class Node {
    * The reason we do this is because the array may not mutate at all depending
    * on the result of processing
    */
-  protected processNodeArray(nodeArray: Node[], processFunc: ProcessFunction) {
-    let thisLength = nodeArray.length
+  protected processNodes(nodes: Node[], processFunc: ProcessFunction): Node[] {
+    let thisLength = nodes.length
     for (let i = 0; i < thisLength; i++) {
-      const item = nodeArray[i]
+      const item = nodes[i]
       const returnValue = processFunc(item)
       if (Array.isArray(returnValue)) {
         const nodeLength = returnValue.length
         if (returnValue.length === 0) {
-          nodeArray.splice(i, 1)
+          nodes.splice(i, 1)
           i--
           continue
         }
         else {
-          nodeArray.splice(i, 1, ...returnValue)
+          nodes.splice(i, 1, ...returnValue)
           thisLength += nodeLength
           i += nodeLength
           continue
         }
       }
       if (!returnValue) {
-        nodeArray.splice(i, 1)
+        nodes.splice(i, 1)
         i--
         continue
       }
-      nodeArray[i] = returnValue
+      nodes[i] = returnValue
     }
-    return nodeArray
+
+    return nodes
   }
 
   protected processChildren(node: Node, processFunc: ProcessFunction) {
     node.childKeys.forEach(key => {
-      let nodes = node.children[key]
+      let nodes = node[key]
       if (nodes) {
         if (node !== this) {
           /** This is during cloning */
-          nodes = [...nodes]
-          node.children[key] = node.processNodeArray(nodes, processFunc)
-          nodes.forEach((n: Node) => {
-            n.parent = node
-            n.root = node.root
-          })
+          if (Array.isArray(nodes)) {
+            nodes = [...nodes]
+            node[key] = node.processNodes(nodes, processFunc)
+            nodes.forEach((n: Node) => {
+              n.parent = node
+              n.root = node.root
+            })
+          } else {
+            const result = node.processNodes([nodes], processFunc)
+            result.forEach((n: Node) => {
+              n.parent = node
+              n.root = node.root
+            })
+            if (result.length === 1) {
+              node[key] = result[0]
+            } else {
+              node[key] = result
+            }
+          }
         } else {
-          this.processNodeArray(nodes, processFunc)
+          if (Array.isArray(nodes)) {
+            this.processNodes(nodes, processFunc)
+          } else {
+            node[key] = this.processNodes([nodes], processFunc) 
+          }
         }
       }
     })
@@ -554,7 +553,7 @@ export abstract class Node {
   }
 
   toArray() {
-    return this.children.nodes
+    return this.nodes
   }
 
   error(context: Context, message: string) {

@@ -21,21 +21,10 @@ export class FunctionCall extends Node {
 
   constructor(props: IFunctionCallProps, options: INodeOptions, location: ILocationInfo) {
     const { name, args, ...rest } = props
-    if (args) {
-      props.nodes = args
-    }
     super(<IProps>rest, options, location)
 
     this.name = name
     this.isCalc = name === 'calc'
-
-    Object.defineProperty(this, 'args', {
-      get() {
-        return this.children.nodes
-      },
-      enumerable: false,
-      configurable: false
-    })
   }
 
   //

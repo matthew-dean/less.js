@@ -1,4 +1,5 @@
 import {
+  Bool,
   Context,
   Condition,
   Node,
@@ -27,7 +28,7 @@ export type IRuleProps = {
 export class Rule extends Node {
   rules: Rules
   selectors: SelectorList
-  condition: Condition | undefined
+  condition: Bool | Condition | undefined
 
   constructor(props: IRuleProps, options: INodeOptions, location: ILocationInfo) {
     const { selectors } = props
@@ -48,7 +49,6 @@ export class Rule extends Node {
   eval(context: Context) {
     if (!this.evaluated) {
       this.evaluated = true
-      const children = this.children
 
       /**
        * The underlying Expression / Element implementations should merge selectors
@@ -60,17 +60,18 @@ export class Rule extends Node {
       let ctxSelectors = context.selectors
       ctxSelectors.unshift(selectorList)
 
-      const evalFunc = (node: Node) => node.eval(context)
+      let condition = this.condition
 
-      if (children.condition) {
-        this.processNodeArray(children.condition, evalFunc)
+      if (condition && condition instanceof Condition) {
+        condition = condition.eval(context)
+        this.condition = condition
 
-        if (this.condition.valueOf() === false) {
+        if (condition.valueOf() === false) {
           return false
         }
       }
 
-      this.processNodeArray(children.rules, evalFunc)
+      this.rules = this.rules.eval(context)
 
       /** Restore context selectors to initial state */
       ctxSelectors.shift()

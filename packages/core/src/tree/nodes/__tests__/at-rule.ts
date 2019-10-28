@@ -9,7 +9,7 @@ const mockLocation: ILocationInfo = {
 
 const makeRule = () => new AtRule({
   name: '@test',
-  prelude: [new Value(' this is a prelude')],
+  prelude: new Value(' this is a prelude'),
   post: new Value(';')
 }, {}, mockLocation)
 

@@ -39,22 +39,12 @@ export class MixinDefinition extends Node implements ImportantNode {
 
   constructor(props: IMixinDefinitionProps, options?: INodeOptions, location?: ILocationInfo) {
     const { params, ...rest } = props
-    if (params) {
-      props.nodes = params
-    }
     super(props, options, location)
-    Object.defineProperty(this, 'params', {
-      get() {
-        return this.children.nodes
-      },
-      enumerable: false,
-      configurable: false
-    })
     this.arity = params ? params.length : 0
   }
 
   makeImportant() {
-    const oldRules = this.rules[0].clone()
+    const oldRules = this.rules.clone()
     const rules = oldRules.nodes.map(r => {
       if (r.hasOwnProperty('makeImportant')) {
         (<ImportantNode>r).makeImportant()
@@ -63,7 +53,7 @@ export class MixinDefinition extends Node implements ImportantNode {
     })
 
     const result = this.clone(true)
-    result.rules[0] = new Rules(rules).inherit(oldRules)
+    result.rules = new Rules(rules).inherit(oldRules)
     return result
   }
 

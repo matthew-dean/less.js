@@ -37,8 +37,9 @@ export class Rules extends NodeArray implements ImportantNode {
   }
   toString() {
     let text = '{'
-    this.nodes.forEach((node, i) => {
-      const nextNode = this.nodes[i + 1]
+    const nodes = this.nodes.filter(node => node.isVisible !== false)
+    nodes.forEach((node, i) => {
+      const nextNode = nodes[i + 1]
       text += node.toString()
       /**
        * Sanity check, in case something adds a declaration without a

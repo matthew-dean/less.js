@@ -24,6 +24,7 @@ export type IDeclarationOptions = {
 
 export type IDeclarationProps = IProps & {
   name: string | Name
+  important?: Value
 }
 
 export class Declaration extends Node implements ImportantNode {
@@ -46,6 +47,7 @@ export class Declaration extends Node implements ImportantNode {
    */
   nodes: [(List<Node> | Node)] | [(List<Node> | Node), Value]
   name: Name
+  important: Value | string
   options: IDeclarationOptions
 
   constructor(props: IDeclarationProps, options: IDeclarationOptions = {}, location?: ILocationInfo) {
@@ -58,15 +60,21 @@ export class Declaration extends Node implements ImportantNode {
       props.name = new Name([new Value(name)], { isVariable: !!options.isVariable })
     }
     super(props, options, location)
+    if (options.isVariable) {
+      this.isVisible = false
+    }
     if (name.constructor === String) {
       this.value = <string>name
+    }
+    if (!this.important) {
+      this.important = ''
     }
     this.evaluatingName = false
   }
 
   toString(omitPrePost?: boolean) {
     const text = (this.options.isVariable ? '@' : '') + 
-      this.name.toString() + ':' + this.nodes.join('')
+      this.name.toString() + ':' + this.nodes.join('') + this.important.toString()
     
     if (omitPrePost) {
       return text
@@ -79,8 +87,7 @@ export class Declaration extends Node implements ImportantNode {
   evalName(context: Context): string {
     let value = this.value
     if (value === undefined) {
-      const name = this.name
-      name.eval(context)
+      const name = this.name.eval(context)
       value = name.value
       this.value = value
     }
@@ -90,14 +97,15 @@ export class Declaration extends Node implements ImportantNode {
   eval(context: Context) {
     if (!this.evaluated) {
       context.importantScope.push({})
-      this.processNodeArray(this.nodes, (node: Node) => node.eval(context))
+      this.processNodes(this.nodes, (node: Node) => node.eval(context))
 
       this.evaluated = true
 
-      let important = this.nodes[1]
+      let important = this.important
       const importantResult = context.importantScope.pop()
       if (!important && importantResult.important) {
-        this.nodes[1] = new Value(importantResult.important)
+        this.important = new Value(importantResult.important)
+        this.childKeys.push('important')
       }
     }
 
@@ -105,7 +113,10 @@ export class Declaration extends Node implements ImportantNode {
   }
 
   makeImportant() {
-    this.nodes[1] = new Value({ pre: ' ', text: '!important' })
+    if (!this.important) {
+      this.important = new Value({ pre: ' ', text: '!important' })
+      this.childKeys.push('important')
+    }
     return this
   }
 }

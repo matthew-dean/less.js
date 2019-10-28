@@ -4,7 +4,6 @@ import {
   IProps,
   INodeOptions,
   ILocationInfo,
-  List,
   Rules,
   Rule,
   Selector,
@@ -39,17 +38,10 @@ export class RulesCall extends Node {
     if (name.constructor === String) {
       rest.name = new Value(name)
     }
-    if (args !== undefined) {
-      rest.nodes = args
+    if (args === undefined) {
+      rest.args = []
     }
     super(rest, options, location)
-    Object.defineProperty(this, 'args', {
-      get() {
-        return this.children.nodes
-      },
-      enumerable: false,
-      configurable: false
-    })
   }
 
   matchMixins(mixins: MixinDefinition[], context: Context) {
@@ -92,9 +84,9 @@ export class RulesCall extends Node {
       let results = []
       findValues.forEach((val, i) => {
         const mixinName = val.replace(/^[#.]/, '')
-
         start.forEach(ctx => {
           const result = ctx.find(context, (node: Node) => {
+            console.log(node)
             let hasMatch = false
             if (node instanceof Rule) {
               const selectors = node.selectors
@@ -110,7 +102,7 @@ export class RulesCall extends Node {
                 return node.rules
               }
             } else if (node instanceof Mixin) {
-              if (node.value === val) {
+              if (node.value === mixinName) {
                 return node.definition.rules
               }
             }

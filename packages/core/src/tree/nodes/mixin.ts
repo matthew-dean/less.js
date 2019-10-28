@@ -11,7 +11,7 @@ import {
 
 export type IMixinProps = IMixinDefinitionProps & {
   name: string | Node
-  definition: MixinDefinition
+  definition?: MixinDefinition
 }
 
 /**
@@ -38,6 +38,7 @@ export class Mixin extends Node implements ImportantNode {
       rest.definition = new MixinDefinition({ rules, params, condition })
     }
     super(rest, options, location)
+    this.isVisible = false
   }
 
   eval(context: Context) {

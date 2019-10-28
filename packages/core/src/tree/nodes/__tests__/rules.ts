@@ -9,8 +9,6 @@ import {
   Variable
 } from '..'
 
-import * as tree from '..'
-
 import { context } from '../../__mocks__/context'
 
 describe('Rules', () => {
@@ -44,7 +42,7 @@ describe('Rules', () => {
       new Declaration({ name: 'prop', nodes: [new Variable('var')] })
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{@var:foo;prop:foo}')
+    expect(val.valueOf()).to.eq('{prop:foo}')
   })
 
   it('should resolve variables (2)', () => {
@@ -53,7 +51,7 @@ describe('Rules', () => {
       new Declaration({ name: 'var', nodes: [new Value('foo')] }, { isVariable: true }),
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{prop:foo;@var:foo}')
+    expect(val.valueOf()).to.eq('{prop:foo}')
   })
 
   it('should resolve variables (3)', () => {
@@ -62,19 +60,35 @@ describe('Rules', () => {
       new Declaration({ name: 'var', nodes: [new Value('foo')] }, { isVariable: true }),
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{prop:foo;@var:foo}')
+    expect(val.valueOf()).to.eq('{prop:foo}')
   })
 
+  /**
+   * `prop: @var;`
+   * `@varname: var;`
+   * `@@varname: foo;`
+   */
   it('should resolve variables (4)', () => {
     const node = new Rules([
       new Declaration({ name: 'prop', nodes: [new Variable('var')] }),
 
       /** We can use @varname for easy shorthand, will set `isVariable: true` */
       new Declaration({ name: '@varname', nodes: [new Value('var')] }),
-      new Declaration({ name: [new Name([new Variable('varname')])], nodes: [new Value('foo')] }, { isVariable: true }),
+      new Declaration({ name: new Name([new Variable('varname')]), nodes: [new Value('foo')] }, { isVariable: true }),
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{prop:foo;@varname:var;@var:foo}')
+    expect(val.valueOf()).to.eq('{prop:foo}')
+  })
+
+  /**
+   * `@varname: @varname;`
+   */
+  it('should throw recursion error', () => {
+    const node = new Rules([
+      new Declaration({ name: '@varname', nodes: [new Variable('varname')] })
+    ])
+    const val = node.eval(context)
+    expect(val.valueOf()).to.eq('{}')
   })
 
   it('should merge props', () => {

@@ -40,17 +40,14 @@ export class Name extends NodeArray {
     if (!this.evaluated) {
       if (this.evaluating) {
         this.value = ''
-        /** Is this possible? */
-        return this.error(context,
-          `Recursive reference for '${this.nodes.join('')}'`
-        )
+        return this
       }
       /**
        * Don't look at (and try to eval) this declaration when resolving
        * a name that references a variable.
        */
       this.evaluating = true
-      this.processNodeArray(this.nodes, (node: Node) => node.eval(context))
+      this.processNodes(this.nodes, (node: Node) => node.eval(context))
       value = this.nodes.join('')
       this.value = value
       this.evaluating = false

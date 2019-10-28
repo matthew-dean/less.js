@@ -67,7 +67,7 @@ export class Context {
   }
 
   error(err: ILessError, fileRoot: Rules) {
-    if (this.options.evalErrors === EvalErrorMode.THROW) {
+    if (!this.options.evalErrors) {
       throw err
     }
     this.errors.push(new LessError(err, fileRoot))
