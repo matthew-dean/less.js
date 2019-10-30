@@ -52,20 +52,28 @@ export class Declaration extends Node implements ImportantNode {
 
   constructor(props: IDeclarationProps, options: IDeclarationOptions = {}, location?: ILocationInfo) {
     let { name } = props
+    const { important, ...rest } = props
+    if (important) {
+      rest.nodes[1] = important
+    }
     if (name.constructor === String) {
       if ((<string>name).charAt(0) === '@') {
         name = (<string>name).slice(1)
         options.isVariable = true
       }
-      props.name = new Name([new Value(name)], { isVariable: !!options.isVariable })
+      rest.name = new Name([new Value(name)], { isVariable: !!options.isVariable })
     }
-    super(props, options, location)
+    super(rest, options, location)
     if (options.isVariable) {
       this.isVisible = false
     }
     if (name.constructor === String) {
       this.value = <string>name
     }
+    /**
+     * `important` is part of a declaration's value, but
+     * for convenience, it can be accessed as a distinct prop
+     */
     Object.defineProperty(this, 'important', {
       get() {
         return this.nodes[1]
