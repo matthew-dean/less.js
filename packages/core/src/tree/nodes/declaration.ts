@@ -47,7 +47,7 @@ export class Declaration extends Node implements ImportantNode {
    */
   nodes: [(List<Node> | Node)] | [(List<Node> | Node), Value]
   name: Name
-  important: Value | string
+  important: Value | undefined
   options: IDeclarationOptions
 
   constructor(props: IDeclarationProps, options: IDeclarationOptions = {}, location?: ILocationInfo) {
@@ -66,15 +66,22 @@ export class Declaration extends Node implements ImportantNode {
     if (name.constructor === String) {
       this.value = <string>name
     }
-    if (!this.important) {
-      this.important = ''
-    }
+    Object.defineProperty(this, 'important', {
+      get() {
+        return this.nodes[1]
+      },
+      set(value: Value) {
+        this.nodes[1] = value
+      },
+      configurable: false,
+      enumerable: false
+    })
     this.evaluatingName = false
   }
 
   toString(omitPrePost?: boolean) {
     const text = (this.options.isVariable ? '@' : '') + 
-      this.name.toString() + ':' + this.nodes.join('') + this.important.toString()
+      this.name.toString() + ':' + this.nodes.join('')
     
     if (omitPrePost) {
       return text
@@ -105,7 +112,6 @@ export class Declaration extends Node implements ImportantNode {
       const importantResult = context.importantScope.pop()
       if (!important && importantResult.important) {
         this.important = new Value(importantResult.important)
-        this.childKeys.push('important')
       }
     }
 
@@ -115,7 +121,6 @@ export class Declaration extends Node implements ImportantNode {
   makeImportant() {
     if (!this.important) {
       this.important = new Value({ pre: ' ', text: '!important' })
-      this.childKeys.push('important')
     }
     return this
   }

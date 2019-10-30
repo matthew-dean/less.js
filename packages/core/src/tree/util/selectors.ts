@@ -39,19 +39,37 @@ export const mergeProperties = <T extends Node = Node>(rules: T[], clone?: boole
       const result = group[0]
 
       if (result.options.mergeType === MergeType.SPACED) {
+        let important = null
         const nodes = group.reduce((nodes, rule, i) => {
           if (i === 0) {
             return
           }
-          return nodes.concat([new WS()].concat(rule.nodes))
+          const ruleNodes = rule.nodes
+          const imprt = ruleNodes[1]
+          if (!important && imprt) {
+            important = imprt
+          }
+          return nodes.concat([new WS()].concat([ruleNodes[0]]))
         }, result.nodes)
         result.nodes = [new Expression(nodes)]
+        if (important) {
+          result.nodes.push(important)
+        }
       } else {
+        let important = null
         const nodes = group.reduce((nodes, rule, i) => {
-          const expr = new Expression(rule.nodes)
+          const ruleNodes = rule.nodes
+          const imprt = ruleNodes[1]
+          if (!important && imprt) {
+            important = imprt
+          }
+          const expr = new Expression([ruleNodes[0]])
           return nodes.concat([expr])
         }, [])
         result.nodes = [new List(nodes)]
+        if (important) {
+          result.nodes.push(important)
+        }
       }
     }
   })

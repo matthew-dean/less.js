@@ -87,8 +87,13 @@ describe('Rules', () => {
     const node = new Rules([
       new Declaration({ name: '@varname', nodes: [new Variable('varname')] })
     ])
-    const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{}')
+    let err
+    try {
+      const val = node.eval(context)
+    } catch (e) {
+      err = e
+    }
+    expect(err).to.not.be.false
   })
 
   it('should merge props', () => {

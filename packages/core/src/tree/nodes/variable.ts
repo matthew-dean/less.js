@@ -71,7 +71,6 @@ export class Variable extends Node {
 
     this.evaluating = true
     const decl: Declaration | Declaration[] = this[`find${type}`](context, name)
-    this.evaluating = false
 
     if (decl) {
       if (Array.isArray(decl)) {
@@ -80,15 +79,17 @@ export class Variable extends Node {
           props.push(node.eval(context))
         })
         props = mergeProperties(props, true)
-        /** @todo - merge props */
+        this.evaluating = false
         return props[props.length - 1].nodes
       } else {
         decl.eval(context)
         /** Return the evaluated declaration's value */
-        return decl.nodes[0]
+        this.evaluating = false
+        return decl.nodes
       }
       
     }
+    this.evaluating = false
     return this.error(context, `${type} '${name}' is undefined`)
 
     // const variable = this.find(node => {
