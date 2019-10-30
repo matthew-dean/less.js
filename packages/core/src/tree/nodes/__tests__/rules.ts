@@ -87,13 +87,13 @@ describe('Rules', () => {
     const node = new Rules([
       new Declaration({ name: '@varname', nodes: [new Variable('varname')] })
     ])
-    let err
+    let err: {message?: string} = {}
     try {
       const val = node.eval(context)
     } catch (e) {
       err = e
     }
-    expect(err).to.not.be.false
+    expect(err.message).to.eq('Recursive Variable reference for \'@varname\'')
   })
 
   it('should merge props', () => {

@@ -65,7 +65,7 @@ export class Variable extends Node {
 
     if (this.evaluating) {
       return this.error(context,
-        `Recursive ${type} reference for '${name}'`
+        `Recursive ${type} reference for '${this.toString()}'`
       )
     }
 
