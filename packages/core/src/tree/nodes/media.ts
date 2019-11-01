@@ -1,10 +1,10 @@
-import Rules from './rules';
-import List from './list';
-import Selector from './selector';
-import Value from './value';
-import Expression from './expression';
-import AtRule from './at-rule';
-import * as utils from '../utils';
+import Rules from "./rules";
+import List from "./list";
+import Selector from "./selector";
+import Value from "./value";
+import Expression from "./expression";
+import AtRule from "./at-rule";
+import * as utils from "../utils";
 
 /**
  * Removed, move "bubbling" to tree-flattening visitor
@@ -16,7 +16,13 @@ class Media extends AtRule {
         this._index = index;
         this._fileInfo = currentFileInfo;
 
-        const selectors = (new Selector([], null, null, this._index, this._fileInfo)).createEmptySelectors();
+        const selectors = new Selector(
+            [],
+            null,
+            null,
+            this._index,
+            this._fileInfo
+        ).createEmptySelectors();
 
         this.features = new List(features);
         this.rules = [new Rules(selectors, value)];
@@ -34,12 +40,18 @@ class Media extends AtRule {
             context.mediaPath = [];
         }
 
-        const media = new Media(null, [], this._index, this._fileInfo, this.visibilityInfo());
+        const media = new Media(
+            null,
+            [],
+            this._index,
+            this._fileInfo,
+            this.visibilityInfo()
+        );
         if (this.debugInfo) {
             this.rules[0].debugInfo = this.debugInfo;
             media.debugInfo = this.debugInfo;
         }
-        
+
         media.features = this.features.eval(context);
 
         context.mediaPath.push(media);
@@ -52,8 +64,9 @@ class Media extends AtRule {
 
         context.mediaPath.pop();
 
-        return context.mediaPath.length === 0 ? media.evalTop(context) :
-            media.evalNested(context);
+        return context.mediaPath.length === 0
+            ? media.evalTop(context)
+            : media.evalNested(context);
     }
 
     evalTop(context) {
@@ -61,7 +74,13 @@ class Media extends AtRule {
 
         // Render all dependent Media blocks.
         if (context.mediaBlocks.length > 1) {
-            const selectors = (new Selector([], null, null, this.getIndex(), this.fileInfo())).createEmptySelectors();
+            const selectors = new Selector(
+                [],
+                null,
+                null,
+                this.getIndex(),
+                this.fileInfo()
+            ).createEmptySelectors();
             result = new Rules(selectors, context.mediaBlocks);
             result.multiMedia = true;
             result.copyVisibilityInfo(this.visibilityInfo());
@@ -81,8 +100,10 @@ class Media extends AtRule {
 
         // Extract the media-query conditions separated with `,` (OR).
         for (i = 0; i < path.length; i++) {
-            value = path[i].features instanceof Value ?
-                path[i].features.value : path[i].features;
+            value =
+                path[i].features instanceof Value
+                    ? path[i].features.value
+                    : path[i].features;
             path[i] = Array.isArray(value) ? value : [value];
         }
 
@@ -93,15 +114,19 @@ class Media extends AtRule {
         //    a and e
         //    b and c and d
         //    b and c and e
-        this.features = new List(this.permute(path).map(path => {
-            path = path.map(fragment => fragment.toCSS ? fragment : new Value(fragment));
+        this.features = new List(
+            this.permute(path).map(path => {
+                path = path.map(fragment =>
+                    fragment.toCSS ? fragment : new Value(fragment)
+                );
 
-            for (i = path.length - 1; i > 0; i--) {
-                path.splice(i, 0, new Value('and'));
-            }
+                for (i = path.length - 1; i > 0; i--) {
+                    path.splice(i, 0, new Value("and"));
+                }
 
-            return new Expression(path);
-        }));
+                return new Expression(path);
+            })
+        );
         this.setParent(this.features, this);
 
         // Fake a tree-node that doesn't output anything.
@@ -134,5 +159,5 @@ class Media extends AtRule {
     }
 }
 
-Media.prototype.type = 'Media';
+Media.prototype.type = "Media";
 export default Media;

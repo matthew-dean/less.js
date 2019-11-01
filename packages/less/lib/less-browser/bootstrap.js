@@ -5,9 +5,9 @@
  */
 /* global window, document */
 
-import defaultOptions from '../less/default-options';
-import addDefaultOptions from './add-default-options';
-import root from './index';
+import defaultOptions from "../less/default-options";
+import addDefaultOptions from "./add-default-options";
+import root from "./index";
 
 const options = defaultOptions();
 
@@ -51,11 +51,11 @@ if (options.onReady) {
     }
     // Simulate synchronous stylesheet loading by hiding page rendering
     if (!options.async) {
-        css = 'body { display: none !important }';
-        head = document.head || document.getElementsByTagName('head')[0];
-        style = document.createElement('style');
+        css = "body { display: none !important }";
+        head = document.head || document.getElementsByTagName("head")[0];
+        style = document.createElement("style");
 
-        style.type = 'text/css';
+        style.type = "text/css";
         if (style.styleSheet) {
             style.styleSheet.cssText = css;
         } else {
@@ -65,5 +65,7 @@ if (options.onReady) {
         head.appendChild(style);
     }
     less.registerStylesheetsImmediately();
-    less.pageLoadFinished = less.refresh(less.env === 'development').then(resolveOrReject, resolveOrReject);
+    less.pageLoadFinished = less
+        .refresh(less.env === "development")
+        .then(resolveOrReject, resolveOrReject);
 }

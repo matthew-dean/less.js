@@ -1,4 +1,4 @@
-import chunker from './chunker';
+import chunker from "./chunker";
 
 export default () => {
     let // Less input string
@@ -51,22 +51,28 @@ export default () => {
 
             if (parserInput.autoCommentAbsorb && c === CHARCODE_FORWARD_SLASH) {
                 nextChar = inp.charAt(parserInput.i + 1);
-                if (nextChar === '/') {
-                    comment = {index: parserInput.i, isLineComment: true};
-                    let nextNewLine = inp.indexOf('\n', parserInput.i + 2);
+                if (nextChar === "/") {
+                    comment = { index: parserInput.i, isLineComment: true };
+                    let nextNewLine = inp.indexOf("\n", parserInput.i + 2);
                     if (nextNewLine < 0) {
                         nextNewLine = endIndex;
                     }
                     parserInput.i = nextNewLine;
-                    comment.text = inp.substr(comment.index, parserInput.i - comment.index);
+                    comment.text = inp.substr(
+                        comment.index,
+                        parserInput.i - comment.index
+                    );
                     parserInput.commentStore.push(comment);
                     continue;
-                } else if (nextChar === '*') {
-                    const nextStarSlash = inp.indexOf('*/', parserInput.i + 2);
+                } else if (nextChar === "*") {
+                    const nextStarSlash = inp.indexOf("*/", parserInput.i + 2);
                     if (nextStarSlash >= 0) {
                         comment = {
                             index: parserInput.i,
-                            text: inp.substr(parserInput.i, nextStarSlash + 2 - parserInput.i),
+                            text: inp.substr(
+                                parserInput.i,
+                                nextStarSlash + 2 - parserInput.i
+                            ),
                             isLineComment: false
                         };
                         parserInput.i += comment.text.length - 1;
@@ -77,7 +83,12 @@ export default () => {
                 break;
             }
 
-            if ((c !== CHARCODE_SPACE) && (c !== CHARCODE_LF) && (c !== CHARCODE_TAB) && (c !== CHARCODE_CR)) {
+            if (
+                c !== CHARCODE_SPACE &&
+                c !== CHARCODE_LF &&
+                c !== CHARCODE_TAB &&
+                c !== CHARCODE_CR
+            ) {
                 break;
             }
         }
@@ -99,11 +110,15 @@ export default () => {
 
     parserInput.save = () => {
         currentPos = parserInput.i;
-        saveStack.push( { current, i: parserInput.i, j });
+        saveStack.push({ current, i: parserInput.i, j });
     };
     parserInput.restore = possibleErrorMessage => {
-
-        if (parserInput.i > furthest || (parserInput.i === furthest && possibleErrorMessage && !furthestPossibleErrorMessage)) {
+        if (
+            parserInput.i > furthest ||
+            (parserInput.i === furthest &&
+                possibleErrorMessage &&
+                !furthestPossibleErrorMessage)
+        ) {
             furthest = parserInput.i;
             furthestPossibleErrorMessage = possibleErrorMessage;
         }
@@ -118,7 +133,12 @@ export default () => {
     parserInput.isWhitespace = offset => {
         const pos = parserInput.i + (offset || 0);
         const code = input.charCodeAt(pos);
-        return (code === CHARCODE_SPACE || code === CHARCODE_CR || code === CHARCODE_TAB || code === CHARCODE_LF);
+        return (
+            code === CHARCODE_SPACE ||
+            code === CHARCODE_CR ||
+            code === CHARCODE_TAB ||
+            code === CHARCODE_LF
+        );
     };
 
     // Specialization of $(tok)
@@ -134,7 +154,7 @@ export default () => {
         }
 
         skipWhitespace(m[0].length);
-        if (typeof m === 'string') {
+        if (typeof m === "string") {
             return m;
         }
 
@@ -167,7 +187,7 @@ export default () => {
         const pos = loc || parserInput.i;
         const startChar = input.charAt(pos);
 
-        if (startChar !== '\'' && startChar !== '"') {
+        if (startChar !== "'" && startChar !== '"') {
             return;
         }
         const length = input.length;
@@ -176,17 +196,17 @@ export default () => {
         for (let i = 1; i + currentPosition < length; i++) {
             const nextChar = input.charAt(i + currentPosition);
             switch (nextChar) {
-                case '\\':
+                case "\\":
                     i++;
                     continue;
-                case '\r':
-                case '\n':
+                case "\r":
+                case "\n":
                     break;
                 case startChar:
                     const str = input.substr(currentPosition, i + 1);
                     if (!loc && loc !== 0) {
                         skipWhitespace(i + 1);
-                        return str
+                        return str;
                     }
                     return [startChar, str];
                 default:
@@ -200,7 +220,7 @@ export default () => {
      * until matching token (outside of blocks)
      */
     parserInput.$parseUntil = tok => {
-        let quote = '';
+        let quote = "";
         let returnVal = null;
         let inComment = false;
         let blockDepth = 0;
@@ -213,10 +233,10 @@ export default () => {
         let loop = true;
         let testChar;
 
-        if (typeof tok === 'string') {
-            testChar = char => char === tok
+        if (typeof tok === "string") {
+            testChar = char => char === tok;
         } else {
-            testChar = char => tok.test(char)
+            testChar = char => tok.test(char);
         }
 
         do {
@@ -226,17 +246,15 @@ export default () => {
                 returnVal = input.substr(lastPos, i - lastPos);
                 if (returnVal) {
                     parseGroups.push(returnVal);
-                }
-                else {
-                    parseGroups.push(' ');
+                } else {
+                    parseGroups.push(" ");
                 }
                 returnVal = parseGroups;
                 skipWhitespace(i - startPos);
-                loop = false
+                loop = false;
             } else {
                 if (inComment) {
-                    if (nextChar === '*' && 
-                        input.charAt(i + 1) === '/') {
+                    if (nextChar === "*" && input.charAt(i + 1) === "/") {
                         i++;
                         blockDepth--;
                         inComment = false;
@@ -245,48 +263,52 @@ export default () => {
                     continue;
                 }
                 switch (nextChar) {
-                    case '\\':
+                    case "\\":
                         i++;
                         nextChar = input.charAt(i);
-                        parseGroups.push(input.substr(lastPos, i - lastPos + 1));
+                        parseGroups.push(
+                            input.substr(lastPos, i - lastPos + 1)
+                        );
                         lastPos = i + 1;
                         break;
-                    case '/':
-                        if (input.charAt(i + 1) === '*') {
+                    case "/":
+                        if (input.charAt(i + 1) === "*") {
                             i++;
                             inComment = true;
                             blockDepth++;
                         }
                         break;
-                    case '\'':
+                    case "'":
                     case '"':
                         quote = parserInput.$quoted(i);
                         if (quote) {
-                            parseGroups.push(input.substr(lastPos, i - lastPos), quote);
+                            parseGroups.push(
+                                input.substr(lastPos, i - lastPos),
+                                quote
+                            );
                             i += quote[1].length - 1;
                             lastPos = i + 1;
-                        }
-                        else {
+                        } else {
                             skipWhitespace(i - startPos);
                             returnVal = nextChar;
                             loop = false;
                         }
                         break;
-                    case '{':
-                        blockStack.push('}');
+                    case "{":
+                        blockStack.push("}");
                         blockDepth++;
                         break;
-                    case '(':
-                        blockStack.push(')');
+                    case "(":
+                        blockStack.push(")");
                         blockDepth++;
                         break;
-                    case '[':
-                        blockStack.push(']');
+                    case "[":
+                        blockStack.push("]");
                         blockDepth++;
                         break;
-                    case '}':
-                    case ')':
-                    case ']':
+                    case "}":
+                    case ")":
+                    case "]":
                         const expected = blockStack.pop();
                         if (nextChar === expected) {
                             blockDepth--;
@@ -306,7 +328,7 @@ export default () => {
         } while (loop);
 
         return returnVal ? returnVal : null;
-    }
+    };
 
     parserInput.autoCommentAbsorb = true;
     parserInput.commentStore = [];
@@ -315,7 +337,7 @@ export default () => {
     // Same as $(), but don't change the state of the parser,
     // just return the match.
     parserInput.peek = tok => {
-        if (typeof tok === 'string') {
+        if (typeof tok === "string") {
             // https://jsperf.com/string-startswith/21
             for (let i = 0; i < tok.length; i++) {
                 if (input.charAt(parserInput.i + i) !== tok.charAt(i)) {
@@ -341,7 +363,12 @@ export default () => {
     parserInput.peekNotNumeric = () => {
         const c = input.charCodeAt(parserInput.i);
         // Is the first char of the dimension 0-9, '.', '+' or '-'
-        return (c > CHARCODE_9 || c < CHARCODE_PLUS) || c === CHARCODE_FORWARD_SLASH || c === CHARCODE_COMMA;
+        return (
+            c > CHARCODE_9 ||
+            c < CHARCODE_PLUS ||
+            c === CHARCODE_FORWARD_SLASH ||
+            c === CHARCODE_COMMA
+        );
     };
 
     parserInput.start = (str, chunkInput, failFunction) => {

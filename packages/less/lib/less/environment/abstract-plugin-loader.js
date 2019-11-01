@@ -1,10 +1,10 @@
-import functionRegistry from '../functions/function-registry';
-import LessError from '../less-error';
+import functionRegistry from "../functions/function-registry";
+import LessError from "../less-error";
 
 class AbstractPluginLoader {
     constructor() {
         // Implemented by Node.js plugin loader
-        this.require = () => null
+        this.require = () => null;
     }
 
     evalPlugin(contents, context, imports, pluginOptions, fileInfo) {
@@ -19,20 +19,25 @@ class AbstractPluginLoader {
         pluginManager = context.pluginManager;
 
         if (fileInfo) {
-            if (typeof fileInfo === 'string') {
+            if (typeof fileInfo === "string") {
                 filename = fileInfo;
-            }
-            else {
+            } else {
                 filename = fileInfo.filename;
             }
         }
-        const shortname = (new this.less.FileManager()).extractUrlParts(filename).filename;
+        const shortname = new this.less.FileManager().extractUrlParts(filename)
+            .filename;
 
         if (filename) {
             pluginObj = pluginManager.get(filename);
 
             if (pluginObj) {
-                result = this.trySetOptions(pluginObj, filename, shortname, pluginOptions);
+                result = this.trySetOptions(
+                    pluginObj,
+                    filename,
+                    shortname,
+                    pluginOptions
+                );
                 if (result) {
                     return result;
                 }
@@ -40,9 +45,8 @@ class AbstractPluginLoader {
                     if (pluginObj.use) {
                         pluginObj.use.call(this.context, pluginObj);
                     }
-                }
-                catch (e) {
-                    e.message = e.message || 'Error during @plugin call';
+                } catch (e) {
+                    e.message = e.message || "Error during @plugin call";
                     return new LessError(e, imports, filename);
                 }
                 return pluginObj;
@@ -60,10 +64,26 @@ class AbstractPluginLoader {
         };
 
         try {
-            loader = new Function('module', 'require', 'registerPlugin', 'functions', 'tree', 'less', 'fileInfo', contents);
-            loader(localModule, this.require(filename), registerPlugin, registry, this.less.tree, this.less, fileInfo);
-        }
-        catch (e) {
+            loader = new Function(
+                "module",
+                "require",
+                "registerPlugin",
+                "functions",
+                "tree",
+                "less",
+                "fileInfo",
+                contents
+            );
+            loader(
+                localModule,
+                this.require(filename),
+                registerPlugin,
+                registry,
+                this.less.tree,
+                this.less,
+                fileInfo
+            );
+        } catch (e) {
             return new LessError(e, imports, filename);
         }
 
@@ -81,8 +101,16 @@ class AbstractPluginLoader {
             pluginObj.filename = filename;
 
             // For < 3.x (or unspecified minVersion) - setOptions() before install()
-            if (!pluginObj.minVersion || this.compareVersion('3.0.0', pluginObj.minVersion) < 0) {
-                result = this.trySetOptions(pluginObj, filename, shortname, pluginOptions);
+            if (
+                !pluginObj.minVersion ||
+                this.compareVersion("3.0.0", pluginObj.minVersion) < 0
+            ) {
+                result = this.trySetOptions(
+                    pluginObj,
+                    filename,
+                    shortname,
+                    pluginOptions
+                );
 
                 if (result) {
                     return result;
@@ -94,7 +122,12 @@ class AbstractPluginLoader {
             pluginObj.functions = registry.getLocalFunctions();
 
             // Need to call setOptions again because the pluginObj might have functions
-            result = this.trySetOptions(pluginObj, filename, shortname, pluginOptions);
+            result = this.trySetOptions(
+                pluginObj,
+                filename,
+                shortname,
+                pluginOptions
+            );
             if (result) {
                 return result;
             }
@@ -104,15 +137,16 @@ class AbstractPluginLoader {
                 if (pluginObj.use) {
                     pluginObj.use.call(this.context, pluginObj);
                 }
-            }
-            catch (e) {
-                e.message = e.message || 'Error during @plugin call';
+            } catch (e) {
+                e.message = e.message || "Error during @plugin call";
                 return new LessError(e, imports, filename);
             }
-
-        }
-        else {
-            return new LessError({ message: 'Not a valid plugin' }, imports, filename);
+        } else {
+            return new LessError(
+                { message: "Not a valid plugin" },
+                imports,
+                filename
+            );
         }
 
         return pluginObj;
@@ -126,8 +160,7 @@ class AbstractPluginLoader {
         }
         try {
             plugin.setOptions && plugin.setOptions(options);
-        }
-        catch (e) {
+        } catch (e) {
             return new LessError(e);
         }
     }
@@ -136,14 +169,19 @@ class AbstractPluginLoader {
         if (plugin) {
             // support plugins being a function
             // so that the plugin can be more usable programmatically
-            if (typeof plugin === 'function') {
+            if (typeof plugin === "function") {
                 plugin = new plugin();
             }
 
             if (plugin.minVersion) {
-                if (this.compareVersion(plugin.minVersion, this.less.version) < 0) {
+                if (
+                    this.compareVersion(plugin.minVersion, this.less.version) <
+                    0
+                ) {
                     return new LessError({
-                        message: `Plugin ${name} requires version ${this.versionToString(plugin.minVersion)}`
+                        message: `Plugin ${name} requires version ${this.versionToString(
+                            plugin.minVersion
+                        )}`
                     });
                 }
             }
@@ -153,7 +191,7 @@ class AbstractPluginLoader {
     }
 
     compareVersion(aVersion, bVersion) {
-        if (typeof aVersion === 'string') {
+        if (typeof aVersion === "string") {
             aVersion = aVersion.match(/^(\d+)\.?(\d+)?\.?(\d+)?/);
             aVersion.shift();
         }
@@ -166,9 +204,9 @@ class AbstractPluginLoader {
     }
 
     versionToString(version) {
-        let versionString = '';
+        let versionString = "";
         for (let i = 0; i < version.length; i++) {
-            versionString += (versionString ? '.' : '') + version[i];
+            versionString += (versionString ? "." : "") + version[i];
         }
         return versionString;
     }
@@ -184,4 +222,3 @@ class AbstractPluginLoader {
 }
 
 export default AbstractPluginLoader;
-

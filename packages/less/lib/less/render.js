@@ -1,13 +1,12 @@
 let PromiseConstructor;
-import * as utils from './utils';
+import * as utils from "./utils";
 
 export default (environment, ParseTree, ImportManager) => {
-    const render = function (input, options, callback) {
-        if (typeof options === 'function') {
+    const render = function(input, options, callback) {
+        if (typeof options === "function") {
             callback = options;
             options = utils.copyOptions(this.options, {});
-        }
-        else {
+        } else {
             options = utils.copyOptions(this.options, options || {});
         }
 
@@ -24,14 +23,17 @@ export default (environment, ParseTree, ImportManager) => {
             });
         } else {
             this.parse(input, options, (err, root, imports, options) => {
-                if (err) { return callback(err); }
+                if (err) {
+                    return callback(err);
+                }
 
                 let result;
                 try {
                     const parseTree = new ParseTree(root, imports);
                     result = parseTree.toCSS(options);
+                } catch (err) {
+                    return callback(err);
                 }
-                catch (err) { return callback(err); }
 
                 callback(null, result);
             });

@@ -1,18 +1,18 @@
-import path from 'path';
-import fs from './less-node/fs';
-import os from 'os';
-import * as utils from './less/utils';
-import * as Constants from './less/constants';
+import path from "path";
+import fs from "./less-node/fs";
+import os from "os";
+import * as utils from "./less/utils";
+import * as Constants from "./less/constants";
 let errno;
 let mkdirp;
 
 try {
-    errno = require('errno');
+    errno = require("errno");
 } catch (err) {
     errno = null;
 }
 
-import less from './less-node';
+import less from "./less-node";
 const pluginManager = new less.PluginManager(less);
 const fileManager = new less.FileManager();
 const plugins = [];
@@ -36,13 +36,15 @@ let continueProcessing = true;
 // Additionally we also need to make sure that uncaughtExceptions are never swallowed.
 // @see https://github.com/less/less.js/issues/2881
 // This code can safely be removed if node 0.10.x is not supported anymore.
-process.on('exit', () => { process.reallyExit(process.exitCode); });
-process.on('uncaughtException', err => {
+process.on("exit", () => {
+    process.reallyExit(process.exitCode);
+});
+process.on("uncaughtException", err => {
     console.error(err);
     process.exitCode = 1;
 });
 // This code will still be required because otherwise rejected promises would not be reported to the user
-process.on('unhandledRejection', err => {
+process.on("unhandledRejection", err => {
     console.error(err);
     process.exitCode = 1;
 });
@@ -60,7 +62,9 @@ const checkArgFunc = (arg, option) => {
 const checkBooleanArg = arg => {
     const onOff = /^((on|t|true|y|yes)|(off|f|false|n|no))$/i.exec(arg);
     if (!onOff) {
-        console.error(` unable to parse ${arg} as a boolean. use one of on/t/true/y/yes/off/f/false/n/no`);
+        console.error(
+            ` unable to parse ${arg} as a boolean. use one of on/t/true/y/yes/off/f/false/n/no`
+        );
         continueProcessing = false;
         process.exitCode = 1;
         return false;
@@ -69,7 +73,7 @@ const checkBooleanArg = arg => {
 };
 
 const parseVariableOption = (option, variables) => {
-    const parts = option.split('=', 2);
+    const parts = option.split("=", 2);
     variables[parts[0]] = parts[1];
 };
 
@@ -81,13 +85,12 @@ function printUsage() {
     continueProcessing = false;
 }
 function render() {
-
     if (!continueProcessing) {
         return;
     }
 
     let input = args[1];
-    if (input && input != '-') {
+    if (input && input != "-") {
         input = path.resolve(process.cwd(), input);
     }
     let output = args[2];
@@ -97,52 +100,76 @@ function render() {
     }
 
     if (options.sourceMap) {
-
         sourceMapOptions.sourceMapInputFilename = input;
         if (!sourceMapOptions.sourceMapFullFilename) {
             if (!output && !sourceMapFileInline) {
-                console.error('the sourcemap option only has an optional filename if the css filename is given');
-                console.error('consider adding --source-map-map-inline which embeds the sourcemap into the css');
+                console.error(
+                    "the sourcemap option only has an optional filename if the css filename is given"
+                );
+                console.error(
+                    "consider adding --source-map-map-inline which embeds the sourcemap into the css"
+                );
                 process.exitCode = 1;
                 return;
             }
             // its in the same directory, so always just the basename
             if (output) {
-                sourceMapOptions.sourceMapOutputFilename = path.basename(output);
+                sourceMapOptions.sourceMapOutputFilename = path.basename(
+                    output
+                );
                 sourceMapOptions.sourceMapFullFilename = `${output}.map`;
             }
             // its in the same directory, so always just the basename
-            if ('sourceMapFullFilename' in sourceMapOptions) {
-                sourceMapOptions.sourceMapFilename = path.basename(sourceMapOptions.sourceMapFullFilename);
+            if ("sourceMapFullFilename" in sourceMapOptions) {
+                sourceMapOptions.sourceMapFilename = path.basename(
+                    sourceMapOptions.sourceMapFullFilename
+                );
             }
         } else if (options.sourceMap && !sourceMapFileInline) {
-            const mapFilename = path.resolve(process.cwd(), sourceMapOptions.sourceMapFullFilename);
+            const mapFilename = path.resolve(
+                process.cwd(),
+                sourceMapOptions.sourceMapFullFilename
+            );
             const mapDir = path.dirname(mapFilename);
             const outputDir = path.dirname(output);
             // find the path from the map to the output file
             sourceMapOptions.sourceMapOutputFilename = path.join(
-                path.relative(mapDir, outputDir), path.basename(output));
+                path.relative(mapDir, outputDir),
+                path.basename(output)
+            );
 
             // make the sourcemap filename point to the sourcemap relative to the css file output directory
             sourceMapOptions.sourceMapFilename = path.join(
-                path.relative(outputDir, mapDir), path.basename(sourceMapOptions.sourceMapFullFilename));
+                path.relative(outputDir, mapDir),
+                path.basename(sourceMapOptions.sourceMapFullFilename)
+            );
         }
     }
 
     if (sourceMapOptions.sourceMapBasepath === undefined) {
-        sourceMapOptions.sourceMapBasepath = input ? path.dirname(input) : process.cwd();
+        sourceMapOptions.sourceMapBasepath = input
+            ? path.dirname(input)
+            : process.cwd();
     }
 
     if (sourceMapOptions.sourceMapRootpath === undefined) {
-        const pathToMap = path.dirname((sourceMapFileInline ? output : sourceMapOptions.sourceMapFullFilename) || '.');
-        const pathToInput = path.dirname(sourceMapOptions.sourceMapInputFilename || '.');
-        sourceMapOptions.sourceMapRootpath = path.relative(pathToMap, pathToInput);
+        const pathToMap = path.dirname(
+            (sourceMapFileInline
+                ? output
+                : sourceMapOptions.sourceMapFullFilename) || "."
+        );
+        const pathToInput = path.dirname(
+            sourceMapOptions.sourceMapInputFilename || "."
+        );
+        sourceMapOptions.sourceMapRootpath = path.relative(
+            pathToMap,
+            pathToInput
+        );
     }
 
-
     if (!input) {
-        console.error('lessc: no input files');
-        console.error('');
+        console.error("lessc: no input files");
+        console.error("");
         printUsage();
         process.exitCode = 1;
         return;
@@ -154,17 +181,22 @@ function render() {
         const existsSync = fs.existsSync || path.existsSync;
         if (!existsSync(dir)) {
             if (mkdirp === undefined) {
-                try {mkdirp = require('mkdirp');}
-                catch (e) { mkdirp = null; }
+                try {
+                    mkdirp = require("mkdirp");
+                } catch (e) {
+                    mkdirp = null;
+                }
             }
-            cmd = mkdirp && mkdirp.sync || fs.mkdirSync;
+            cmd = (mkdirp && mkdirp.sync) || fs.mkdirSync;
             cmd(dir);
         }
     };
 
     if (options.depends) {
         if (!outputbase) {
-            console.error('option --depends requires an output path to be specified');
+            console.error(
+                "option --depends requires an output path to be specified"
+            );
             process.exitCode = 1;
             return;
         }
@@ -172,12 +204,12 @@ function render() {
     }
 
     if (!sourceMapFileInline) {
-        var writeSourceMap = (output = '', onDone) => {
+        var writeSourceMap = (output = "", onDone) => {
             const filename = sourceMapOptions.sourceMapFullFilename;
             ensureDirectory(filename);
-            fs.writeFile(filename, output, 'utf8', err => {
+            fs.writeFile(filename, output, "utf8", err => {
                 if (err) {
-                    let description = 'Error: ';
+                    let description = "Error: ";
                     if (errno && errno.errno[err.errno]) {
                         description += errno.errno[err.errno].description;
                     } else {
@@ -207,9 +239,9 @@ function render() {
             onSuccess();
         } else if (output) {
             ensureDirectory(output);
-            fs.writeFile(output, result.css, {encoding: 'utf8'}, err => {
+            fs.writeFile(output, result.css, { encoding: "utf8" }, err => {
                 if (err) {
-                    let description = 'Error: ';
+                    let description = "Error: ";
                     if (errno && errno.errno[err.errno]) {
                         description += errno.errno[err.errno].description;
                     } else {
@@ -231,7 +263,7 @@ function render() {
 
     const logDependencies = (options, result) => {
         if (options.depends) {
-            let depends = '';
+            let depends = "";
             for (let i = 0; i < result.imports.length; i++) {
                 depends += `${result.imports[i]} `;
             }
@@ -246,7 +278,7 @@ function render() {
             return;
         }
 
-        data = data.replace(/^\uFEFF/, '');
+        data = data.replace(/^\uFEFF/, "");
 
         options.paths = [path.dirname(input)].concat(options.paths);
         options.filename = input;
@@ -277,8 +309,8 @@ function render() {
             }
         });
 
-        less.render(data, options)
-            .then(result => {
+        less.render(data, options).then(
+            result => {
                 if (!options.lint) {
                     writeOutput(output, result, () => {
                         writeSourceMapIfNeeded(result.map, () => {
@@ -289,26 +321,29 @@ function render() {
             },
             err => {
                 if (!options.silent) {
-                    console.error(err.toString({
-                        stylize: options.color && less.lesscHelper.stylize
-                    }));
+                    console.error(
+                        err.toString({
+                            stylize: options.color && less.lesscHelper.stylize
+                        })
+                    );
                 }
                 process.exitCode = 1;
-            });
+            }
+        );
     };
 
-    if (input != '-') {
-        fs.readFile(input, 'utf8', parseLessFile);
+    if (input != "-") {
+        fs.readFile(input, "utf8", parseLessFile);
     } else {
         process.stdin.resume();
-        process.stdin.setEncoding('utf8');
+        process.stdin.setEncoding("utf8");
 
-        let buffer = '';
-        process.stdin.on('data', data => {
+        let buffer = "";
+        process.stdin.on("data", data => {
             buffer += data;
         });
 
-        process.stdin.on('end', () => {
+        process.stdin.on("end", () => {
             parseLessFile(false, buffer);
         });
     }
@@ -318,7 +353,9 @@ function processPluginQueue() {
     let x = 0;
 
     function pluginError(name) {
-        console.error(`Unable to load plugin ${name} please make sure that it is installed under or at the same level as less`);
+        console.error(
+            `Unable to load plugin ${name} please make sure that it is installed under or at the same level as less`
+        );
         process.exitCode = 1;
     }
     function pluginFinished(plugin) {
@@ -330,7 +367,13 @@ function processPluginQueue() {
     }
     queuePlugins.forEach(queue => {
         const context = utils.clone(options);
-        pluginManager.Loader.loadPlugin(queue.name, process.cwd(), context, less.environment, fileManager)
+        pluginManager.Loader.loadPlugin(
+            queue.name,
+            process.cwd(),
+            context,
+            less.environment,
+            fileManager
+        )
             .then(data => {
                 pluginFinished({
                     fileContent: data.contents,
@@ -363,41 +406,45 @@ function processPluginQueue() {
         }
 
         switch (arg) {
-            case 'v':
-            case 'version':
-                console.log(`lessc ${less.version.join('.')} (Less Compiler) [JavaScript]`);
+            case "v":
+            case "version":
+                console.log(
+                    `lessc ${less.version.join(
+                        "."
+                    )} (Less Compiler) [JavaScript]`
+                );
                 continueProcessing = false;
                 break;
-            case 'verbose':
+            case "verbose":
                 verbose = true;
                 break;
-            case 's':
-            case 'silent':
+            case "s":
+            case "silent":
                 silent = true;
                 break;
-            case 'l':
-            case 'lint':
+            case "l":
+            case "lint":
                 options.lint = true;
                 break;
-            case 'strict-imports':
+            case "strict-imports":
                 options.strictImports = true;
                 break;
-            case 'h':
-            case 'help':
+            case "h":
+            case "help":
                 printUsage();
                 break;
-            case 'x':
-            case 'compress':
+            case "x":
+            case "compress":
                 options.compress = true;
                 break;
-            case 'insecure':
+            case "insecure":
                 options.insecure = true;
                 break;
-            case 'M':
-            case 'depends':
+            case "M":
+            case "depends":
                 options.depends = true;
                 break;
-            case 'max-line-len':
+            case "max-line-len":
                 if (checkArgFunc(arg, match[2])) {
                     options.maxLineLen = parseInt(match[2], 10);
                     if (options.maxLineLen <= 0) {
@@ -405,22 +452,24 @@ function processPluginQueue() {
                     }
                 }
                 break;
-            case 'no-color':
+            case "no-color":
                 options.color = false;
                 break;
-            case 'js':
+            case "js":
                 options.javascriptEnabled = true;
                 break;
-            case 'no-js':
-                console.error('The "--no-js" argument is deprecated, as inline JavaScript ' +
-                    'is disabled by default. Use "--js" to enable inline JavaScript (not recommended).');
+            case "no-js":
+                console.error(
+                    'The "--no-js" argument is deprecated, as inline JavaScript ' +
+                        'is disabled by default. Use "--js" to enable inline JavaScript (not recommended).'
+                );
                 break;
-            case 'include-path':
+            case "include-path":
                 if (checkArgFunc(arg, match[2])) {
                     // ; supported on windows.
                     // : supported on windows and linux, excluding a drive letter like C:\ so C:\file:D:\file parses to 2
                     options.paths = match[2]
-                        .split(os.type().match(/Windows/) ? /:(?!\\)|;/ : ':')
+                        .split(os.type().match(/Windows/) ? /:(?!\\)|;/ : ":")
                         .map(p => {
                             if (p) {
                                 return path.resolve(process.cwd(), p);
@@ -428,60 +477,62 @@ function processPluginQueue() {
                         });
                 }
                 break;
-            case 'line-numbers':
+            case "line-numbers":
                 if (checkArgFunc(arg, match[2])) {
                     options.dumpLineNumbers = match[2];
                 }
                 break;
-            case 'source-map':
+            case "source-map":
                 options.sourceMap = true;
                 if (match[2]) {
                     sourceMapOptions.sourceMapFullFilename = match[2];
                 }
                 break;
-            case 'source-map-rootpath':
+            case "source-map-rootpath":
                 if (checkArgFunc(arg, match[2])) {
                     sourceMapOptions.sourceMapRootpath = match[2];
                 }
                 break;
-            case 'source-map-basepath':
+            case "source-map-basepath":
                 if (checkArgFunc(arg, match[2])) {
                     sourceMapOptions.sourceMapBasepath = match[2];
                 }
                 break;
-            case 'source-map-inline':
-            case 'source-map-map-inline':
+            case "source-map-inline":
+            case "source-map-map-inline":
                 sourceMapFileInline = true;
                 options.sourceMap = true;
                 break;
-            case 'source-map-include-source':
-            case 'source-map-less-inline':
+            case "source-map-include-source":
+            case "source-map-less-inline":
                 sourceMapOptions.outputSourceFiles = true;
                 break;
-            case 'source-map-url':
+            case "source-map-url":
                 if (checkArgFunc(arg, match[2])) {
                     sourceMapOptions.sourceMapURL = match[2];
                 }
                 break;
-            case 'rp':
-            case 'rootpath':
+            case "rp":
+            case "rootpath":
                 if (checkArgFunc(arg, match[2])) {
-                    options.rootpath = match[2].replace(/\\/g, '/');
+                    options.rootpath = match[2].replace(/\\/g, "/");
                 }
                 break;
-            case 'relative-urls':
-                console.warn('The --relative-urls option has been deprecated. Use --rewrite-urls=all.');
+            case "relative-urls":
+                console.warn(
+                    "The --relative-urls option has been deprecated. Use --rewrite-urls=all."
+                );
                 options.rewriteUrls = Constants.RewriteUrls.ALL;
                 break;
-            case 'ru':
-            case 'rewrite-urls':
+            case "ru":
+            case "rewrite-urls":
                 const m = match[2];
                 if (m) {
-                    if (m === 'local') {
+                    if (m === "local") {
                         options.rewriteUrls = Constants.RewriteUrls.LOCAL;
-                    } else if (m === 'off') {
+                    } else if (m === "off") {
                         options.rewriteUrls = Constants.RewriteUrls.OFF;
-                    } else if (m === 'all') {
+                    } else if (m === "all") {
                         options.rewriteUrls = Constants.RewriteUrls.ALL;
                     } else {
                         console.error(`Unknown rewrite-urls argument ${m}`);
@@ -492,28 +543,30 @@ function processPluginQueue() {
                     options.rewriteUrls = Constants.RewriteUrls.ALL;
                 }
                 break;
-            case 'sm':
-            case 'strict-math':
-                console.warn('The --strict-math option has been deprecated. Use --math=strict.');
+            case "sm":
+            case "strict-math":
+                console.warn(
+                    "The --strict-math option has been deprecated. Use --math=strict."
+                );
                 if (checkArgFunc(arg, match[2])) {
                     if (checkBooleanArg(match[2])) {
                         options.math = Constants.Math.STRICT_LEGACY;
                     }
                 }
                 break;
-            case 'm':
-            case 'math':
+            case "m":
+            case "math":
                 if (checkArgFunc(arg, match[2])) {
                     options.math = match[2];
                 }
                 break;
-            case 'su':
-            case 'strict-units':
+            case "su":
+            case "strict-units":
                 if (checkArgFunc(arg, match[2])) {
                     options.strictUnits = checkBooleanArg(match[2]);
                 }
                 break;
-            case 'global-var':
+            case "global-var":
                 if (checkArgFunc(arg, match[2])) {
                     if (!options.globalVars) {
                         options.globalVars = {};
@@ -521,7 +574,7 @@ function processPluginQueue() {
                     parseVariableOption(match[2], options.globalVars);
                 }
                 break;
-            case 'modify-var':
+            case "modify-var":
                 if (checkArgFunc(arg, match[2])) {
                     if (!options.modifyVars) {
                         options.modifyVars = {};
@@ -530,28 +583,30 @@ function processPluginQueue() {
                     parseVariableOption(match[2], options.modifyVars);
                 }
                 break;
-            case 'url-args':
+            case "url-args":
                 if (checkArgFunc(arg, match[2])) {
                     options.urlArgs = match[2];
                 }
                 break;
-            case 'plugin':
+            case "plugin":
                 const splitupArg = match[2].match(/^([^=]+)(=(.*))?/);
                 const name = splitupArg[1];
                 const pluginOptions = splitupArg[3];
                 queuePlugins.push({ name, options: pluginOptions });
                 break;
             default:
-                queuePlugins.push({ name: arg, options: match[2], default: true });
+                queuePlugins.push({
+                    name: arg,
+                    options: match[2],
+                    default: true
+                });
                 break;
         }
     });
 
     if (queuePlugins.length > 0) {
         processPluginQueue();
-    }
-    else {
+    } else {
         render();
     }
-
 })();

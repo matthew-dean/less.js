@@ -1,26 +1,25 @@
 {
-  "name": "@less/css-parser",
-  "version": "4.0.0-dev.1",
-  "description": "",
-  "main": "dist/index",
-  "types": "dist/index",
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "ci": "npm-run-all build test",
-    "prepublishOnly": "npm run build",
-    "build": "npm-run-all clean compile",
-    "clean": "shx rm -rf ./dist",
-    "compile": "tsc -p tsconfig.build.json",
-    "test": "ts-mocha test/**/*.ts"
-  },
-  "author": "Matthew Dean",
-  "license": "(Apache-2.0 or MIT)",
-  "dependencies": {
-    "chevrotain": "6.5.0",
-    "xregexp": "^4.2.4"
-  },
-  "devDependencies": {
-  }
+    "name": "@less/css-parser",
+    "version": "4.0.0-dev.1",
+    "description": "",
+    "main": "dist/index",
+    "types": "dist/index",
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "ci": "npm-run-all build test",
+        "prepublishOnly": "npm run build",
+        "build": "npm-run-all clean compile",
+        "clean": "shx rm -rf ./dist",
+        "compile": "tsc -p tsconfig.build.json",
+        "test": "ts-mocha test/**/*.ts"
+    },
+    "author": "Matthew Dean",
+    "license": "(Apache-2.0 or MIT)",
+    "dependencies": {
+        "chevrotain": "6.5.0",
+        "xregexp": "^4.2.4"
+    },
+    "devDependencies": {}
 }

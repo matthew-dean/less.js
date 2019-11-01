@@ -90,17 +90,17 @@ module.exports = function(grunt) {
                 urls:
                     testName === "all"
                         ? browserTests.map(function(name) {
-                            return (
-                                "http://localhost:8081/tmp/browser/test-runner-" +
+                              return (
+                                  "http://localhost:8081/tmp/browser/test-runner-" +
                                   name +
                                   ".html"
-                            );
-                        })
+                              );
+                          })
                         : [
-                            "http://localhost:8081/tmp/browser/test-runner-" +
+                              "http://localhost:8081/tmp/browser/test-runner-" +
                                   testName +
                                   ".html"
-                        ],
+                          ],
                 testname:
                     testName === "all" ? "Unit Tests for Less.js" : testName,
                 browsers: browsers,
@@ -178,15 +178,17 @@ module.exports = function(grunt) {
     // Make the SauceLabs jobs
     ["all"].concat(browserTests).map(makeJob);
 
-    var semver = require('semver');
-    var path = require('path');
+    var semver = require("semver");
+    var path = require("path");
 
     // Handle async / await in Rollup build for tests
     // Remove this when Node 6 is no longer supported for the build/test process
     const nodeVersion = semver.major(process.versions.node);
-    let scriptRuntime = 'node';
+    let scriptRuntime = "node";
     if (nodeVersion < 8) {
-        scriptRuntime = path.resolve(path.join('node_modules', '.bin', 'babel-node')) + ' --presets=@babel/env';
+        scriptRuntime =
+            path.resolve(path.join("node_modules", ".bin", "babel-node")) +
+            " --presets=@babel/env";
     }
 
     // Project configuration.
@@ -204,16 +206,23 @@ module.exports = function(grunt) {
             },
             testbuild: {
                 command: [
-                    scriptRuntime + " build/rollup.js --lessc --out=./tmp/lessc",
-                    scriptRuntime + " build/rollup.js --node --out=./tmp/less.cjs.js",
-                    scriptRuntime + " build/rollup.js --browser --out=./test/browser/less.min.js"
+                    scriptRuntime +
+                        " build/rollup.js --lessc --out=./tmp/lessc",
+                    scriptRuntime +
+                        " build/rollup.js --node --out=./tmp/less.cjs.js",
+                    scriptRuntime +
+                        " build/rollup.js --browser --out=./test/browser/less.min.js"
                 ].join(" && ")
             },
             testcjs: {
-                command: scriptRuntime + " build/rollup.js --node --out=./tmp/less.cjs.js"
+                command:
+                    scriptRuntime +
+                    " build/rollup.js --node --out=./tmp/less.cjs.js"
             },
             testbrowser: {
-                command: scriptRuntime + " build/rollup.js --browser --out=./test/browser/less.min.js"
+                command:
+                    scriptRuntime +
+                    " build/rollup.js --browser --out=./test/browser/less.min.js"
             },
             test: {
                 command: "node test/index.js"
@@ -493,14 +502,10 @@ module.exports = function(grunt) {
     grunt.registerTask("default", ["test"]);
 
     // Release
-    grunt.registerTask("dist", [
-        "shell:build"
-    ]);
+    grunt.registerTask("dist", ["shell:build"]);
 
     // Create the browser version of less.js
-    grunt.registerTask("browsertest-lessjs", [
-        "shell:testbrowser"
-    ]);
+    grunt.registerTask("browsertest-lessjs", ["shell:testbrowser"]);
 
     // Run all browser tests
     grunt.registerTask("browsertest", [
@@ -572,10 +577,7 @@ module.exports = function(grunt) {
     grunt.registerTask("shell-plugin", ["shell:plugin"]);
 
     // Quickly build and run Node tests
-    grunt.registerTask("quicktest", [
-        "shell:testcjs",
-        "shell:test"
-    ]);
+    grunt.registerTask("quicktest", ["shell:testcjs", "shell:test"]);
 
     // generate a good test environment for testing sourcemaps
     grunt.registerTask("sourcemap-test", [
@@ -586,8 +588,5 @@ module.exports = function(grunt) {
     ]);
 
     // Run benchmark
-    grunt.registerTask("benchmark", [
-        "shell:testcjs",
-        "shell:benchmark"
-    ]);
+    grunt.registerTask("benchmark", ["shell:testcjs", "shell:benchmark"]);
 };

@@ -2,9 +2,12 @@
 
 export default (window, options, logger) => {
     let cache = null;
-    if (options.env !== 'development') {
+    if (options.env !== "development") {
         try {
-            cache = (typeof window.localStorage === 'undefined') ? null : window.localStorage;
+            cache =
+                typeof window.localStorage === "undefined"
+                    ? null
+                    : window.localStorage;
         } catch (_) {}
     }
     return {
@@ -15,26 +18,34 @@ export default (window, options, logger) => {
                     cache.setItem(path, styles);
                     cache.setItem(`${path}:timestamp`, lastModified);
                     if (modifyVars) {
-                        cache.setItem(`${path}:vars`, JSON.stringify(modifyVars));
+                        cache.setItem(
+                            `${path}:vars`,
+                            JSON.stringify(modifyVars)
+                        );
                     }
                 } catch (e) {
                     // TODO - could do with adding more robust error handling
-                    logger.error(`failed to save "${path}" to local storage for caching.`);
+                    logger.error(
+                        `failed to save "${path}" to local storage for caching.`
+                    );
                 }
             }
         },
         getCSS: function(path, webInfo, modifyVars) {
-            const css       = cache && cache.getItem(path);
+            const css = cache && cache.getItem(path);
             const timestamp = cache && cache.getItem(`${path}:timestamp`);
-            let vars      = cache && cache.getItem(`${path}:vars`);
+            let vars = cache && cache.getItem(`${path}:vars`);
 
             modifyVars = modifyVars || {};
             vars = vars || "{}"; // if not set, treat as the JSON representation of an empty object
 
-            if (timestamp && webInfo.lastModified &&
-                (new Date(webInfo.lastModified).valueOf() ===
-                    new Date(timestamp).valueOf()) &&
-                JSON.stringify(modifyVars) === vars) {
+            if (
+                timestamp &&
+                webInfo.lastModified &&
+                new Date(webInfo.lastModified).valueOf() ===
+                    new Date(timestamp).valueOf() &&
+                JSON.stringify(modifyVars) === vars
+            ) {
                 // Use local copy
                 return css;
             }

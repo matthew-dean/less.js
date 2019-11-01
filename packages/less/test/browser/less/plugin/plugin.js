@@ -1,4 +1,3 @@
-
-functions.add('func', function() {
+functions.add("func", function() {
     return less.anonymous(location.href);
 });

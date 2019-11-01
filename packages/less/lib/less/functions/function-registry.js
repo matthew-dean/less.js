@@ -1,4 +1,4 @@
-function makeRegistry( base ) {
+function makeRegistry(base) {
     return {
         _data: {},
         add: function(name, func) {
@@ -12,19 +12,18 @@ function makeRegistry( base ) {
             this._data[name] = func;
         },
         addMultiple: function(functions) {
-            Object.keys(functions).forEach(
-                name => {
-                    this.add(name, functions[name]);
-                });
+            Object.keys(functions).forEach(name => {
+                this.add(name, functions[name]);
+            });
         },
         get: function(name) {
-            return this._data[name] || ( base && base.get( name ));
+            return this._data[name] || (base && base.get(name));
         },
         getLocalFunctions: function() {
             return this._data;
         },
         inherit: function() {
-            return makeRegistry( this );
+            return makeRegistry(this);
         },
         create: function(base) {
             return makeRegistry(base);
@@ -32,4 +31,4 @@ function makeRegistry( base ) {
     };
 }
 
-export default makeRegistry( null );
+export default makeRegistry(null);

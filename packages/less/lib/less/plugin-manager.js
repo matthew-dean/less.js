@@ -37,7 +37,11 @@ class PluginManager {
             this.pluginCache[filename] = plugin;
         }
         if (plugin.install) {
-            plugin.install(this.less, this, functionRegistry || this.less.functions.functionRegistry);
+            plugin.install(
+                this.less,
+                this,
+                functionRegistry || this.less.functions.functionRegistry
+            );
         }
     }
 
@@ -65,12 +69,19 @@ class PluginManager {
      */
     addPreProcessor(preProcessor, priority) {
         let indexToInsertAt;
-        for (indexToInsertAt = 0; indexToInsertAt < this.preProcessors.length; indexToInsertAt++) {
+        for (
+            indexToInsertAt = 0;
+            indexToInsertAt < this.preProcessors.length;
+            indexToInsertAt++
+        ) {
             if (this.preProcessors[indexToInsertAt].priority >= priority) {
                 break;
             }
         }
-        this.preProcessors.splice(indexToInsertAt, 0, {preProcessor, priority});
+        this.preProcessors.splice(indexToInsertAt, 0, {
+            preProcessor,
+            priority
+        });
     }
 
     /**
@@ -80,12 +91,19 @@ class PluginManager {
      */
     addPostProcessor(postProcessor, priority) {
         let indexToInsertAt;
-        for (indexToInsertAt = 0; indexToInsertAt < this.postProcessors.length; indexToInsertAt++) {
+        for (
+            indexToInsertAt = 0;
+            indexToInsertAt < this.postProcessors.length;
+            indexToInsertAt++
+        ) {
             if (this.postProcessors[indexToInsertAt].priority >= priority) {
                 break;
             }
         }
-        this.postProcessors.splice(indexToInsertAt, 0, {postProcessor, priority});
+        this.postProcessors.splice(indexToInsertAt, 0, {
+            postProcessor,
+            priority
+        });
     }
 
     /**
@@ -162,7 +180,7 @@ function PluginManagerFactory(less, newFactory) {
         pm = new PluginManager(less);
     }
     return pm;
-};
+}
 
 //
 export default PluginManagerFactory;

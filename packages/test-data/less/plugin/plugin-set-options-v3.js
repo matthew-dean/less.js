@@ -1,17 +1,11 @@
-var optionsStack = [
-    'option1',
-    undefined,
-    'option2',
-    undefined,
-    'option3'
-];
+var optionsStack = ["option1", undefined, "option2", undefined, "option3"];
 
 var options, error;
 
 registerPlugin({
     install: function(less, pluginManager, functions) {
         if (options) {
-            error = 'setOptions() called before install';
+            error = "setOptions() called before install";
         }
     },
     use: function() {
@@ -27,5 +21,5 @@ registerPlugin({
     setOptions: function(opts) {
         options = opts;
     },
-    minVersion: [3,0,0]
+    minVersion: [3, 0, 0]
 });

@@ -1,3 +1,2 @@
-var less = {logLevel: 4,
-    errorReporting: 'console'};
+var less = { logLevel: 4, errorReporting: "console" };
 less.relativeUrls = true;

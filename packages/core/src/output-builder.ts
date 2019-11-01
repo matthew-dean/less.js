@@ -1,5 +1,5 @@
-import { CstNodeLocation } from 'chevrotain'
+import { CstNodeLocation } from "chevrotain";
 
 export interface IOutputBuilder {
-  add(chunk: string, location: CstNodeLocation): void
+    add(chunk: string, location: CstNodeLocation): void;
 }

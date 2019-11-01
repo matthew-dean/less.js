@@ -1,18 +1,16 @@
 let PromiseConstructor;
-import contexts from './contexts';
-import Parser from './parser/parser';
-import PluginManager from './plugin-manager';
-import LessError from './less-error';
-import * as utils from './utils';
+import contexts from "./contexts";
+import Parser from "./parser/parser";
+import PluginManager from "./plugin-manager";
+import LessError from "./less-error";
+import * as utils from "./utils";
 
 export default (environment, ParseTree, ImportManager) => {
-    const parse = function (input, options, callback) {
-
-        if (typeof options === 'function') {
+    const parse = function(input, options, callback) {
+        if (typeof options === "function") {
             callback = options;
             options = utils.copyOptions(this.options, {});
-        }
-        else {
+        } else {
             options = utils.copyOptions(this.options, options || {});
         }
 
@@ -30,7 +28,10 @@ export default (environment, ParseTree, ImportManager) => {
         } else {
             let context;
             let rootFileInfo;
-            const pluginManager = new PluginManager(this, !options.reUsePluginManager);
+            const pluginManager = new PluginManager(
+                this,
+                !options.reUsePluginManager
+            );
 
             options.pluginManager = pluginManager;
 
@@ -39,19 +40,22 @@ export default (environment, ParseTree, ImportManager) => {
             if (options.rootFileInfo) {
                 rootFileInfo = options.rootFileInfo;
             } else {
-                const filename = options.filename || 'input';
-                const entryPath = filename.replace(/[^\/\\]*$/, '');
+                const filename = options.filename || "input";
+                const entryPath = filename.replace(/[^\/\\]*$/, "");
                 rootFileInfo = {
                     filename,
                     rewriteUrls: context.rewriteUrls,
-                    rootpath: context.rootpath || '',
+                    rootpath: context.rootpath || "",
                     currentDirectory: entryPath,
                     entryPath,
                     rootFilename: filename
                 };
                 // add in a missing trailing slash
-                if (rootFileInfo.rootpath && rootFileInfo.rootpath.slice(-1) !== '/') {
-                    rootFileInfo.rootpath += '/';
+                if (
+                    rootFileInfo.rootpath &&
+                    rootFileInfo.rootpath.slice(-1) !== "/"
+                ) {
+                    rootFileInfo.rootpath += "/";
                 }
             }
 
@@ -66,23 +70,33 @@ export default (environment, ParseTree, ImportManager) => {
                     let evalResult;
                     let contents;
                     if (plugin.fileContent) {
-                        contents = plugin.fileContent.replace(/^\uFEFF/, '');
-                        evalResult = pluginManager.Loader.evalPlugin(contents, context, imports, plugin.options, plugin.filename);
+                        contents = plugin.fileContent.replace(/^\uFEFF/, "");
+                        evalResult = pluginManager.Loader.evalPlugin(
+                            contents,
+                            context,
+                            imports,
+                            plugin.options,
+                            plugin.filename
+                        );
                         if (evalResult instanceof LessError) {
                             return callback(evalResult);
                         }
-                    }
-                    else {
+                    } else {
                         pluginManager.addPlugin(plugin);
                     }
                 });
             }
 
-            new Parser(context, imports, rootFileInfo)
-                .parse(input, (e, root) => {
-                    if (e) { return callback(e); }
+            new Parser(context, imports, rootFileInfo).parse(
+                input,
+                (e, root) => {
+                    if (e) {
+                        return callback(e);
+                    }
                     callback(null, root, imports, options);
-                }, options);
+                },
+                options
+            );
         }
     };
     return parse;

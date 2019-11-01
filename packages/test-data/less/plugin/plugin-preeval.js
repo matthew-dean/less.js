@@ -1,5 +1,11 @@
 module.exports = {
-    install({ tree: { Quoted }, visitors }, manager) {
+    install(
+        {
+            tree: { Quoted },
+            visitors
+        },
+        manager
+    ) {
         class Visitor {
             constructor() {
                 this.native = new visitors.Visitor(this);
@@ -13,8 +19,8 @@ module.exports = {
             }
 
             visitVariable(node) {
-                if (node.name === '@replace') {
-                    return new Quoted(`'`, 'bar', true);
+                if (node.name === "@replace") {
+                    return new Quoted(`'`, "bar", true);
                 }
                 return node;
             }
@@ -23,5 +29,5 @@ module.exports = {
         manager.addVisitor(new Visitor());
         // console.log(manager);
     },
-    minVersion: [2,0,0]
+    minVersion: [2, 0, 0]
 };

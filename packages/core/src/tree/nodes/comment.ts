@@ -1,9 +1,9 @@
-import { Node } from '.'
+import { Node } from ".";
 
 export class Comment extends Node {
-  text: string
-  options: {
-    isLineComment: boolean
-  }
+    text: string;
+    options: {
+        isLineComment: boolean;
+    };
 }
-Comment.prototype.type = 'Comment'
+Comment.prototype.type = "Comment";

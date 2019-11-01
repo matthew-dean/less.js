@@ -1,5 +1,5 @@
-import path from 'path';
-import AbstractPluginLoader from '../less/environment/abstract-plugin-loader.js';
+import path from "path";
+import AbstractPluginLoader from "../less/environment/abstract-plugin-loader.js";
 
 /**
  * Node Plugin Loader
@@ -13,10 +13,9 @@ class PluginLoader extends AbstractPluginLoader {
             prefix = path.dirname(prefix);
             return id => {
                 const str = id.substr(0, 2);
-                if (str === '..' || str === './') {
+                if (str === ".." || str === "./") {
                     return require(path.join(prefix, id));
-                }
-                else {
+                } else {
                     return require(id);
                 }
             };
@@ -25,29 +24,30 @@ class PluginLoader extends AbstractPluginLoader {
 
     loadPlugin(filename, basePath, context, environment, fileManager) {
         const prefix = filename.slice(0, 1);
-        const explicit = prefix === '.' || prefix === '/' || filename.slice(-3).toLowerCase() === '.js';
+        const explicit =
+            prefix === "." ||
+            prefix === "/" ||
+            filename.slice(-3).toLowerCase() === ".js";
         if (!explicit) {
-            context.prefixes = ['less-plugin-', ''];
+            context.prefixes = ["less-plugin-", ""];
         }
 
         return new Promise((fulfill, reject) => {
-            fileManager.loadFile(filename, basePath, context, environment).then(
-                data => {
+            fileManager
+                .loadFile(filename, basePath, context, environment)
+                .then(data => {
                     try {
                         fulfill(data);
-                    }
-                    catch (e) {
+                    } catch (e) {
                         console.log(e);
                         reject(e);
                     }
-                }
-            ).catch(err => {
-                reject(err);
-            });
+                })
+                .catch(err => {
+                    reject(err);
+                });
         });
-
     }
 }
 
 export default PluginLoader;
-

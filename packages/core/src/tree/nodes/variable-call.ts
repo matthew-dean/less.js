@@ -1,11 +1,6 @@
-import {
-  Node,
-  Variable,
-  Rules,
-  DetachedRules
-} from '.'
+import { Node, Variable, Rules, DetachedRules } from ".";
 
-import LessError from '../less-error';
+import LessError from "../less-error";
 
 export class VariableCall extends Node {
     constructor(variable, index, currentFileInfo) {
@@ -19,20 +14,23 @@ export class VariableCall extends Node {
 
     eval(context) {
         let rules;
-        let detachedRules = new Variable(this.variable, this.getIndex(), this.fileInfo()).eval(context);
-        const error = new LessError({message: `Could not evaluate variable call ${this.variable}`});
+        let detachedRules = new Variable(
+            this.variable,
+            this.getIndex(),
+            this.fileInfo()
+        ).eval(context);
+        const error = new LessError({
+            message: `Could not evaluate variable call ${this.variable}`
+        });
 
         if (!detachedRules.rules) {
             if (detachedRules.rules) {
                 rules = detachedRules;
-            }
-            else if (Array.isArray(detachedRules)) {
-                rules = new Rules('', detachedRules);
-            }
-            else if (Array.isArray(detachedRules.value)) {
-                rules = new Rules('', detachedRules.value);
-            }
-            else {
+            } else if (Array.isArray(detachedRules)) {
+                rules = new Rules("", detachedRules);
+            } else if (Array.isArray(detachedRules.value)) {
+                rules = new Rules("", detachedRules.value);
+            } else {
                 throw error;
             }
             detachedRules = new DetachedRules(rules);
@@ -45,4 +43,4 @@ export class VariableCall extends Node {
     }
 }
 
-VariableCall.prototype.type = 'VariableCall'
+VariableCall.prototype.type = "VariableCall";

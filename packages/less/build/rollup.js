@@ -1,38 +1,43 @@
-const rollup = require('rollup');
-const babel = require('rollup-plugin-babel');
-const resolve = require('rollup-plugin-node-resolve');
-const commonjs = require('rollup-plugin-commonjs');
-const terser = require('rollup-plugin-terser').terser;
-const banner = require('./banner');
-const path = require('path');
+const rollup = require("rollup");
+const babel = require("rollup-plugin-babel");
+const resolve = require("rollup-plugin-node-resolve");
+const commonjs = require("rollup-plugin-commonjs");
+const terser = require("rollup-plugin-terser").terser;
+const banner = require("./banner");
+const path = require("path");
 
-const rootPath = path.join(__dirname, '..');
+const rootPath = path.join(__dirname, "..");
 
-const args = require('minimist')(process.argv.slice(2));
+const args = require("minimist")(process.argv.slice(2));
 
-let outDir = args.dist ? './dist' : './tmp';
+let outDir = args.dist ? "./dist" : "./tmp";
 
 async function buildBrowser() {
     let bundle = await rollup.rollup({
-        input: './lib/less-browser/bootstrap.js',
+        input: "./lib/less-browser/bootstrap.js",
         output: [
             {
-                file: 'less.js',
-                format: 'umd'
+                file: "less.js",
+                format: "umd"
             },
             {
-                file: 'less.min.js',
-                format: 'umd'
+                file: "less.min.js",
+                format: "umd"
             }
         ],
         plugins: [
             resolve(),
             commonjs(),
             babel({
-                exclude: 'node_modules/**', // only transpile our source code
-                presets: [["@babel/env", {
-                    targets: '> 0.25%, not dead'
-                }]]
+                exclude: "node_modules/**", // only transpile our source code
+                presets: [
+                    [
+                        "@babel/env",
+                        {
+                            targets: "> 0.25%, not dead"
+                        }
+                    ]
+                ]
             }),
             terser({
                 include: [/^.+\.min\.js$/],
@@ -48,24 +53,24 @@ async function buildBrowser() {
         ]
     });
 
-    if (!args.out || args.out.indexOf('less.js') > -1) {
+    if (!args.out || args.out.indexOf("less.js") > -1) {
         const file = args.out || `${outDir}/less.js`;
         console.log(`Writing ${file}...`);
         await bundle.write({
             file: path.join(rootPath, file),
-            format: 'umd',
-            name: 'less',
+            format: "umd",
+            name: "less",
             banner
-        }); 
+        });
     }
 
-    if (!args.out || args.out.indexOf('less.min.js') > -1) {
+    if (!args.out || args.out.indexOf("less.min.js") > -1) {
         const file = args.out || `${outDir}/less.min.js`;
         console.log(`Writing ${file}...`);
         await bundle.write({
             file: path.join(rootPath, file),
-            format: 'umd',
-            name: 'less',
+            format: "umd",
+            name: "less",
             sourcemap: true,
             banner
         });
@@ -74,61 +79,71 @@ async function buildBrowser() {
 
 async function buildNode() {
     let bundle = await rollup.rollup({
-        input: './lib/less-node/index.js',
+        input: "./lib/less-node/index.js",
         external(id) {
-            return /^[^.]/.test(id)
+            return /^[^.]/.test(id);
         },
         plugins: [
             resolve(),
             commonjs(),
             babel({
-                exclude: 'node_modules/**', // only transpile our source code
-                presets: [["@babel/env", {
-                    targets: {
-                        node: '4'
-                    }
-                }]]
+                exclude: "node_modules/**", // only transpile our source code
+                presets: [
+                    [
+                        "@babel/env",
+                        {
+                            targets: {
+                                node: "4"
+                            }
+                        }
+                    ]
+                ]
             })
         ]
     });
 
-    const file = args.out || './dist/less.cjs.js';
+    const file = args.out || "./dist/less.cjs.js";
     console.log(`Writing ${file}...`);
 
     await bundle.write({
         file: path.join(rootPath, file),
-        format: 'cjs',
+        format: "cjs",
         interop: false
     });
 }
 
 async function buildLessC() {
     let bundle = await rollup.rollup({
-        input: './lib/lessc.js',
+        input: "./lib/lessc.js",
         external(id) {
-            return /^[^.]/.test(id)
+            return /^[^.]/.test(id);
         },
         plugins: [
             resolve(),
             commonjs(),
             babel({
-                exclude: 'node_modules/**', // only transpile our source code
-                presets: [["@babel/env", {
-                    targets: {
-                        node: '4'
-                    }
-                }]]
+                exclude: "node_modules/**", // only transpile our source code
+                presets: [
+                    [
+                        "@babel/env",
+                        {
+                            targets: {
+                                node: "4"
+                            }
+                        }
+                    ]
+                ]
             })
         ]
     });
 
-    const file = args.out || './bin/lessc';
+    const file = args.out || "./bin/lessc";
     console.log(`Writing ${file}...`);
 
     await bundle.write({
         file: path.join(rootPath, file),
-        banner: '#!/usr/bin/env node\n// AUTO-GENERATED BY ROLLUP\n',
-        format: 'cjs',
+        banner: "#!/usr/bin/env node\n// AUTO-GENERATED BY ROLLUP\n",
+        format: "cjs",
         interop: false
     });
 }

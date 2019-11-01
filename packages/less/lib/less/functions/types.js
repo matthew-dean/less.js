@@ -1,57 +1,71 @@
-import Keyword from '../tree/keyword';
-import DetachedRuleset from '../tree/detached-ruleset';
-import Dimension from '../tree/dimension';
-import Color from '../tree/color';
-import Quoted from '../tree/quoted';
-import Anonymous from '../tree/anonymous';
-import URL from '../tree/url';
-import Operation from '../tree/operation';
+import Keyword from "../tree/keyword";
+import DetachedRuleset from "../tree/detached-ruleset";
+import Dimension from "../tree/dimension";
+import Color from "../tree/color";
+import Quoted from "../tree/quoted";
+import Anonymous from "../tree/anonymous";
+import URL from "../tree/url";
+import Operation from "../tree/operation";
 
-const isa = (n, Type) => (n instanceof Type) ? Keyword.True : Keyword.False;
+const isa = (n, Type) => (n instanceof Type ? Keyword.True : Keyword.False);
 const isunit = (n, unit) => {
     if (unit === undefined) {
-        throw { type: 'Argument', message: 'missing the required second argument to isunit.' };
+        throw {
+            type: "Argument",
+            message: "missing the required second argument to isunit."
+        };
     }
-    unit = typeof unit.value === 'string' ? unit.value : unit;
-    if (typeof unit !== 'string') {
-        throw { type: 'Argument', message: 'Second argument to isunit should be a unit or a string.' };
+    unit = typeof unit.value === "string" ? unit.value : unit;
+    if (typeof unit !== "string") {
+        throw {
+            type: "Argument",
+            message: "Second argument to isunit should be a unit or a string."
+        };
     }
-    return (n instanceof Dimension) && n.unit.is(unit) ? Keyword.True : Keyword.False;
+    return n instanceof Dimension && n.unit.is(unit)
+        ? Keyword.True
+        : Keyword.False;
 };
 
 export default {
-    isruleset: function (n) {
+    isruleset: function(n) {
         return isa(n, DetachedRuleset);
     },
-    iscolor: function (n) {
+    iscolor: function(n) {
         return isa(n, Color);
     },
-    isnumber: function (n) {
+    isnumber: function(n) {
         return isa(n, Dimension);
     },
-    isstring: function (n) {
+    isstring: function(n) {
         return isa(n, Quoted);
     },
-    iskeyword: function (n) {
+    iskeyword: function(n) {
         return isa(n, Keyword);
     },
-    isurl: function (n) {
+    isurl: function(n) {
         return isa(n, URL);
     },
-    ispixel: function (n) {
-        return isunit(n, 'px');
+    ispixel: function(n) {
+        return isunit(n, "px");
     },
-    ispercentage: function (n) {
-        return isunit(n, '%');
+    ispercentage: function(n) {
+        return isunit(n, "%");
     },
-    isem: function (n) {
-        return isunit(n, 'em');
+    isem: function(n) {
+        return isunit(n, "em");
     },
     isunit,
-    unit: function (val, unit) {
+    unit: function(val, unit) {
         if (!(val instanceof Dimension)) {
-            throw { type: 'Argument',
-                message: `the first argument to unit must be a number${val instanceof Operation ? '. Have you forgotten parenthesis?' : ''}` };
+            throw {
+                type: "Argument",
+                message: `the first argument to unit must be a number${
+                    val instanceof Operation
+                        ? ". Have you forgotten parenthesis?"
+                        : ""
+                }`
+            };
         }
         if (unit) {
             if (unit instanceof Keyword) {
@@ -60,11 +74,11 @@ export default {
                 unit = unit.toCSS();
             }
         } else {
-            unit = '';
+            unit = "";
         }
         return new Dimension(val.value, unit);
     },
-    'get-unit': function (n) {
+    "get-unit": function(n) {
         return new Anonymous(n.unit);
     }
 };

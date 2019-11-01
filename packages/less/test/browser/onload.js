@@ -1,6 +1,6 @@
 (function() {
     window.DEFER = [window.onload];
-    Object.defineProperty(window, 'onload', {
+    Object.defineProperty(window, "onload", {
         get: function() {
             return function() {};
         },

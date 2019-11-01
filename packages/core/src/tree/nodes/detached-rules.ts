@@ -1,6 +1,6 @@
-import { Node } from '.';
-import { EvalContext } from '../contexts';
-import * as utils from '../utils';
+import { Node } from ".";
+import { EvalContext } from "../contexts";
+import * as utils from "../utils";
 
 /**
  * @todo - remove and merge with rules
@@ -24,9 +24,13 @@ class DetachedRules extends Node {
     }
 
     callEval(context) {
-        return this.rules.eval(this.frames ? new contexts.Eval(context, this.frames.concat(context.frames)) : context);
+        return this.rules.eval(
+            this.frames
+                ? new contexts.Eval(context, this.frames.concat(context.frames))
+                : context
+        );
     }
 }
 
-DetachedRules.prototype.type = 'DetachedRules'
-DetachedRules.prototype.evalFirst = true
+DetachedRules.prototype.type = "DetachedRules";
+DetachedRules.prototype.evalFirst = true;

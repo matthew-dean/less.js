@@ -1,7 +1,7 @@
-import Keyword from '../tree/keyword';
+import Keyword from "../tree/keyword";
 
 const defaultFunc = {
-    eval: function () {
+    eval: function() {
         const v = this.value_;
         const e = this.error_;
         if (e) {
@@ -11,13 +11,13 @@ const defaultFunc = {
             return v ? Keyword.True : Keyword.False;
         }
     },
-    value: function (v) {
+    value: function(v) {
         this.value_ = v;
     },
-    error: function (e) {
+    error: function(e) {
         this.error_ = e;
     },
-    reset: function () {
+    reset: function() {
         this.value_ = this.error_ = null;
     }
 };

@@ -1,4 +1,4 @@
-import { Node } from '.'
+import { Node } from ".";
 
 /**
  * A white-space node
@@ -6,4 +6,4 @@ import { Node } from '.'
  * and list indexing
  */
 export class WS extends Node {}
-WS.prototype.type = 'WS'
+WS.prototype.type = "WS";

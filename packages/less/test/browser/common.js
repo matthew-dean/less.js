@@ -79,30 +79,33 @@ less.loggers = [
     }
 ];
 
-testLessEqualsInDocument = function () {
+testLessEqualsInDocument = function() {
     testLessInDocument(testSheet);
 };
 
-testLessErrorsInDocument = function (isConsole) {
+testLessErrorsInDocument = function(isConsole) {
     testLessInDocument(isConsole ? testErrorSheetConsole : testErrorSheet);
 };
 
-testLessInDocument = function (testFunc) {
-    var links = document.getElementsByTagName('link'),
+testLessInDocument = function(testFunc) {
+    var links = document.getElementsByTagName("link"),
         typePattern = /^text\/(x-)?less$/;
 
     for (var i = 0; i < links.length; i++) {
-        if (links[i].rel === 'stylesheet/less' || (links[i].rel.match(/stylesheet/) &&
-            (links[i].type.match(typePattern)))) {
+        if (
+            links[i].rel === "stylesheet/less" ||
+            (links[i].rel.match(/stylesheet/) &&
+                links[i].type.match(typePattern))
+        ) {
             testFunc(links[i]);
         }
     }
 };
 
 ieFormat = function(text) {
-    var styleNode = document.createElement('style');
-    styleNode.setAttribute('type', 'text/css');
-    var headNode = document.getElementsByTagName('head')[0];
+    var styleNode = document.createElement("style");
+    styleNode.setAttribute("type", "text/css");
+    var headNode = document.getElementsByTagName("head")[0];
     headNode.appendChild(styleNode);
     try {
         if (styleNode.styleSheet) {
@@ -111,17 +114,19 @@ ieFormat = function(text) {
             styleNode.innerText = text;
         }
     } catch (e) {
-        throw new Error('Couldn\'t reassign styleSheet.cssText.');
+        throw new Error("Couldn't reassign styleSheet.cssText.");
     }
-    var transformedText = styleNode.styleSheet ? styleNode.styleSheet.cssText : styleNode.innerText;
+    var transformedText = styleNode.styleSheet
+        ? styleNode.styleSheet.cssText
+        : styleNode.innerText;
     headNode.removeChild(styleNode);
     return transformedText;
 };
 
-testSheet = function (sheet) {
-    it(sheet.id + ' should match the expected output', function (done) {
-        var lessOutputId = sheet.id.replace('original-', ''),
-            expectedOutputId = 'expected-' + lessOutputId,
+testSheet = function(sheet) {
+    it(sheet.id + " should match the expected output", function(done) {
+        var lessOutputId = sheet.id.replace("original-", ""),
+            expectedOutputId = "expected-" + lessOutputId,
             lessOutputObj,
             lessOutput,
             expectedOutputHref = document.getElementById(expectedOutputId).href,
@@ -129,20 +134,22 @@ testSheet = function (sheet) {
 
         // Browser spec generates less on the fly, so we need to loose control
         less.pageLoadFinished
-            .then(function () {
+            .then(function() {
                 lessOutputObj = document.getElementById(lessOutputId);
-                lessOutput = lessOutputObj.styleSheet ? lessOutputObj.styleSheet.cssText :
-                    (lessOutputObj.innerText || lessOutputObj.innerHTML);
+                lessOutput = lessOutputObj.styleSheet
+                    ? lessOutputObj.styleSheet.cssText
+                    : lessOutputObj.innerText || lessOutputObj.innerHTML;
 
-                expectedOutput
-                    .then(function (text) {
-                        if (window.navigator.userAgent.indexOf('MSIE') >= 0 ||
-                            window.navigator.userAgent.indexOf('Trident/') >= 0) {
-                            text = ieFormat(text);
-                        }
-                        expect(lessOutput).toEqual(text);
-                        done();
-                    });
+                expectedOutput.then(function(text) {
+                    if (
+                        window.navigator.userAgent.indexOf("MSIE") >= 0 ||
+                        window.navigator.userAgent.indexOf("Trident/") >= 0
+                    ) {
+                        text = ieFormat(text);
+                    }
+                    expect(lessOutput).toEqual(text);
+                    done();
+                });
             })
             .catch(function(err) {
                 console.log(err);
@@ -154,16 +161,17 @@ testSheet = function (sheet) {
 // TODO: do it cleaner - the same way as in css
 
 function extractId(href) {
-    return href.replace(/^[a-z-]+:\/+?[^\/]+/i, '') // Remove protocol & domain
-        .replace(/^\//, '') // Remove root /
-        .replace(/\.[a-zA-Z]+$/, '') // Remove simple extension
-        .replace(/[^\.\w-]+/g, '-') // Replace illegal characters
-        .replace(/\./g, ':'); // Replace dots with colons(for valid id)
+    return href
+        .replace(/^[a-z-]+:\/+?[^\/]+/i, "") // Remove protocol & domain
+        .replace(/^\//, "") // Remove root /
+        .replace(/\.[a-zA-Z]+$/, "") // Remove simple extension
+        .replace(/[^\.\w-]+/g, "-") // Replace illegal characters
+        .replace(/\./g, ":"); // Replace dots with colons(for valid id)
 }
 
-waitFor = function (waitFunc) {
-    return new Promise(function (resolve) {
-        var timeoutId = setInterval(function () {
+waitFor = function(waitFunc) {
+    return new Promise(function(resolve) {
+        var timeoutId = setInterval(function() {
             if (waitFunc()) {
                 clearInterval(timeoutId);
                 resolve();
@@ -172,93 +180,99 @@ waitFor = function (waitFunc) {
     });
 };
 
-testErrorSheet = function (sheet) {
-    it(sheet.id + ' should match an error', function (done) {
+testErrorSheet = function(sheet) {
+    it(sheet.id + " should match an error", function(done) {
         var lessHref = sheet.href,
-            id = 'less-error-message:' + extractId(lessHref),
-            errorHref = lessHref.replace(/.less$/, '.txt'),
+            id = "less-error-message:" + extractId(lessHref),
+            errorHref = lessHref.replace(/.less$/, ".txt"),
             errorFile = loadFile(errorHref),
             actualErrorElement,
             actualErrorMsg;
 
         // Less.js sets 10ms timer in order to add error message on top of page.
-        waitFor(function () {
+        waitFor(function() {
             actualErrorElement = document.getElementById(id);
             return actualErrorElement !== null;
-        }).then(function () {
-            var innerText = (actualErrorElement.innerHTML
-                .replace(/<h3>|<\/?p>|<a href="[^"]*">|<\/a>|<ul>|<\/?pre( class="?[^">]*"?)?>|<\/li>|<\/?label>/ig, '')
-                .replace(/<\/h3>/ig, ' ')
-                .replace(/<li>|<\/ul>|<br>/ig, '\n'))
-                .replace(/&amp;/ig, '&')
-            // for IE8
-                .replace(/\r\n/g, '\n')
-                .replace(/\. \nin/, '. in');
+        }).then(function() {
+            var innerText = actualErrorElement.innerHTML
+                .replace(
+                    /<h3>|<\/?p>|<a href="[^"]*">|<\/a>|<ul>|<\/?pre( class="?[^">]*"?)?>|<\/li>|<\/?label>/gi,
+                    ""
+                )
+                .replace(/<\/h3>/gi, " ")
+                .replace(/<li>|<\/ul>|<br>/gi, "\n")
+                .replace(/&amp;/gi, "&")
+                // for IE8
+                .replace(/\r\n/g, "\n")
+                .replace(/\. \nin/, ". in");
             actualErrorMsg = innerText
-                .replace(/\n\d+/g, function (lineNo) {
-                    return lineNo + ' ';
+                .replace(/\n\d+/g, function(lineNo) {
+                    return lineNo + " ";
                 })
-                .replace(/\n\s*in /g, ' in ')
-                .replace(/\n{2,}/g, '\n')
-                .replace(/\nStack Trace\n[\s\S]*/i, '')
-                .replace(/\n$/, '')
+                .replace(/\n\s*in /g, " in ")
+                .replace(/\n{2,}/g, "\n")
+                .replace(/\nStack Trace\n[\s\S]*/i, "")
+                .replace(/\n$/, "")
                 .trim();
-            errorFile
-                .then(function (errorTxt) {
-                    errorTxt = errorTxt
-                        .replace(/\{path\}/g, '')
-                        .replace(/\{pathrel\}/g, '')
-                        .replace(/\{pathhref\}/g, 'http://localhost:8081/test/less/errors/')
-                        .replace(/\{404status\}/g, ' (404)')
-                        .replace(/\{node\}[\s\S]*\{\/node\}/g, '')
-                        .replace(/\n$/, '')
-                        .trim();
-                    expect(actualErrorMsg).toEqual(errorTxt);
-                    if (errorTxt == actualErrorMsg) {
-                        actualErrorElement.style.display = 'none';
-                    }
-                    done();
-                });
+            errorFile.then(function(errorTxt) {
+                errorTxt = errorTxt
+                    .replace(/\{path\}/g, "")
+                    .replace(/\{pathrel\}/g, "")
+                    .replace(
+                        /\{pathhref\}/g,
+                        "http://localhost:8081/test/less/errors/"
+                    )
+                    .replace(/\{404status\}/g, " (404)")
+                    .replace(/\{node\}[\s\S]*\{\/node\}/g, "")
+                    .replace(/\n$/, "")
+                    .trim();
+                expect(actualErrorMsg).toEqual(errorTxt);
+                if (errorTxt == actualErrorMsg) {
+                    actualErrorElement.style.display = "none";
+                }
+                done();
+            });
         });
     });
 };
 
-testErrorSheetConsole = function (sheet) {
-    it(sheet.id + ' should match an error', function (done) {
+testErrorSheetConsole = function(sheet) {
+    it(sheet.id + " should match an error", function(done) {
         var lessHref = sheet.href,
-            id = sheet.id.replace(/^original-less:/, 'less-error-message:'),
-            errorHref = lessHref.replace(/.less$/, '.txt'),
+            id = sheet.id.replace(/^original-less:/, "less-error-message:"),
+            errorHref = lessHref.replace(/.less$/, ".txt"),
             errorFile = loadFile(errorHref),
             actualErrorElement = document.getElementById(id),
-            actualErrorMsg = logMessages[logMessages.length - 1]
-                .replace(/\nStack Trace\n[\s\S]*/, '');
+            actualErrorMsg = logMessages[logMessages.length - 1].replace(
+                /\nStack Trace\n[\s\S]*/,
+                ""
+            );
 
-        describe('the error', function () {
+        describe("the error", function() {
             expect(actualErrorElement).toBe(null);
         });
 
-        errorFile
-            .then(function (errorTxt) {
-                errorTxt
-                    .replace(/\{path\}/g, '')
-                    .replace(/\{pathrel\}/g, '')
-                    .replace(/\{pathhref\}/g, 'http://localhost:8081/browser/less/')
-                    .replace(/\{404status\}/g, ' (404)')
-                    .replace(/\{node\}.*\{\/node\}/g, '')
-                    .trim();
-                expect(actualErrorMsg).toEqual(errorTxt);
-                done();
-            });
+        errorFile.then(function(errorTxt) {
+            errorTxt
+                .replace(/\{path\}/g, "")
+                .replace(/\{pathrel\}/g, "")
+                .replace(/\{pathhref\}/g, "http://localhost:8081/browser/less/")
+                .replace(/\{404status\}/g, " (404)")
+                .replace(/\{node\}.*\{\/node\}/g, "")
+                .trim();
+            expect(actualErrorMsg).toEqual(errorTxt);
+            done();
+        });
     });
 };
 
-loadFile = function (href) {
-    return new Promise(function (resolve, reject) {
+loadFile = function(href) {
+    return new Promise(function(resolve, reject) {
         var request = new XMLHttpRequest();
-        request.open('GET', href, true);
-        request.onreadystatechange = function () {
+        request.open("GET", href, true);
+        request.onreadystatechange = function() {
             if (request.readyState == 4) {
-                resolve(request.responseText.replace(/\r/g, ''));
+                resolve(request.responseText.replace(/\r/g, ""));
             }
         };
         request.send(null);

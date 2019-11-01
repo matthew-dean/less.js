@@ -1,76 +1,76 @@
 import {
-  Node,
-  INodeOptions,
-  ILocationInfo,
-  List,
-  Rules,
-  MatchOption,
-  Variable,
-  MixinDefinition
-} from '.'
+    Node,
+    INodeOptions,
+    ILocationInfo,
+    List,
+    Rules,
+    MatchOption,
+    Variable,
+    MixinDefinition
+} from ".";
 
-import { EvalContext } from '../contexts'
+import { EvalContext } from "../contexts";
 
 // import defaultFunc from '../functions/default'
 
 interface IRulesCallProps {
-  /** Can be a Variable reference or mixin name */
-  reference: Node[]
-  args: [List<Node>] | []
+    /** Can be a Variable reference or mixin name */
+    reference: Node[];
+    args: [List<Node>] | [];
 }
 
 /**
  * A Rules Call is an abstraction for any call to a mixin or rules assigned to a variable that we
  * (optionally) want to pass arguments to.
- * 
+ *
  *   e.g. .mixin(foo) or #ns.mixin(foo) @rules(foo) or @rules()
  */
 class RulesCall extends Node {
-  reference: Node[]
-  args: [List<Node>] | []
+    reference: Node[];
+    args: [List<Node>] | [];
 
-  constructor(props: IRulesCallProps, options: INodeOptions, location: ILocationInfo) {
-    super(props, options, location)
-  }
-
-  matchMixins(mixins: MixinDefinition[], context: EvalContext) {
-
-  }
-
-  eval(context: EvalContext) {
-    const name = this.reference
-
-    if (name.length === 1 && name[0] instanceof Variable) {
-      const varName = name[0].toString()
-      super.eval(context)
-      const result = this.reference[0]
-      if (result instanceof Rules) {
-        if (this.args.length === 0) {
-          return result.clone().inherit(this)
-        }
-        return this.error(context, 
-          `Mixin reference '${varName}' does not accept args`
-        )
-      }
-      if (result instanceof MixinDefinition) {
-        return this.matchMixins([result], context)
-      }
+    constructor(
+        props: IRulesCallProps,
+        options: INodeOptions,
+        location: ILocationInfo
+    ) {
+        super(props, options, location);
     }
 
-    /**
-     * Now name should be a list of elements
-     * 
-     * @todo - #foo .bar() matches #foo { .bar {} } and #foo { @mixin bar() }
-    */
-    name.forEach(ref => {
-      this.find((node: Node) => {
-        if (ref instanceof Element) {
+    matchMixins(mixins: MixinDefinition[], context: EvalContext) {}
 
+    eval(context: EvalContext) {
+        const name = this.reference;
+
+        if (name.length === 1 && name[0] instanceof Variable) {
+            const varName = name[0].toString();
+            super.eval(context);
+            const result = this.reference[0];
+            if (result instanceof Rules) {
+                if (this.args.length === 0) {
+                    return result.clone().inherit(this);
+                }
+                return this.error(
+                    context,
+                    `Mixin reference '${varName}' does not accept args`
+                );
+            }
+            if (result instanceof MixinDefinition) {
+                return this.matchMixins([result], context);
+            }
         }
 
-      }, MatchOption.IN_SCOPE)
-    })
-    
+        /**
+         * Now name should be a list of elements
+         *
+         * @todo - #foo .bar() matches #foo { .bar {} } and #foo { @mixin bar() }
+         */
+        name.forEach(ref => {
+            this.find((node: Node) => {
+                if (ref instanceof Element) {
+                }
+            }, MatchOption.IN_SCOPE);
+        });
 
         let mixins;
         let mixin;
@@ -110,17 +110,20 @@ class RulesCall extends Node {
                 for (p = 0; p < mixinPath.length && conditionResult[f]; p++) {
                     namespace = mixinPath[p];
                     if (namespace.matchCondition) {
-                        conditionResult[f] = conditionResult[f] && namespace.matchCondition(null, context);
+                        conditionResult[f] =
+                            conditionResult[f] &&
+                            namespace.matchCondition(null, context);
                     }
                 }
                 if (mixin.matchCondition) {
-                    conditionResult[f] = conditionResult[f] && mixin.matchCondition(args, context);
+                    conditionResult[f] =
+                        conditionResult[f] &&
+                        mixin.matchCondition(args, context);
                 }
             }
             if (conditionResult[0] || conditionResult[1]) {
                 if (conditionResult[0] != conditionResult[1]) {
-                    return conditionResult[1] ?
-                        defTrue : defFalse;
+                    return conditionResult[1] ? defTrue : defFalse;
                 }
 
                 return defNone;
@@ -134,17 +137,23 @@ class RulesCall extends Node {
             if (arg.expand && Array.isArray(argValue.value)) {
                 argValue = argValue.value;
                 for (m = 0; m < argValue.length; m++) {
-                    args.push({value: argValue[m]});
+                    args.push({ value: argValue[m] });
                 }
             } else {
-                args.push({name: arg.name, value: argValue});
+                args.push({ name: arg.name, value: argValue });
             }
         }
 
         noArgumentsFilter = rule => rule.matchArgs(null, context);
 
         for (i = 0; i < context.frames.length; i++) {
-            if ((mixins = context.frames[i].find(this.selector, null, noArgumentsFilter)).length > 0) {
+            if (
+                (mixins = context.frames[i].find(
+                    this.selector,
+                    null,
+                    noArgumentsFilter
+                )).length > 0
+            ) {
                 isOneFound = true;
 
                 // To make `default()` function independent of definition order we have two "subpasses" here.
@@ -157,7 +166,12 @@ class RulesCall extends Node {
                     mixinPath = mixins[m].path;
                     isRecursive = false;
                     for (f = 0; f < context.frames.length; f++) {
-                        if ((!(mixin instanceof MixinDefinition)) && mixin === (context.frames[f].originalRules || context.frames[f])) {
+                        if (
+                            !(mixin instanceof MixinDefinition) &&
+                            mixin ===
+                                (context.frames[f].originalRules ||
+                                    context.frames[f])
+                        ) {
                             isRecursive = true;
                             break;
                         }
@@ -167,7 +181,10 @@ class RulesCall extends Node {
                     }
 
                     if (mixin.matchArgs(args, context)) {
-                        candidate = {mixin, group: calcDefGroup(mixin, mixinPath)};
+                        candidate = {
+                            mixin,
+                            group: calcDefGroup(mixin, mixinPath)
+                        };
 
                         if (candidate.group !== defFalseEitherCase) {
                             candidates.push(candidate);
@@ -188,28 +205,50 @@ class RulesCall extends Node {
                     defaultResult = defFalse;
                 } else {
                     defaultResult = defTrue;
-                    if ((count[defTrue] + count[defFalse]) > 1) {
-                        throw { type: 'Runtime',
-                            message: `Ambiguous use of \`default()\` found when matching for \`${this.format(args)}\``,
-                            index: this.getIndex(), filename: this.fileInfo().filename };
+                    if (count[defTrue] + count[defFalse] > 1) {
+                        throw {
+                            type: "Runtime",
+                            message: `Ambiguous use of \`default()\` found when matching for \`${this.format(
+                                args
+                            )}\``,
+                            index: this.getIndex(),
+                            filename: this.fileInfo().filename
+                        };
                     }
                 }
 
                 for (m = 0; m < candidates.length; m++) {
                     candidate = candidates[m].group;
-                    if ((candidate === defNone) || (candidate === defaultResult)) {
+                    if (candidate === defNone || candidate === defaultResult) {
                         try {
                             mixin = candidates[m].mixin;
                             if (!(mixin instanceof MixinDefinition)) {
                                 originalRules = mixin.originalRules || mixin;
-                                mixin = new MixinDefinition('', [], mixin.rules, null, false, null, originalRules.visibilityInfo());
+                                mixin = new MixinDefinition(
+                                    "",
+                                    [],
+                                    mixin.rules,
+                                    null,
+                                    false,
+                                    null,
+                                    originalRules.visibilityInfo()
+                                );
                                 mixin.originalRules = originalRules;
                             }
-                            const newRules = mixin.evalCall(context, args, this.important).rules;
+                            const newRules = mixin.evalCall(
+                                context,
+                                args,
+                                this.important
+                            ).rules;
                             this._setVisibilityToReplacement(newRules);
                             Array.prototype.push.apply(rules, newRules);
                         } catch (e) {
-                            throw { message: e.message, index: this.getIndex(), filename: this.fileInfo().filename, stack: e.stack };
+                            throw {
+                                message: e.message,
+                                index: this.getIndex(),
+                                filename: this.fileInfo().filename,
+                                stack: e.stack
+                            };
                         }
                     }
                 }
@@ -220,13 +259,21 @@ class RulesCall extends Node {
             }
         }
         if (isOneFound) {
-            throw { type:    'Runtime',
-                message: `No matching definition was found for \`${this.format(args)}\``,
-                index:   this.getIndex(), filename: this.fileInfo().filename };
+            throw {
+                type: "Runtime",
+                message: `No matching definition was found for \`${this.format(
+                    args
+                )}\``,
+                index: this.getIndex(),
+                filename: this.fileInfo().filename
+            };
         } else {
-            throw { type:    'Name',
+            throw {
+                type: "Name",
                 message: `${this.selector.toCSS().trim()} is undefined`,
-                index:   this.getIndex(), filename: this.fileInfo().filename };
+                index: this.getIndex(),
+                filename: this.fileInfo().filename
+            };
         }
     }
 
@@ -242,20 +289,26 @@ class RulesCall extends Node {
     }
 
     format(args) {
-        return `${this.selector.toCSS().trim()}(${args ? args.map(a => {
-            let argValue = '';
-            if (a.name) {
-                argValue += `${a.name}:`;
-            }
-            if (a.value.toCSS) {
-                argValue += a.value.toCSS();
-            } else {
-                argValue += '???';
-            }
-            return argValue;
-        }).join(', ') : ''})`;
+        return `${this.selector.toCSS().trim()}(${
+            args
+                ? args
+                      .map(a => {
+                          let argValue = "";
+                          if (a.name) {
+                              argValue += `${a.name}:`;
+                          }
+                          if (a.value.toCSS) {
+                              argValue += a.value.toCSS();
+                          } else {
+                              argValue += "???";
+                          }
+                          return argValue;
+                      })
+                      .join(", ")
+                : ""
+        })`;
     }
 }
 
-RulesCall.prototype.type = 'RulesCall'
-export default RulesCall
+RulesCall.prototype.type = "RulesCall";
+export default RulesCall;

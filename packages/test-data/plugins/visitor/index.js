@@ -5,11 +5,11 @@
 
     RemoveProperty.prototype = {
         isReplacing: true,
-        run: function (root) {
+        run: function(root) {
             return this._visitor.visit(root);
         },
-        visitDeclaration: function (ruleNode, visitArgs) {
-            if (ruleNode.name != '-some-aribitrary-property') {
+        visitDeclaration: function(ruleNode, visitArgs) {
+            if (ruleNode.name != "-some-aribitrary-property") {
                 return ruleNode;
             } else {
                 return [];
@@ -18,7 +18,6 @@
     };
 
     exports.install = function(less, pluginManager) {
-        pluginManager.addVisitor( new RemoveProperty(less));
+        pluginManager.addVisitor(new RemoveProperty(less));
     };
-
-})(typeof exports === 'undefined' ? this['VisitorPlugin'] = {} : exports);
+})(typeof exports === "undefined" ? (this["VisitorPlugin"] = {}) : exports);

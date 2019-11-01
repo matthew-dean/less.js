@@ -1,11 +1,11 @@
 {
-  "extends": "./tsconfig.build.json",
-  "compilerOptions": {
-    "baseUrl": "./packages",
-    "paths": {
-      "less": ["less/lib"],
-      "@less/test-data": ["test-data"],
-      "@less/*": ["*/src"]
+    "extends": "./tsconfig.build.json",
+    "compilerOptions": {
+        "baseUrl": "./packages",
+        "paths": {
+            "less": ["less/lib"],
+            "@less/test-data": ["test-data"],
+            "@less/*": ["*/src"]
+        }
     }
-  }
 }

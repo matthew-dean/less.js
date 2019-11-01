@@ -1,10 +1,9 @@
-import contexts from '../contexts';
-import Visitor from './visitor';
-import ImportSequencer from './import-sequencer';
-import * as utils from '../utils';
+import contexts from "../contexts";
+import Visitor from "./visitor";
+import ImportSequencer from "./import-sequencer";
+import * as utils from "../utils";
 
 const ImportVisitor = function(importer, finish) {
-
     this._visitor = new Visitor(this);
     this._importer = importer;
     this._finish = finish;
@@ -17,12 +16,11 @@ const ImportVisitor = function(importer, finish) {
 
 ImportVisitor.prototype = {
     isReplacing: false,
-    run: function (root) {
+    run: function(root) {
         try {
             // process the contents
             this._visitor.visit(root);
-        }
-        catch (e) {
+        } catch (e) {
             this.error = e;
         }
 
@@ -35,17 +33,26 @@ ImportVisitor.prototype = {
         }
         this._finish(this.error);
     },
-    visitImport: function (importNode, visitArgs) {
+    visitImport: function(importNode, visitArgs) {
         const inlineCSS = importNode.options.inline;
 
         if (!importNode.css || inlineCSS) {
-
-            const context = new contexts.Eval(this.context, utils.copyArray(this.context.frames));
+            const context = new contexts.Eval(
+                this.context,
+                utils.copyArray(this.context.frames)
+            );
             const importParent = context.frames[0];
 
             this.importCount++;
             if (importNode.isVariableImport()) {
-                this._sequencer.addVariableImport(this.processImportNode.bind(this, importNode, context, importParent));
+                this._sequencer.addVariableImport(
+                    this.processImportNode.bind(
+                        this,
+                        importNode,
+                        context,
+                        importParent
+                    )
+                );
             } else {
                 this.processImportNode(importNode, context, importParent);
             }
@@ -59,7 +66,10 @@ ImportVisitor.prototype = {
         try {
             evaldImportNode = importNode.evalForImport(context);
         } catch (e) {
-            if (!e.filename) { e.index = importNode.getIndex(); e.filename = importNode.fileInfo().filename; }
+            if (!e.filename) {
+                e.index = importNode.getIndex();
+                e.filename = importNode.fileInfo().filename;
+            }
             // attempt to eval properly and treat as css
             importNode.css = true;
             // if that fails, this error will be thrown
@@ -81,11 +91,20 @@ ImportVisitor.prototype = {
                 }
             }
 
-            const onImported = this.onImported.bind(this, evaldImportNode, context);
+            const onImported = this.onImported.bind(
+                this,
+                evaldImportNode,
+                context
+            );
             const sequencedOnImported = this._sequencer.addImport(onImported);
 
-            this._importer.push(evaldImportNode.getPath(), tryAppendLessExtension, evaldImportNode.fileInfo(),
-                evaldImportNode.options, sequencedOnImported);
+            this._importer.push(
+                evaldImportNode.getPath(),
+                tryAppendLessExtension,
+                evaldImportNode.fileInfo(),
+                evaldImportNode.options,
+                sequencedOnImported
+            );
         } else {
             this.importCount--;
             if (this.isFinished) {
@@ -93,10 +112,18 @@ ImportVisitor.prototype = {
             }
         }
     },
-    onImported: function (importNode, context, e, root, importedAtRoot, fullPath) {
+    onImported: function(
+        importNode,
+        context,
+        e,
+        root,
+        importedAtRoot,
+        fullPath
+    ) {
         if (e) {
             if (!e.filename) {
-                e.index = importNode.getIndex(); e.filename = importNode.fileInfo().filename;
+                e.index = importNode.getIndex();
+                e.filename = importNode.fileInfo().filename;
             }
             this.error = e;
         }
@@ -105,7 +132,8 @@ ImportVisitor.prototype = {
         const inlineCSS = importNode.options.inline;
         const isPlugin = importNode.options.isPlugin;
         const isOptional = importNode.options.optional;
-        const duplicateImport = importedAtRoot || fullPath in importVisitor.recursionDetector;
+        const duplicateImport =
+            importedAtRoot || fullPath in importVisitor.recursionDetector;
 
         if (!context.importMultiple) {
             if (duplicateImport) {
@@ -129,7 +157,11 @@ ImportVisitor.prototype = {
             importNode.root = root;
             importNode.importedFilename = fullPath;
 
-            if (!inlineCSS && !isPlugin && (context.importMultiple || !duplicateImport)) {
+            if (
+                !inlineCSS &&
+                !isPlugin &&
+                (context.importMultiple || !duplicateImport)
+            ) {
                 importVisitor.recursionDetector[fullPath] = true;
 
                 const oldContext = this.context;
@@ -149,40 +181,40 @@ ImportVisitor.prototype = {
             importVisitor._sequencer.tryRun();
         }
     },
-    visitDeclaration: function (declNode, visitArgs) {
-        if (declNode.value.type === 'DetachedRuleset') {
+    visitDeclaration: function(declNode, visitArgs) {
+        if (declNode.value.type === "DetachedRuleset") {
             this.context.frames.unshift(declNode);
         } else {
             visitArgs.visitDeeper = false;
         }
     },
     visitDeclarationOut: function(declNode) {
-        if (declNode.value.type === 'DetachedRuleset') {
+        if (declNode.value.type === "DetachedRuleset") {
             this.context.frames.shift();
         }
     },
-    visitAtRule: function (atRuleNode, visitArgs) {
+    visitAtRule: function(atRuleNode, visitArgs) {
         this.context.frames.unshift(atRuleNode);
     },
-    visitAtRuleOut: function (atRuleNode) {
+    visitAtRuleOut: function(atRuleNode) {
         this.context.frames.shift();
     },
-    visitMixinDefinition: function (mixinDefinitionNode, visitArgs) {
+    visitMixinDefinition: function(mixinDefinitionNode, visitArgs) {
         this.context.frames.unshift(mixinDefinitionNode);
     },
-    visitMixinDefinitionOut: function (mixinDefinitionNode) {
+    visitMixinDefinitionOut: function(mixinDefinitionNode) {
         this.context.frames.shift();
     },
-    visitRuleset: function (rulesetNode, visitArgs) {
+    visitRuleset: function(rulesetNode, visitArgs) {
         this.context.frames.unshift(rulesetNode);
     },
-    visitRulesetOut: function (rulesetNode) {
+    visitRulesetOut: function(rulesetNode) {
         this.context.frames.shift();
     },
-    visitMedia: function (mediaNode, visitArgs) {
+    visitMedia: function(mediaNode, visitArgs) {
         this.context.frames.unshift(mediaNode.rules[0]);
     },
-    visitMediaOut: function (mediaNode) {
+    visitMediaOut: function(mediaNode) {
         this.context.frames.shift();
     }
 };

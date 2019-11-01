@@ -1,18 +1,18 @@
 /* jshint proto: true */
-import * as Constants from './constants';
-import CloneHelper from 'clone';
+import * as Constants from "./constants";
+import CloneHelper from "clone";
 
 export function getLocation(index, inputStream) {
     let n = index + 1;
     let line = null;
     let column = -1;
 
-    while (--n >= 0 && inputStream.charAt(n) !== '\n') {
+    while (--n >= 0 && inputStream.charAt(n) !== "\n") {
         column++;
     }
 
-    if (typeof index === 'number') {
-        line = (inputStream.slice(0, index).match(/\n/g) || '').length;
+    if (typeof index === "number") {
+        line = (inputStream.slice(0, index).match(/\n/g) || "").length;
     }
 
     return {
@@ -66,31 +66,31 @@ export function copyOptions(obj1, obj2) {
     if (opts.relativeUrls) {
         opts.rewriteUrls = Constants.RewriteUrls.ALL;
     }
-    if (typeof opts.math === 'string') {
+    if (typeof opts.math === "string") {
         switch (opts.math.toLowerCase()) {
-            case 'always':
+            case "always":
                 opts.math = Constants.Math.ALWAYS;
                 break;
-            case 'parens-division':
+            case "parens-division":
                 opts.math = Constants.Math.PARENS_DIVISION;
                 break;
-            case 'strict':
-            case 'parens':
+            case "strict":
+            case "parens":
                 opts.math = Constants.Math.PARENS;
                 break;
-            case 'strict-legacy':
+            case "strict-legacy":
                 opts.math = Constants.Math.STRICT_LEGACY;
         }
     }
-    if (typeof opts.rewriteUrls === 'string') {
+    if (typeof opts.rewriteUrls === "string") {
         switch (opts.rewriteUrls.toLowerCase()) {
-            case 'off':
+            case "off":
                 opts.rewriteUrls = Constants.RewriteUrls.OFF;
                 break;
-            case 'local':
+            case "local":
                 opts.rewriteUrls = Constants.RewriteUrls.LOCAL;
                 break;
-            case 'all':
+            case "all":
                 opts.rewriteUrls = Constants.RewriteUrls.ALL;
                 break;
         }

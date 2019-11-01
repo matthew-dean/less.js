@@ -1,172 +1,172 @@
-import { MathMode, RewriteUrlMode, EvalErrorMode } from '../constants'
-import { IOptions } from '../options'
-import { Rules, Selector, List, Import } from './nodes'
-import LessError, { ILessError } from '../less-error'
+import { MathMode, RewriteUrlMode, EvalErrorMode } from "../constants";
+import { IOptions } from "../options";
+import { Rules, Selector, List, Import } from "./nodes";
+import LessError, { ILessError } from "../less-error";
 
 function isPathRelative(path: string) {
     return !/^(?:[a-z-]+:|\/|#)/i.test(path);
 }
 
 function isPathLocalRelative(path: string) {
-  return path.charAt(0) === '.';
+    return path.charAt(0) === ".";
 }
 
-/** 
- * @note Renamed from contexts.Eval 
- * 
+/**
+ * @note Renamed from contexts.Eval
+ *
  * This is a class instance that gets passed in during evaluation.
  * It keeps a reference to global Less options, as well
  * as environment settings. It also tracks state as it enters
  * and exits blocks, in order to determine what math settings
  * should be applied.
-*/
+ */
 export class EvalContext {
-  inCalc: boolean
-  mathOn: boolean
-  importantScope: { important?: string }[]
-  calcStack: true[]
-  blockStack: true[]
-  options: IOptions
+    inCalc: boolean;
+    mathOn: boolean;
+    importantScope: { important?: string }[];
+    calcStack: true[];
+    blockStack: true[];
+    options: IOptions;
 
-  /** @todo - remove or explain */
-  mediaPath: any[]
-  mediaBlocks: any[]
+    /** @todo - remove or explain */
+    mediaPath: any[];
+    mediaBlocks: any[];
 
-  /**
-   * As we crawl the tree, we build up a stack of
-   * parent selectors we can use for merging into child selectors
-   */
-  selectors: (List<Selector>)[]
+    /**
+     * As we crawl the tree, we build up a stack of
+     * parent selectors we can use for merging into child selectors
+     */
+    selectors: (List<Selector>)[];
 
-  importQueue: Import[]
+    importQueue: Import[];
 
-  /**
-   * AFAICT, frames are a stack of Rules nodes, used for scoping (and lookups?)
-   * @todo - is this neded?
-   */
-  frames: Rules[]
-  environment
-  private errors: ILessError[]
-  private warnings: ILessError[]
-  scope: {
-    [key: string]: any
-  }
+    /**
+     * AFAICT, frames are a stack of Rules nodes, used for scoping (and lookups?)
+     * @todo - is this neded?
+     */
+    frames: Rules[];
+    environment;
+    private errors: ILessError[];
+    private warnings: ILessError[];
+    scope: {
+        [key: string]: any;
+    };
 
-  constructor(environment, options: IOptions) {
-    this.options = options
-    this.environment = environment
-    this.selectors = []
-    this.frames = []
-    this.importantScope = []
-    this.inCalc = false
-    this.mathOn = true
-    /** Replacement for function registry */
-    this.scope = Object.create(environment.scope || null)
-  }
-
-  error(err: ILessError, fileRoot: Rules) {
-    if (this.options.evalErrors === EvalErrorMode.THROW) {
-      throw err
+    constructor(environment, options: IOptions) {
+        this.options = options;
+        this.environment = environment;
+        this.selectors = [];
+        this.frames = [];
+        this.importantScope = [];
+        this.inCalc = false;
+        this.mathOn = true;
+        /** Replacement for function registry */
+        this.scope = Object.create(environment.scope || null);
     }
-    this.errors.push(new LessError(err, fileRoot))
-  }
 
-  warning(warn: ILessError, fileRoot: Rules) {
-    warn.type = 'Warning'
-    this.warnings.push(new LessError(warn, fileRoot))
-  }
-
-  enterCalc() {
-    if (!this.calcStack) {
-      this.calcStack = []
+    error(err: ILessError, fileRoot: Rules) {
+        if (this.options.evalErrors === EvalErrorMode.THROW) {
+            throw err;
+        }
+        this.errors.push(new LessError(err, fileRoot));
     }
-    this.calcStack.push(true)
-    this.inCalc = true
-  }
 
-  exitCalc() {
-    this.calcStack.pop()
-    this.inCalc = this.calcStack.length !== 0
-  }
-
-  enterBlock() {
-    if (!this.blockStack) {
-      this.blockStack = []
+    warning(warn: ILessError, fileRoot: Rules) {
+        warn.type = "Warning";
+        this.warnings.push(new LessError(warn, fileRoot));
     }
-    this.blockStack.push(true)
-  }
 
-  exitBlock() {
-    this.blockStack.pop()
-  }
-
-  isMathOn(op?: string) {
-    if (!this.mathOn) {
-      return false
+    enterCalc() {
+        if (!this.calcStack) {
+            this.calcStack = [];
+        }
+        this.calcStack.push(true);
+        this.inCalc = true;
     }
-    const mathMode = this.options.math
-    if (op === '/' && (!this.blockStack || !this.blockStack.length)) {
-      return false
+
+    exitCalc() {
+        this.calcStack.pop();
+        this.inCalc = this.calcStack.length !== 0;
     }
-    if (mathMode > MathMode.NO_DIVISION) {
-      return this.blockStack && this.blockStack.length
+
+    enterBlock() {
+        if (!this.blockStack) {
+            this.blockStack = [];
+        }
+        this.blockStack.push(true);
     }
-    return true
-  }
 
-  resolveModule(fileContent: string) {
-    /** This will return a JS object from a string */
-    const obj = this.environment
-  }
+    exitBlock() {
+        this.blockStack.pop();
+    }
 
-  // pathRequiresRewrite(path: string) {
-  //   const isRelative = this.options.rewriteUrls === RewriteUrlMode.LOCAL ? isPathLocalRelative : isPathRelative
+    isMathOn(op?: string) {
+        if (!this.mathOn) {
+            return false;
+        }
+        const mathMode = this.options.math;
+        if (op === "/" && (!this.blockStack || !this.blockStack.length)) {
+            return false;
+        }
+        if (mathMode > MathMode.NO_DIVISION) {
+            return this.blockStack && this.blockStack.length;
+        }
+        return true;
+    }
 
-  //   return isRelative(path)
-  // }
+    resolveModule(fileContent: string) {
+        /** This will return a JS object from a string */
+        const obj = this.environment;
+    }
 
-  /** @todo - break into environment */
-  // rewritePath(path: string, rootpath) {
-  //   let newPath;
+    // pathRequiresRewrite(path: string) {
+    //   const isRelative = this.options.rewriteUrls === RewriteUrlMode.LOCAL ? isPathLocalRelative : isPathRelative
 
-  //   rootpath = rootpath || ''
-  //   newPath = this.normalizePath(rootpath + path)
+    //   return isRelative(path)
+    // }
 
-  //   // If a path was explicit relative and the rootpath was not an absolute path
-  //   // we must ensure that the new path is also explicit relative.
-  //   if (isPathLocalRelative(path) &&
-  //     isPathRelative(rootpath) &&
-  //     isPathLocalRelative(newPath) === false) {
-  //     newPath = `./${newPath}`
-  //   }
+    /** @todo - break into environment */
+    // rewritePath(path: string, rootpath) {
+    //   let newPath;
 
-  //   return newPath
-  // }
+    //   rootpath = rootpath || ''
+    //   newPath = this.normalizePath(rootpath + path)
 
-  /** @todo - should be on environment fileManager */
-  // normalizePath(path) {
-  //   const segments = path.split('/').reverse()
-  //   let segment;
+    //   // If a path was explicit relative and the rootpath was not an absolute path
+    //   // we must ensure that the new path is also explicit relative.
+    //   if (isPathLocalRelative(path) &&
+    //     isPathRelative(rootpath) &&
+    //     isPathLocalRelative(newPath) === false) {
+    //     newPath = `./${newPath}`
+    //   }
 
-  //   path = [];
-  //   while (segments.length !== 0) {
-  //     segment = segments.pop();
-  //     switch ( segment ) {
-  //       case '.':
-  //         break;
-  //       case '..':
-  //         if ((path.length === 0) || (path[path.length - 1] === '..')) {
-  //             path.push( segment );
-  //         } else {
-  //             path.pop();
-  //         }
-  //         break;
-  //       default:
-  //         path.push(segment);
-  //         break;
-  //     }
-  //   }
+    //   return newPath
+    // }
 
-  //   return path.join('/')
-  // }
+    /** @todo - should be on environment fileManager */
+    // normalizePath(path) {
+    //   const segments = path.split('/').reverse()
+    //   let segment;
+
+    //   path = [];
+    //   while (segments.length !== 0) {
+    //     segment = segments.pop();
+    //     switch ( segment ) {
+    //       case '.':
+    //         break;
+    //       case '..':
+    //         if ((path.length === 0) || (path[path.length - 1] === '..')) {
+    //             path.push( segment );
+    //         } else {
+    //             path.pop();
+    //         }
+    //         break;
+    //       default:
+    //         path.push(segment);
+    //         break;
+    //     }
+    //   }
+
+    //   return path.join('/')
+    // }
 }

@@ -1,6 +1,6 @@
-import path from 'path';
-import fs from './fs';
-import AbstractFileManager from '../less/environment/abstract-file-manager.js';
+import path from "path";
+import fs from "./fs";
+import AbstractFileManager from "../less/environment/abstract-file-manager.js";
 
 class FileManager extends AbstractFileManager {
     constructor() {
@@ -23,32 +23,34 @@ class FileManager extends AbstractFileManager {
         const filenamesTried = [];
         const self = this;
         const prefix = filename.slice(0, 1);
-        const explicit = prefix === '.' || prefix === '/';
+        const explicit = prefix === "." || prefix === "/";
         let result = null;
         let isNodeModule = false;
-        const npmPrefix = 'npm://';
+        const npmPrefix = "npm://";
 
         options = options || {};
 
-        const paths = isAbsoluteFilename ? [''] : [currentDirectory];
+        const paths = isAbsoluteFilename ? [""] : [currentDirectory];
 
-        if (options.paths) { paths.push(...options.paths); }
+        if (options.paths) {
+            paths.push(...options.paths);
+        }
 
-        if (!isAbsoluteFilename && paths.indexOf('.') === -1) { paths.push('.'); }
+        if (!isAbsoluteFilename && paths.indexOf(".") === -1) {
+            paths.push(".");
+        }
 
-        const prefixes = options.prefixes || [''];
+        const prefixes = options.prefixes || [""];
         const fileParts = this.extractUrlParts(filename);
 
         if (options.syncImport) {
             getFileData(returnData, returnData);
             if (callback) {
                 callback(result.error, result);
-            }
-            else {
+            } else {
                 return result;
             }
-        }
-        else {
+        } else {
             // promise is guaranteed to be asyncronous
             // which helps as it allows the file handle
             // to be closed before it continues with the next file
@@ -58,8 +60,7 @@ class FileManager extends AbstractFileManager {
         function returnData(data) {
             if (!data.filename) {
                 result = { error: data };
-            }
-            else {
+            } else {
                 result = data;
             }
         }
@@ -70,40 +71,59 @@ class FileManager extends AbstractFileManager {
                     (function tryPrefix(j) {
                         if (j < prefixes.length) {
                             isNodeModule = false;
-                            fullFilename = fileParts.rawPath + prefixes[j] + fileParts.filename;
+                            fullFilename =
+                                fileParts.rawPath +
+                                prefixes[j] +
+                                fileParts.filename;
 
                             if (paths[i]) {
-                                fullFilename = path.join(paths[i], fullFilename);
+                                fullFilename = path.join(
+                                    paths[i],
+                                    fullFilename
+                                );
                             }
 
-                            if (!explicit && paths[i] === '.') {
+                            if (!explicit && paths[i] === ".") {
                                 try {
-                                    fullFilename = require.resolve(fullFilename);
+                                    fullFilename = require.resolve(
+                                        fullFilename
+                                    );
                                     isNodeModule = true;
-                                }
-                                catch (e) {
-                                    filenamesTried.push(npmPrefix + fullFilename);
+                                } catch (e) {
+                                    filenamesTried.push(
+                                        npmPrefix + fullFilename
+                                    );
                                     tryWithExtension();
                                 }
-                            }
-                            else {
+                            } else {
                                 tryWithExtension();
                             }
 
                             function tryWithExtension() {
-                                const extFilename = options.ext ? self.tryAppendExtension(fullFilename, options.ext) : fullFilename;
+                                const extFilename = options.ext
+                                    ? self.tryAppendExtension(
+                                          fullFilename,
+                                          options.ext
+                                      )
+                                    : fullFilename;
 
-                                if (extFilename !== fullFilename && !explicit && paths[i] === '.') {
+                                if (
+                                    extFilename !== fullFilename &&
+                                    !explicit &&
+                                    paths[i] === "."
+                                ) {
                                     try {
-                                        fullFilename = require.resolve(extFilename);
+                                        fullFilename = require.resolve(
+                                            extFilename
+                                        );
                                         isNodeModule = true;
-                                    }
-                                    catch (e) {
-                                        filenamesTried.push(npmPrefix + extFilename);
+                                    } catch (e) {
+                                        filenamesTried.push(
+                                            npmPrefix + extFilename
+                                        );
                                         fullFilename = extFilename;
                                     }
-                                }
-                                else {
+                                } else {
                                     fullFilename = extFilename;
                                 }
                             }
@@ -112,59 +132,96 @@ class FileManager extends AbstractFileManager {
 
                             if (self.contents[fullFilename]) {
                                 try {
-                                    var stat = fs.statSync.apply(this, [fullFilename]);
-                                    if (stat.mtime.getTime() === self.contents[fullFilename].mtime.getTime()) {
-                                        fulfill({ contents: self.contents[fullFilename].data, filename: fullFilename});
-                                    }
-                                    else {
+                                    var stat = fs.statSync.apply(this, [
+                                        fullFilename
+                                    ]);
+                                    if (
+                                        stat.mtime.getTime() ===
+                                        self.contents[
+                                            fullFilename
+                                        ].mtime.getTime()
+                                    ) {
+                                        fulfill({
+                                            contents:
+                                                self.contents[fullFilename]
+                                                    .data,
+                                            filename: fullFilename
+                                        });
+                                    } else {
                                         modified = true;
                                     }
-                                }
-                                catch (e) {
+                                } catch (e) {
                                     modified = true;
                                 }
                             }
                             if (modified || !self.contents[fullFilename]) {
                                 const readFileArgs = [fullFilename];
                                 if (!options.rawBuffer) {
-                                    readFileArgs.push('utf-8');
+                                    readFileArgs.push("utf-8");
                                 }
                                 if (options.syncImport) {
                                     try {
-                                        const data = fs.readFileSync.apply(this, readFileArgs);
-                                        var stat = fs.statSync.apply(this, [fullFilename]);
-                                        self.contents[fullFilename] = { data, mtime: stat.mtime };
-                                        fulfill({ contents: data, filename: fullFilename});
-                                    }
-                                    catch (e) {
-                                        filenamesTried.push(isNodeModule ? npmPrefix + fullFilename : fullFilename);
+                                        const data = fs.readFileSync.apply(
+                                            this,
+                                            readFileArgs
+                                        );
+                                        var stat = fs.statSync.apply(this, [
+                                            fullFilename
+                                        ]);
+                                        self.contents[fullFilename] = {
+                                            data,
+                                            mtime: stat.mtime
+                                        };
+                                        fulfill({
+                                            contents: data,
+                                            filename: fullFilename
+                                        });
+                                    } catch (e) {
+                                        filenamesTried.push(
+                                            isNodeModule
+                                                ? npmPrefix + fullFilename
+                                                : fullFilename
+                                        );
                                         return tryPrefix(j + 1);
                                     }
-                                }
-                                else {
+                                } else {
                                     readFileArgs.push(function(e, data) {
                                         if (e) {
-                                            filenamesTried.push(isNodeModule ? npmPrefix + fullFilename : fullFilename);
+                                            filenamesTried.push(
+                                                isNodeModule
+                                                    ? npmPrefix + fullFilename
+                                                    : fullFilename
+                                            );
                                             return tryPrefix(j + 1);
                                         }
-                                        const stat = fs.statSync.apply(this, [fullFilename]);
-                                        self.contents[fullFilename] = { data, mtime: stat.mtime };      
-                                        fulfill({ contents: data, filename: fullFilename});
+                                        const stat = fs.statSync.apply(this, [
+                                            fullFilename
+                                        ]);
+                                        self.contents[fullFilename] = {
+                                            data,
+                                            mtime: stat.mtime
+                                        };
+                                        fulfill({
+                                            contents: data,
+                                            filename: fullFilename
+                                        });
                                     });
                                     fs.readFile.apply(this, readFileArgs);
                                 }
-
                             }
-
-                        }
-                        else {
+                        } else {
                             tryPathIndex(i + 1);
                         }
                     })(0);
                 } else {
-                    reject({ type: 'File', message: `'${filename}' wasn't found. Tried - ${filenamesTried.join(',')}` });
+                    reject({
+                        type: "File",
+                        message: `'${filename}' wasn't found. Tried - ${filenamesTried.join(
+                            ","
+                        )}`
+                    });
                 }
-            }(0));
+            })(0);
         }
     }
 

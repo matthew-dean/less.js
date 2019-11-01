@@ -1,15 +1,15 @@
 class AbstractFileManager {
     getPath(filename) {
-        let j = filename.lastIndexOf('?');
+        let j = filename.lastIndexOf("?");
         if (j > 0) {
             filename = filename.slice(0, j);
         }
-        j = filename.lastIndexOf('/');
+        j = filename.lastIndexOf("/");
         if (j < 0) {
-            j = filename.lastIndexOf('\\');
+            j = filename.lastIndexOf("\\");
         }
         if (j < 0) {
-            return '';
+            return "";
         }
         return filename.slice(0, j + 1);
     }
@@ -19,15 +19,19 @@ class AbstractFileManager {
     }
 
     tryAppendLessExtension(path) {
-        return this.tryAppendExtension(path, '.less');
-    };
+        return this.tryAppendExtension(path, ".less");
+    }
 
-    supportsSync() { return false; }
+    supportsSync() {
+        return false;
+    }
 
-    alwaysMakePathsAbsolute() { return false; }
+    alwaysMakePathsAbsolute() {
+        return false;
+    }
 
     isPathAbsolute(filename) {
-        return (/^(?:[a-z-]+:|\/|\\|#)/i).test(filename);
+        return /^(?:[a-z-]+:|\/|\\|#)/i.test(filename);
     }
     // TODO: pull out / replace?
     join(basePath, laterPath) {
@@ -35,7 +39,7 @@ class AbstractFileManager {
             return laterPath;
         }
         return basePath + laterPath;
-    };
+    }
 
     pathDiff(url, baseUrl) {
         // diff between two paths to create a relative path
@@ -46,24 +50,29 @@ class AbstractFileManager {
         let max;
         let urlDirectories;
         let baseUrlDirectories;
-        let diff = '';
+        let diff = "";
         if (urlParts.hostPart !== baseUrlParts.hostPart) {
-            return '';
+            return "";
         }
-        max = Math.max(baseUrlParts.directories.length, urlParts.directories.length);
+        max = Math.max(
+            baseUrlParts.directories.length,
+            urlParts.directories.length
+        );
         for (i = 0; i < max; i++) {
-            if (baseUrlParts.directories[i] !== urlParts.directories[i]) { break; }
+            if (baseUrlParts.directories[i] !== urlParts.directories[i]) {
+                break;
+            }
         }
         baseUrlDirectories = baseUrlParts.directories.slice(i);
         urlDirectories = urlParts.directories.slice(i);
         for (i = 0; i < baseUrlDirectories.length - 1; i++) {
-            diff += '../';
+            diff += "../";
         }
         for (i = 0; i < urlDirectories.length - 1; i++) {
             diff += `${urlDirectories[i]}/`;
         }
         return diff;
-    };
+    }
     // helper function, not part of API
     extractUrlParts(url, baseUrl) {
         // urlParts[1] = protocol://hostname/ OR /
@@ -91,37 +100,34 @@ class AbstractFileManager {
             if (!baseUrlParts) {
                 throw new Error(`Could not parse page url - '${baseUrl}'`);
             }
-            urlParts[1] = urlParts[1] || baseUrlParts[1] || '';
+            urlParts[1] = urlParts[1] || baseUrlParts[1] || "";
             if (!urlParts[2]) {
                 urlParts[3] = baseUrlParts[3] + urlParts[3];
             }
         }
 
         if (urlParts[3]) {
-            rawDirectories = urlParts[3].replace(/\\/g, '/').split('/');
+            rawDirectories = urlParts[3].replace(/\\/g, "/").split("/");
 
             // collapse '..' and skip '.'
             for (i = 0; i < rawDirectories.length; i++) {
-
-                if (rawDirectories[i] === '..') {
+                if (rawDirectories[i] === "..") {
                     directories.pop();
-                }
-                else if (rawDirectories[i] !== '.') {
+                } else if (rawDirectories[i] !== ".") {
                     directories.push(rawDirectories[i]);
                 }
-            
             }
         }
 
         returner.hostPart = urlParts[1];
         returner.directories = directories;
-        returner.rawPath = (urlParts[1] || '') + rawDirectories.join('/');
-        returner.path = (urlParts[1] || '') + directories.join('/');
+        returner.rawPath = (urlParts[1] || "") + rawDirectories.join("/");
+        returner.path = (urlParts[1] || "") + directories.join("/");
         returner.filename = urlParts[4];
-        returner.fileUrl = returner.path + (urlParts[4] || '');
-        returner.url = returner.fileUrl + (urlParts[5] || '');
+        returner.fileUrl = returner.path + (urlParts[4] || "");
+        returner.url = returner.fileUrl + (urlParts[5] || "");
         return returner;
-    };
+    }
 }
 
 export default AbstractFileManager;

@@ -1,7 +1,7 @@
 // TODO: Add tests for browser @plugin
 /* global window */
 
-import AbstractPluginLoader from '../less/environment/abstract-plugin-loader.js';
+import AbstractPluginLoader from "../less/environment/abstract-plugin-loader.js";
 
 /**
  * Browser Plugin Loader
@@ -16,11 +16,12 @@ class PluginLoader extends AbstractPluginLoader {
 
     loadPlugin(filename, basePath, context, environment, fileManager) {
         return new Promise((fulfill, reject) => {
-            fileManager.loadFile(filename, basePath, context, environment)
-                .then(fulfill).catch(reject);
+            fileManager
+                .loadFile(filename, basePath, context, environment)
+                .then(fulfill)
+                .catch(reject);
         });
     }
 }
 
 export default PluginLoader;
-

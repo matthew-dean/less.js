@@ -3,14 +3,19 @@
  *       environment, file managers, and plugin manager
  */
 
-import logger from '../logger';
+import logger from "../logger";
 
 class environment {
     constructor(externalEnvironment, fileManagers) {
         this.fileManagers = fileManagers || [];
         externalEnvironment = externalEnvironment || {};
 
-        const optionalFunctions = ['encodeBase64', 'mimeLookup', 'charsetLookup', 'getSourceMapGenerator'];
+        const optionalFunctions = [
+            "encodeBase64",
+            "mimeLookup",
+            "charsetLookup",
+            "getSourceMapGenerator"
+        ];
         const requiredFunctions = [];
         const functions = requiredFunctions.concat(optionalFunctions);
 
@@ -20,27 +25,41 @@ class environment {
             if (environmentFunc) {
                 this[propName] = environmentFunc.bind(externalEnvironment);
             } else if (i < requiredFunctions.length) {
-                this.warn(`missing required function in environment - ${propName}`);
+                this.warn(
+                    `missing required function in environment - ${propName}`
+                );
             }
         }
     }
 
     getFileManager(filename, currentDirectory, options, environment, isSync) {
-
         if (!filename) {
-            logger.warn('getFileManager called with no filename.. Please report this issue. continuing.');
+            logger.warn(
+                "getFileManager called with no filename.. Please report this issue. continuing."
+            );
         }
         if (currentDirectory == null) {
-            logger.warn('getFileManager called with null directory.. Please report this issue. continuing.');
+            logger.warn(
+                "getFileManager called with null directory.. Please report this issue. continuing."
+            );
         }
 
         let fileManagers = this.fileManagers;
         if (options.pluginManager) {
-            fileManagers = [].concat(fileManagers).concat(options.pluginManager.getFileManagers());
+            fileManagers = []
+                .concat(fileManagers)
+                .concat(options.pluginManager.getFileManagers());
         }
-        for (let i = fileManagers.length - 1; i >= 0 ; i--) {
+        for (let i = fileManagers.length - 1; i >= 0; i--) {
             const fileManager = fileManagers[i];
-            if (fileManager[isSync ? 'supportsSync' : 'supports'](filename, currentDirectory, options, environment)) {
+            if (
+                fileManager[isSync ? "supportsSync" : "supports"](
+                    filename,
+                    currentDirectory,
+                    options,
+                    environment
+                )
+            ) {
                 return fileManager;
             }
         }

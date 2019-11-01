@@ -1,17 +1,16 @@
-import Comment from '../tree/comment';
-import Dimension from '../tree/dimension';
-import Declaration from '../tree/declaration';
-import Expression from '../tree/expression';
-import Ruleset from '../tree/ruleset';
-import Selector from '../tree/selector';
-import Element from '../tree/element';
-import Quote from '../tree/quoted';
+import Comment from "../tree/comment";
+import Dimension from "../tree/dimension";
+import Declaration from "../tree/declaration";
+import Expression from "../tree/expression";
+import Ruleset from "../tree/ruleset";
+import Selector from "../tree/selector";
+import Element from "../tree/element";
+import Quote from "../tree/quoted";
 
 const getItemsFromNode = node => {
     // handle non-array values as an array of length 1
     // return 'undefined' if index is invalid
-    const items = Array.isArray(node.value) ?
-        node.value : Array(node);
+    const items = Array.isArray(node.value) ? node.value : Array(node);
 
     return items;
 };
@@ -32,10 +31,10 @@ export default {
     /**
      * Creates a Less list of incremental values.
      * Modeled after Lodash's range function, also exists natively in PHP
-     * 
+     *
      * @param {Dimension} [start=1]
      * @param {Dimension} end  - e.g. 10 or 10px - unit is added to output
-     * @param {Dimension} [step=1] 
+     * @param {Dimension} [step=1]
      */
     range: function(start, end, step) {
         let from;
@@ -48,8 +47,7 @@ export default {
             if (step) {
                 stepValue = step.value;
             }
-        }
-        else {
+        } else {
             from = 1;
             to = start;
         }
@@ -81,9 +79,9 @@ export default {
             iterator = [list];
         }
 
-        let valueName = '@value';
-        let keyName = '@key';
-        let indexName = '@index';
+        let valueName = "@value";
+        let keyName = "@key";
+        let indexName = "@index";
 
         if (rs.params) {
             valueName = rs.params[0] && rs.params[0].name;
@@ -99,7 +97,10 @@ export default {
             let value;
             const item = iterator[i];
             if (item instanceof Declaration) {
-                key = typeof item.name === 'string' ? item.name : item.name[0].value;
+                key =
+                    typeof item.name === "string"
+                        ? item.name
+                        : item.name[0].value;
                 value = item.value;
             } else {
                 key = new Dimension(i + 1);
@@ -112,29 +113,54 @@ export default {
 
             newRules = rs.rules.slice(0);
             if (valueName) {
-                newRules.push(new Declaration(valueName,
-                    value,
-                    false, false, this.index, this.currentFileInfo));
+                newRules.push(
+                    new Declaration(
+                        valueName,
+                        value,
+                        false,
+                        false,
+                        this.index,
+                        this.currentFileInfo
+                    )
+                );
             }
             if (indexName) {
-                newRules.push(new Declaration(indexName,
-                    new Dimension(i + 1),
-                    false, false, this.index, this.currentFileInfo));
+                newRules.push(
+                    new Declaration(
+                        indexName,
+                        new Dimension(i + 1),
+                        false,
+                        false,
+                        this.index,
+                        this.currentFileInfo
+                    )
+                );
             }
             if (keyName) {
-                newRules.push(new Declaration(keyName,
-                    key,
-                    false, false, this.index, this.currentFileInfo));
+                newRules.push(
+                    new Declaration(
+                        keyName,
+                        key,
+                        false,
+                        false,
+                        this.index,
+                        this.currentFileInfo
+                    )
+                );
             }
 
-            rules.push(new Ruleset([ new(Selector)([ new Element("", '&') ]) ],
-                newRules,
-                rs.strictImports,
-                rs.visibilityInfo()
-            ));
+            rules.push(
+                new Ruleset(
+                    [new Selector([new Element("", "&")])],
+                    newRules,
+                    rs.strictImports,
+                    rs.visibilityInfo()
+                )
+            );
         }
 
-        return new Ruleset([ new(Selector)([ new Element("", '&') ]) ],
+        return new Ruleset(
+            [new Selector([new Element("", "&")])],
             rules,
             rs.strictImports,
             rs.visibilityInfo()

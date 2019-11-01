@@ -1,23 +1,22 @@
-
 export enum MathMode {
-  NO_DIVISION = 1,
-  STRICT = 2
+    NO_DIVISION = 1,
+    STRICT = 2
 }
 
 export enum RewriteUrlMode {
-  OFF,
-  LOCAL,
-  ALL
+    OFF,
+    LOCAL,
+    ALL
 }
 
 export enum StrictUnitMode {
-  LOOSE,
-  WARN,
-  ERROR
+    LOOSE,
+    WARN,
+    ERROR
 }
 
 export enum EvalErrorMode {
-  THROW,
-  REPORT,
-  IGNORE
+    THROW,
+    REPORT,
+    IGNORE
 }

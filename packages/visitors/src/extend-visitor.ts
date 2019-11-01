@@ -1,15 +1,15 @@
-import tree from '../tree';
-import Visitor from './visitor';
-import logger from '../logger';
-import * as utils from '../utils';
+import tree from "../tree";
+import Visitor from "./visitor";
+import logger from "../logger";
+import * as utils from "../utils";
 
 /**
  * @todo - pull work from - https://github.com/less/less.js/pull/3422
- * 
+ *
  * My intention is also to re-write this to run after tree flattening.
  * It's much easier to process / extend selectors after that vs. having to
  * pre-calculate them.
- * 
+ *
  * -- Related @todo - change isPreEvalVisitor to a priority number. Visitors
  * can essentially be added to various "stages", and this extend visitor
  * should come at "post-flatten" but "pre-remove-invisible"
@@ -65,11 +65,14 @@ class ExtendFinderVisitor {
             const selector = selectorPath[selectorPath.length - 1];
             const selExtendList = selector.extendList;
 
-            extendList = selExtendList ? utils.copyArray(selExtendList).concat(allSelectorsExtendList)
+            extendList = selExtendList
+                ? utils.copyArray(selExtendList).concat(allSelectorsExtendList)
                 : allSelectorsExtendList;
 
             if (extendList) {
-                extendList = extendList.map(allSelectorsExtend => allSelectorsExtend.clone());
+                extendList = extendList.map(allSelectorsExtend =>
+                    allSelectorsExtend.clone()
+                );
             }
 
             for (j = 0; j < extendList.length; j++) {
@@ -77,8 +80,12 @@ class ExtendFinderVisitor {
                 extend = extendList[j];
                 extend.findSelfSelectors(selectorPath);
                 extend.ruleset = rulesetNode;
-                if (j === 0) { extend.firstExtendOnThisSelectorPath = true; }
-                this.allExtendsStack[this.allExtendsStack.length - 1].push(extend);
+                if (j === 0) {
+                    extend.firstExtendOnThisSelectorPath = true;
+                }
+                this.allExtendsStack[this.allExtendsStack.length - 1].push(
+                    extend
+                );
             }
         }
 
@@ -119,8 +126,12 @@ class ProcessExtendsVisitor {
         const extendFinder = new ExtendFinderVisitor();
         this.extendIndices = {};
         extendFinder.run(root);
-        if (!extendFinder.foundExtends) { return root; }
-        root.allExtends = root.allExtends.concat(this.doExtendChaining(root.allExtends, root.allExtends));
+        if (!extendFinder.foundExtends) {
+            return root;
+        }
+        root.allExtends = root.allExtends.concat(
+            this.doExtendChaining(root.allExtends, root.allExtends)
+        );
         this.allExtendsStack = [root.allExtends];
         const newRoot = this._visitor.visit(root);
         this.checkExtendsForNonMatched(root.allExtends);
@@ -129,18 +140,22 @@ class ProcessExtendsVisitor {
 
     checkExtendsForNonMatched(extendList) {
         const indices = this.extendIndices;
-        extendList.filter(extend => !extend.hasFoundMatches && extend.parent_ids.length == 1).forEach(extend => {
-            let selector = '_unknown_';
-            try {
-                selector = extend.selector.toCSS({});
-            }
-            catch (_) {}
+        extendList
+            .filter(
+                extend =>
+                    !extend.hasFoundMatches && extend.parent_ids.length == 1
+            )
+            .forEach(extend => {
+                let selector = "_unknown_";
+                try {
+                    selector = extend.selector.toCSS({});
+                } catch (_) {}
 
-            if (!indices[`${extend.index} ${selector}`]) {
-                indices[`${extend.index} ${selector}`] = true;
-                logger.warn(`extend '${selector}' has no matches`);
-            }
-        });
+                if (!indices[`${extend.index} ${selector}`]) {
+                    indices[`${extend.index} ${selector}`] = true;
+                    logger.warn(`extend '${selector}' has no matches`);
+                }
+            });
     }
 
     doExtendChaining(extendsList, extendsListTarget, iterationCount) {
@@ -174,13 +189,18 @@ class ProcessExtendsVisitor {
         // the separation into two lists allows us to process a subset of chains with a bigger set, as is the
         // case when processing media queries
         for (extendIndex = 0; extendIndex < extendsList.length; extendIndex++) {
-            for (targetExtendIndex = 0; targetExtendIndex < extendsListTarget.length; targetExtendIndex++) {
-
+            for (
+                targetExtendIndex = 0;
+                targetExtendIndex < extendsListTarget.length;
+                targetExtendIndex++
+            ) {
                 extend = extendsList[extendIndex];
                 targetExtend = extendsListTarget[targetExtendIndex];
 
                 // look for circular references
-                if ( extend.parent_ids.indexOf( targetExtend.object_id ) >= 0 ) { continue; }
+                if (extend.parent_ids.indexOf(targetExtend.object_id) >= 0) {
+                    continue;
+                }
 
                 // find a match in the target extends self selector (the bit before :extend)
                 selectorPath = [targetExtend.selfSelectors[0]];
@@ -194,21 +214,37 @@ class ProcessExtendsVisitor {
                         const info = targetExtend.visibilityInfo();
 
                         // process the extend as usual
-                        newSelector = extendVisitor.extendSelector(matches, selectorPath, selfSelector, extend.isVisible());
+                        newSelector = extendVisitor.extendSelector(
+                            matches,
+                            selectorPath,
+                            selfSelector,
+                            extend.isVisible()
+                        );
 
                         // but now we create a new extend from it
-                        newExtend = new(tree.Extend)(targetExtend.selector, targetExtend.option, 0, targetExtend.fileInfo(), info);
+                        newExtend = new tree.Extend(
+                            targetExtend.selector,
+                            targetExtend.option,
+                            0,
+                            targetExtend.fileInfo(),
+                            info
+                        );
                         newExtend.selfSelectors = newSelector;
 
                         // add the extend onto the list of extends for that selector
-                        newSelector[newSelector.length - 1].extendList = [newExtend];
+                        newSelector[newSelector.length - 1].extendList = [
+                            newExtend
+                        ];
 
                         // record that we need to add it.
                         extendsToAdd.push(newExtend);
                         newExtend.ruleset = targetExtend.ruleset;
 
                         // remember its parents for circular references
-                        newExtend.parent_ids = newExtend.parent_ids.concat(targetExtend.parent_ids, extend.parent_ids);
+                        newExtend.parent_ids = newExtend.parent_ids.concat(
+                            targetExtend.parent_ids,
+                            extend.parent_ids
+                        );
 
                         // only process the selector once.. if we have :extend(.a,.b) then multiple
                         // extends will look at the same selector path, so when extending
@@ -227,19 +263,26 @@ class ProcessExtendsVisitor {
             // may no longer be needed.
             this.extendChainCount++;
             if (iterationCount > 100) {
-                let selectorOne = '{unable to calculate}';
-                let selectorTwo = '{unable to calculate}';
+                let selectorOne = "{unable to calculate}";
+                let selectorTwo = "{unable to calculate}";
                 try {
                     selectorOne = extendsToAdd[0].selfSelectors[0].toCSS();
                     selectorTwo = extendsToAdd[0].selector.toCSS();
-                }
-                catch (e) {}
-                throw { message: `extend circular reference detected. One of the circular extends is currently:${selectorOne}:extend(${selectorTwo})`};
+                } catch (e) {}
+                throw {
+                    message: `extend circular reference detected. One of the circular extends is currently:${selectorOne}:extend(${selectorTwo})`
+                };
             }
 
             // now process the new extends on the existing rules so that we can handle a extending b extending c extending
             // d extending e...
-            return extendsToAdd.concat(extendVisitor.doExtendChaining(extendsToAdd, extendsListTarget, iterationCount + 1));
+            return extendsToAdd.concat(
+                extendVisitor.doExtendChaining(
+                    extendsToAdd,
+                    extendsListTarget,
+                    iterationCount + 1
+                )
+            );
         } else {
             return extendsToAdd;
         }
@@ -264,7 +307,9 @@ class ProcessExtendsVisitor {
         let matches;
         let pathIndex;
         let extendIndex;
-        const allExtends = this.allExtendsStack[this.allExtendsStack.length - 1];
+        const allExtends = this.allExtendsStack[
+            this.allExtendsStack.length - 1
+        ];
         const selectorsToAdd = [];
         const extendVisitor = this;
         let selectorPath;
@@ -272,24 +317,40 @@ class ProcessExtendsVisitor {
         // look at each selector path in the ruleset, find any extend matches and then copy, find and replace
 
         for (extendIndex = 0; extendIndex < allExtends.length; extendIndex++) {
-            for (pathIndex = 0; pathIndex < rulesetNode.paths.length; pathIndex++) {
+            for (
+                pathIndex = 0;
+                pathIndex < rulesetNode.paths.length;
+                pathIndex++
+            ) {
                 selectorPath = rulesetNode.paths[pathIndex];
 
                 // extending extends happens initially, before the main pass
-                if (rulesetNode.extendOnEveryPath) { continue; }
-                const extendList = selectorPath[selectorPath.length - 1].extendList;
-                if (extendList && extendList.length) { continue; }
+                if (rulesetNode.extendOnEveryPath) {
+                    continue;
+                }
+                const extendList =
+                    selectorPath[selectorPath.length - 1].extendList;
+                if (extendList && extendList.length) {
+                    continue;
+                }
 
                 matches = this.findMatch(allExtends[extendIndex], selectorPath);
 
                 if (matches.length) {
                     allExtends[extendIndex].hasFoundMatches = true;
 
-                    allExtends[extendIndex].selfSelectors.forEach(selfSelector => {
-                        let extendedSelectors;
-                        extendedSelectors = extendVisitor.extendSelector(matches, selectorPath, selfSelector, allExtends[extendIndex].isVisible());
-                        selectorsToAdd.push(extendedSelectors);
-                    });
+                    allExtends[extendIndex].selfSelectors.forEach(
+                        selfSelector => {
+                            let extendedSelectors;
+                            extendedSelectors = extendVisitor.extendSelector(
+                                matches,
+                                selectorPath,
+                                selfSelector,
+                                allExtends[extendIndex].isVisible()
+                            );
+                            selectorsToAdd.push(extendedSelectors);
+                        }
+                    );
                 }
             }
         }
@@ -315,17 +376,32 @@ class ProcessExtendsVisitor {
         const matches = [];
 
         // loop through the haystack elements
-        for (haystackSelectorIndex = 0; haystackSelectorIndex < haystackSelectorPath.length; haystackSelectorIndex++) {
+        for (
+            haystackSelectorIndex = 0;
+            haystackSelectorIndex < haystackSelectorPath.length;
+            haystackSelectorIndex++
+        ) {
             hackstackSelector = haystackSelectorPath[haystackSelectorIndex];
 
-            for (hackstackElementIndex = 0; hackstackElementIndex < hackstackSelector.elements.length; hackstackElementIndex++) {
-
-                haystackElement = hackstackSelector.elements[hackstackElementIndex];
+            for (
+                hackstackElementIndex = 0;
+                hackstackElementIndex < hackstackSelector.elements.length;
+                hackstackElementIndex++
+            ) {
+                haystackElement =
+                    hackstackSelector.elements[hackstackElementIndex];
 
                 // if we allow elements before our match we can add a potential match every time. otherwise only at the first element.
-                if (extend.allowBefore || (haystackSelectorIndex === 0 && hackstackElementIndex === 0)) {
-                    potentialMatches.push({pathIndex: haystackSelectorIndex, index: hackstackElementIndex, matched: 0,
-                        initialCombinator: haystackElement.combinator});
+                if (
+                    extend.allowBefore ||
+                    (haystackSelectorIndex === 0 && hackstackElementIndex === 0)
+                ) {
+                    potentialMatches.push({
+                        pathIndex: haystackSelectorIndex,
+                        index: hackstackElementIndex,
+                        matched: 0,
+                        initialCombinator: haystackElement.combinator
+                    });
                 }
 
                 for (i = 0; i < potentialMatches.length; i++) {
@@ -335,13 +411,23 @@ class ProcessExtendsVisitor {
                     // then each selector in haystackSelectorPath has a space before it added in the toCSS phase. so we need to
                     // work out what the resulting combinator will be
                     targetCombinator = haystackElement.combinator.value;
-                    if (targetCombinator === '' && hackstackElementIndex === 0) {
-                        targetCombinator = ' ';
+                    if (
+                        targetCombinator === "" &&
+                        hackstackElementIndex === 0
+                    ) {
+                        targetCombinator = " ";
                     }
 
                     // if we don't match, null our match to indicate failure
-                    if (!extendVisitor.isElementValuesEqual(needleElements[potentialMatch.matched].value, haystackElement.value) ||
-                        (potentialMatch.matched > 0 && needleElements[potentialMatch.matched].combinator.value !== targetCombinator)) {
+                    if (
+                        !extendVisitor.isElementValuesEqual(
+                            needleElements[potentialMatch.matched].value,
+                            haystackElement.value
+                        ) ||
+                        (potentialMatch.matched > 0 &&
+                            needleElements[potentialMatch.matched].combinator
+                                .value !== targetCombinator)
+                    ) {
                         potentialMatch = null;
                     } else {
                         potentialMatch.matched++;
@@ -349,10 +435,16 @@ class ProcessExtendsVisitor {
 
                     // if we are still valid and have finished, test whether we have elements after and whether these are allowed
                     if (potentialMatch) {
-                        potentialMatch.finished = potentialMatch.matched === needleElements.length;
-                        if (potentialMatch.finished &&
+                        potentialMatch.finished =
+                            potentialMatch.matched === needleElements.length;
+                        if (
+                            potentialMatch.finished &&
                             (!extend.allowAfter &&
-                                (hackstackElementIndex + 1 < hackstackSelector.elements.length || haystackSelectorIndex + 1 < haystackSelectorPath.length))) {
+                                (hackstackElementIndex + 1 <
+                                    hackstackSelector.elements.length ||
+                                    haystackSelectorIndex + 1 <
+                                        haystackSelectorPath.length))
+                        ) {
                             potentialMatch = null;
                         }
                     }
@@ -361,7 +453,8 @@ class ProcessExtendsVisitor {
                         if (potentialMatch.finished) {
                             potentialMatch.length = needleElements.length;
                             potentialMatch.endPathIndex = haystackSelectorIndex;
-                            potentialMatch.endPathElementIndex = hackstackElementIndex + 1; // index after end of match
+                            potentialMatch.endPathElementIndex =
+                                hackstackElementIndex + 1; // index after end of match
                             potentialMatches.length = 0; // we don't allow matches to overlap, so start matching again
                             matches.push(potentialMatch);
                         }
@@ -376,11 +469,17 @@ class ProcessExtendsVisitor {
     }
 
     isElementValuesEqual(elementValue1, elementValue2) {
-        if (typeof elementValue1 === 'string' || typeof elementValue2 === 'string') {
+        if (
+            typeof elementValue1 === "string" ||
+            typeof elementValue2 === "string"
+        ) {
             return elementValue1 === elementValue2;
         }
         if (elementValue1 instanceof tree.Attribute) {
-            if (elementValue1.op !== elementValue2.op || elementValue1.key !== elementValue2.key) {
+            if (
+                elementValue1.op !== elementValue2.op ||
+                elementValue1.key !== elementValue2.key
+            ) {
                 return false;
             }
             if (!elementValue1.value || !elementValue2.value) {
@@ -396,16 +495,31 @@ class ProcessExtendsVisitor {
         elementValue1 = elementValue1.value;
         elementValue2 = elementValue2.value;
         if (elementValue1 instanceof tree.Selector) {
-            if (!(elementValue2 instanceof tree.Selector) || elementValue1.elements.length !== elementValue2.elements.length) {
+            if (
+                !(elementValue2 instanceof tree.Selector) ||
+                elementValue1.elements.length !== elementValue2.elements.length
+            ) {
                 return false;
             }
-            for (let i = 0; i  < elementValue1.elements.length; i++) {
-                if (elementValue1.elements[i].combinator.value !== elementValue2.elements[i].combinator.value) {
-                    if (i !== 0 || (elementValue1.elements[i].combinator.value || ' ') !== (elementValue2.elements[i].combinator.value || ' ')) {
+            for (let i = 0; i < elementValue1.elements.length; i++) {
+                if (
+                    elementValue1.elements[i].combinator.value !==
+                    elementValue2.elements[i].combinator.value
+                ) {
+                    if (
+                        i !== 0 ||
+                        (elementValue1.elements[i].combinator.value || " ") !==
+                            (elementValue2.elements[i].combinator.value || " ")
+                    ) {
                         return false;
                     }
                 }
-                if (!this.isElementValuesEqual(elementValue1.elements[i].value, elementValue2.elements[i].value)) {
+                if (
+                    !this.isElementValuesEqual(
+                        elementValue1.elements[i].value,
+                        elementValue2.elements[i].value
+                    )
+                ) {
                     return false;
                 }
             }
@@ -438,9 +552,17 @@ class ProcessExtendsVisitor {
                 replacementSelector.elements[0].fileInfo()
             );
 
-            if (match.pathIndex > currentSelectorPathIndex && currentSelectorPathElementIndex > 0) {
-                path[path.length - 1].elements = path[path.length - 1]
-                    .elements.concat(selectorPath[currentSelectorPathIndex].elements.slice(currentSelectorPathElementIndex));
+            if (
+                match.pathIndex > currentSelectorPathIndex &&
+                currentSelectorPathElementIndex > 0
+            ) {
+                path[path.length - 1].elements = path[
+                    path.length - 1
+                ].elements.concat(
+                    selectorPath[currentSelectorPathIndex].elements.slice(
+                        currentSelectorPathElementIndex
+                    )
+                );
                 currentSelectorPathElementIndex = 0;
                 currentSelectorPathIndex++;
             }
@@ -450,31 +572,51 @@ class ProcessExtendsVisitor {
                 .concat([firstElement])
                 .concat(replacementSelector.elements.slice(1));
 
-            if (currentSelectorPathIndex === match.pathIndex && matchIndex > 0) {
-                path[path.length - 1].elements =
-                    path[path.length - 1].elements.concat(newElements);
+            if (
+                currentSelectorPathIndex === match.pathIndex &&
+                matchIndex > 0
+            ) {
+                path[path.length - 1].elements = path[
+                    path.length - 1
+                ].elements.concat(newElements);
             } else {
-                path = path.concat(selectorPath.slice(currentSelectorPathIndex, match.pathIndex));
+                path = path.concat(
+                    selectorPath.slice(
+                        currentSelectorPathIndex,
+                        match.pathIndex
+                    )
+                );
 
-                path.push(new tree.Selector(
-                    newElements
-                ));
+                path.push(new tree.Selector(newElements));
             }
             currentSelectorPathIndex = match.endPathIndex;
             currentSelectorPathElementIndex = match.endPathElementIndex;
-            if (currentSelectorPathElementIndex >= selectorPath[currentSelectorPathIndex].elements.length) {
+            if (
+                currentSelectorPathElementIndex >=
+                selectorPath[currentSelectorPathIndex].elements.length
+            ) {
                 currentSelectorPathElementIndex = 0;
                 currentSelectorPathIndex++;
             }
         }
 
-        if (currentSelectorPathIndex < selectorPath.length && currentSelectorPathElementIndex > 0) {
-            path[path.length - 1].elements = path[path.length - 1]
-                .elements.concat(selectorPath[currentSelectorPathIndex].elements.slice(currentSelectorPathElementIndex));
+        if (
+            currentSelectorPathIndex < selectorPath.length &&
+            currentSelectorPathElementIndex > 0
+        ) {
+            path[path.length - 1].elements = path[
+                path.length - 1
+            ].elements.concat(
+                selectorPath[currentSelectorPathIndex].elements.slice(
+                    currentSelectorPathElementIndex
+                )
+            );
             currentSelectorPathIndex++;
         }
 
-        path = path.concat(selectorPath.slice(currentSelectorPathIndex, selectorPath.length));
+        path = path.concat(
+            selectorPath.slice(currentSelectorPathIndex, selectorPath.length)
+        );
         path = path.map(currentValue => {
             // we can re-use elements here, because the visibility property matters only for selectors
             const derived = currentValue.createDerived(currentValue.elements);
@@ -489,8 +631,12 @@ class ProcessExtendsVisitor {
     }
 
     visitMedia(mediaNode, visitArgs) {
-        let newAllExtends = mediaNode.allExtends.concat(this.allExtendsStack[this.allExtendsStack.length - 1]);
-        newAllExtends = newAllExtends.concat(this.doExtendChaining(newAllExtends, mediaNode.allExtends));
+        let newAllExtends = mediaNode.allExtends.concat(
+            this.allExtendsStack[this.allExtendsStack.length - 1]
+        );
+        newAllExtends = newAllExtends.concat(
+            this.doExtendChaining(newAllExtends, mediaNode.allExtends)
+        );
         this.allExtendsStack.push(newAllExtends);
     }
 
@@ -500,8 +646,12 @@ class ProcessExtendsVisitor {
     }
 
     visitAtRule(atRuleNode, visitArgs) {
-        let newAllExtends = atRuleNode.allExtends.concat(this.allExtendsStack[this.allExtendsStack.length - 1]);
-        newAllExtends = newAllExtends.concat(this.doExtendChaining(newAllExtends, atRuleNode.allExtends));
+        let newAllExtends = atRuleNode.allExtends.concat(
+            this.allExtendsStack[this.allExtendsStack.length - 1]
+        );
+        newAllExtends = newAllExtends.concat(
+            this.doExtendChaining(newAllExtends, atRuleNode.allExtends)
+        );
         this.allExtendsStack.push(newAllExtends);
     }
 

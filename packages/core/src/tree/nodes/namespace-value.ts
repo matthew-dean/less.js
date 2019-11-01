@@ -1,9 +1,4 @@
-import {
-  Node,
-  Variable,
-  Rules,
-  Selector
-} from '.'
+import { Node, Variable, Rules, Selector } from ".";
 
 /**
  * @todo - This should be a lot simpler now that rulesets and qualified rules
@@ -38,40 +33,45 @@ export class NamespaceValue extends Node {
                 rules = new Rules([new Selector()], rules);
             }
 
-            if (name === '') {
+            if (name === "") {
                 rules = rules.lastDeclaration();
-            }
-            else if (name.charAt(0) === '@') {
-                if (name.charAt(1) === '@') {
-                    name = `@${new Variable(name.substr(1)).eval(context).value}`;
+            } else if (name.charAt(0) === "@") {
+                if (name.charAt(1) === "@") {
+                    name = `@${
+                        new Variable(name.substr(1)).eval(context).value
+                    }`;
                 }
                 if (rules.variables) {
                     rules = rules.variable(name);
                 }
-                
+
                 if (!rules) {
-                    throw { type: 'Name',
+                    throw {
+                        type: "Name",
                         message: `variable ${name} not found`,
                         filename: this.fileInfo().filename,
-                        index: this.getIndex() };
+                        index: this.getIndex()
+                    };
                 }
-            }
-            else {
-                if (name.substring(0, 2) === '$@') {
-                    name = `$${new Variable(name.substr(1)).eval(context).value}`;
-                }
-                else {
-                    name = name.charAt(0) === '$' ? name : `$${name}`;
+            } else {
+                if (name.substring(0, 2) === "$@") {
+                    name = `$${
+                        new Variable(name.substr(1)).eval(context).value
+                    }`;
+                } else {
+                    name = name.charAt(0) === "$" ? name : `$${name}`;
                 }
                 if (rules.properties) {
                     rules = rules.property(name);
                 }
-            
+
                 if (!rules) {
-                    throw { type: 'Name',
+                    throw {
+                        type: "Name",
                         message: `property "${name.substr(1)}" not found`,
                         filename: this.fileInfo().filename,
-                        index: this.getIndex() };
+                        index: this.getIndex()
+                    };
                 }
                 // Properties are an array of values, since a rules can have multiple props.
                 // We pick the last one (the "cascaded" value)
@@ -89,4 +89,4 @@ export class NamespaceValue extends Node {
     }
 }
 
-NamespaceValue.prototype.type = 'NamespaceValue'
+NamespaceValue.prototype.type = "NamespaceValue";

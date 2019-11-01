@@ -2,8 +2,8 @@
     var preProcessor = function() {};
 
     preProcessor.prototype = {
-        process : function (src, extra) {
-            var injected = '@color: red;\n';
+        process: function(src, extra) {
+            var injected = "@color: red;\n";
             var ignored = extra.imports.contentsIgnoredChars;
             var fileInfo = extra.fileInfo;
             ignored[fileInfo.filename] = ignored[fileInfo.filename] || 0;
@@ -13,7 +13,8 @@
     };
 
     exports.install = function(less, pluginManager) {
-        pluginManager.addPreProcessor( new preProcessor() );
+        pluginManager.addPreProcessor(new preProcessor());
     };
-
-})(typeof exports === 'undefined' ? this['preProcessorPlugin'] = {} : exports);
+})(
+    typeof exports === "undefined" ? (this["preProcessorPlugin"] = {}) : exports
+);

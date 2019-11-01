@@ -1,5 +1,5 @@
-import tree from '../tree'
-import Visitor from '../../core/src/visitor/visitor'
+import tree from "../tree";
+import Visitor from "../../core/src/visitor/visitor";
 
 class CSSVisitorUtils extends Visitor {
     constructor(context) {
@@ -14,7 +14,11 @@ class CSSVisitorUtils extends Visitor {
         }
         for (let r = 0; r < bodyRules.length; r++) {
             rule = bodyRules[r];
-            if (rule.isSilent && rule.isSilent(this._context) && !rule.blocksVisibility()) {
+            if (
+                rule.isSilent &&
+                rule.isSilent(this._context) &&
+                !rule.blocksVisibility()
+            ) {
                 // the atrule contains something that was referenced (likely by extend)
                 // therefore it needs to be shown in output too
                 return true;
@@ -30,19 +34,22 @@ class CSSVisitorUtils extends Visitor {
     }
 
     isEmpty(owner) {
-        return (owner && owner.rules) 
-            ? (owner.rules.length === 0) : true;
+        return owner && owner.rules ? owner.rules.length === 0 : true;
     }
 
     hasVisibleSelector(rulesetNode) {
-        return (rulesetNode && rulesetNode.paths)
-            ? (rulesetNode.paths.length > 0) : false;
+        return rulesetNode && rulesetNode.paths
+            ? rulesetNode.paths.length > 0
+            : false;
     }
 
     resolveVisibility(node, originalRules) {
         if (!node.blocksVisibility()) {
-            if (this.isEmpty(node) && !this.containsSilentNonBlockedChild(originalRules)) {
-                return ;
+            if (
+                this.isEmpty(node) &&
+                !this.containsSilentNonBlockedChild(originalRules)
+            ) {
+                return;
             }
 
             return node;
@@ -52,7 +59,7 @@ class CSSVisitorUtils extends Visitor {
         this.keepOnlyVisibleChilds(compiledRulesBody);
 
         if (this.isEmpty(compiledRulesBody)) {
-            return ;
+            return;
         }
 
         node.ensureVisibility();
@@ -79,35 +86,37 @@ class CSSVisitorUtils extends Visitor {
 }
 
 const PreCSSVisitor = function(context) {
-    this._visitor = new Visitor(this)
+    this._visitor = new Visitor(this);
     this._context = context;
     this.utils = new CSSVisitorUtils(context);
 };
 
 PreCSSVisitor.prototype = {
     isReplacing: true,
-    run: function (root) {
+    run: function(root) {
         return this._visitor.visit(root);
     },
 
-    visitDeclaration: function (declNode, visitArgs) {
+    visitDeclaration: function(declNode, visitArgs) {
         if (declNode.blocksVisibility() || declNode.variable) {
             return;
         }
         return declNode;
     },
 
-    visitMixinDefinition: function (mixinNode, visitArgs) {
+    visitMixinDefinition: function(mixinNode, visitArgs) {
         // mixin definitions do not get eval'd - this means they keep state
         // so we have to clear that state here so it isn't used if toCSS is called twice
         mixinNode.frames = [];
     },
 
-    visitExtend: function (extendNode, visitArgs) {
-    },
+    visitExtend: function(extendNode, visitArgs) {},
 
-    visitComment: function (commentNode, visitArgs) {
-        if (commentNode.blocksVisibility() || commentNode.isSilent(this._context)) {
+    visitComment: function(commentNode, visitArgs) {
+        if (
+            commentNode.blocksVisibility() ||
+            commentNode.isSilent(this._context)
+        ) {
             return;
         }
         return commentNode;
@@ -121,9 +130,9 @@ PreCSSVisitor.prototype = {
         return this.utils.resolveVisibility(mediaNode, originalRules);
     },
 
-    visitImport: function (importNode, visitArgs) {
+    visitImport: function(importNode, visitArgs) {
         if (importNode.blocksVisibility()) {
-            return ;
+            return;
         }
         return importNode;
     },
@@ -148,7 +157,10 @@ PreCSSVisitor.prototype = {
         // just fake ruleset
         function hasFakeRuleset(atRuleNode) {
             const bodyRules = atRuleNode.rules;
-            return bodyRules.length === 1 && (!bodyRules[0].paths || bodyRules[0].paths.length === 0);
+            return (
+                bodyRules.length === 1 &&
+                (!bodyRules[0].paths || bodyRules[0].paths.length === 0)
+            );
         }
         function getBodyRules(atRuleNode) {
             const nodeRules = atRuleNode.rules;
@@ -187,22 +199,39 @@ PreCSSVisitor.prototype = {
 
         for (let i = 0; i < rules.length; i++) {
             const ruleNode = rules[i];
-            if (isRoot && ruleNode instanceof tree.Declaration && !ruleNode.variable) {
-                throw { message: 'Properties must be inside selector blocks. They cannot be in the root',
-                    index: ruleNode.getIndex(), filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename};
+            if (
+                isRoot &&
+                ruleNode instanceof tree.Declaration &&
+                !ruleNode.variable
+            ) {
+                throw {
+                    message:
+                        "Properties must be inside selector blocks. They cannot be in the root",
+                    index: ruleNode.getIndex(),
+                    filename:
+                        ruleNode.fileInfo() && ruleNode.fileInfo().filename
+                };
             }
             if (ruleNode instanceof tree.Call) {
-                throw { message: `Function '${ruleNode.name}' is undefined`,
-                    index: ruleNode.getIndex(), filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename};
+                throw {
+                    message: `Function '${ruleNode.name}' is undefined`,
+                    index: ruleNode.getIndex(),
+                    filename:
+                        ruleNode.fileInfo() && ruleNode.fileInfo().filename
+                };
             }
             if (ruleNode.type && !ruleNode.allowRoot) {
-                throw { message: `${ruleNode.type} node returned by a function is not valid here`,
-                    index: ruleNode.getIndex(), filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename};
+                throw {
+                    message: `${ruleNode.type} node returned by a function is not valid here`,
+                    index: ruleNode.getIndex(),
+                    filename:
+                        ruleNode.fileInfo() && ruleNode.fileInfo().filename
+                };
             }
         }
     },
 
-    visitRuleset: function (rulesetNode, visitArgs) {
+    visitRuleset: function(rulesetNode, visitArgs) {
         // at this point rulesets are nested into each other
         let rule;
 
@@ -238,7 +267,8 @@ PreCSSVisitor.prototype = {
                 rulesetNode.rules = null;
             }
             visitArgs.visitDeeper = false;
-        } else { // if (! rulesetNode.root) {
+        } else {
+            // if (! rulesetNode.root) {
             rulesetNode.accept(this._visitor);
             visitArgs.visitDeeper = false;
         }
@@ -262,24 +292,25 @@ PreCSSVisitor.prototype = {
 
     _compileRulesetPaths: function(rulesetNode) {
         if (rulesetNode.paths) {
-            rulesetNode.paths = rulesetNode.paths
-                .filter(p => {
-                    let i;
-                    if (p[0].elements[0].combinator.value === ' ') {
-                        p[0].elements[0].combinator = new(tree.Combinator)('');
+            rulesetNode.paths = rulesetNode.paths.filter(p => {
+                let i;
+                if (p[0].elements[0].combinator.value === " ") {
+                    p[0].elements[0].combinator = new tree.Combinator("");
+                }
+                for (i = 0; i < p.length; i++) {
+                    if (p[i].isVisible() && p[i].getIsOutput()) {
+                        return true;
                     }
-                    for (i = 0; i < p.length; i++) {
-                        if (p[i].isVisible() && p[i].getIsOutput()) {
-                            return true;
-                        }
-                    }
-                    return false;
-                });
+                }
+                return false;
+            });
         }
     },
 
     _removeDuplicateRules: function(rules) {
-        if (!rules) { return; }
+        if (!rules) {
+            return;
+        }
 
         // remove duplicates
         const ruleCache = {};
@@ -288,7 +319,7 @@ PreCSSVisitor.prototype = {
         let rule;
         let i;
 
-        for (i = rules.length - 1; i >= 0 ; i--) {
+        for (i = rules.length - 1; i >= 0; i--) {
             rule = rules[i];
             if (rule instanceof tree.Declaration) {
                 if (!ruleCache[rule.name]) {
@@ -296,7 +327,9 @@ PreCSSVisitor.prototype = {
                 } else {
                     ruleList = ruleCache[rule.name];
                     if (ruleList instanceof tree.Declaration) {
-                        ruleList = ruleCache[rule.name] = [ruleCache[rule.name].toCSS(this._context)];
+                        ruleList = ruleCache[rule.name] = [
+                            ruleCache[rule.name].toCSS(this._context)
+                        ];
                     }
                     const ruleCSS = rule.toCSS(this._context);
                     if (ruleList.indexOf(ruleCSS) !== -1) {
@@ -307,7 +340,7 @@ PreCSSVisitor.prototype = {
                 }
             }
         }
-    },
+    }
 
     // removed _mergeRules
 };

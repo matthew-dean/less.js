@@ -1,9 +1,9 @@
-import contexts from './contexts'
-import visitor from './visitors'
-import tree from './tree'
+import contexts from "./contexts";
+import visitor from "./visitors";
+import tree from "./tree";
 
 export default (root, options = {}) => {
-    let evaldRoot
+    let evaldRoot;
     const evalEnv = new contexts.Eval(options);
 
     const visitors = [
@@ -19,7 +19,7 @@ export default (root, options = {}) => {
 
     /**
      * first() / get() allows visitors to be added while visiting
-     * 
+     *
      * @todo Add scoping for visitors just like functions for @plugin; right now they're global
      */
     if (options.pluginManager) {
@@ -32,13 +32,11 @@ export default (root, options = {}) => {
                         preEvalVisitors.push(v);
                         v.run(root);
                     }
-                }
-                else {
+                } else {
                     if (i === 0 || visitors.indexOf(v) === -1) {
                         if (v.isPreVisitor) {
                             visitors.unshift(v);
-                        }
-                        else {
+                        } else {
                             visitors.push(v);
                         }
                     }
@@ -57,7 +55,10 @@ export default (root, options = {}) => {
     if (options.pluginManager) {
         visitorIterator.first();
         while ((v = visitorIterator.get())) {
-            if (visitors.indexOf(v) === -1 && preEvalVisitors.indexOf(v) === -1) {
+            if (
+                visitors.indexOf(v) === -1 &&
+                preEvalVisitors.indexOf(v) === -1
+            ) {
                 v.run(evaldRoot);
             }
         }

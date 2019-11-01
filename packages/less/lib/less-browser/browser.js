@@ -1,9 +1,9 @@
-import * as utils from './utils';
+import * as utils from "./utils";
 
 export default {
-    createCSS: function (document, styles, sheet) {
+    createCSS: function(document, styles, sheet) {
         // Strip the query-string
-        const href = sheet.href || '';
+        const href = sheet.href || "";
 
         // If there is no title set, use the filename, minus the extension
         const id = `less:${sheet.title || utils.extractId(href)}`;
@@ -13,10 +13,10 @@ export default {
         let keepOldStyleNode = false;
 
         // Create a new stylesheet node for insertion or (if necessary) replacement
-        const styleNode = document.createElement('style');
-        styleNode.setAttribute('type', 'text/css');
+        const styleNode = document.createElement("style");
+        styleNode.setAttribute("type", "text/css");
         if (sheet.media) {
-            styleNode.setAttribute('media', sheet.media);
+            styleNode.setAttribute("media", sheet.media);
         }
         styleNode.id = id;
 
@@ -24,16 +24,20 @@ export default {
             styleNode.appendChild(document.createTextNode(styles));
 
             // If new contents match contents of oldStyleNode, don't replace oldStyleNode
-            keepOldStyleNode = (oldStyleNode !== null && oldStyleNode.childNodes.length > 0 && styleNode.childNodes.length > 0 &&
-                oldStyleNode.firstChild.nodeValue === styleNode.firstChild.nodeValue);
+            keepOldStyleNode =
+                oldStyleNode !== null &&
+                oldStyleNode.childNodes.length > 0 &&
+                styleNode.childNodes.length > 0 &&
+                oldStyleNode.firstChild.nodeValue ===
+                    styleNode.firstChild.nodeValue;
         }
 
-        const head = document.getElementsByTagName('head')[0];
+        const head = document.getElementsByTagName("head")[0];
 
         // If there is no oldStyleNode, just append; otherwise, only append if we need
         // to replace oldStyleNode with an updated stylesheet
         if (oldStyleNode === null || keepOldStyleNode === false) {
-            const nextEl = sheet && sheet.nextSibling || null;
+            const nextEl = (sheet && sheet.nextSibling) || null;
             if (nextEl) {
                 nextEl.parentNode.insertBefore(styleNode, nextEl);
             } else {
@@ -51,15 +55,18 @@ export default {
             try {
                 styleNode.styleSheet.cssText = styles;
             } catch (e) {
-                throw new Error('Couldn\'t reassign styleSheet.cssText.');
+                throw new Error("Couldn't reassign styleSheet.cssText.");
             }
         }
     },
     currentScript: function(window) {
         const document = window.document;
-        return document.currentScript || (() => {
-            const scripts = document.getElementsByTagName('script');
-            return scripts[scripts.length - 1];
-        })();
+        return (
+            document.currentScript ||
+            (() => {
+                const scripts = document.getElementsByTagName("script");
+                return scripts[scripts.length - 1];
+            })()
+        );
     }
 };

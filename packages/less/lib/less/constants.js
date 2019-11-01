@@ -1,4 +1,3 @@
-
 export const Math = {
     ALWAYS: 0,
     PARENS_DIVISION: 1,

@@ -1,4 +1,4 @@
-import Expression from '../tree/expression';
+import Expression from "../tree/expression";
 
 class functionCaller {
     constructor(name, context, index, currentFileInfo) {
@@ -18,16 +18,17 @@ class functionCaller {
         // This code is terrible and should be replaced as per this issue...
         // https://github.com/less/less.js/issues/2477
         if (Array.isArray(args)) {
-            args = args.filter(item => {
-                if (item.type === 'Comment') {
-                    return false;
-                }
-                return true;
-            })
+            args = args
+                .filter(item => {
+                    if (item.type === "Comment") {
+                        return false;
+                    }
+                    return true;
+                })
                 .map(item => {
-                    if (item.type === 'Expression') {
+                    if (item.type === "Expression") {
                         const subNodes = item.value.filter(item => {
-                            if (item.type === 'Comment') {
+                            if (item.type === "Comment") {
                                 return false;
                             }
                             return true;
