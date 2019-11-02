@@ -1,3 +1,3 @@
-describe('less.js Visitor Plugin', function() {
-    testLessEqualsInDocument();
-});
+describe('less.js Visitor Plugin', function () {
+  testLessEqualsInDocument()
+})

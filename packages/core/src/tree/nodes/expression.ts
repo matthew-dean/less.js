@@ -1,13 +1,4 @@
-import {
-  Context,
-  Node,
-  NodeArray,
-  Block,
-  Comment,
-  Dimension,
-  List,
-  WS
-} from '.'
+import { Context, Node, NodeArray, Block, Comment, Dimension, List, WS } from '.'
 
 export type IExpressionOptions = {
   inBlock?: boolean
@@ -20,13 +11,13 @@ export type IExpressionOptions = {
  * An expression is an arbitrary list of nodes,
  * but has two unique properties:
  *   1) It switches the way math is evaluated based on blocks
- *   2) When converted to an array, it discards whitespace and 
+ *   2) When converted to an array, it discards whitespace and
  *      comments as members of the array.
- * 
+ *
  * e.g. one + two: [<Value 'one'><Op { pre: ' ', value: '+', post: ' '}><Value 'two'>]
  *      one two [<Value 'one'><WS><Value 'two'>]
  *      prop: foo --> value part is <Expression { pre: ' ', nodes: [<Value 'foo'>] }>
- * 
+ *
  * A selector expression is just:
  *      #foo ~ .bar [<Value '#foo'><Op { pre: ' ', value: '~', post: ' '}><Value '.bar'>]
  */
@@ -34,13 +25,11 @@ export class Expression<T extends Node = Node> extends NodeArray {
   options: IExpressionOptions
   nodes: T[]
 
-  toArray() {
-    return this.nodes.filter(node =>
-      (!(node instanceof WS) && !(node instanceof Comment))
-    )
+  toArray () {
+    return this.nodes.filter(node => !(node instanceof WS) && !(node instanceof Comment))
   }
 
-  toString() {
+  toString () {
     if (this.options.spaced) {
       return this.nodes.join(' ')
     }
@@ -50,19 +39,19 @@ export class Expression<T extends Node = Node> extends NodeArray {
   /**
    * If an evaluated Node in an expression returns a list (such as Element),
    * then we need to merge the list with the surrounding nodes.
-   * 
+   *
    * We also flatten expressions within expressions to be a flat node list.
    */
-  eval(context: Context): Expression | List | Node {
+  eval (context: Context): Expression | List | Node {
     if (!this.evaluated) {
       super.eval(context)
 
       const expressions: Expression[] = []
-      
+
       const processNodes = (expr: Node) => {
         let nodes = expr.nodes
         let nodesLength = nodes.length
-        for(let i = 0; i < nodesLength; i++) {
+        for (let i = 0; i < nodesLength; i++) {
           const node = nodes[i]
           if (node instanceof List) {
             node.nodes.forEach((listItem: Node) => {
@@ -83,7 +72,10 @@ export class Expression<T extends Node = Node> extends NodeArray {
             /** Flatten sub-expressions */
             const exprNodes = node.nodes
             const exprNodesLength = exprNodes.length
-            nodes = nodes.splice(0, i).concat(exprNodes).concat(nodes.splice(i + 1))
+            nodes = nodes
+              .splice(0, i)
+              .concat(exprNodes)
+              .concat(nodes.splice(i + 1))
             expr.nodes = nodes
             nodesLength += exprNodesLength
             i += exprNodesLength
@@ -101,7 +93,7 @@ export class Expression<T extends Node = Node> extends NodeArray {
       } else if (numExpressions === 1) {
         return expressions[0].inherit(this)
       } else {
-        return (new List(expressions)).inherit(this)
+        return new List(expressions).inherit(this)
       }
     }
     return this
@@ -125,7 +117,7 @@ export class Expression<T extends Node = Node> extends NodeArray {
   //   } else if (this.nodes.length === 1) {
   //     const value = this.nodes[0]
   //     if (
-  //       value instanceof Expression && 
+  //       value instanceof Expression &&
   //       value.options.inBlock &&
   //       value.options.blockInOp &&
   //       !context.inCalc
@@ -142,15 +134,15 @@ export class Expression<T extends Node = Node> extends NodeArray {
   //   if (inParenthesis) {
   //     context.exitBlock()
   //   }
-  //   if (inBlock && blockInOp && !mathOn && !doubleParen 
+  //   if (inBlock && blockInOp && !mathOn && !doubleParen
   //     && (!(returnValue instanceof Dimension))) {
   //     returnValue = new Block(returnValue, {}, this.location).inherit(this)
   //   }
   //   return returnValue
   // }
 
-  throwAwayComments() {
-    this.nodes = this.nodes.filter(v => !(v instanceof Comment));
+  throwAwayComments () {
+    this.nodes = this.nodes.filter(v => !(v instanceof Comment))
   }
 }
 

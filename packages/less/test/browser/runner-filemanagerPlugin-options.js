@@ -1,5 +1,5 @@
 var less = {
-    logLevel: 4,
-    errorReporting: 'console',
-    plugins: [AddFilePlugin]
-};
+  logLevel: 4,
+  errorReporting: 'console',
+  plugins: [AddFilePlugin]
+}

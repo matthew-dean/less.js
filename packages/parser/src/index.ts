@@ -7,7 +7,7 @@ export class Parser {
   lexer: Lexer
   parser: CssStructureParser
 
-  constructor(structureOnly: boolean = false) {
+  constructor (structureOnly: boolean = false) {
     const { lexer, tokens, T } = createLexer(Fragments, Tokens)
     this.lexer = lexer
     if (structureOnly) {
@@ -23,8 +23,7 @@ export class Parser {
     const lexedTokens: IToken[] = lexerResult.tokens
     this.parser.input = lexedTokens
     const cst = this.parser.primary()
-  
+
     return { cst, lexerResult, parser: this.parser }
   }
 }
-

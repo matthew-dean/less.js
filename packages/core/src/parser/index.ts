@@ -16,7 +16,7 @@ export default class Parser {
   fileInfo: IFileInfo
   static parser: CstParser
 
-  constructor(context: Context, assets: AssetManager, fileInfo: IFileInfo) {
+  constructor (context: Context, assets: AssetManager, fileInfo: IFileInfo) {
     this.context = context
     this.assets = assets
     this.fileInfo = fileInfo
@@ -25,7 +25,7 @@ export default class Parser {
     }
   }
 
-  parse(input: string, options: IOptions, callback: Function) {
+  parse (input: string, options: IOptions, callback: Function) {
     const { cst, lexerResult, parser } = Parser.parser.parse(input)
     if (lexerResult.errors.length > 0) {
       return callback(lexerResult.errors)

@@ -16,7 +16,7 @@ describe('can parse all CSS stylesheets', () => {
         const { cst, lexerResult, parser } = cssParser.parse(result.toString())
         expect(lexerResult.errors.length).to.equal(0)
         expect(parser.errors.length).to.equal(0)
-      });
+      })
     }
-  });
-});
+  })
+})

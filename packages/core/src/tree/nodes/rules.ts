@@ -16,26 +16,26 @@ import {
 /**
  * @todo - rewrite
  * A Rules is a generic object in Less
- * 
+ *
  * It can have selectors, arguments, a set of rule nodes (as rules), and a guard
- * 
+ *
  * e.g.
  *      1. a plain qualified CSS rule [a {b: c}] will have selectors and rules
  *      2. a mixin will have selectors, args, rules, and possibly a guard
  *      3. A variable can be attached to a rules, which will then have no selectors, but can have args
- * 
+ *
  *  Rules also define a new scope object for variables and functions
- * 
+ *
  * @todo This should be broken up so that a rules is _just_ the parts between { ... }
  * @todo move selector logic to qualified rule
  */
 export class Rules extends NodeArray implements ImportantNode {
   // context: Context
-  constructor(props: IProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor (props: IProps, options?: INodeOptions, location?: ILocationInfo) {
     super(props, options, location)
     // this.context = new Context()
   }
-  toString() {
+  toString () {
     let text = '{'
     const nodes = this.nodes.filter(node => node.isVisible !== false)
     nodes.forEach((node, i) => {
@@ -59,18 +59,16 @@ export class Rules extends NodeArray implements ImportantNode {
   /**
    * This runs before full tree eval. We essentially
    * evaluate the tree enough to determine an import list.
-   * 
+   *
    * ...wait, no, that's not what this does
    */
-  evalImports(context: Context) {
+  evalImports (context: Context) {
     // const rules = this.nodes
     // const numRules = rules.length
     // let importRules: EvalReturn
-    
     // if (!numRules) {
     //   return
     // }
-
     // for (let i = 0; i < numRules; i++) {
     //   const rule = rules[i]
     //   if (rule instanceof Import) {
@@ -85,7 +83,7 @@ export class Rules extends NodeArray implements ImportantNode {
     // }
   }
 
-  eval(context: Context, evalImports?: boolean) {
+  eval (context: Context, evalImports?: boolean) {
     /** Shallow clone was here? */
     // const rules = this.clone(true)
     const rules = this
@@ -191,7 +189,7 @@ export class Rules extends NodeArray implements ImportantNode {
     return rules
   }
 
-  makeImportant(): this {
+  makeImportant (): this {
     this.nodes.forEach(node => {
       if (node.hasOwnProperty('makeImportant')) {
         (<ImportantNode>node).makeImportant()
@@ -201,7 +199,7 @@ export class Rules extends NodeArray implements ImportantNode {
     return this
   }
 
-  lastDeclaration() {
+  lastDeclaration () {
     const nodes = this.nodes
     const nodeLength = this.nodes.length
     for (let i = nodeLength; i > 0; i--) {
@@ -212,17 +210,17 @@ export class Rules extends NodeArray implements ImportantNode {
     }
   }
 
-  getRules() {
+  getRules () {
     return this.nodes.filter((node: Node) => {
       return node instanceof Rules
     })
   }
 
-  prependRule(rule: Node) {
+  prependRule (rule: Node) {
     this.prependNode(this.nodes, rule)
   }
 
-  appendRule(rule: Node) {
+  appendRule (rule: Node) {
     this.appendNode(this.nodes, rule)
   }
 

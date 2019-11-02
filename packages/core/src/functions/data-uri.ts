@@ -1,15 +1,11 @@
-import {
-  Quoted,
-  Value,
-  Url
-} from '../tree/nodes'
+import { Quoted, Value, Url } from '../tree/nodes'
 import { define } from './helpers'
 import { RewriteUrlMode } from '../constants'
 
 const fallback = (value: string) => new Url([new Quoted(value)])
 
 export default {
-  'data-uri': define(function(mimeType: Value, filePath?: Value) {
+  'data-uri': define(function (mimeType: Value, filePath?: Value) {
     const { environment, options } = this
 
     if (!filePath) {
@@ -19,10 +15,11 @@ export default {
 
     let mime = mimeType && mimeType.value
     let path = filePath.value
-  
-    const currentFileInfo = this.options.rewriteUrls == RewriteUrlMode.ALL
-      ? this.currentNode.fileRoot.fileInfo
-      : this.currentNode.root.fileInfo
+
+    const currentFileInfo
+      = this.options.rewriteUrls == RewriteUrlMode.ALL
+        ? this.currentNode.fileRoot.fileInfo
+        : this.currentNode.root.fileInfo
 
     const currentDirectory = currentFileInfo.path
 
@@ -52,9 +49,10 @@ export default {
         const charset = environment.charsetLookup(mime)
         useBase64 = ['US-ASCII', 'UTF-8'].indexOf(charset) < 0
       }
-      if (useBase64) { mime += ';base64' }
-    }
-    else {
+      if (useBase64) {
+        mime += ';base64'
+      }
+    } else {
       useBase64 = /;base64$/.test(mime)
     }
 
