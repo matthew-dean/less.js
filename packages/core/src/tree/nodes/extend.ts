@@ -1,10 +1,4 @@
-import {
-  Node,
-  ILocationInfo,
-  Selector,
-  List,
-  SelectorList
-} from '.'
+import { Node, ILocationInfo, Selector, List, SelectorList } from '.'
 
 export enum ExtendMode {
   ALL
@@ -23,7 +17,7 @@ export type IExtendOptions = {
  */
 export class Extend extends Node {
   options: IExtendOptions
-  constructor(props: IExtendProps, options: IExtendOptions, location: ILocationInfo) {
+  constructor (props: IExtendProps, options: IExtendOptions, location: ILocationInfo) {
     const { selectors } = props
     if (selectors.length !== 1) {
       props.selectors = [new List<Selector>(selectors)]

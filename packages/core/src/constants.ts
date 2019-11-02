@@ -1,4 +1,3 @@
-
 export enum MathMode {
   NO_DIVISION = 1,
   STRICT = 2

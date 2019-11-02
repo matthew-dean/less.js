@@ -10,9 +10,13 @@ import Environment from './environment/environment'
 import { ParseOptions } from './types'
 
 /** @todo - refine callback definition */
-export type ParseFunction = (input: string, options?: ParseOptions, callback?: Function) => Promise<any>
+export type ParseFunction = (
+  input: string,
+  options?: ParseOptions,
+  callback?: Function
+) => Promise<any>
 
-export const parse: ParseFunction = function(
+export const parse: ParseFunction = function (
   this: Less,
   input: string,
   options?: ParseOptions,
@@ -23,7 +27,7 @@ export const parse: ParseFunction = function(
    * Context options is a combination of Less (default) options, usually set by the environment,
    * and the options passed into this function.
    */
-  options = {...less.options, ...(options || {})}
+  options = { ...less.options, ...(options || {}) }
   const { plugins, filePath, ...opts } = options
 
   const lessEnvironment = less.environment
@@ -40,7 +44,11 @@ export const parse: ParseFunction = function(
    * are not permanently mutated by plugins during parse.
    */
   const LocalEnvironment: DerivedEnvironment = Object.getPrototypeOf(lessEnvironment).constructor
-  const environment = new LocalEnvironment([...lessEnvironment.fileManagers], [...lessEnvironment.visitors], lessEnvironment.logger)
+  const environment = new LocalEnvironment(
+    [...lessEnvironment.fileManagers],
+    [...lessEnvironment.visitors],
+    lessEnvironment.logger
+  )
 
   if (!callback) {
     return new Promise((resolve, reject) => {
@@ -64,11 +72,15 @@ export const parse: ParseFunction = function(
 
     /** We treat the entry Less content like any other import */
     const fileManager = environment.getFileManager(filename, path, options)
-    fileManager.parseFile({
-      contents: input,
-      filename,
-      path
-    }, options)
+    fileManager
+      .parseFile(
+        {
+          contents: input,
+          filename,
+          path
+        },
+        options
+      )
       .then((root: Rules) => {
         root.evalImports(context)
         callback(null, root, assets, options)

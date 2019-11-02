@@ -7,7 +7,7 @@ export class Bool extends Node {
   text: string
   value: boolean
 
-  constructor(props: boolean | IProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor (props: boolean | IProps, options?: INodeOptions, location?: ILocationInfo) {
     let newProps: IProps
     if (props.constructor === Boolean) {
       newProps = { value: <boolean>props }

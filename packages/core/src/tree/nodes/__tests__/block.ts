@@ -10,6 +10,6 @@ const mockLocation: ILocationInfo = {
 describe('Block', () => {
   it('toString()', () => {
     const rule = new Block([new Value('('), new Value('foo'), new Value(')')])
-    expect(rule + '').to.eq('(foo)')
+    expect(String(rule)).to.eq('(foo)')
   })
 })

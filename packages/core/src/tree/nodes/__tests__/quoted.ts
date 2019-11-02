@@ -1,9 +1,6 @@
 import { expect } from 'chai'
 import 'mocha'
-import {
-  Quoted,
-  Value
-} from '..'
+import { Quoted, Value } from '..'
 
 import { context } from '../../__mocks__/context'
 
@@ -15,7 +12,10 @@ describe('Quoted', () => {
   })
 
   it('should escape a quote', () => {
-    const node = new Quoted([new Value('this is the string contents')], { quote: '"', escaped: true })
+    const node = new Quoted([new Value('this is the string contents')], {
+      quote: '"',
+      escaped: true
+    })
     const val = node.eval(context)
     expect(val.toString()).to.eq('this is the string contents')
   })
@@ -24,6 +24,6 @@ describe('Quoted', () => {
     const A = new Quoted([new Value('this is the string contents')], { quote: '"' })
     const B = new Quoted([new Value('this is the string contents')], { quote: "'" })
 
-    expect(A + '').to.eq(B + '')
+    expect(String(A)).to.eq(String(B))
   })
 })

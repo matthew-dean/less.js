@@ -1,10 +1,4 @@
-import {
-  Context,
-  NodeArray,
-  IProps,
-  ILocationInfo,
-  Value
-} from '.'
+import { Context, NodeArray, IProps, ILocationInfo, Value } from '.'
 
 export type IQuotedOptions = {
   escaped?: boolean
@@ -14,10 +8,10 @@ export type IQuotedOptions = {
  * There's nothing special about a quoted node, other than
  * the first and last member will contain quote marks
  *   e.g. <Quoted <Value ">, <Value foo>, <Value ">>
- * 
+ *
  * If interpolated vars are present, the middle value will be an expression, as in:
  *   e.g. <Quoted <Value ">, <Expression <Value foo>, <Variable @bar>>, <Value "> >
- * 
+ *
  *   1) it may contain interpolated vars
  *   2) we can do normalized equality checks with the "inner" nodes
  */
@@ -25,7 +19,11 @@ export class Quoted extends NodeArray {
   options: IQuotedOptions
   value: string
 
-  constructor(props: string | IProps, options: IQuotedOptions = { quote: '"' }, location?: ILocationInfo) {
+  constructor (
+    props: string | IProps,
+    options: IQuotedOptions = { quote: '"' },
+    location?: ILocationInfo
+  ) {
     if (options.escaped === undefined) {
       options.escaped = false
     }
@@ -40,11 +38,11 @@ export class Quoted extends NodeArray {
     this.allowRoot = options.escaped
   }
 
-  valueOf() {
+  valueOf () {
     return this.nodes.join('')
   }
 
-  toString(omitPrePost: boolean = false) {
+  toString (omitPrePost: boolean = false) {
     let text = ''
     if (!this.options.escaped) {
       text += this.options.quote

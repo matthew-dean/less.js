@@ -1,13 +1,4 @@
-import {
-  Context,
-  Expression,
-  Node,
-  IProps,
-  INodeOptions,
-  ILocationInfo,
-  NumericNode,
-  Op
-} from '.'
+import { Context, Expression, Node, IProps, INodeOptions, ILocationInfo, NumericNode, Op } from '.'
 
 /**
  * Values can only be 3 Nodes
@@ -20,14 +11,14 @@ export class Operation extends Node {
    */
   nodes: [Node, Op, Node]
 
-  constructor(props: [Node, Op, Node] | IProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor (props: [Node, Op, Node] | IProps, options?: INodeOptions, location?: ILocationInfo) {
     if (Array.isArray(props)) {
       props = { nodes: props }
     }
     super(props, options, location)
   }
 
-  eval(context: Context) {
+  eval (context: Context) {
     super.eval(context)
 
     const nodes = this.nodes
@@ -36,11 +27,7 @@ export class Operation extends Node {
     let op = nodes[1].value
     op = op === './' ? '/' : op
 
-    if (
-      context.isMathOn(op) &&
-      a instanceof NumericNode &&
-      b instanceof NumericNode
-    ) {
+    if (context.isMathOn(op) && a instanceof NumericNode && b instanceof NumericNode) {
       return a.operate(op, b, context)
     } else {
       /**

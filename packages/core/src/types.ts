@@ -31,8 +31,8 @@ export type Plugin = {
    */
   name?: string
 
-  /** 
-   * Called immediately after the plugin is 
+  /**
+   * Called immediately after the plugin is
    * first imported, only once.
    */
   install(less: Less, assetManager: AssetManager): void
@@ -44,13 +44,13 @@ export type Plugin = {
    */
   setOptions?(rawArgs: string): void
 
-  /** 
+  /**
    * Set a minimum Less compatibility string or number e.g. '4.0' or [4, 0]
    */
   minVersion?: string | number[]
 
-  /** 
-   * Used for lessc only, to explain 
+  /**
+   * Used for lessc only, to explain
    * options in a Terminal
    */
   printUsage?(): string

@@ -27,7 +27,7 @@ export class Mixin extends Node implements ImportantNode {
   definition: MixinDefinition
   value: string
 
-  constructor(props: IMixinProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor (props: IMixinProps, options?: INodeOptions, location?: ILocationInfo) {
     const { name } = props
     const { rules, params, condition, ...rest } = props
     /** The mixin definition can be passed through the Mixin API */
@@ -41,7 +41,7 @@ export class Mixin extends Node implements ImportantNode {
     this.isVisible = false
   }
 
-  eval(context: Context) {
+  eval (context: Context) {
     if (!this.evaluated) {
       super.eval(context)
       const name = this.name.toString().replace(/^[.#]/, '')
@@ -50,7 +50,7 @@ export class Mixin extends Node implements ImportantNode {
     return this
   }
 
-  makeImportant() {
+  makeImportant () {
     const mixin = this.clone(true)
     mixin.nodes[1] = mixin.definition.makeImportant()
     return mixin

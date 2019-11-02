@@ -1,7 +1,7 @@
 /**
  * What if classes, ids, variable and property lookups
  * were all just on Object prototype chains?
- * 
+ *
  * In theory, the lookups would then be blazingly fast.
  */
 
@@ -17,20 +17,19 @@ const scopeRegistry = (entry: Object) => {
   const entries: any[] = []
 
   return new Proxy(entry, {
-    get(obj, prop) {
+    get (obj, prop) {
       if (!prop) {
         return
       }
       if (prop === 'INHERIT') {
         return () => scopeRegistry(Object.create(obj))
       }
-    
+
       const key: string = getKey(prop)
       switch (key[0]) {
         // property or variable lookup
         case '$':
           if (key in obj) {
-            
           }
         case '@':
           if (key in obj) {
@@ -50,20 +49,19 @@ const scopeRegistry = (entry: Object) => {
             }
             objRef = Object.getPrototypeOf(objRef)
           }
-          
-          break
 
+          break
       }
     },
 
-    set(obj, prop, value): boolean {
+    set (obj, prop, value): boolean {
       if (!prop) {
         return false
       }
       const key: string = getKey(prop)
 
       /**
-       * In the case of vars, props, and mixins, the value will be 
+       * In the case of vars, props, and mixins, the value will be
        * a reference to the rules holding this value
        */
       obj[key] = value

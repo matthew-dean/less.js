@@ -2,11 +2,9 @@
 
 > We welcome feature requests and bug reports. Please read these guidelines before submitting one.
 
-
 <span class="warning">**Words that begin with the at sign (`@`) must be wrapped in backticks!** </span>. As a courtesy to avoid sending notifications to any user that might have the `@username` being referenced, please remember that GitHub usernames also start with the at sign. If you don't wrap them in backticks, users will get unintended notifications from you.
 
 GitHub has other great markdown features as well, [go here to learn more about them](https://help.github.com/articles/github-flavored-markdown).
-
 
 ## Reporting Issues
 
@@ -23,28 +21,27 @@ Please report documentation issues in [the documentation project](https://github
 
 ## Feature Requests
 
-* Please search for existing feature requests first to see if something similar already exists.
-* Include a clear and specific use-case. We love new ideas, but we do not add language features without a reason.
-* Consider whether or not your language feature would be better as a function or implemented in a 3rd-party build system such as [assemble-less](http://github.com/assemble/assemble-less).
-
+- Please search for existing feature requests first to see if something similar already exists.
+- Include a clear and specific use-case. We love new ideas, but we do not add language features without a reason.
+- Consider whether or not your language feature would be better as a function or implemented in a 3rd-party build system such as [assemble-less](http://github.com/assemble/assemble-less).
 
 ## Pull Requests
 
 _Pull requests are encouraged!_
 
-* Start by adding a feature request to get feedback and see how your idea is received.
-* If your pull request solves an existing issue, but it's different in some way, _please create a new issue_ and make sure to discuss it with the core contributors. Otherwise you risk your hard work being rejected.
-* Do not change the **./dist/** folder, we do this when releasing
-* _Please add tests_ for your work. Tests are invoked using `npm test` command. It will run both node.js tests and browser ([PhantomJS](http://phantomjs.org/)) tests.
+- Start by adding a feature request to get feedback and see how your idea is received.
+- If your pull request solves an existing issue, but it's different in some way, _please create a new issue_ and make sure to discuss it with the core contributors. Otherwise you risk your hard work being rejected.
+- Do not change the **./dist/** folder, we do this when releasing
+- _Please add tests_ for your work. Tests are invoked using `npm test` command. It will run both node.js tests and browser ([PhantomJS](http://phantomjs.org/)) tests.
 
 ### Coding Standards
 
-* Always use spaces, never tabs
-* End lines in semi-colons.
-* Loosely aim towards jsHint standards
-
+- Always use spaces, never tabs
+- End lines in semi-colons.
+- Loosely aim towards jsHint standards
 
 ## Developing
+
 If you want to take an issue just add a small comment saying you are having a go at something, so we don't get duplication.
 
 Learn more about [developing Less.js](http://lesscss.org/usage/#developing-less).
