@@ -1,13 +1,5 @@
-import {
-  Node,
-  NodeArray,
-  IProps,
-  ILocationInfo,
-  Value,
-  Bool
-} from '.'
+import { Context, Node, NodeArray, IProps, ILocationInfo, Op, Bool } from '.'
 
-import { EvalContext } from '../contexts'
 import { compare } from '../util/compare'
 
 export type IConditionOptions = {
@@ -16,19 +8,24 @@ export type IConditionOptions = {
 
 export class Condition extends NodeArray {
   /** [left, op, right] */
-  nodes: [Node, Value, Node]
+  nodes: [Node, Op, Node]
   options: IConditionOptions
 
-  constructor(props: IProps, options?: IConditionOptions, location?: ILocationInfo) {
+  constructor (props: IProps, options?: IConditionOptions, location?: ILocationInfo) {
     super(props, options, location)
   }
 
-  eval(context: EvalContext) {
-    const result = ((op, a, b): boolean => {
+  eval (context: Context): Bool {
+    const op = this.nodes[1].value
+    const a = this.nodes[0].eval(context)
+    const b = this.nodes[2].eval(context)
+    const result = ((op, a, b) => {
       if (a instanceof Node && b instanceof Node) {
         switch (op) {
-          case 'and': return Boolean(a.valueOf()) && Boolean(b.valueOf())
-          case 'or':  return Boolean(a.valueOf()) || Boolean(b.valueOf())
+          case 'and':
+            return Boolean(a.valueOf()) && Boolean(b.valueOf())
+          case 'or':
+            return Boolean(a.valueOf()) || Boolean(b.valueOf())
           default:
             switch (compare(a, b)) {
               case -1:
@@ -42,12 +39,12 @@ export class Condition extends NodeArray {
             }
         }
       } else {
-        return false
+        return new Bool({ value: false }).inherit(this)
       }
-    })(this.nodes[1].value, this.nodes[0].eval(context), this.nodes[2].eval(context))
+    })(op, a, b)
 
     const value = this.options.negate ? !result : result
-    return new Bool(<IProps>{ value })
+    return new Bool(<IProps>{ value }).inherit(this)
   }
 }
 

@@ -1,211 +1,275 @@
 import {
+  Context,
+  Condition,
+  Declaration,
+  Expression,
   Node,
+  IProps,
   INodeOptions,
   ILocationInfo,
   Rules,
-  Declaration,
-  Expression,
-  QualifiedRule,
-  IQualifiedRuleProps
+  Name,
+  ImportantNode
 } from '.'
 
-import { EvalContext } from '../contexts'
-import * as utils from '../utils'
-
-
-/**
- * @todo - Is .rule {} a mixin or qualified rule?
- */
-/**
- * @todo - Store the mixin name without '.' or '#' for cross-format compatibility
- *         This makes .mixin() {} the equivalent of `@mixin mixin()`
- *         and .mixin(); is the equivalent of `@include mixin()`
- */
-export interface IMixinDefinitionProps extends IQualifiedRuleProps {
-  args: Node[]
+export type IMixinDefinitionProps = IProps & {
+  rules: Rules
+  params?: (Declaration | Name)[]
+  condition?: Condition
 }
-export class MixinDefinition extends QualifiedRule {
-  args: Node[]
-  constructor(props: IMixinDefinitionProps, options: INodeOptions, location: ILocationInfo) {
+
+/**
+ * This is an abstraction from a mixin, formerly
+ * a "detached ruleset". This is a set of rules with optional parameters,
+ * which can be attached to a variable or a mixin name, or passed
+ * into an each() function.
+ */
+export class MixinDefinition extends Node implements ImportantNode {
+  rules: Rules
+  /**
+   * e.g. `@var`        <Name 'var'> or
+   *      `@var: value` <Declaration {name: var, nodes: [value] }>
+   */
+  params: (Declaration | Name)[]
+  condition: Condition | undefined
+  arity: number
+  required: number
+  optionalParameters: string[]
+  hasVariadic: boolean
+
+  constructor (props: IMixinDefinitionProps, options?: INodeOptions, location?: ILocationInfo) {
+    const { params, ...rest } = props
     super(props, options, location)
+    this.arity = params ? params.length : 0
+  }
+
+  makeImportant () {
+    const oldRules = this.rules.clone()
+    const rules = oldRules.nodes.map(r => {
+      if (r.hasOwnProperty('makeImportant')) {
+        (<ImportantNode>r).makeImportant()
+      }
+      return r
+    })
+
+    const result = this.clone(true)
+    result.rules = new Rules(rules).inherit(oldRules)
+    return result
+  }
+
+  /**
+   * Only the mixin params will be eval'd.
+   * Rules / condition are eval'd in a mixin call
+   */
+  eval (context: Context) {
+    if (!this.evaluated) {
+      const params = this.params
+      if (params) {
+        params.forEach(param => param.eval(context))
+      }
+      this.evaluated = true
+    }
+    return this
   }
 
   /**
    * Evaluates the mixin arguments
    */
-  evalParams(context, mixinEnv, args, evaldArguments) {
+  evalParams (callContext: Context, args: Node[], evaldArguments: Node[]) {
     const frame = this.rules[0].clone()
+    const params = this.params
 
-    let varargs;
-    let arg;
-    const params = utils.copyArray(this.params);
-    let i;
-    let j;
-    let val;
-    let name;
-    let isNamedFound;
-    let argIndex;
-    let argsLength = 0;
+    let paramsLength = 0
+    let argsLength = 0
 
-    if (mixinEnv.frames && mixinEnv.frames[0] && mixinEnv.frames[0].functionRegistry) {
-        frame.functionRegistry = mixinEnv.frames[0].functionRegistry.inherit();
+    if (params) {
+      paramsLength = params.length
     }
-    mixinEnv = new contexts.Eval(mixinEnv, [frame].concat(mixinEnv.frames));
+    if (args) {
+      argsLength = params.length
+      evaldArguments = new Array(argsLength)
+    }
+
+    let name: string
+    let isNamedFound: boolean
+
+    // if (mixinEnv.frames && mixinEnv.frames[0] && mixinEnv.frames[0].functionRegistry) {
+    //   frame.functionRegistry = mixinEnv.frames[0].functionRegistry.inherit()
+    // }
+    // mixinEnv = new contexts.Eval(mixinEnv, [frame].concat(mixinEnv.frames));
 
     if (args) {
-        args = utils.copyArray(args);
-        argsLength = args.length;
+      argsLength = args.length
 
-        for (i = 0; i < argsLength; i++) {
-            arg = args[i];
-            if (name = (arg && arg.name)) {
-                isNamedFound = false;
-                for (j = 0; j < params.length; j++) {
-                    if (!evaldArguments[j] && name === params[j].name) {
-                        evaldArguments[j] = arg.value.eval(context);
-                        frame.prependRule(new Declaration(name, arg.value.eval(context)));
-                        isNamedFound = true;
-                        break;
-                    }
-                }
-                if (isNamedFound) {
-                    args.splice(i, 1);
-                    i--;
-                    continue;
-                } else {
-                    throw { type: 'Runtime', message: `Named argument for ${this.name} ${args[i].name} not found` };
-                }
+      for (let i = 0; i < argsLength; i++) {
+        const arg = args[i]
+        if (arg instanceof Declaration) {
+          name = arg.value
+          isNamedFound = false
+          for (let j = 0; j < params.length; j++) {
+            const param = params[j]
+            if (!evaldArguments[j] && name === params[j].value) {
+              evaldArguments[j] = arg.nodes[0]
+              frame.prependRule(new Declaration({ name, nodes: arg.nodes }, { isVariable: true }))
+              isNamedFound = true
+              break
             }
+          }
+          if (isNamedFound) {
+            args.splice(i, 1)
+            i--
+            continue
+          } else {
+            this.error(callContext, `Named argument matching '${arg.toString(true)}' not found`)
+          }
         }
+      }
     }
-    argIndex = 0;
-    for (i = 0; i < params.length; i++) {
-        if (evaldArguments[i]) { continue; }
+    let argIndex = 0
+    for (let i = 0; i < params.length; i++) {
+      if (evaldArguments[i]) {
+        continue
+      }
+      const param = params[i]
+      const arg = args && args[argIndex]
 
-        arg = args && args[argIndex];
-
-        if (name = params[i].name) {
-            if (params[i].variadic) {
-                varargs = [];
-                for (j = argIndex; j < argsLength; j++) {
-                    varargs.push(args[j].value.eval(context));
-                }
-                frame.prependRule(new Declaration(name, new Expression(varargs).eval(context)));
-            } else {
-                val = arg && arg.value;
-                if (val) {
-                    // This was a mixin call, pass in a detached rules of it's eval'd rules
-                    if (Array.isArray(val)) {
-                        val = new DetachedRules(new Rules('', val));
-                    }
-                    else {
-                        val = val.eval(context);
-                    }
-                } else if (params[i].value) {
-                    val = params[i].value.eval(mixinEnv);
-                    frame.resetCache();
-                } else {
-                    throw { type: 'Runtime', message: `wrong number of arguments for ${this.name} (${argsLength} for ${this.arity})` };
-                }
-
-                frame.prependRule(new Declaration(name, val));
-                evaldArguments[i] = val;
-            }
-        }
-
-        if (params[i].variadic && args) {
-            for (j = argIndex; j < argsLength; j++) {
-                evaldArguments[j] = args[j].value.eval(context);
-            }
-        }
-        argIndex++;
-    }
-
-    return frame;
-  }
-
-  makeImportant() {
-    const rules = !this.rules ? this.rules : this.rules.map(r => {
-        if (r.makeImportant) {
-            return r.makeImportant(true);
+      if ((name = param.value)) {
+        if (param instanceof Name && param.options.variadic) {
+          const varargs = []
+          for (let j = argIndex; j < argsLength; j++) {
+            varargs.push(args[j])
+          }
+          frame.prependRule(
+            new Declaration(
+              { name, nodes: [new Expression(varargs, { spaced: true })] },
+              { isVariable: true }
+            )
+          )
         } else {
-            return r;
+          let nodes: Node[]
+          if (!arg) {
+            if (param instanceof Declaration) {
+              nodes = param.nodes
+            } else {
+              this.error(
+                callContext,
+                `wrong number of arguments for mixin (${argsLength} for ${this.arity})`
+              )
+            }
+          } else {
+            nodes = [arg]
+          }
+
+          frame.prependRule(new Declaration({ name, nodes }, { isVariable: true }))
+          evaldArguments[i] = arg
         }
-    });
-    const result = new Definition(this.name, this.params, rules, this.condition, this.variadic, this.frames);
-    return result;
+      }
+
+      /** @todo is this redundant? */
+      if (param instanceof Name && param.options.variadic && args) {
+        for (let j = argIndex; j < argsLength; j++) {
+          evaldArguments[j] = args[j]
+        }
+      }
+      argIndex++
+    }
+
+    return frame
   }
 
-  evalCall(context, args, important) {
-    const _arguments = [];
-    const mixinFrames = this.frames ? this.frames.concat(context.frames) : context.frames;
-    const frame = this.evalParams(context, new contexts.Eval(context, mixinFrames), args, _arguments);
+  evalCall (context: Context, args: Node[], important: boolean = false) {
+    const _arguments = []
+    // const mixinFrames = this.frames ? this.frames.concat(context.frames) : context.frames;
+    const frame = this.evalParams(context, args, _arguments)
     let rules: Rules
 
-    frame.prependRule(new Declaration('@arguments', new Expression(_arguments).eval(context)))
+    frame.prependRule(
+      new Declaration(
+        {
+          name: 'arguments',
+          nodes: [new Expression(_arguments, { spaced: true })]
+        },
+        { isVariable: true }
+      )
+    )
 
-    rules = [...this.rules[0]]
+    rules = this.rules[0].clone()
+    rules = rules.eval(context)
 
-    rules = new Rules(null, rules)
-
-    // rules.originalRules = this;
-    rules = rules.eval(new contexts.Eval(context, [this, frame].concat(mixinFrames)))
     if (important) {
-        rules = rules.makeImportant()
+      rules = rules.makeImportant()
     }
     return rules
   }
 
-  matchCondition(args, context) {
-      if (this.condition && !this.condition.eval(
-          new contexts.Eval(context,
-              [this.evalParams(context, /* the parameter variables */
-                  new contexts.Eval(context, this.frames ? this.frames.concat(context.frames) : context.frames), args, [])]
-                  .concat(this.frames || []) // the parent namespace/mixin frames
-                  .concat(context.frames)))) { // the current environment frames
-          return false;
-      }
-      return true;
+  matchCondition (context: Context, args?: Node[]): boolean {
+    const frame = this.evalParams(context, args, [])
+    let condition = this.condition && this.condition[0]
+    if (condition) {
+      condition = condition.clone()
+      condition.parent = frame
+      return condition.eval(context).value
+    }
+    return true
   }
 
-  matchArgs(args, context) {
-    const allArgsCnt = (args && args.length) || 0;
-    let len;
-    const optionalParameters = this.optionalParameters;
-    const requiredArgsCnt = !args ? 0 : args.reduce((count, p) => {
-        if (optionalParameters.indexOf(p.name) < 0) {
-            return count + 1;
-        } else {
-            return count;
-        }
-    }, 0);
+  matchArgs (context: Context, args?: Node[]): boolean {
+    const allArgsCnt = (args && args.length) || 0
+    const params = this.params
+    let optionalParameters = this.optionalParameters
 
-    if (!this.variadic) {
-        if (requiredArgsCnt < this.required) {
-            return false;
+    if (!optionalParameters) {
+      optionalParameters = []
+      this.required = params.reduce((count, p) => {
+        if (p instanceof Declaration) {
+          return count + 1
+        } else {
+          if (p.options.variadic) {
+            this.hasVariadic = true
+          }
+          optionalParameters.push(p.value)
+          return count
         }
-        if (allArgsCnt > this.params.length) {
-            return false;
+      }, 0)
+      this.optionalParameters = optionalParameters
+    }
+
+    const requiredArgsCnt = !args
+      ? 0
+      : args.reduce((count, p) => {
+        if (p instanceof Declaration && optionalParameters.indexOf(p.value) === -1) {
+          return count + 1
+        } else {
+          return count
         }
+      }, 0)
+
+    if (!this.hasVariadic) {
+      if (requiredArgsCnt < this.required) {
+        return false
+      }
+      if (allArgsCnt > params.length) {
+        return false
+      }
     } else {
-        if (requiredArgsCnt < (this.required - 1)) {
-            return false;
-        }
+      if (requiredArgsCnt < this.required - 1) {
+        return false
+      }
     }
 
     // check patterns
-    len = Math.min(requiredArgsCnt, this.arity);
+    const len = Math.min(requiredArgsCnt, this.arity)
 
     for (let i = 0; i < len; i++) {
-        if (!this.params[i].name && !this.params[i].variadic) {
-            if (args[i].value.eval(context).toCSS() != this.params[i].value.eval(context).toCSS()) {
-                return false;
-            }
+      const param = params[i]
+      const arg = args[i]
+      if (param instanceof Name && !param.options.variadic) {
+        if (arg.toString(true) !== param.toString(true)) {
+          return false
         }
+      }
     }
-    return true;
+
+    return true
   }
 }
-
-MixinDefinition.prototype.type = 'MixinDefinition'
-MixinDefinition.prototype.evalFirst = true

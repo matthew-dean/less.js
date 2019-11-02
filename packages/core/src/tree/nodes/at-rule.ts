@@ -1,60 +1,43 @@
-import {
-  Node,
-  Rules,
-  IBaseProps,
-  IProps,
-  ILocationInfo
-} from '.'
-
-import { EvalContext } from '../contexts'
+import { Context, Node, Rules, IBaseProps, IProps, INodeOptions, ILocationInfo } from '.'
 
 export type IAtRuleProps = {
   name: string
   /** Prelude (everything after name and before ; or {) */
-  prelude: Node[]
+  prelude: Node
   /** Optional set of rules */
-  rules?: Rules[]
+  rules?: Rules
 } & IBaseProps
-
-export type IAtRuleOptions = {
-  /**
-   * For cases like @media and @supports,
-   * this option will bubble the rule to the root.
-   * 
-   * If two media of the same type are nested, their expression
-   * lists (prelude) will be merged with 'and'
-   */
-  bubbleRule?: boolean
-}
 
 export class AtRule extends Node {
   name: string
-  rules: Rules[]
-  prelude: Node[]
-  options: IAtRuleOptions
+  prelude: Node
+  rules: Rules | undefined
+  options: { atRoot?: boolean }
 
-  constructor(props: IAtRuleProps, options: IAtRuleOptions, location: ILocationInfo) {
+  constructor (props: IAtRuleProps, options: INodeOptions = {}, location: ILocationInfo) {
     const { name, ...rest } = props
-    if (options.bubbleRule === undefined && (/@media|@supports/i.test(name))) {
-      options.bubbleRule = true
+
+    if (options.atRoot === undefined && /@media|@supports/i.test(name)) {
+      options.atRoot = true
     }
-    
+
     /** Wrap at rule body in an empty rules for proper scoping and collapsing */
     super(<IProps>(rest as unknown), options, location)
     this.name = name
-    this.allowRoot = true
   }
 
-  toString() {
-    let text = this.pre + this.name + this.prelude.join('')
+  toString (omitPrePost?: boolean) {
+    let text = this.name + this.prelude.toString()
     if (this.rules) {
-      text += this.rules.join('')
+      text += this.rules.toString()
     }
-    text += this.post
-    return text
+    if (omitPrePost) {
+      return text
+    }
+    return this.pre + text + this.post
   }
 
-  eval(context: EvalContext) {
+  eval (context: Context) {
     let mediaPathBackup
     let mediaBlocksBackup
 
@@ -78,3 +61,5 @@ export class AtRule extends Node {
 }
 
 AtRule.prototype.type = 'AtRule'
+AtRule.prototype.evalFirst = true
+AtRule.prototype.allowRoot = true

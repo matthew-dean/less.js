@@ -1,11 +1,10 @@
-import { Node } from '.'
-import { EvalContext } from '../contexts'
+import { Context, Node } from '.'
 
 /**
  * The Ampersand ('&')
  */
 export class SelectorRef extends Node {
-  eval(context: EvalContext) {
+  eval (context: Context) {
     return context.selectors[0].clone().inherit(this)
   }
 }

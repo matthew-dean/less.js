@@ -3,7 +3,7 @@
  */
 import { Node } from '../nodes'
 
-/** 
+/**
  * Generalized list-merging utility, used for selectors and values
  *   e.g.
  *     .a, .b, .c {
@@ -60,10 +60,14 @@ export const divide = (a: number, b: number) => a / b
 
 export const operate = (op: string, a: number, b: number) => {
   switch (op) {
-    case '+': return a + b
-    case '-': return a - b
-    case '*': return a * b
-    case '/': return a / b
+    case '+':
+      return a + b
+    case '-':
+      return a - b
+    case '*':
+      return a * b
+    case '/':
+      return a / b
   }
 }
 

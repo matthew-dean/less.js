@@ -12,15 +12,19 @@ interface IMerges {
 export const Fragments = [...CSSFragments]
 export let Tokens = [...CSSTokens]
 
-Fragments.push(['lineComment', '\\/\\/[^\\n\\r]*'])
+Fragments.unshift(['lineComment', '\\/\\/[^\\n\\r]*'])
 Fragments.push(['interpolated', '({{ident}}?[@$]{[\\w-]+}{{ident}}?)+'])
+
+Fragments.forEach(fragment => {
+  if (fragment[0].indexOf('wsorcomment') !== -1) {
+    fragment[1] = '(?:({{ws}})|({{comment}})|({{lineComment}}))'
+  }
+})
 
 /** Keyed by what to insert after */
 const merges: IMerges = {
-  'Unknown': [
-    { name: 'Ampersand', pattern: /&/ }
-  ],
-  'PlainIdent': [
+  Unknown: [{ name: 'Ampersand', pattern: /&/ }],
+  PlainIdent: [
     {
       name: 'InterpolatedIdent',
       pattern: '{{interpolated}}',
@@ -54,7 +58,7 @@ const merges: IMerges = {
       categories: ['VarOrProp']
     }
   ],
-  'AtMedia': [
+  AtMedia: [
     {
       name: 'AtPlugin',
       pattern: /@plugin/,
@@ -62,7 +66,7 @@ const merges: IMerges = {
       categories: ['BlockMarker', 'AtName']
     }
   ],
-  'Uri': [
+  Uri: [
     {
       name: 'LineComment',
       pattern: '{{lineComment}}',
@@ -72,12 +76,12 @@ const merges: IMerges = {
   ]
 }
 
-let tokenLength = Tokens.length;
+let tokenLength = Tokens.length
 for (let i = 0; i < tokenLength; i++) {
   let token = Tokens[i]
   let { name, categories } = token
   const copyToken = () => {
-    token = {...token}
+    token = { ...token }
     categories = categories ? categories.slice(0) : []
   }
   let alterations = true
@@ -94,10 +98,6 @@ for (let i = 0; i < tokenLength; i++) {
     case 'Interpolated':
       copyToken()
       token.pattern = LexerType.NA
-      break
-    case 'WS':
-      copyToken()
-      token.pattern = '(?:{{ws}}|{{lineComment}}|{{comment}})+'
       break
     case 'DotName':
       copyToken()

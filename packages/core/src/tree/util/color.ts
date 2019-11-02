@@ -154,20 +154,22 @@ const Colors = {
   yellowgreen: 10145074
 }
 
-export const valueFromKeyword = (keyword: string): Node => {
+export const colorFromKeyword = (keyword: string): Color | Value => {
   const key = keyword.toLowerCase()
-  let c: Node
+  let c: Color | Value
   if (Colors.hasOwnProperty(key)) {
     const int = Colors[key]
     const value = []
-    int.toString(16).match(/.{2}/g).map((c: string) => {
-      value.push(parseInt(c, 16))
-    })
+    int
+      .toString(16)
+      .match(/.{2}/g)
+      .map((c: string) => {
+        value.push(parseInt(c, 16))
+      })
     value.push(1)
 
     c = new Color(<IProps>{ value, text: keyword })
-  }
-  else if (key === 'transparent') {
+  } else if (key === 'transparent') {
     c = new Color(<IProps>{ value: [0, 0, 0, 0], text: keyword })
   } else {
     c = new Value(keyword)

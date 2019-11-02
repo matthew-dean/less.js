@@ -1,8 +1,7 @@
 import { expect } from 'chai'
 import 'mocha'
 import { Color, Operation, Value } from '..'
-import { EvalContext } from '../../contexts'
-import Default from '../../../options'
+import { context } from '../../__mocks__/context'
 
 describe('Color', () => {
   it('accepts hex values', () => {
@@ -15,19 +14,23 @@ describe('Color', () => {
   })
 
   it('accepts value arrays', () => {
-    let rule = new Color({ value: [10, 10, 10, 0.5]})
+    let rule = new Color({ value: [10, 10, 10, 0.5] })
     expect(rule.valueOf()).to.eql([10, 10, 10, 0.5])
   })
 
   it('preserves the string value', () => {
-    let rule = new Color({ value: [10, 10, 10, 0.5], text: 'parsedcolor'})
+    let rule = new Color({ value: [10, 10, 10, 0.5], text: 'parsedcolor' })
     expect(rule.valueOf()).to.eql([10, 10, 10, 0.5])
     expect(rule.toString()).to.eq('parsedcolor')
   })
 
   it('removes the text value during ops', () => {
-    let A = new Operation([new Color('#111'), new Value({ text: ' + ', value: '+' }), new Color('#222')])
-    const val = A.eval(new EvalContext({}, Default()))
+    let A = new Operation([
+      new Color('#111'),
+      new Value({ text: ' + ', value: '+' }),
+      new Color('#222')
+    ])
+    const val = A.eval(context)
     expect(val.toString()).to.eq('#333333')
     /** Just checks that this operation can be stringified */
     expect(A.toString()).to.eq('#111 + #222')

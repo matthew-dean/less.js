@@ -8,7 +8,7 @@ const unitConversions = {
     in: 0.0254,
     px: 0.0254 / 96,
     pt: 0.0254 / 72,
-    pc: 0.0254 / 72 * 12
+    pc: (0.0254 / 72) * 12
   },
   duration: {
     s: 1,
@@ -40,7 +40,7 @@ export const convertDimension = (node: Dimension, toUnit: string) => {
   const fromType = unitConversions[fromUnit]
   const toType = unitConversions[toUnit]
 
-  if (!fromType || !toType || (fromType !== toType)) {
+  if (!fromType || !toType || fromType !== toType) {
     return
   }
 

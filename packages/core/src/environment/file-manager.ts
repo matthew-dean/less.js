@@ -1,56 +1,31 @@
 import { IOptions } from '../options'
-import Environment from './environment'
+import Environment, { FileObject } from './environment'
+import { Node, IImportOptions } from '../tree/nodes'
 
-export default abstract class FileManager {
-  /**
-   * Given the full path to a file, return the path component
-   */
-  abstract getPath(filename: string): string
-  abstract tryAppendExtension(path: string, ext: string): string
-
-  /* Append a .less extension if appropriate. Only called if less thinks one could be added. */
-  protected tryAppendLessExtension(path: string) {
-    return this.tryAppendExtension(path, '.less')
-  }
-
-  /**
-   * Whether the rootpath should be converted to be absolute.
-   * The browser ovverides this to return true because urls must be absolute.
-   */
-  abstract alwaysMakePathsAbsolute(): boolean
-
-  /**
-   * Returns whether a path is absolute
-   */
-  abstract isPathAbsolute(path: string): boolean
-
-  /**
-   * Joins together 2 paths
-   */
-  abstract joinPath(basePath: string, path: string): string
-
-  /**
-   * Returns the difference between 2 paths
-   * E.g. url = a/ baseUrl = a/b/ returns ../
-   * url = a/b/ baseUrl = a/ returns b/
-   */
-  abstract pathDiff(url: string, baseUrl: string): string
-
+export abstract class FileManager {
   /**
    * Returns whether this file manager supports this file for syncronous file retrieval
-   * @removed - all files are returned asynchronously
    */
-  protected supportsSync(): boolean { return false }
+  supportsSync (
+    filePath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions,
+    environment: Environment
+  ): boolean {
+    return environment.supportsSync(filePath, currentDirectory, options)
+  }
 
   /**
    * Returns whether this file manager supports this file
    */
-  abstract supports(
-    filename: string,
+  supports (
+    filePath: string,
     currentDirectory: string,
-    options: IOptions,
+    options: IOptions & IImportOptions,
     environment: Environment
-  ): boolean
+  ): boolean {
+    return environment.supports(filePath, currentDirectory, options)
+  }
 
   /**
    * Loads a file asynchronously. Expects a promise that either rejects with an error or fulfills with an
@@ -58,21 +33,50 @@ export default abstract class FileManager {
    *  { filename: - full resolved path to file
    *    contents: - the contents of the file, as a string }
    */
-  abstract loadFile(
-    filename: string,
+  loadFile (
+    filePath: string,
     currentDirectory: string,
-    options: IOptions,
+    options: IOptions & IImportOptions,
     environment: Environment
-  ): Promise<{ filename: string, contents: string }>
+  ): Promise<FileObject> {
+    if (options.syncImport && this.supportsSync(filePath, currentDirectory, options, environment)) {
+      return new Promise((resolve, reject) => {
+        const result = this.loadFileSync(filePath, currentDirectory, options, environment)
+        if (result.contents) {
+          resolve(result)
+        } else {
+          reject(result)
+        }
+      })
+    }
+    return this.loadFileAsync(filePath, currentDirectory, options, environment)
+  }
+
+  loadFileAsync (
+    filePath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions,
+    environment: Environment
+  ): Promise<FileObject> {
+    return environment.loadFileAsync(filePath)
+  }
 
   /**
-   * Loads a file synchronously.
-   * 
-   * @removed
+   * Loads a file synchronously. This is still normalized as a Promise to make code paths easier.
    */
-  protected loadFileSync() {
-    throw Error('Synchronous loading is not supported')
+  loadFileSync (
+    filePath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions,
+    environment: Environment
+  ): FileObject {
+    return environment.loadFileSync(filePath)
   }
-  // helper function, not part of API
 
+  /**
+   * Given file object and options, returns a single Less AST node
+   */
+  abstract parseFile(file: FileObject, options: IOptions & IImportOptions): Promise<Node>
 }
+
+export default FileManager

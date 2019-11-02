@@ -1,4 +1,5 @@
 import {
+  Context,
   Node,
   Declaration,
   IProps,
@@ -6,19 +7,20 @@ import {
   // FunctionCall
 } from '.'
 
-/**
- * @todo - Store the variable name without `@` for cross-format compatibility
- */
-import { EvalContext } from '../contexts'
+import { mergeProperties } from '../util/selectors'
 
 export type IVariableOptions = {
   /** will look up properties instead of variables */
   propertyRef?: boolean
 }
+
 /**
+ * Note that this is, specifically, a variable/property reference,
+ * and not an assignment to a variable identifier.
+ *
  * The value nodes might contain another variable ref (nested vars)
- * 
- * e.g. 
+ *
+ * e.g.
  *   nodes: @foo = <Value 'foo'>
  *   nodes: @@bar = <Variable 'bar'>
  */
@@ -28,7 +30,7 @@ export class Variable extends Node {
   value: string
   options: IVariableOptions
 
-  constructor(props: string | IProps, options: IVariableOptions = {}, location?: ILocationInfo) {
+  constructor (props: string | IProps, options: IVariableOptions = {}, location?: ILocationInfo) {
     let newProps: IProps
     if (props.constructor === String) {
       newProps = { value: <string>props }
@@ -36,7 +38,7 @@ export class Variable extends Node {
       newProps = <IProps>props
     }
     let val: string = newProps.value.toString()
-    
+
     if (options.propertyRef && newProps.value !== undefined && val.charAt(0) === '$') {
       newProps.value = val.slice(1)
     }
@@ -44,7 +46,7 @@ export class Variable extends Node {
     this.type = options.propertyRef ? 'Property' : 'Variable'
   }
 
-  toString() {
+  toString () {
     const name = super.toString()
     if (this.options.propertyRef) {
       return name
@@ -52,40 +54,39 @@ export class Variable extends Node {
     return '@' + name
   }
 
-  eval(context: EvalContext) {
+  eval (context: Context) {
     super.eval(context)
-    if (!this.value) {
-      this.value = this.nodes.join('')
+    let name = this.value
+    if (!name) {
+      name = this.nodes.join('')
+      this.value = name
     }
-    const name = this.value
     const type = this.type
 
-
     if (this.evaluating) {
-      return this.error(context,
-        `Recursive ${type} reference for '${name}'`
-      )
+      return this.error(context, `Recursive ${type} reference for '${this.toString()}'`)
     }
 
     this.evaluating = true
+    const decl: Declaration | Declaration[] = this[`find${type}`](context, name)
 
-    const decl: Declaration | Declaration[] = this[`find${type}`](name)
     if (decl) {
-      this.evaluating = false
       if (Array.isArray(decl)) {
-        const props = []
+        let props: Declaration[] = []
         decl.forEach(node => {
           props.push(node.eval(context))
         })
-        /** @todo - merge props */
-        return props
+        props = mergeProperties(props, true)
+        this.evaluating = false
+        return props[props.length - 1].nodes
       } else {
         decl.eval(context)
         /** Return the evaluated declaration's value */
-        return decl.nodes[0]
+        this.evaluating = false
+        return decl.nodes
       }
-      
     }
+    this.evaluating = false
     return this.error(context, `${type} '${name}' is undefined`)
 
     // const variable = this.find(node => {

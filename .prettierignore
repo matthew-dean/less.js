@@ -1,0 +1,7 @@
+# These are not a valid JS file.
+packages/less/lib/source-map/source-map-header.js
+packages/less/lib/source-map/source-map-footer.js
+
+# Generated Files
+dist
+coverage

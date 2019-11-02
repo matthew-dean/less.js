@@ -1,4 +1,3 @@
-
 import { CstParser, EMPTY_ALT, EOF, TokenType } from 'chevrotain'
 import { Tokens, Fragments } from './lessTokens'
 // @ts-ignore
@@ -7,7 +6,7 @@ import { createLexer } from './util'
 const { lexer, tokens, T } = createLexer(Fragments, Tokens)
 
 class LessParser extends CstParser {
-  constructor() {
+  constructor () {
     super(tokens, {
       maxLookahead: 3
     })
@@ -21,7 +20,7 @@ class LessParser extends CstParser {
   inGuard: boolean
 
   // https://sap.github.io/chevrotain/documentation/6_1_0/classes/baseparser.html#reset
-  reset() {
+  reset () {
     super.reset()
     this.inSelector = false
     this.inCompareBlock = false
@@ -45,51 +44,51 @@ class LessParser extends CstParser {
   //   this.CONSUME(T.WS)
   // })
 
-   /** Searches outer space (not within matching blocks) for tokens */
-   _searchUntil = (tokens: TokenType[]): TokenType => {
+  /** Searches outer space (not within matching blocks) for tokens */
+  _searchUntil = (tokens: TokenType[]): TokenType => {
     let done = false
     let foundToken: TokenType
     const blockStack = []
     let i = 0
 
     while (!done) {
-      i++;
+      i++
       const blockLength = blockStack.length
       const nextToken = this.LA(i)
       const tokenType = nextToken.tokenType
 
       if (blockLength === 0 && tokens.indexOf(tokenType) !== -1) {
-        done = true;
-        foundToken = tokenType;
-        break;
+        done = true
+        foundToken = tokenType
+        break
       } else {
         switch (tokenType) {
           case T.LParen:
           case T.LCurly:
           case T.LSquare:
             blockStack.unshift(T.RSquare)
-            break;
+            break
           case T.RParen:
           case T.RCurly:
           case T.RParen:
             if (blockStack[0] === tokenType) {
-              blockStack.shift();
+              blockStack.shift()
             }
-            break;
+            break
           case EOF:
-            done = true;
-            break;
+            done = true
+            break
         }
       }
     }
-    return foundToken;
+    return foundToken
   }
 
   /** simplify later, verbose for debugging */
-  _declarationGuard() {
-    const foundToken = this._searchUntil([T.LCurly, T.RCurly, T.SemiColon]);
-    const pass = this.inSelector && (foundToken !== T.LCurly)
-    return pass;
+  _declarationGuard () {
+    const foundToken = this._searchUntil([T.LCurly, T.RCurly, T.SemiColon])
+    const pass = this.inSelector && foundToken !== T.LCurly
+    return pass
   }
 
   primary = this.RULE('primary', () => {
@@ -98,20 +97,22 @@ class LessParser extends CstParser {
       this.OR([
         { ALT: () => this.SUBRULE(this.atrule) },
         { ALT: () => this.SUBRULE(this.variableAssign) },
-        { ALT: () => {
-          this.SUBRULE(this.functionCall)
-          this.SUBRULE(this.semi)
-        }},
-        
-        { 
-          GATE: this._declarationGuard.bind(this), 
+        {
+          ALT: () => {
+            this.SUBRULE(this.functionCall)
+            this.SUBRULE(this.semi)
+          }
+        },
+
+        {
+          GATE: this._declarationGuard.bind(this),
           ALT: () => {
             this.SUBRULE(this.declaration)
           }
         },
         // this combines mixincall, mixinDefinition and rule set
         // because of common prefix
-        { ALT: () => this.SUBRULE(this.rulesetOrMixin) },
+        { ALT: () => this.SUBRULE(this.rulesetOrMixin) }
         // { ALT: () => this.SUBRULE(this.entitiesCall) },
       ])
       this.SUBRULE2(this._)
@@ -149,7 +150,7 @@ class LessParser extends CstParser {
     this.SUBRULE(this._)
     this.OR2([
       { ALT: () => this.CONSUME(T.Colon) },
-      { 
+      {
         GATE: () => !inBlock,
         ALT: () => this.CONSUME(T.PlusAssign)
       },
@@ -166,7 +167,6 @@ class LessParser extends CstParser {
       DEF: () => this.SUBRULE(this.semi)
     })
   })
-
 
   // Technically this is all selectors after an initial selector match
   // e.g.  ", div.class, p"
@@ -209,7 +209,7 @@ class LessParser extends CstParser {
         }
       }
     ])
-    
+
     this.SUBRULE4(this._)
     this.OR2([
       {
@@ -323,24 +323,24 @@ class LessParser extends CstParser {
 
   additionExpression = this.RULE('additionExpression', () => {
     // using labels can make the CST processing easier
-    this.SUBRULE(this.multiplicationExpression, { LABEL: "lhs" })
+    this.SUBRULE(this.multiplicationExpression, { LABEL: 'lhs' })
     this.MANY(() => {
       // consuming 'AdditionOperator' will consume either Plus or Minus as they are subclasses of AdditionOperator
       this.CONSUME(T.AdditionOperator)
       this.SUBRULE2(this._)
       //  the index "2" in SUBRULE2 is needed to identify the unique position in the grammar during runtime
-      this.SUBRULE2(this.multiplicationExpression, { LABEL: "rhs" })
+      this.SUBRULE2(this.multiplicationExpression, { LABEL: 'rhs' })
     })
     this.SUBRULE3(this._)
   })
 
-  multiplicationExpression = this.RULE("multiplicationExpression", () => {
-    this.SUBRULE(this.compareExpression, { LABEL: "lhs" })
+  multiplicationExpression = this.RULE('multiplicationExpression', () => {
+    this.SUBRULE(this.compareExpression, { LABEL: 'lhs' })
     this.MANY(() => {
       this.CONSUME(T.MultiplicationOperator)
       this.SUBRULE(this._)
       //  the index "2" in SUBRULE2 is needed to identify the unique position in the grammar during runtime
-      this.SUBRULE2(this.compareExpression, { LABEL: "rhs" })
+      this.SUBRULE2(this.compareExpression, { LABEL: 'rhs' })
       // this.SUBRULE2(this._)
     })
     this.SUBRULE2(this._)
@@ -348,7 +348,7 @@ class LessParser extends CstParser {
 
   compareExpression = this.RULE('compareExpression', () => {
     // using labels can make the CST processing easier
-    this.SUBRULE(this.atomicExpression, { LABEL: "lhs" })
+    this.SUBRULE(this.atomicExpression, { LABEL: 'lhs' })
     this.MANY({
       GATE: () => this.inCompareBlock,
       DEF: () => {
@@ -357,30 +357,30 @@ class LessParser extends CstParser {
         this.CONSUME(T.CompareOperator)
         this.SUBRULE2(this._)
         //  the index "2" in SUBRULE2 is needed to identify the unique position in the grammar during runtime
-        this.SUBRULE2(this.atomicExpression, { LABEL: "rhs" })
+        this.SUBRULE2(this.atomicExpression, { LABEL: 'rhs' })
       }
     })
     this.SUBRULE3(this._)
-  })     
+  })
 
   atomicExpression = this.RULE('atomicExpression', () => {
     this.OR([
-        { ALT: () => this.SUBRULE(this.parenBlock) },
-        { ALT: () => this.SUBRULE(this.functionCall) },
-        { ALT: () => this.CONSUME(T.VarOrProp) },
-        { ALT: () => this.CONSUME(T.Unit) },
-        { ALT: () => this.CONSUME(T.Ident) },
-        { ALT: () => this.CONSUME(T.StringLiteral) },
-        { ALT: () => this.CONSUME(T.Uri) },
-        { ALT: () => this.CONSUME(T.Color) },
-        { ALT: () => this.CONSUME(T.UnicodeRange) },
-        {
-          ALT: () => {
-            this.CONSUME(T.LSquare)
-            this.SUBRULE(this.atomicExpression)
-            this.CONSUME(T.RSquare)
-          }
+      { ALT: () => this.SUBRULE(this.parenBlock) },
+      { ALT: () => this.SUBRULE(this.functionCall) },
+      { ALT: () => this.CONSUME(T.VarOrProp) },
+      { ALT: () => this.CONSUME(T.Unit) },
+      { ALT: () => this.CONSUME(T.Ident) },
+      { ALT: () => this.CONSUME(T.StringLiteral) },
+      { ALT: () => this.CONSUME(T.Uri) },
+      { ALT: () => this.CONSUME(T.Color) },
+      { ALT: () => this.CONSUME(T.UnicodeRange) },
+      {
+        ALT: () => {
+          this.CONSUME(T.LSquare)
+          this.SUBRULE(this.atomicExpression)
+          this.CONSUME(T.RSquare)
         }
+      }
     ])
   })
 
@@ -400,15 +400,15 @@ class LessParser extends CstParser {
       { ALT: () => this.SUBRULE(this.additionExpression) }
     ])
     this.SUBRULE2(this._)
-    this.CONSUME(T.RParen);
+    this.CONSUME(T.RParen)
   })
 
   functionCall = this.RULE('functionCall', () => {
-    this.CONSUME(T.Function);
+    this.CONSUME(T.Function)
     this.SUBRULE(this._)
-    this.SUBRULE(this.args);
+    this.SUBRULE(this.args)
     this.SUBRULE2(this._)
-    this.CONSUME(T.RParen);
+    this.CONSUME(T.RParen)
   })
 
   variableCall = this.RULE('variableCall', () => {
@@ -428,7 +428,7 @@ class LessParser extends CstParser {
   })
 
   entitiesCall = this.RULE('entitiesCall', () => {
-      // TODO: TBD
+    // TODO: TBD
   })
 
   atrule = this.RULE('atrule', () => {
@@ -450,9 +450,9 @@ class LessParser extends CstParser {
       this.SUBRULE2(this._)
     })
     this.OR([
-        { ALT: () => this.CONSUME(T.SemiColon) },
-        { ALT: () => this.SUBRULE(this.curlyBlock) }
-    ]);
+      { ALT: () => this.CONSUME(T.SemiColon) },
+      { ALT: () => this.SUBRULE(this.curlyBlock) }
+    ])
   })
 
   importAtRule = this.RULE('importAtRule', () => {
@@ -464,8 +464,7 @@ class LessParser extends CstParser {
       this.CONSUME(T.Ident)
       this.MANY(() => {
         this.SUBRULE3(this._)
-        this.CONSUME(T.Comma),
-        this.SUBRULE4(this._)
+        this.CONSUME(T.Comma), this.SUBRULE4(this._)
         this.CONSUME2(T.Ident)
       })
       this.SUBRULE5(this._)
@@ -473,10 +472,7 @@ class LessParser extends CstParser {
     })
 
     this.SUBRULE6(this._)
-    this.OR([
-      { ALT: () => this.CONSUME(T.StringLiteral) },
-      { ALT: () => this.CONSUME(T.Uri) }
-    ])
+    this.OR([{ ALT: () => this.CONSUME(T.StringLiteral) }, { ALT: () => this.CONSUME(T.Uri) }])
     this.SUBRULE7(this._)
 
     this.OPTION2(() => {
@@ -530,10 +526,7 @@ class LessParser extends CstParser {
       {
         ALT: () => {
           this.OPTION(() => {
-            this.OR2([
-              { ALT: () => this.CONSUME(T.Not) },
-              { ALT: () => this.CONSUME(T.Only) }
-            ])
+            this.OR2([{ ALT: () => this.CONSUME(T.Not) }, { ALT: () => this.CONSUME(T.Only) }])
             this.SUBRULE(this._)
           })
           this.CONSUME(T.Ident)
@@ -544,14 +537,15 @@ class LessParser extends CstParser {
             this.SUBRULE(this.mediaConditionWithoutOr)
           })
         }
-      },
+      }
     ])
   })
 
   mediaCondition = this.RULE('mediaCondition', () => {
     this.OR([
       { ALT: () => this.SUBRULE(this.mediaNot) },
-      { ALT: () => {
+      {
+        ALT: () => {
           this.SUBRULE(this.mediaInParens)
           this.OR2([
             { ALT: () => this.MANY(() => this.SUBRULE(this.mediaAnd)) },
@@ -583,13 +577,13 @@ class LessParser extends CstParser {
   mediaAnd = this.RULE('mediaAnd', () => {
     this.CONSUME(T.And)
     this.SUBRULE(this._)
-    this.SUBRULE(this.mediaInParens)    
+    this.SUBRULE(this.mediaInParens)
   })
 
   mediaOr = this.RULE('mediaOr', () => {
     this.CONSUME(T.Or)
     this.SUBRULE(this._)
-    this.SUBRULE(this.mediaInParens)    
+    this.SUBRULE(this.mediaInParens)
   })
 
   mediaInParens = this.RULE('mediaInParens', () => {
@@ -628,10 +622,7 @@ class LessParser extends CstParser {
     this.SUBRULE(this.mfName)
     this.SUBRULE(this._)
     this.OPTION(() => {
-      this.OR([
-        {ALT: () => this.CONSUME(T.Gt) },
-        {ALT: () => this.CONSUME(T.Lt) }
-      ])
+      this.OR([{ ALT: () => this.CONSUME(T.Gt) }, { ALT: () => this.CONSUME(T.Lt) }])
     })
     this.OPTION2(() => this.CONSUME(T.Eq))
     this.SUBRULE2(this._)
@@ -658,24 +649,21 @@ class LessParser extends CstParser {
   })
 
   attrib = this.RULE('attrib', () => {
-      this.CONSUME(T.LSquare)
-      this.CONSUME(T.Ident)
+    this.CONSUME(T.LSquare)
+    this.CONSUME(T.Ident)
 
-      this.OPTION(() => {
-        this.CONSUME(T.AttrMatchOperator);
-        this.OR([
-          { ALT: () => this.CONSUME2(T.Ident) },
-          { ALT: () => this.CONSUME(T.StringLiteral) }
-        ])
-      })
-      this.OPTION2(() => {
-        this.CONSUME(T.AttrFlag);
-      });
-      this.CONSUME(T.RSquare)
+    this.OPTION(() => {
+      this.CONSUME(T.AttrMatchOperator)
+      this.OR([{ ALT: () => this.CONSUME2(T.Ident) }, { ALT: () => this.CONSUME(T.StringLiteral) }])
+    })
+    this.OPTION2(() => {
+      this.CONSUME(T.AttrFlag)
+    })
+    this.CONSUME(T.RSquare)
   })
 
   variableCurly = this.RULE('variableCurly', () => {
-      // TODO: TBD
+    // TODO: TBD
   })
 
   /**
@@ -771,18 +759,20 @@ class LessParser extends CstParser {
     this.OPTION(() => this.SUBRULE(this.selectorList))
     this.SUBRULE2(this._)
     this.inPseudo = false
-    this.CONSUME(T.RParen);
-  });
+    this.CONSUME(T.RParen)
+  })
 
   // ':' [ IDENT | FUNCTION S* [IDENT S*]? ')' ]
   pseudo = this.RULE('pseudo', () => {
     this.OR([
       { ALT: () => this.SUBRULE(this.pseudoFunction) },
-      { ALT: () => {
-        this.CONSUME(T.Colon)
-        this.OPTION(() => this.CONSUME2(T.Colon))
-        this.CONSUME(T.Ident)
-      }}
+      {
+        ALT: () => {
+          this.CONSUME(T.Colon)
+          this.OPTION(() => this.CONSUME2(T.Colon))
+          this.CONSUME(T.Ident)
+        }
+      }
       // {
       //   // GATE: () => {
       //   //   let i = 0
@@ -805,17 +795,17 @@ class LessParser extends CstParser {
       //   // },
       //   ALT: () => this.CONSUME(T.PseudoClass)
       // }
-    ]);
+    ])
   })
 
   curlyBlock = this.RULE('curlyBlock', () => {
-      this.CONSUME(T.LCurly);
-      this.SUBRULE(this._)
-      this.inSelector = true;
-      this.SUBRULE(this.primary);
-      this.SUBRULE2(this._)
-      this.CONSUME(T.RCurly)
-      this.inSelector = false;
+    this.CONSUME(T.LCurly)
+    this.SUBRULE(this._)
+    this.inSelector = true
+    this.SUBRULE(this.primary)
+    this.SUBRULE2(this._)
+    this.CONSUME(T.RCurly)
+    this.inSelector = false
   })
 
   mixinRuleLookup = this.RULE('mixinRuleLookup', () => {
@@ -829,20 +819,20 @@ class LessParser extends CstParser {
   })
 
   lookupValue = this.RULE('lookupValue', () => {
-      this.OR([
-          { ALT: () => this.CONSUME(T.Ident) },
-          // { ALT: () => this.CONSUME(T.VariableName) },
-          // { ALT: () => this.CONSUME(T.NestedVariableName) },
-        //   { ALT: () => this.CONSUME(T.PropertyVariable) },
-        //   { ALT: () => this.CONSUME(T.NestedPropertyVariable) },
-          { ALT: () => EMPTY_ALT }
-      ])
+    this.OR([
+      { ALT: () => this.CONSUME(T.Ident) },
+      // { ALT: () => this.CONSUME(T.VariableName) },
+      // { ALT: () => this.CONSUME(T.NestedVariableName) },
+      //   { ALT: () => this.CONSUME(T.PropertyVariable) },
+      //   { ALT: () => this.CONSUME(T.NestedPropertyVariable) },
+      { ALT: () => EMPTY_ALT }
+    ])
   })
 
   mixinArgs = this.RULE('mixinArgs', () => {
     this.CONSUME(T.LParen)
     this.SUBRULE(this._)
-    this.SUBRULE(this.args, { ARGS: [true] });
+    this.SUBRULE(this.args, { ARGS: [true] })
     this.SUBRULE2(this._)
     this.CONSUME(T.RParen)
   })
@@ -852,7 +842,6 @@ class LessParser extends CstParser {
     this.SUBRULE(this._)
     this.SUBRULE(this.mediaQueryList)
   })
-
 }
 
 /**
@@ -887,12 +876,12 @@ const parse = (text: string) => {
   const value = parser.primary()
 
   return {
-      // This is a pure grammar, the value will be undefined until we add embedded actions
-      // or enable automatic CST creation.
-      value: value,
-      lexErrors: lexResult.errors,
-      parseErrors: parser.errors
+    // This is a pure grammar, the value will be undefined until we add embedded actions
+    // or enable automatic CST creation.
+    value: value,
+    lexErrors: lexResult.errors,
+    parseErrors: parser.errors
   }
-};
+}
 
-export { LessParser, parse };
+export { LessParser, parse }
