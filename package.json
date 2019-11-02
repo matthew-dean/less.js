@@ -9,18 +9,26 @@
     "@types/glob": "^7.1.1",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.4",
-    "glob": "^7.1.4",
+    "@typescript-eslint/eslint-plugin": "^2.6.0",
+    "@typescript-eslint/parser": "^2.6.0",
     "chai": "^4.2.0",
+    "eslint": "^6.6.0",
+    "glob": "^7.1.4",
+    "husky": "3.0.9",
     "lerna": "^3.16.4",
+    "lint-staged": "9.4.2",
     "mocha": "^6.2.0",
+    "npm-run-all": "^4.1.5",
+    "prettier-eslint-cli": "^5.0.0",
+    "shx": "^0.3.2",
     "ts-mocha": "^6.0.0",
     "ts-node": "^8.4.1",
-    "typescript": "^3.6.2",
-    "npm-run-all": "^4.1.5",
-    "shx" : "^0.3.2"
+    "typescript": "^3.6.2"
   },
   "scripts": {
-    "ci": "lerna run ci"
+    "ci": "lerna run ci && yarn run format:validate",
+    "format:fix": "prettier-eslint --write \"**/*.@(ts|js|json|md)\"",
+    "format:validate": "prettier-eslint \"**/*.@(ts|js|json|md)\""
   },
   "bugs": {
     "url": "https://github.com/less/less.js/issues"
@@ -40,6 +48,17 @@
     ],
     "nohoist": [
       "**/@types/jasmine"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,js,md,json}": [
+      "prettier-eslint --write",
+      "git add"
     ]
   }
 }
