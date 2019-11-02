@@ -31,19 +31,19 @@ workflows:
     version: 2
     build:
         jobs:
-            - build-node12
+            - build-node12:
                 filters:
                     branches:
                         only:
                             - master
                             - /4\.x/
-            - build-node10
+            - build-node10:
                 filters:
                     branches:
                         only:
                             - master
                             - /4\.x/
-            - build-node8
+            - build-node8:
                 filters:
                     branches:
                         only:
