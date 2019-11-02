@@ -36,16 +36,16 @@ workflows:
                     branches:
                         only:
                             - master
-                            - /4\.x/
+                            - /4\.x.*/
             - build-node10:
                 filters:
                     branches:
                         only:
                             - master
-                            - /4\.x/
+                            - /4\.x.*/
             - build-node8:
                 filters:
                     branches:
                         only:
                             - master
-                            - /4\.x/
+                            - /4\.x.*/
