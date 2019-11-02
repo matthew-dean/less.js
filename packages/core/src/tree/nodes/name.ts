@@ -1,4 +1,10 @@
-import { Context, Node, NodeArray, IProps, ILocationInfo } from '.'
+import {
+  Context,
+  Node,
+  NodeArray,
+  IProps,
+  ILocationInfo
+} from '.'
 
 export type INameOptions = {
   /** Name of a variable (v. a property) */
@@ -15,7 +21,7 @@ export type INameOptions = {
  *        e.g. `@param` or `@rest` in `.mixin(@param, @rest...)`
  *   3. As the value in a lookup
  *        e.g. `@lookup` in `.rules[@lookup]`
- *
+ * 
  * The reason for this abstraction is to make evaluation easier,
  * so that there's not logic to distinguish between variables
  * as identifiers and variables that should be eval'd as values.
@@ -25,11 +31,11 @@ export class Name extends NodeArray {
   evaluating: boolean
   options: INameOptions
 
-  constructor (props: IProps, options?: INameOptions, location?: ILocationInfo) {
+  constructor(props: IProps, options?: INameOptions, location?: ILocationInfo) {
     super(props, options, location)
   }
 
-  eval (context: Context) {
+  eval(context: Context) {
     let value = this.value
     if (!this.evaluated) {
       if (this.evaluating) {

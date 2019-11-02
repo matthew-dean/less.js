@@ -9,12 +9,12 @@ export class RenderTree {
   root: Rules
   assets: AssetManager
 
-  constructor (root: Rules, assets: AssetManager) {
+  constructor(root: Rules, assets: AssetManager) {
     this.root = root
     this.assets = assets
   }
 
-  toCSS (options: IOptions) {
+  toCSS(options: IOptions) {
     let evaldRoot: Rules
     const result = {}
     let sourceMapBuilder
@@ -30,37 +30,33 @@ export class RenderTree {
         numPrecision: 8
       }
 
-      if (options.sourceMap) {
-        sourceMapBuilder = new SourceMapBuilder(options.sourceMap)
-        result.css = sourceMapBuilder.toCSS(evaldRoot, toCSSOptions, this.imports)
-      } else {
-        result.css = evaldRoot.toCSS(toCSSOptions)
-      }
+        if (options.sourceMap) {
+            sourceMapBuilder = new SourceMapBuilder(options.sourceMap);
+            result.css = sourceMapBuilder.toCSS(evaldRoot, toCSSOptions, this.imports);
+        } else {
+            result.css = evaldRoot.toCSS(toCSSOptions);
+        }
     } catch (e) {
-      throw new LessError(e, this.imports)
+        throw new LessError(e, this.imports);
     }
 
     if (options.pluginManager) {
-      const postProcessors = options.pluginManager.getPostProcessors()
-      for (let i = 0; i < postProcessors.length; i++) {
-        result.css = postProcessors[i].process(result.css, {
-          sourceMap: sourceMapBuilder,
-          options,
-          imports: this.imports
-        })
-      }
+        const postProcessors = options.pluginManager.getPostProcessors();
+        for (let i = 0; i < postProcessors.length; i++) {
+            result.css = postProcessors[i].process(result.css, { sourceMap: sourceMapBuilder, options, imports: this.imports });
+        }
     }
     if (options.sourceMap) {
-      result.map = sourceMapBuilder.getExternalSourceMap()
+        result.map = sourceMapBuilder.getExternalSourceMap();
     }
 
-    result.imports = []
+    result.imports = [];
     for (const file in this.imports.files) {
-      if (this.imports.files.hasOwnProperty(file) && file !== this.imports.rootFilename) {
-        result.imports.push(file)
-      }
+        if (this.imports.files.hasOwnProperty(file) && file !== this.imports.rootFilename) {
+            result.imports.push(file);
+        }
     }
-    return result
+    return result;
   }
 }
 

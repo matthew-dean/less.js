@@ -1,6 +1,6 @@
 var less = {
-  logLevel: 4,
-  errorReporting: 'console',
-  math: 'always',
-  strictUnits: false
-}
+    logLevel: 4,
+    errorReporting: 'console',
+    math: 'always',
+    strictUnits: false
+};

@@ -37,7 +37,9 @@ export type Less = {
   // functioncall?(...args: GetConstructorArgs<typeof tree.FunctionCall>): tree.Func
   list?(...args: GetConstructorArgs<typeof tree.List>): tree.List
   // mixin?(...args: GetConstructorArgs<typeof tree.Mixin>): tree.Mixin
+  
 }
+
 
 /**
  * The Node.js environment will pass in an Environment instance,
@@ -49,7 +51,7 @@ export default (environment: Environment, options?: IOptions): Less => {
    * @todo
    * This original code could be improved quite a bit.
    * Many classes / modules currently add side-effects / mutations to passed in objects,
-   * which makes it hard to refactor and reason about.
+   * which makes it hard to refactor and reason about. 
    */
 
   // const parse = ParseFactory(environment, ParseTree, ImportManager)

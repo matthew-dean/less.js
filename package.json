@@ -28,7 +28,7 @@
   "scripts": {
     "ci": "lerna run ci && yarn run format:validate",
     "format:fix": "prettier-eslint --write \"**/*.@(ts|js|json|md)\"",
-    "format:validate": "prettier-eslint --list-different -l \"error\" \"**/*.@(ts|js|json|md)\""
+    "format:validate": "prettier-eslint \"**/*.@(ts|js|json|md)\""
   },
   "bugs": {
     "url": "https://github.com/less/less.js/issues"

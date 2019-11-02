@@ -1,10 +1,10 @@
 import { LessFunction, FunctionError } from '../types'
 
 /**
- * Supports run-time type checking of Less functions
+ * Supports run-time type checking of Less functions 
  */
 export const define = (func: LessFunction, ...params: any[][]) => {
-  return function (...args: any[]) {
+  return function(...args: any[]) {
     params.forEach((param, i) => {
       try {
         expect(args[i], param)
@@ -17,10 +17,7 @@ export const define = (func: LessFunction, ...params: any[][]) => {
   } as LessFunction
 }
 
-export function expect<T = any> (
-  value: any,
-  types: (new (...args: any[]) => T)[]
-): value is T extends typeof value ? T : never {
+export function expect<T = any>(value: any, types: (new(...args: any[]) => T)[]): value is (T extends typeof value ? T : never) {
   let match = false
   const expected: string[] = []
   types.forEach(t => {
@@ -32,7 +29,8 @@ export function expect<T = any> (
         match = true
         return true
       }
-    } else if (t.constructor === Function && value instanceof <Function>(t as unknown)) {
+    } else if (t.constructor === Function
+      && (value instanceof <Function>(t as unknown))) {
       match = true
     } else {
       const expectedType = t && t.prototype.constructor.name

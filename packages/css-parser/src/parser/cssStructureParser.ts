@@ -1,4 +1,12 @@
-import { EMPTY_ALT, TokenType, CstNode, CstElement, IParserConfig, IToken } from 'chevrotain'
+
+import {
+  EMPTY_ALT,
+  TokenType,
+  CstNode,
+  CstElement,
+  IParserConfig,
+  IToken
+} from 'chevrotain'
 import { TokenMap } from '../util'
 import { CssRuleParser } from './cssRuleParser'
 import { BaseParserClass } from './baseParserClass'
@@ -14,37 +22,37 @@ import { BaseParserClass } from './baseParserClass'
  *  CSS essentially is not one spec of syntax and grammar, but is, in fact,
  *  a collection of specs of syntax and grammar, some of which can mean that
  *  parsing rules are potentially contradictory.
- *
+ * 
  *  For example, if you were to just parse: `foo:bar {}`, if you just went by
  *  the syntax spec alone, there's no way to resolve this. Property values
  *  (according to spec), may have `{}` as a value, and pseudo-selectors may start
  *  with a colon. So this may be a property of `foo` with a value of `bar {}`
  *  or it may be the selector `foo:bar` with a set of rules in `{}`.
- *
+ * 
  *  CSS resolves syntactic ambiguity by specifying that blocks should have different
  *  parsing strategies based on context. Blocks can either parse a list of rules,
  *  or can parse a list of declarations (at-rules are considered declarations),
  *  but not both.
- *
- *  Here's the rub: blocks are generic, can be wrapped in `()`, `[]`, or `{}`,
+ * 
+ *  Here's the rub: blocks are generic, can be wrapped in `()`, `[]`, or `{}`, 
  *  and which type they consume is not defined globally; it's defined by that
  *  particular declaration's own grammar. In addition, if one assumes that `{}`
  *  is always a list of declarations, that's not the case. Custom properties
  *  can contain curly blocks that contain anything.
- *
+ * 
  *  Making a context-switching CSS parser is possible, but not useful, both for
  *  custom properties that define a rule-like block, and for generalizing
  *  parsing for pre-processors like Less. Unfortunately, any pre-processor with
  *  nested syntax is inherently ambiguous for the above reasons, meaning any
  *  pre-processor like Less, Sass, or PostCSS, using nested syntax, can never be
  *  a 100% spec-compliant CSS parser.
- *
+ * 
  *  However, in this CSS parser and parsers that extend it, we can intelligently
  *  resolve ambiguities with these principles:
  *    1. There are no element selectors that start with '--'
- *    2. There are no currently-defined CSS properties that have a {} block as a
+ *    2. There are no currently-defined CSS properties that have a {} block as a 
  *       possible value. (If this ever happens, CSS parsing libraries are screwed.)
- *
+ * 
  *  CSS grammar is extremely permissive to allow modularity of the syntax and
  *  future expansion. Basically, anything "unknown", including unknown tokens,
  *  does not necessarily mean a parsing error of the stylesheet itself. For
@@ -74,7 +82,7 @@ interface spaceToken {
  *  Parsing is broken into 2 phases, so that we:
  *    1. Don't have to do any backtracking to refine rules (like @media).
  *    2. Don't have to have special parsing rules based on block context.
- *
+ * 
  *  This actually matches the spec, which essentially says that preludes and
  *  at-rule bodies (in {}) can be almost anything, and the outer grammar should
  *  not care about what at-rules or declaration values contain.
@@ -83,12 +91,12 @@ export class CssStructureParser extends BaseParserClass {
   T: TokenMap
   ruleParser: CssRuleParser
 
-  constructor (
+  constructor(
     tokens: TokenType[],
     T: TokenMap,
     config: IParserConfig = {
       maxLookahead: 1
-      /* , traceInitPerf:2 */
+      /*, traceInitPerf:2 */
     },
     /** An optional instance to further refine rules */
     ruleParser?: CssRuleParser
@@ -110,14 +118,12 @@ export class CssStructureParser extends BaseParserClass {
       expr = {
         name: 'expressionList',
         children: {
-          expression: [
-            {
-              name: 'expression',
-              children: {
-                values: []
-              }
+          expression: [{
+            name: 'expression',
+            children: {
+              values: []
             }
-          ]
+          }]
         }
       }
     }
@@ -144,10 +150,11 @@ export class CssStructureParser extends BaseParserClass {
     // })
   }
 
-  WS (idx: number = 0) {
+
+  WS(idx:number = 0) {
     // +10 to avoid conflicts with other OPTION in the calling rule.
-    return this.option(idx + 10, () => {
-      const wsToken = this.consume(idx, this.T.WS)
+    return this.option(idx+10, () => {
+      const  wsToken = this.consume(idx, this.T.WS)
       return wsToken
     })
   }
@@ -166,9 +173,9 @@ export class CssStructureParser extends BaseParserClass {
     })
     let post: spaceToken = {}
     const ws = this.WS()
-    if (ws) {
-      post = { post: [ws] }
-    }
+      if (ws) {
+        post = { post: [ ws ] }
+      }
     return {
       name: 'primary',
       children: {
@@ -204,7 +211,8 @@ export class CssStructureParser extends BaseParserClass {
         rule.children.pre = [ws]
       }
       return rule
-    } else if (ws) {
+    }
+    else if (ws) {
       return {
         name: 'ws',
         children: {
@@ -218,7 +226,7 @@ export class CssStructureParser extends BaseParserClass {
    * Everything up to an (outer) ';' or '{' is the AtRule's prelude
    */
   atRule = this.RULE<CstNode>('atRule', () => {
-    const name = [this.CONSUME(this.T.AtName)]
+    const name = [ this.CONSUME(this.T.AtName) ]
     const expr = this.SUBRULE(this.expressionList)
     const optionals: {
       body?: CstNode[]
@@ -227,14 +235,13 @@ export class CssStructureParser extends BaseParserClass {
     this.OR([
       {
         ALT: () => {
-          optionals.body = [this.SUBRULE(this.curlyBlock)]
+          optionals.body = [ this.SUBRULE(this.curlyBlock) ]
         }
       },
       {
-        ALT: () =>
-          this.OPTION(() => {
-            optionals.SemiColon = [this.CONSUME(this.T.SemiColon)]
-          })
+        ALT: () => this.OPTION(() => {
+          optionals.SemiColon = [ this.CONSUME(this.T.SemiColon) ]
+        })
       }
     ])
 
@@ -242,7 +249,7 @@ export class CssStructureParser extends BaseParserClass {
       name: 'atRule',
       children: {
         name,
-        ...(expr ? { prelude: [expr] } : {}),
+        ...(expr ? { prelude: [expr] }: {}),
         ...optionals
       }
     }
@@ -302,7 +309,7 @@ export class CssStructureParser extends BaseParserClass {
         }
       }
     ])
-
+    
     /** Consume any remaining values */
     this.CAPTURE()
     expr = this.SUBRULE(this.expressionList)
@@ -312,23 +319,23 @@ export class CssStructureParser extends BaseParserClass {
     expressionTokens = this.END_CAPTURE()
 
     this.OR2([
-      { ALT: () => (curly = this.SUBRULE2(this.curlyBlock)) },
-      { ALT: () => (semi = this.CONSUME(this.T.SemiColon)) },
+      { ALT: () => curly = this.SUBRULE2(this.curlyBlock) },
+      { ALT: () => semi = this.CONSUME(this.T.SemiColon) },
       { ALT: () => EMPTY_ALT }
     ])
     if (curly) {
       /** Treat as qualified rule */
-      if (ws) {
-        values.push(ws)
-      }
-      if (colon) {
-        values.push(colon)
-      }
-      if (values.length > 0) {
-        this.ACTION(() => {
-          expr = this._mergeValues(values, expr)
-        })
-      }
+        if (ws) {
+          values.push(ws)
+        }
+        if (colon) {
+          values.push(colon)
+        }
+        if (values.length > 0) {
+          this.ACTION(() => {
+            expr = this._mergeValues(values, expr)
+          })
+        }
 
       return {
         name: 'qualifiedRule',
@@ -359,7 +366,7 @@ export class CssStructureParser extends BaseParserClass {
           ...(ws ? { ws: [ws] } : {}),
           Colon: [colon],
           value,
-          ...(semi ? { SemiColon: [semi] } : {})
+          ...(semi ? { SemiColon: [semi] } : {}),
         }
       }
     }
@@ -380,13 +387,13 @@ export class CssStructureParser extends BaseParserClass {
   })
 
   /**
-   * Custom property values can consume everything, including curly blocks
+   * Custom property values can consume everything, including curly blocks 
    */
   customPropertyRule = this.RULE<CstNode>('customPropertyRule', () => {
     const name = this.CONSUME(this.T.CustomProperty)
     const ws = this.WS()
     let colon: IToken = this.CONSUME(this.T.Assign)
-
+    
     const value = this.SUBRULE(this.customExpressionList)
     let semi: IToken
     this.OPTION(() => {
@@ -400,7 +407,7 @@ export class CssStructureParser extends BaseParserClass {
         ...(ws ? { ws: [ws] } : {}),
         Colon: [colon],
         value: [value],
-        ...(semi ? { SemiColon: [semi] } : {})
+        ...(semi ? { SemiColon: [semi] } : {}),
       }
     }
   })
@@ -410,11 +417,11 @@ export class CssStructureParser extends BaseParserClass {
     let expressions: CstNode[]
     let Comma: IToken[]
     let expr: CstNode
-
+    
     this.OPTION(() => {
       expr = this.SUBRULE(this.expression)
       if (expr) {
-        expressions = [expr]
+        expressions = [ expr ]
       } else {
         expressions = []
       }
@@ -482,12 +489,12 @@ export class CssStructureParser extends BaseParserClass {
     this.OPTION(() => {
       expr = this.SUBRULE(this.customExpression)
       if (expr) {
-        expressions = [expr]
+        expressions = [ expr ]
       } else {
         expressions = []
       }
       Comma = []
-      this.MANY(() => {
+      this.MANY(()=> {
         let comma = this.CONSUME(this.T.Comma)
         Comma.push(comma)
         expr = this.SUBRULE2(this.customExpression)
@@ -543,7 +550,7 @@ export class CssStructureParser extends BaseParserClass {
       val = this.SUBRULE(this.curlyBlock)
       values.push(val)
     })
-
+  
     this.MANY(() => {
       val = this.SUBRULE(this.value)
       values.push(val)
@@ -558,7 +565,7 @@ export class CssStructureParser extends BaseParserClass {
 
   /**
    * This will detect a declaration-like expression within an expression,
-   * but note that the declaration is essentially a duplicate of the entire expression.
+   * but note that the declaration is essentially a duplicate of the entire expression. 
    */
   customExpression = this.RULE<CstNode | undefined>('customExpression', () => {
     let exprValues: CstElement[] = []
@@ -586,7 +593,7 @@ export class CssStructureParser extends BaseParserClass {
       colon = this.CONSUME(this.T.Assign)
       values.push(colon)
     })
-
+  
     this.MANY2(() => {
       const value = this.OR([
         { ALT: () => this.SUBRULE(this.value) },
@@ -605,14 +612,12 @@ export class CssStructureParser extends BaseParserClass {
           property: propertyValues,
           ...(ws ? { ws: [ws] } : {}),
           Colon: [colon],
-          value: [
-            {
-              name: 'expression',
-              children: {
-                values: exprValues
-              }
+          value: [{
+            name: 'expression',
+            children: {
+              values: exprValues
             }
-          ]
+          }]
         }
       }
     }
@@ -655,7 +660,7 @@ export class CssStructureParser extends BaseParserClass {
   })
 
   curlyBlock = this.RULE<CstNode>('curlyBlock', () => {
-    let children: { [key: string]: CstElement[] }
+    let children: {[key: string]: CstElement[] }
 
     const L = this.CONSUME(this.T.LCurly)
     const blockBody = this.SUBRULE(this.primary)
@@ -667,7 +672,7 @@ export class CssStructureParser extends BaseParserClass {
       const R = this.CONSUME(this.T.RCurly)
       children.R = [R]
     })
-
+    
     return {
       name: 'curlyBlock',
       children
@@ -677,13 +682,13 @@ export class CssStructureParser extends BaseParserClass {
   /**
    * Everything in `[]` or `()` we evaluate as raw expression lists,
    * or groups of expression lists (divided by semi-colons).
-   *
+   * 
    * The CSS spec suggests that `[]`, `()`, `{}` should be treated equally,
    * as generic blocks, so I'm not sure of this, but in the language
    * _so far_, there's some distinction between these block types.
    * AFAIK, `[]` is only used formally in CSS grid and with attribute
    * identifiers, and `()` is used for functions and at-rule expressions.
-   *
+   * 
    * It would be great if CSS formalized this distinction, but for now,
    * this seems safe.
    */
@@ -697,12 +702,12 @@ export class CssStructureParser extends BaseParserClass {
       {
         ALT: () => {
           this.OR2([
-            { ALT: () => (L = this.CONSUME(this.T.LParen)) },
-            { ALT: () => (Function = this.CONSUME(this.T.Function)) }
+            { ALT: () => L = this.CONSUME(this.T.LParen) },
+            { ALT: () => Function = this.CONSUME(this.T.Function) }
           ])
           blockBody = this.SUBRULE(this.expressionListGroup)
           /** @todo - Add a parsing error if this is missing */
-          this.OPTION(() => (R = this.CONSUME(this.T.RParen)))
+          this.OPTION(() => R = this.CONSUME(this.T.RParen))
         }
       },
       {
@@ -710,17 +715,17 @@ export class CssStructureParser extends BaseParserClass {
           L = this.CONSUME(this.T.LSquare)
           blockBody = this.SUBRULE2(this.expressionListGroup)
           /** @todo - Add a parsing error if this is missing */
-          this.OPTION2(() => (R = this.CONSUME(this.T.RSquare)))
+          this.OPTION2(() => R = this.CONSUME(this.T.RSquare))
         }
       }
     ])
     return {
       name: 'block',
       children: {
-        ...(L ? { L: [L] } : {}),
-        ...(Function ? { Function: [Function] } : {}),
-        ...(blockBody ? { blockBody: [blockBody] } : {}),
-        ...(R ? { R: [R] } : {})
+        ...(L ? { L: [L]} : {}),
+        ...(Function ? { Function: [Function]}: {}),
+        ...(blockBody ? { blockBody: [blockBody]}: {}),
+        ...(R ? { R: [R]} : {}),
       }
     }
   })

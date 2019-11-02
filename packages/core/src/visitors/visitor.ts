@@ -14,7 +14,7 @@ abstract class Visitor {
    *   200: Selectors joined on rulesets (but tree is not flattened)
    *   300: Node visibility resolved
    *   400: Tree flattening
-   *   500: Extend visitor
+   *   500: Extend visitor 
    */
   priority: number
   isReplacing: boolean
@@ -23,7 +23,7 @@ abstract class Visitor {
   /** Must implement a run() method */
   abstract run(node: tree.Node): void
 
-  protected visit (node: tree.Node) {
+  protected visit(node: tree.Node) {
     const Node = tree.Node
     if (!node) {
       return node

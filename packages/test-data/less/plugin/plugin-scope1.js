@@ -1,3 +1,3 @@
-functions.add('foo', function () {
-  return 'foo'
-})
+functions.add('foo', function() {
+    return 'foo';
+});

@@ -1,19 +1,32 @@
 import { expect } from 'chai'
 import 'mocha'
-import { Expression, Value, Op, List, Selector, WS } from '..'
+import {
+  Expression,
+  Value,
+  Op,
+  List,
+  Selector,
+  WS
+} from '..'
 
 import { context } from '../../__mocks__/context'
 
 describe('Selector', () => {
   it('should expand lists in selectors', () => {
-    const rule = new Selector([new List([new Value('one'), new Value('two'), new Value('three')])])
+    const rule = new Selector([
+      new List([
+        new Value('one'),
+        new Value('two'),
+        new Value('three')
+      ])
+    ])
     const val = rule.eval(context)
-    expect(String(val)).to.eq('one,two,three')
+    expect(val + '').to.eq('one,two,three')
   })
 
   it('should apply initial combinator to a list', () => {
     const rule = new Selector([
-      new Op({ pre: ' ', value: '>', post: ' ' }),
+      new Op({ pre: ' ', value: '>', post: ' '}),
       new List([
         new Expression([new Op('+'), new Value('one')]),
         new Expression([new Op('+'), new Value('two')]),
@@ -21,13 +34,19 @@ describe('Selector', () => {
       ])
     ])
     const val = rule.eval(context)
-    expect(String(val)).to.eq(' > one, > two, > three')
+    expect(val + '').to.eq(' > one, > two, > three')
   })
 
   it('should apply initial combinator to an expression', () => {
     const rule = new Selector([
-      new Op({ value: '+', post: ' ' }),
-      new Expression([new Value('one'), new WS(), new Value('two'), new WS(), new Value('three')])
+      new Op({ value: '+', post: ' '}),
+      new Expression([
+        new Value('one'),
+        new WS(),
+        new Value('two'),
+        new WS(),
+        new Value('three')
+      ])
     ])
     const val = rule.eval(context)
 
@@ -54,11 +73,17 @@ describe('Selector', () => {
           new WS(),
           new Value('three')
         ]),
-        new Expression([new Value('four'), new WS(), new Value('five'), new WS(), new Value('six')])
+        new Expression([
+          new Value('four'),
+          new WS(),
+          new Value('five'),
+          new WS(),
+          new Value('six')
+        ])
       ])
     ])
     const val = rule.eval(context)
-    expect(String(val)).to.eq('+ one two three,+ four five six')
+    expect(val + '').to.eq('+ one two three,+ four five six')
     const list = val['nodes']
 
     /** Should be a list of two expressions with 3 elements */

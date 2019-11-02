@@ -12,13 +12,14 @@
 
 This is the JavaScript, official, stable version of Less.
 
+
 ## Getting Started
 
 Options for adding Less.js to your project:
 
-- Install with [npm](https://npmjs.org): `npm install less`
-- [Download the latest release][download]
-- Clone the repo: `git clone https://github.com/less/less.js.git`
+* Install with [npm](https://npmjs.org): `npm install less`
+* [Download the latest release][download]
+* Clone the repo: `git clone https://github.com/less/less.js.git`
 
 ## More information
 
@@ -26,11 +27,11 @@ For general information on the language, configuration options or usage visit [l
 
 Here are other resources for using Less.js:
 
-- [stackoverflow.com][so] is a great place to get answers about Less.
-- [Less.js Issues][issues] for reporting bugs
+* [stackoverflow.com][so] is a great place to get answers about Less.
+* [Less.js Issues][issues] for reporting bugs
+
 
 ## Contributing
-
 Please read [CONTRIBUTING.md](CONTRIBUTING.md). Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com).
 
 ### Reporting Issues
@@ -44,7 +45,6 @@ Please report documentation issues in [the documentation project](https://github
 Read [Developing Less](http://lesscss.org/usage/#developing-less).
 
 ## Release History
-
 See the [changelog](CHANGELOG.md)
 
 ## [License](LICENSE)
@@ -52,6 +52,7 @@ See the [changelog](CHANGELOG.md)
 Copyright (c) 2009-2017 [Alexis Sellier](http://cloudhead.io) & The Core Less Team
 Licensed under the [Apache License](LICENSE).
 
-[so]: http://stackoverflow.com/questions/tagged/less 'StackOverflow.com'
-[issues]: https://github.com/less/less.js/issues 'GitHub Issues for Less.js'
-[download]: https://github.com/less/less.js/zipball/master 'Download Less.js'
+
+[so]: http://stackoverflow.com/questions/tagged/less "StackOverflow.com"
+[issues]: https://github.com/less/less.js/issues "GitHub Issues for Less.js"
+[download]: https://github.com/less/less.js/zipball/master "Download Less.js"

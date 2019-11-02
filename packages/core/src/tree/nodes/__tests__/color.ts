@@ -15,22 +15,18 @@ describe('Color', () => {
   })
 
   it('accepts value arrays', () => {
-    let rule = new Color({ value: [10, 10, 10, 0.5] })
+    let rule = new Color({ value: [10, 10, 10, 0.5]})
     expect(rule.valueOf()).to.eql([10, 10, 10, 0.5])
   })
 
   it('preserves the string value', () => {
-    let rule = new Color({ value: [10, 10, 10, 0.5], text: 'parsedcolor' })
+    let rule = new Color({ value: [10, 10, 10, 0.5], text: 'parsedcolor'})
     expect(rule.valueOf()).to.eql([10, 10, 10, 0.5])
     expect(rule.toString()).to.eq('parsedcolor')
   })
 
   it('removes the text value during ops', () => {
-    let A = new Operation([
-      new Color('#111'),
-      new Value({ text: ' + ', value: '+' }),
-      new Color('#222')
-    ])
+    let A = new Operation([new Color('#111'), new Value({ text: ' + ', value: '+' }), new Color('#222')])
     const val = A.eval(context)
     expect(val.toString()).to.eq('#333333')
     /** Just checks that this operation can be stringified */

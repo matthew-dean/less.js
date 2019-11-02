@@ -1,4 +1,4 @@
-var less = { logLevel: 4 }
+var less = {logLevel: 4};
 
-less.strictUnits = true
-less.javascriptEnabled = false
+less.strictUnits = true;
+less.javascriptEnabled = false;

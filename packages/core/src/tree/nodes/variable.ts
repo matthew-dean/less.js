@@ -19,8 +19,8 @@ export type IVariableOptions = {
  * and not an assignment to a variable identifier.
  *
  * The value nodes might contain another variable ref (nested vars)
- *
- * e.g.
+ * 
+ * e.g. 
  *   nodes: @foo = <Value 'foo'>
  *   nodes: @@bar = <Variable 'bar'>
  */
@@ -30,7 +30,7 @@ export class Variable extends Node {
   value: string
   options: IVariableOptions
 
-  constructor (props: string | IProps, options: IVariableOptions = {}, location?: ILocationInfo) {
+  constructor(props: string | IProps, options: IVariableOptions = {}, location?: ILocationInfo) {
     let newProps: IProps
     if (props.constructor === String) {
       newProps = { value: <string>props }
@@ -38,7 +38,7 @@ export class Variable extends Node {
       newProps = <IProps>props
     }
     let val: string = newProps.value.toString()
-
+    
     if (options.propertyRef && newProps.value !== undefined && val.charAt(0) === '$') {
       newProps.value = val.slice(1)
     }
@@ -46,7 +46,7 @@ export class Variable extends Node {
     this.type = options.propertyRef ? 'Property' : 'Variable'
   }
 
-  toString () {
+  toString() {
     const name = super.toString()
     if (this.options.propertyRef) {
       return name
@@ -54,7 +54,7 @@ export class Variable extends Node {
     return '@' + name
   }
 
-  eval (context: Context) {
+  eval(context: Context) {
     super.eval(context)
     let name = this.value
     if (!name) {
@@ -64,7 +64,9 @@ export class Variable extends Node {
     const type = this.type
 
     if (this.evaluating) {
-      return this.error(context, `Recursive ${type} reference for '${this.toString()}'`)
+      return this.error(context,
+        `Recursive ${type} reference for '${this.toString()}'`
+      )
     }
 
     this.evaluating = true
@@ -85,6 +87,7 @@ export class Variable extends Node {
         this.evaluating = false
         return decl.nodes
       }
+      
     }
     this.evaluating = false
     return this.error(context, `${type} '${name}' is undefined`)

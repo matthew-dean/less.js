@@ -26,5 +26,6 @@
   "dependencies": {
     "chevrotain": "6.4.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+  }
 }

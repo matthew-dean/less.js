@@ -1,4 +1,9 @@
-import { Context, Node, Value, Quoted } from '.'
+import {
+  Context,
+  Node,
+  Value,
+  Quoted
+} from '.'
 
 /**
  * A Url node contains a single Value or Quoted node
@@ -6,7 +11,7 @@ import { Context, Node, Value, Quoted } from '.'
 export class Url extends Node {
   nodes: [Value | Quoted]
 
-  eval (context: Context) {
+  eval(context: Context) {
     super.eval(context)
 
     if (!this.evaluated) {
@@ -14,11 +19,10 @@ export class Url extends Node {
       const url = this.nodes[0].clone()
       // Add the rootpath if the URL requires a rewrite
       rootpath = this.root.fileInfo.path
-      if (
-        rootpath.constructor === String
-        && this.value.constructor === String
-        && context.pathRequiresRewrite(url.value)
-      ) {
+      if (rootpath.constructor === String &&
+        this.value.constructor === String &&
+        context.pathRequiresRewrite(url.value)
+      ) {
         if (url instanceof Value) {
           rootpath = escapePath(rootpath)
         }
@@ -31,7 +35,7 @@ export class Url extends Node {
       // Add url args if enabled
       if (urlArgs) {
         if (!url.value.match(/^\s*data:/)) {
-          const delimiter = url.value.indexOf('?') === -1 ? '?' : '&'
+          const delimiter = url.value.indexOf('?') === -1 ? '?' : '&';
           urlArgs = delimiter + urlArgs
           if (url.value.indexOf('#') !== -1) {
             url.value = url.value.replace('#', `${urlArgs}#`)
@@ -51,6 +55,6 @@ export class Url extends Node {
 
 Url.prototype.type = 'Url'
 
-function escapePath (path) {
+function escapePath(path) {
   return path.replace(/[\(\)'"\s]/g, match => `\\${match}`)
 }

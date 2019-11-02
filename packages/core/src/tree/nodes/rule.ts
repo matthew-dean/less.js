@@ -14,7 +14,7 @@ import {
 
 export type IRuleProps = {
   selectors: SelectorList | Selector[]
-  rules: Rules
+  rules: Rules,
   condition?: Condition
 }
 
@@ -22,7 +22,7 @@ export type IRuleProps = {
  * This is what's known as a "qualified rule" in the CSS spec,
  * but no-one uses that term, so we just call this the generic 'Rule'
  *   i.e. selector(s) with a rules block (`.a { b: c; }`)
- *
+ * 
  * In Less, it may also have a condition node.
  */
 export class Rule extends Node {
@@ -30,18 +30,15 @@ export class Rule extends Node {
   selectors: SelectorList
   condition: Bool | Condition | undefined
 
-  constructor (props: IRuleProps, options: INodeOptions, location: ILocationInfo) {
+  constructor(props: IRuleProps, options: INodeOptions, location: ILocationInfo) {
     const { selectors } = props
-    if (
-      selectors
-      && (Array.isArray(selectors) && (selectors.length !== 1 || selectors[0] instanceof Expression))
-    ) {
+    if (selectors && (Array.isArray(selectors) && (selectors.length !== 1 || selectors[0] instanceof Expression))) {
       props.selectors = new List<Selector>(<Selector[]>selectors)
     }
     super(props, options, location)
   }
 
-  toString (omitPrePost?: boolean) {
+  toString(omitPrePost?: boolean) {
     let text = this.selectors.toString() + this.rules.toString()
     if (omitPrePost) {
       return text
@@ -49,7 +46,7 @@ export class Rule extends Node {
     return this.pre + text + this.post
   }
 
-  eval (context: Context) {
+  eval(context: Context) {
     if (!this.evaluated) {
       this.evaluated = true
 
@@ -124,7 +121,7 @@ export class Rule extends Node {
       // const { mediaBlocks } = context
       // const mediaBlockCount = (mediaBlocks && mediaBlocks.length) || 0
       // /** Bubble selectors up through rules... move to qualified rules probably */
-
+      
       // if (mediaBlocks) {
       //     for (let i = mediaBlockCount; i < mediaBlocks.length; i++) {
       //     mediaBlocks[i].bubbleSelectors(selectors)

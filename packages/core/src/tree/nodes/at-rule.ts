@@ -1,4 +1,12 @@
-import { Context, Node, Rules, IBaseProps, IProps, INodeOptions, ILocationInfo } from '.'
+import {
+  Context,
+  Node,
+  Rules,
+  IBaseProps,
+  IProps,
+  INodeOptions,
+  ILocationInfo
+} from '.'
 
 export type IAtRuleProps = {
   name: string
@@ -14,20 +22,20 @@ export class AtRule extends Node {
   rules: Rules | undefined
   options: { atRoot?: boolean }
 
-  constructor (props: IAtRuleProps, options: INodeOptions = {}, location: ILocationInfo) {
+  constructor(props: IAtRuleProps, options: INodeOptions = {}, location: ILocationInfo) {
     const { name, ...rest } = props
 
-    if (options.atRoot === undefined && /@media|@supports/i.test(name)) {
+    if (options.atRoot === undefined && (/@media|@supports/i.test(name))) {
       options.atRoot = true
     }
-
+    
     /** Wrap at rule body in an empty rules for proper scoping and collapsing */
     super(<IProps>(rest as unknown), options, location)
 
     this.name = name
   }
 
-  toString (omitPrePost?: boolean) {
+  toString(omitPrePost?: boolean) {
     let text = this.name + this.prelude.toString()
     if (this.rules) {
       text += this.rules.toString()
@@ -38,7 +46,7 @@ export class AtRule extends Node {
     return this.pre + text + this.post
   }
 
-  eval (context: Context) {
+  eval(context: Context) {
     let mediaPathBackup
     let mediaBlocksBackup
 

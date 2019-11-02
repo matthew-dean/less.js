@@ -1,4 +1,11 @@
-import { Context, Node, IProps, ILocationInfo, NumericNode, Num } from '.'
+import {
+  Context,
+  Node,
+  IProps,
+  ILocationInfo,
+  NumericNode,
+  Num
+} from '.'
 
 import { fround, operate } from '../util/math'
 
@@ -22,7 +29,7 @@ export class Color extends NumericNode {
   value: [number, number, number, number]
   options: IColorOptions
 
-  constructor (props: IColorProps, options: IColorOptions = {}, location?: ILocationInfo) {
+  constructor(props: IColorProps, options: IColorOptions = {}, location?: ILocationInfo) {
     if (options.colorFormat === undefined) {
       options.colorFormat = ColorFormat.HEX
     }
@@ -71,19 +78,19 @@ export class Color extends NumericNode {
     super(newProps, options, location)
   }
 
-  luma () {
+  luma() {
     let r = this.value[0] / 255
     let g = this.value[1] / 255
     let b = this.value[2] / 255
 
-    r = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4)
-    g = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4)
-    b = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4)
+    r = (r <= 0.03928) ? r / 12.92 : Math.pow(((r + 0.055) / 1.055), 2.4)
+    g = (g <= 0.03928) ? g / 12.92 : Math.pow(((g + 0.055) / 1.055), 2.4)
+    b = (b <= 0.03928) ? b / 12.92 : Math.pow(((b + 0.055) / 1.055), 2.4)
 
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   }
 
-  toString () {
+  toString() {
     let color: any
     let args = []
 
@@ -112,7 +119,11 @@ export class Color extends NumericNode {
         break
       case ColorFormat.HSL:
         color = this.toHSL()
-        args = [fround(color.h), `${fround(color.s * 100)}%`, `${fround(color.l * 100)}%`]
+        args = [
+          fround(color.h),
+          `${fround(color.s * 100)}%`,
+          `${fround(color.l * 100)}%`
+        ]
         if (alpha === 1) {
           colorFunction = 'hsl'
         } else {
@@ -123,7 +134,7 @@ export class Color extends NumericNode {
 
     if (colorFunction) {
       // Values are capped between `0` and `255`, rounded and zero-padded.
-      return `${colorFunction}(${args.join(`, `)})`
+      return `${colorFunction}(${args.join(`, `)})`;
     }
 
     return this.toHex(rgb)
@@ -135,42 +146,41 @@ export class Color extends NumericNode {
   // our result, in the form of an integer triplet,
   // we create a new Color node to hold the result.
   //
-  operate (op: string, other: Node, context?: Context) {
+  operate(op: string, other: Node, context?: Context) {
     let otherVal: [number, number, number, number]
     if (other instanceof Num) {
       const val = other.value
       otherVal = [val, val, val, 1]
     }
     if (!otherVal && !(other instanceof Color)) {
-      return this.error(
-        context,
+      return this.error(context,
         `Incompatible units. An operation can't be between a color and a non-number`
       )
     }
-
+    
     if (other instanceof Color) {
       otherVal = other.value
     }
-
+    
     const rgba = new Array(4)
     /**
      * @todo - Someone should document why this alpha result is logical for any math op
      *         It seems arbitrary at first glance, but maybe it's the best result?
-     */
+    */
     const alpha = this.value[3] * (1 - other.value[3]) + other.value[3]
     for (let c = 0; c < 3; c++) {
       rgba[c] = operate(op, this.value[c], other.value[c])
     }
     rgba[3] = alpha
-    return new Color({ value: rgba }, { ...this.options }).inherit(this)
+    return new Color({ value: rgba }, {...this.options}).inherit(this)
   }
 
   /** Clamp values between 0 and max */
-  private clamp (v: number, max: number) {
+  private clamp(v: number, max: number) {
     return Math.min(Math.max(v, 0), max)
   }
 
-  private hslObject () {
+  private hslObject() {
     const value = this.value
     const r = value[0] / 255
     const g = value[1] / 255
@@ -182,12 +192,12 @@ export class Color extends NumericNode {
     return { r, g, b, a, max, min }
   }
 
-  toHSL (): {
+  toHSL(): {
     h: number
     s: number
     l: number
     a: number
-    } {
+  } {
     const { r, g, b, a, max, min } = this.hslObject()
     let h: number
     let s: number
@@ -200,15 +210,9 @@ export class Color extends NumericNode {
       s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
 
       switch (max) {
-        case r:
-          h = (g - b) / d + (g < b ? 6 : 0)
-          break
-        case g:
-          h = (b - r) / d + 2
-          break
-        case b:
-          h = (r - g) / d + 4
-          break
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break
+        case g: h = (b - r) / d + 2;               break
+        case b: h = (r - g) / d + 4;               break
       }
       h /= 6
     }
@@ -216,12 +220,12 @@ export class Color extends NumericNode {
   }
 
   // Adapted from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
-  toHSV (): {
+  toHSV(): {
     h: number
     s: number
     v: number
     a: number
-    } {
+  } {
     const { r, g, b, a, max, min } = this.hslObject()
     let h: number
     let s: number
@@ -238,31 +242,23 @@ export class Color extends NumericNode {
       h = 0
     } else {
       switch (max) {
-        case r:
-          h = (g - b) / d + (g < b ? 6 : 0)
-          break
-        case g:
-          h = (b - r) / d + 2
-          break
-        case b:
-          h = (r - g) / d + 4
-          break
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break
+        case g: h = (b - r) / d + 2; break
+        case b: h = (r - g) / d + 4; break
       }
       h /= 6
     }
     return { h: h * 360, s, v, a }
   }
 
-  toHex (v: number[]) {
-    return `#${v
-      .map(c => {
-        c = this.clamp(Math.round(c), 255)
-        return (c < 16 ? '0' : '') + c.toString(16)
-      })
-      .join('')}`
+  toHex(v: number[]) {
+    return `#${v.map(c => {
+      c = this.clamp(Math.round(c), 255);
+      return (c < 16 ? '0' : '') + c.toString(16)
+    }).join('')}`
   }
-
-  toARGB () {
+  
+  toARGB() {
     const rgb = [...this.value]
     const alpha = rgb.pop()
     return this.toHex([alpha * 255].concat(rgb))

@@ -1,4 +1,13 @@
-import { Context, Node, IProps, INodeOptions, ILocationInfo, NumericNode, Num, Value } from '.'
+import {
+  Context,
+  Node,
+  IProps,
+  INodeOptions,
+  ILocationInfo,
+  NumericNode,
+  Num,
+  Value
+} from '.'
 
 import { convertDimension } from '../util/convert'
 import { operate } from '../util/math'
@@ -8,7 +17,7 @@ export type IDimensionProps = [number | Num, string | Value] | IProps
 
 /**
  * A number with a unit
- *
+ * 
  * e.g. props = [<Num>, <Value>], or
  *      props = [1, 'px']
  */
@@ -17,7 +26,7 @@ export class Dimension extends NumericNode {
   /** Second value is the unit */
   nodes: [Num, Value]
 
-  constructor (props: IDimensionProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor(props: IDimensionProps, options?: INodeOptions, location?: ILocationInfo) {
     let nodes = Array(2)
 
     if (Array.isArray(props)) {
@@ -32,7 +41,7 @@ export class Dimension extends NumericNode {
     this.value = this.nodes[0].value
   }
 
-  operate (op: string, other: Node, context: Context): Node {
+  operate(op: string, other: Node, context: Context): Node {
     const strictUnits = context.options.strictUnits
     if (other instanceof Dimension) {
       const aUnit = this.nodes[1]
@@ -43,22 +52,25 @@ export class Dimension extends NumericNode {
         if (strictUnits === StrictUnitMode.ERROR) {
           return this.error(
             context,
-            `Incompatible units. Change the units or use the unit function. `
-              + `Bad units: '${aUnit.value}' and '${bUnit.value}'.`
+            `Incompatible units. Change the units or use the unit function. ` + 
+              `Bad units: '${aUnit.value}' and '${bUnit.value}'.`
           )
         } else if (strictUnits === StrictUnitMode.LOOSE) {
           /**
            * In an operation between two Dimensions,
            * we default to the first Dimension's unit,
            * so `1px + 2%` will yield `3px`.
-           *
+           * 
            * This can have un-intuitive behavior for a user,
            * so it is not a recommended setting.
            */
           const result = operate(op, this.value, bNode.value)
           return new Dimension([result, aUnit.clone()]).inherit(this)
         } else {
-          return this.warn(context, `Incompatible units. Operation will be preserved.`)
+          return this.warn(
+            context,
+            `Incompatible units. Operation will be preserved.`
+          )
         }
       } else {
         const result = operate(op, this.value, bNode.value)
@@ -78,7 +90,7 @@ export class Dimension extends NumericNode {
     return this
   }
 
-  unify (other: Dimension, unit: string) {
+  unify(other: Dimension, unit: string) {
     const newDimension = convertDimension(other, unit)
     if (newDimension) {
       return newDimension

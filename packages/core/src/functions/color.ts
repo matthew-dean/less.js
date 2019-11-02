@@ -1,4 +1,12 @@
-import { Dimension, Num, Color, Quoted, Node, Value, ColorFormat } from '../tree/nodes'
+import {
+  Dimension,
+  Num,
+  Color,
+  Quoted,
+  Node,
+  Value,
+  ColorFormat
+} from '../tree/nodes'
 
 import { colorFromKeyword } from '../tree/util/color'
 import { define, validateParam } from './helpers'
@@ -8,18 +16,18 @@ let colorFunctions: {
   [key: string]: LessFunction
 }
 
-function clamp (val: number) {
+function clamp(val: number) {
   return Math.min(1, Math.max(0, val))
 }
 
-function hsla (origColor: Color, hsl) {
+function hsla(origColor: Color, hsl) {
   const color = colorFunctions.hsla.call(this, hsl.h, hsl.s, hsl.l, hsl.a)
   const colorFormat = origColor.options.colorFormat
   color.options.colorFormat = colorFormat
   return color
 }
 
-function number (n: Num | Dimension | number, size?: number): number {
+function number(n: Num | Dimension | number, size?: number): number {
   if (n instanceof Dimension) {
     const num = n.nodes[0].value
     if (n.nodes[1].value === '%') {
@@ -41,19 +49,22 @@ function number (n: Num | Dimension | number, size?: number): number {
   }
 }
 
-function scaled (n: Num, size: number): number {
+function scaled(n: Num, size: number): number {
   return number(n, size)
 }
 
-function hue (h: number, m1: number, m2: number) {
-  h = h < 0 ? h + 1 : h > 1 ? h - 1 : h
+function hue(h: number, m1: number, m2: number) {
+  h = h < 0 ? h + 1 : (h > 1 ? h - 1 : h);
   if (h * 6 < 1) {
     return m1 + (m2 - m1) * h * 6
-  } else if (h * 2 < 1) {
+  }
+  else if (h * 2 < 1) {
     return m2
-  } else if (h * 3 < 2) {
+  }
+  else if (h * 3 < 2) {
     return m1 + (m2 - m1) * (2 / 3 - h) * 6
-  } else {
+  }
+  else {
     return m1
   }
 }
@@ -109,42 +120,47 @@ colorFunctions = {
     let hu = (number(h) % 360) / 360
     let sa = clamp(number(s))
     let lu = clamp(number(l))
-    let al = clamp(number(a))
+    let al = clamp(number(a));
 
     m2 = lu <= 0.5 ? lu * (sa + 1) : lu + sa - lu * sa
     m1 = lu * 2 - m2
 
     const rgb = [
       hue(hu + 1 / 3, m1, m2) * 255,
-      hue(hu, m1, m2) * 255,
+      hue(hu, m1, m2)       * 255,
       hue(hu - 1 / 3, m1, m2) * 255,
       al
     ]
     return new Color(rgb, { colorFormat })
   }, [Color, Num], [Num, undefined], [Num, undefined], [Num, undefined]),
 
-  hsv: define(function (h, s, v) {
+  hsv: define(function(h, s, v) {
     return colorFunctions.hsva.call(this, h, s, v, 1)
   }, [Num], [Num], [Num]),
 
-  hsva: define(function (h: Num, s: Num, v: Num, a: Num) {
-    let hu = ((number(h) % 360) / 360) * 360
+  hsva: define(function(h: Num, s: Num, v: Num, a: Num) {
+    let hu = ((number(h) % 360) / 360) * 360;
     let sa = number(s)
     let va = number(v)
 
     let i = Math.floor((hu / 60) % 6)
-    let f = hu / 60 - i
+    let f = (hu / 60) - i
 
-    const vs = [va, va * (1 - sa), va * (1 - f * sa), va * (1 - (1 - f) * sa)]
-    const perm = [[0, 3, 1], [2, 0, 1], [1, 0, 3], [1, 2, 0], [3, 1, 0], [0, 1, 2]]
+    const vs = [va,
+        va * (1 - sa),
+        va * (1 - f * sa),
+        va * (1 - (1 - f) * sa)]
+    const perm = [[0, 3, 1],
+        [2, 0, 1],
+        [1, 0, 3],
+        [1, 2, 0],
+        [3, 1, 0],
+        [0, 1, 2]]
 
-    return colorFunctions.rgba.call(
-      this,
-      vs[perm[i][0]] * 255,
-      vs[perm[i][1]] * 255,
-      vs[perm[i][2]] * 255,
-      a
-    )
+    return colorFunctions.rgba.call(this, vs[perm[i][0]] * 255,
+        vs[perm[i][1]] * 255,
+        vs[perm[i][2]] * 255,
+        a)
   }, [Num], [Num], [Num], [Num]),
 
   hue: define(function (color: Color) {
@@ -159,7 +175,7 @@ colorFunctions = {
     return new Dimension([color.toHSL().l * 100, '%'])
   }, [Color]),
 
-  hsvhue: define(function (color: Color) {
+  hsvhue: define(function(color: Color) {
     return new Num(color.toHSV().h)
   }, [Color]),
 
@@ -192,10 +208,10 @@ colorFunctions = {
   }, [Color]),
 
   luminance: define(function (color: Color) {
-    const luminance
-      = (0.2126 * color.value[0]) / 255
-      + (0.7152 * color.value[1]) / 255
-      + (0.0722 * color.value[2]) / 255
+    const luminance =
+      (0.2126 * color.value[0] / 255) +
+        (0.7152 * color.value[1] / 255) +
+        (0.0722 * color.value[2] / 255)
 
     return new Dimension([luminance * color.value[3] * 100, '%'])
   }, [Color]),
@@ -204,8 +220,9 @@ colorFunctions = {
     const hsl = color.toHSL()
 
     if (method !== undefined && method.value === 'relative') {
-      hsl.s += (hsl.s * amount.value) / 100
-    } else {
+      hsl.s +=  hsl.s * amount.value / 100
+    }
+    else {
       hsl.s += amount.value / 100
     }
     hsl.s = clamp(hsl.s)
@@ -215,8 +232,9 @@ colorFunctions = {
     const hsl = color.toHSL()
 
     if (method !== undefined && method.value === 'relative') {
-      hsl.s -= (hsl.s * amount.value) / 100
-    } else {
+      hsl.s -=  hsl.s * amount.value / 100
+    }
+    else {
       hsl.s -= amount.value / 100
     }
     hsl.s = clamp(hsl.s)
@@ -226,8 +244,9 @@ colorFunctions = {
     const hsl = color.toHSL()
 
     if (method !== undefined && method.value === 'relative') {
-      hsl.l += (hsl.l * amount.value) / 100
-    } else {
+      hsl.l +=  hsl.l * amount.value / 100
+    }
+    else {
       hsl.l += amount.value / 100
     }
     hsl.l = clamp(hsl.l)
@@ -237,8 +256,9 @@ colorFunctions = {
     const hsl = color.toHSL()
 
     if (method !== undefined && method.value === 'relative') {
-      hsl.l -= (hsl.l * amount.value) / 100
-    } else {
+      hsl.l -=  hsl.l * amount.value / 100
+    }
+    else {
       hsl.l -= amount.value / 100
     }
     hsl.l = clamp(hsl.l)
@@ -248,8 +268,9 @@ colorFunctions = {
     const hsl = color.toHSL()
 
     if (method !== undefined && method.value === 'relative') {
-      hsl.a += (hsl.a * amount.value) / 100
-    } else {
+      hsl.a +=  hsl.a * amount.value / 100
+    }
+    else {
       hsl.a += amount.value / 100
     }
     hsl.a = clamp(hsl.a)
@@ -259,9 +280,10 @@ colorFunctions = {
     const hsl = color.toHSL()
 
     if (method !== undefined && method.value === 'relative') {
-      hsl.a -= (hsl.a * amount.value) / 100
-    } else {
-      hsl.a -= amount.value / 100
+        hsl.a -=  hsl.a * amount.value / 100
+    }
+    else {
+        hsl.a -= amount.value / 100
     }
     hsl.a = clamp(hsl.a)
     return hsla.call(this, color, hsl)
@@ -293,7 +315,7 @@ colorFunctions = {
     const w = p * 2 - 1
     const a = color1.toHSL().a - color2.toHSL().a
 
-    const w1 = ((w * a == -1 ? w : (w + a) / (1 + w * a)) + 1) / 2.0
+    const w1 = (((w * a == -1) ? w : (w + a) / (1 + w * a)) + 1) / 2.0
     const w2 = 1 - w1
 
     const rgba = [
@@ -340,16 +362,14 @@ colorFunctions = {
       return dark
     }
   }, [Color, Num], [Color, undefined], [Color, undefined], [Num, undefined]),
-
+  
   argb: define(function (color: Color) {
     return new Value(color.toARGB())
   }, [Color]),
 
-  color: define(function (c: Color | Quoted | Value) {
-    if (
-      c instanceof Quoted
-      && /^#([A-Fa-f0-9]{8}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{3,4})$/i.test(c.value)
-    ) {
+  color: define(function(c: Color | Quoted | Value) {
+    if ((c instanceof Quoted) &&
+      (/^#([A-Fa-f0-9]{8}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{3,4})$/i.test(c.value))) {
       const val = c.value.slice(1)
       return new Color(val, { colorFormat: ColorFormat.HEX })
     }
@@ -365,18 +385,13 @@ colorFunctions = {
     }
   }, [Color, Quoted, Value]),
 
-  tint: define(function (color: Color, amount: Num) {
-    return colorFunctions.mix.call(
-      this,
-      colorFunctions.rgb.call(this, 255, 255, 255),
-      color,
-      amount
-    )
+  tint: define(function(color: Color, amount: Num) {
+    return colorFunctions.mix.call(this, colorFunctions.rgb.call(this, 255, 255, 255), color, amount)
   }, [Color], [Num]),
 
-  shade: define(function (color: Color, amount: Num) {
+  shade: define(function(color: Color, amount: Num) {
     return colorFunctions.mix.call(this, colorFunctions.rgb.call(this, 0, 0, 0), color, amount)
-  }, [Color], [Num])
+  }, [Color], [Num]),
 }
 
 export default colorFunctions

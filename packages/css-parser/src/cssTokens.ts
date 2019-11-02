@@ -8,7 +8,7 @@ import { start } from 'repl'
  * https://www.w3.org/TR/css-syntax-3/
  *
  * Fragments and Tokens must be defined in order
- * ({{references}} must follow definitions)
+ * ({{references}} must follow definitions) 
  */
 export const Fragments: [string, string][] = [
   ['newline', '\\n|\\r\\n?|\\f'],
@@ -44,7 +44,7 @@ function matchValue (str: string, index: number) {
 /**
  * When bound to a Regular Expression, it will aggregrate capture groups onto the payload
  */
-export function groupCapture (this: RegExp, text: string, startOffset: number) {
+export function groupCapture(this: RegExp, text: string, startOffset: number) {
   let endOffset = startOffset
   let match: RegExpExecArray
   let lastMatch: RegExpExecArray = null
@@ -52,7 +52,7 @@ export function groupCapture (this: RegExp, text: string, startOffset: number) {
 
   this.lastIndex = startOffset
 
-  while ((match = this.exec(text))) {
+  while (match = this.exec(text)) {
     endOffset = this.lastIndex
     lastMatch = match
     matches.push(match)
@@ -131,10 +131,11 @@ export const Tokens: rawTokenConfig[] = [
    * This is the only token outside of spec.
    * It's done to avoid parsing errors of common pre-processor stylesheets, since curly
    * blocks need such special handling.
-   *
+   * 
    * Pre-processors will / can easily override this.
    */
   { name: 'Interpolated', pattern: /[#$@]{[^}]+}/ },
+
 
   { name: 'PlainIdent', pattern: '{{ident}}', categories: ['Ident', 'PropertyName'] },
   { name: 'CustomProperty', pattern: '--{{ident}}', categories: ['BlockMarker', 'PropertyName'] },
@@ -218,23 +219,9 @@ export const Tokens: rawTokenConfig[] = [
    */
   { name: 'Integer', pattern: LexerType.NA },
   { name: 'DimensionNum', pattern: '{{number}}(?:{{ident}}|%)', categories: ['Unit', 'Dimension'] },
-  {
-    name: 'DimensionInt',
-    pattern: '{{integer}}(?:{{ident}}|%)',
-    categories: ['Unit', 'Dimension', 'Integer']
-  },
-  {
-    name: 'SignedInt',
-    pattern: /[+-]\d+/,
-    longer_alt: 'DimensionInt',
-    categories: ['Unit', 'Integer']
-  },
-  {
-    name: 'UnsignedInt',
-    pattern: /\d+/,
-    longer_alt: 'DimensionInt',
-    categories: ['Unit', 'Integer']
-  },
+  { name: 'DimensionInt', pattern: '{{integer}}(?:{{ident}}|%)', categories: ['Unit', 'Dimension', 'Integer'] },
+  { name: 'SignedInt', pattern: /[+-]\d+/, longer_alt: 'DimensionInt', categories: ['Unit', 'Integer'] },
+  { name: 'UnsignedInt', pattern: /\d+/, longer_alt: 'DimensionInt', categories: ['Unit', 'Integer'] },
   { name: 'Number', pattern: '{{number}}', longer_alt: 'DimensionNum', categories: ['Unit'] },
   {
     name: 'WS',
@@ -246,129 +233,129 @@ export const Tokens: rawTokenConfig[] = [
 ]
 
 // { name: 'WS', pattern: '(?:{{ws}}|{{comment}})+', categories: ['BlockMarker'] },
-// {
-//   name: 'Comment',
-//   pattern: '{{comment}}',
-//   line_breaks: true,
-//   group: LexerType.SKIPPED,
-//   longer_alt: 'WS'
-// }
-// {
-//   name: 'WS',
-//   pattern: [{ allowLineComment: false }, function(this: CommentOptions, text: string, startOffset: number) {
-//     const { allowLineComment } = this
-//     let endOffset = startOffset
-//     let char: string = text.charAt(endOffset)
-//     let currentWs: string = ''
-//     let currentComment: string = ''
-//     let loop: boolean = true
-//     const ws: [string, number][] = []
-//     const comments: [string, number][] = []
+  // {
+  //   name: 'Comment',
+  //   pattern: '{{comment}}',
+  //   line_breaks: true,
+  //   group: LexerType.SKIPPED,
+  //   longer_alt: 'WS'
+  // }
+  // {
+  //   name: 'WS',
+  //   pattern: [{ allowLineComment: false }, function(this: CommentOptions, text: string, startOffset: number) {
+  //     const { allowLineComment } = this
+  //     let endOffset = startOffset
+  //     let char: string = text.charAt(endOffset)
+  //     let currentWs: string = ''
+  //     let currentComment: string = ''
+  //     let loop: boolean = true
+  //     const ws: [string, number][] = []
+  //     const comments: [string, number][] = []
 
-//     let inBlockComment: boolean
-//     let inLineComment: boolean
-//     let inWS: boolean
+  //     let inBlockComment: boolean
+  //     let inLineComment: boolean
+  //     let inWS: boolean
 
-//     const closeWS = () => {
-//       if (inWS) {
-//         ws[0][0] = currentWs
-//         currentWs = ''
-//         inWS = false
-//       }
-//     }
+  //     const closeWS = () => {
+  //       if (inWS) {
+  //         ws[0][0] = currentWs
+  //         currentWs = ''
+  //         inWS = false
+  //       }
+  //     }
 
-//     while (loop) {
-//       switch (char) {
-//         case '\n':
-//         case '\r':
-//           if (allowLineComment && inLineComment) {
-//             comments[0][0] = currentComment
-//             currentComment = ''
-//             inLineComment = false
-//           }
-//         case ' ':
-//         case '\t':
-//         case '\f':
-//           if (!inBlockComment && !inLineComment) {
-//             currentWs += char
-//             if (!inWS) {
-//               const wsp: [string, number] = [null, endOffset]
-//               ws.unshift(wsp)
-//               inWS = true
-//             }
-//           } else {
-//             currentComment += char
-//           }
-//           break
-//         case '/':
-//           if (inBlockComment || inLineComment) {
-//             currentComment += char
-//           } else {
-//             const nextChar = text.charAt(endOffset + 1)
-//             if (!inBlockComment && nextChar === '*') {
-//               closeWS()
-//               currentComment += char + '*'
-//               inBlockComment = true
-//               const comment: [string, number] = [null, endOffset]
-//               endOffset++
-//               comments.unshift(comment)
-//             } else if (allowLineComment && nextChar === '/') {
-//               closeWS()
-//               currentComment += char
-//               inLineComment = true
-//               const comment: [string, number] = [null, endOffset]
-//               comments.unshift(comment)
-//             } else {
-//               loop = false
-//             }
-//           }
-//           break
-//         case '*':
-//           if (inBlockComment || inLineComment) {
-//             if (inBlockComment && text.charAt(endOffset + 1) === '/') {
-//               comments[0][0] = currentComment + '/'
-//               endOffset++
-//               currentComment = ''
-//               inBlockComment = false
-//             } else {
-//               currentComment += char
-//             }
-//           } else {
-//             loop = false
-//           }
-//           break
-//         default:
-//           if (inBlockComment || inLineComment) {
-//             if (char) {
-//               currentComment += char
-//             } else if (allowLineComment && inLineComment) {
-//               comments[0][0] = currentComment
-//               loop = false
-//             } else {
-//               endOffset = startOffset
-//               loop = false
-//             }
-//           } else {
-//             closeWS()
-//             loop = false
-//           }
-//       }
-//       if (loop) {
-//         endOffset++
-//         char = text.charAt(endOffset)
-//       }
-//     }
+  //     while (loop) {
+  //       switch (char) {
+  //         case '\n':
+  //         case '\r':
+  //           if (allowLineComment && inLineComment) {
+  //             comments[0][0] = currentComment
+  //             currentComment = ''
+  //             inLineComment = false
+  //           }
+  //         case ' ':
+  //         case '\t':
+  //         case '\f':
+  //           if (!inBlockComment && !inLineComment) {
+  //             currentWs += char
+  //             if (!inWS) {
+  //               const wsp: [string, number] = [null, endOffset]
+  //               ws.unshift(wsp)
+  //               inWS = true
+  //             }
+  //           } else {
+  //             currentComment += char
+  //           }
+  //           break
+  //         case '/':
+  //           if (inBlockComment || inLineComment) {
+  //             currentComment += char
+  //           } else {
+  //             const nextChar = text.charAt(endOffset + 1)
+  //             if (!inBlockComment && nextChar === '*') {
+  //               closeWS()
+  //               currentComment += char + '*'
+  //               inBlockComment = true
+  //               const comment: [string, number] = [null, endOffset]
+  //               endOffset++
+  //               comments.unshift(comment)
+  //             } else if (allowLineComment && nextChar === '/') {
+  //               closeWS()
+  //               currentComment += char
+  //               inLineComment = true
+  //               const comment: [string, number] = [null, endOffset]
+  //               comments.unshift(comment)
+  //             } else {
+  //               loop = false
+  //             }
+  //           }
+  //           break
+  //         case '*':
+  //           if (inBlockComment || inLineComment) {
+  //             if (inBlockComment && text.charAt(endOffset + 1) === '/') {
+  //               comments[0][0] = currentComment + '/'
+  //               endOffset++
+  //               currentComment = ''
+  //               inBlockComment = false
+  //             } else {
+  //               currentComment += char
+  //             }
+  //           } else {
+  //             loop = false
+  //           }
+  //           break
+  //         default:
+  //           if (inBlockComment || inLineComment) {
+  //             if (char) {
+  //               currentComment += char
+  //             } else if (allowLineComment && inLineComment) {
+  //               comments[0][0] = currentComment
+  //               loop = false
+  //             } else {
+  //               endOffset = startOffset
+  //               loop = false
+  //             }
+  //           } else {
+  //             closeWS()
+  //             loop = false
+  //           }
+  //       }
+  //       if (loop) {
+  //         endOffset++
+  //         char = text.charAt(endOffset)
+  //       }
+  //     }
 
-//     if (startOffset === endOffset) {
-//       return null
-//     }
+  //     if (startOffset === endOffset) {
+  //       return null
+  //     }
 
-//     const match = [text.substring(startOffset, endOffset)]
-//     match['payload'] = { ws, comments }
-
-//     return match
-//   }],
-//   start_chars_hint: [' ', '\t', '\n', '\r', '\f', '/'],
-//   line_breaks: true,
-//   categories: ['BlockMarker']
-// }
+  //     const match = [text.substring(startOffset, endOffset)]
+  //     match['payload'] = { ws, comments }
+      
+  //     return match
+  //   }],
+  //   start_chars_hint: [' ', '\t', '\n', '\r', '\f', '/'],
+  //   line_breaks: true,
+  //   categories: ['BlockMarker']
+  // }

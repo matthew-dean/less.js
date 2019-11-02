@@ -1,1 +1,3 @@
-var less = { logLevel: 4, errorReporting: 'console', plugins: [postProcessorPlugin] }
+var less = {logLevel: 4,
+    errorReporting: 'console',
+    plugins: [postProcessorPlugin]};

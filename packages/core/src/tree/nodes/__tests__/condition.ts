@@ -1,12 +1,22 @@
 import { expect } from 'chai'
 import 'mocha'
-import { Bool, Block, Condition, Value, Num } from '..'
+import {
+  Bool,
+  Block,
+  Condition,
+  Value,
+  Num
+} from '..'
 
 import { context } from '../../__mocks__/context'
 
 describe('Condition', () => {
   it('should evaluate a simple condition', () => {
-    const node = new Condition([new Bool(true), new Value('and'), new Bool(true)])
+    const node = new Condition([
+      new Bool(true),
+      new Value('and'),
+      new Bool(true)
+    ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(true)
   })
@@ -32,31 +42,51 @@ describe('Condition', () => {
   })
 
   it('1 < 1', () => {
-    const node = new Condition([new Num(1), new Value('<'), new Num(1)])
+    const node = new Condition([
+      new Num(1),
+      new Value('<'),
+      new Num(1)
+    ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(false)
   })
 
   it('1 <= 1', () => {
-    const node = new Condition([new Num(1), new Value('<='), new Num(1)])
+    const node = new Condition([
+      new Num(1),
+      new Value('<='),
+      new Num(1)
+    ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(true)
   })
 
   it('2 > 1', () => {
-    const node = new Condition([new Num(2), new Value('>'), new Num(1)])
+    const node = new Condition([
+      new Num(2),
+      new Value('>'),
+      new Num(1)
+    ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(true)
   })
 
   it('1 >= 2', () => {
-    const node = new Condition([new Num(1), new Value('>='), new Num(2)])
+    const node = new Condition([
+      new Num(1),
+      new Value('>='),
+      new Num(2)
+    ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(false)
   })
 
   it('1 = 1', () => {
-    const node = new Condition([new Num(1), new Value('='), new Num(1)])
+    const node = new Condition([
+      new Num(1),
+      new Value('='),
+      new Num(1)
+    ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(true)
   })
@@ -65,7 +95,11 @@ describe('Condition', () => {
     const node = new Condition([
       new Bool({ value: true }),
       new Value('and'),
-      new Condition([new Num(1), new Value('='), new Num(2)])
+      new Condition([
+        new Num(1),
+        new Value('='),
+        new Num(2)
+      ])
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq(false)
@@ -77,7 +111,11 @@ describe('Condition', () => {
       new Value('and'),
       new Block([
         new Value('('),
-        new Condition([new Num(1), new Value('='), new Num(2)]),
+        new Condition([
+          new Num(1),
+          new Value('='),
+          new Num(2)
+        ]),
         new Value(')')
       ])
     ])
@@ -91,7 +129,11 @@ describe('Condition', () => {
       new Value('and'),
       new Block([
         new Value('('),
-        new Condition([new Num(1), new Value('='), new Num(1)]),
+        new Condition([
+          new Num(1),
+          new Value('='),
+          new Num(1)
+        ]),
         new Value(')')
       ])
     ])

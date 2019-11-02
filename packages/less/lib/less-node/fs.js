@@ -1,7 +1,10 @@
-let fs
-try {
-  fs = require('graceful-fs')
-} catch (e) {
-  fs = require('fs')
+let fs;
+try
+{
+    fs = require('graceful-fs');
 }
-export default fs
+catch (e)
+{
+    fs = require('fs');
+}
+export default fs;

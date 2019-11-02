@@ -48,7 +48,7 @@ export interface ILocationInfo extends CstNodeLocation {}
 /**
  * In practice, this will probably be inherited through the prototype chain
  * during creation.
- *
+ * 
  * So the "own properties" should be CstNodeLocation info, but should do an
  * Object.create() from the location info of the stylesheet root location info
  */
@@ -79,9 +79,10 @@ export enum MatchOption {
 type MatchFunction = (node: Node) => Node
 
 export abstract class Node {
+
   /**
    * When nodes only have a single list of sub-nodes, they'll use the nodes prop,
-   * which reduces boilerplate when used.
+   * which reduces boilerplate when used. 
    *
    * This will always be present as an array, even if it is empty
    */
@@ -115,7 +116,7 @@ export abstract class Node {
 
   visibilityBlocks: number
   evalFirst: boolean
-
+  
   // false - the node must not be visible
   // true - the node must be visible
   // undefined or null - the node has the same visibility as its parent
@@ -141,14 +142,19 @@ export abstract class Node {
     'evaluated'
   ]
 
-  private static nodeKeys = Node.inheritanceKeys.concat(['childKeys', 'value', 'text', 'options'])
+  private static nodeKeys = Node.inheritanceKeys.concat([
+    'childKeys',
+    'value',
+    'text',
+    'options'
+  ])
 
-  constructor (props: IProps, options: INodeOptions = {}, location?: ILocationInfo) {
+  constructor(props: IProps, options: INodeOptions = {}, location?: ILocationInfo) {
     if (props instanceof Node) {
       throw { message: 'Node props cannot be a Node' }
     }
     const { pre, post, value, text, ...children } = props
-    /** nodes is always present as an array, even if empty */
+      /** nodes is always present as an array, even if empty */  
 
     const keys = []
     this.childKeys = keys
@@ -171,7 +177,7 @@ export abstract class Node {
     }
 
     Object.defineProperty(this, 'children', {
-      get () {
+      get() {
         const children = {}
         this.childKeys.forEach((key: string) => {
           children[key] = this[key]
@@ -186,7 +192,7 @@ export abstract class Node {
     this.text = text
     this.pre = pre || ''
     this.post = post || ''
-
+    
     const nodeRefProps = {
       enumerable: false,
       configurable: false,
@@ -198,10 +204,10 @@ export abstract class Node {
       root: nodeRefProps,
       fileRoot: nodeRefProps
     })
-
+    
     this.setParent()
     this.location = location
-
+  
     if (options.isRoot && this instanceof Rules) {
       this.root = this
     }
@@ -216,7 +222,7 @@ export abstract class Node {
     this.visibilityBlocks = 0
   }
 
-  protected setParent () {
+  protected setParent() {
     this.childKeys.forEach(key => {
       let nodes = this[key]
       if (!Array.isArray(nodes)) {
@@ -234,21 +240,21 @@ export abstract class Node {
     })
   }
 
-  accept (visitor) {
+  accept(visitor) {
     this.processChildren(this, (node: Node) => visitor.visit(node))
   }
 
   /**
    * Return a primitive value, if it exists, otherwise call `.toString()`
    */
-  valueOf () {
+  valueOf() {
     if (this.value !== undefined) {
       return this.value
     }
     return this.toString(true)
   }
 
-  toString (omitPrePost: boolean = false) {
+  toString(omitPrePost: boolean = false) {
     let text: string
     if (this.text !== undefined) {
       text = this.text
@@ -264,7 +270,7 @@ export abstract class Node {
   }
 
   /** Nodes may have individual compare strategies */
-  compare (node: Node) {
+  compare(node: Node) {
     return compare(this, node)
   }
 
@@ -273,7 +279,7 @@ export abstract class Node {
    * This is used when cloning, but also when
    * doing any kind of node replacement (during eval).
    */
-  inherit (inheritFrom: Node): this {
+  inherit(inheritFrom: Node): this {
     Node.inheritanceKeys.forEach(key => {
       const ref = inheritFrom[key]
       if (ref !== undefined) {
@@ -286,27 +292,23 @@ export abstract class Node {
 
   /**
    * Derived nodes can pass in context to eval and clone at the same time.
-   *
+   * 
    * Typically a clone of the entire tree happens at the beginning of the eval cycle,
    * but it is sometimes re-used by sub-nodes during eval.
-   *
+   * 
    * @param shallow - doesn't deeply clone nodes (retains references)
    */
-  clone (shallow: boolean = false): this {
+  clone(shallow: boolean = false): this {
     const Clazz = Object.getPrototypeOf(this).constructor
-    const newNode = new Clazz(
-      {
-        pre: this.pre,
-        post: this.post,
-        value: this.value,
-        text: this.text,
-        ...this.children
-        /** For now, there's no reason to mutate this.location, so its reference is just copied */
-      },
-      { ...this.options },
-      this.location
-    )
-
+    const newNode = new Clazz({
+      pre: this.pre,
+      post: this.post,
+      value: this.value,
+      text: this.text,
+      ...this.children
+    /** For now, there's no reason to mutate this.location, so its reference is just copied */
+    }, {...this.options}, this.location)
+    
     /**
      * First copy over Node-derived-specific props. We eliminate any props specific
      * to the base Node class.
@@ -340,7 +342,7 @@ export abstract class Node {
     return newNode
   }
 
-  protected getFileInfo (): IFileInfo {
+  protected getFileInfo(): IFileInfo {
     return this.fileRoot.fileInfo
   }
 
@@ -348,7 +350,7 @@ export abstract class Node {
    * Convenience method if location isn't copied to new nodes
    * for any reason (such as a custom function)
    */
-  protected getLocation (): ILocationInfo {
+  protected getLocation(): ILocationInfo {
     let node: Node = this
     while (node) {
       if (node.location) {
@@ -358,7 +360,7 @@ export abstract class Node {
     }
   }
 
-  find (
+  find(
     context: Context,
     matchFunction: MatchFunction,
     option: MatchOption = MatchOption.FIRST
@@ -418,47 +420,39 @@ export abstract class Node {
   }
 
   /** Moved from Rules property() method */
-  findProperty (context: Context, name: string): Declaration[] {
-    return <Declaration[]> this.find(
-      context,
-      (node: Node) => {
-        if (
-          node instanceof Declaration
-          && !node.options.isVariable
-          && node.evalName(context) === name
-        ) {
-          return node
-        }
-      },
-      MatchOption.ALL_RULES
-    )
+  findProperty(context: Context, name: string): Declaration[] {
+    return <Declaration[]>this.find(context, (node: Node) => {
+      if (
+        node instanceof Declaration &&
+        !node.options.isVariable &&
+        node.evalName(context) === name
+      ) {
+        return node
+      }
+    }, MatchOption.ALL_RULES)
   }
 
   /** Moved from Rules variable() method */
-  findVariable (context: Context, name: string): Declaration {
-    return <Declaration> this.find(
-      context,
-      (node: Node) => {
-        if (
-          node instanceof Declaration
-          && node.options.isVariable
-          && node.evalName(context) === name
-        ) {
-          return node
-        }
-      },
-      MatchOption.FIRST
-    )
+  findVariable(context: Context, name: string): Declaration {
+    return <Declaration>this.find(context, (node: Node) => {
+      if (
+        node instanceof Declaration &&
+        node.options.isVariable &&
+        node.evalName(context) === name
+      ) {
+        return node
+      }
+    }, MatchOption.FIRST)
   }
 
   /**
    * This is an in-place mutation of a node array
-   *
+   * 
    * Unresolved Q: would a new array be more performant than array mutation?
    * The reason we do this is because the array may not mutate at all depending
    * on the result of processing
    */
-  protected processNodes (nodes: Node[], processFunc: ProcessFunction): Node[] {
+  protected processNodes(nodes: Node[], processFunc: ProcessFunction): Node[] {
     let thisLength = nodes.length
     for (let i = 0; i < thisLength; i++) {
       const item = nodes[i]
@@ -469,7 +463,8 @@ export abstract class Node {
           nodes.splice(i, 1)
           i--
           continue
-        } else {
+        }
+        else {
           nodes.splice(i, 1, ...returnValue)
           thisLength += nodeLength
           i += nodeLength
@@ -487,7 +482,7 @@ export abstract class Node {
     return nodes
   }
 
-  protected processChildren (node: Node, processFunc: ProcessFunction) {
+  protected processChildren(node: Node, processFunc: ProcessFunction) {
     node.childKeys.forEach(key => {
       let nodes = node[key]
       if (nodes) {
@@ -516,25 +511,25 @@ export abstract class Node {
           if (Array.isArray(nodes)) {
             this.processNodes(nodes, processFunc)
           } else {
-            node[key] = this.processNodes([nodes], processFunc)
+            node[key] = this.processNodes([nodes], processFunc) 
           }
         }
       }
     })
   }
 
-  protected inheritChild (node: Node) {
+  protected inheritChild(node: Node) {
     node.parent = this
     node.root = this.root
     node.fileRoot = this.fileRoot
   }
 
-  appendNode (nodes: Node[], insertedNode: Node) {
+  appendNode(nodes: Node[], insertedNode: Node) {
     this.inheritChild(insertedNode)
     nodes.push(insertedNode)
   }
 
-  prependNode (nodes: Node[], insertedNode: Node) {
+  prependNode(nodes: Node[], insertedNode: Node) {
     this.inheritChild(insertedNode)
     nodes.unshift(insertedNode)
   }
@@ -544,7 +539,7 @@ export abstract class Node {
    * However, some nodes after evaluating will of course override
    * this to produce different node types or primitive values
    */
-  eval (context: Context): EvalReturn {
+  eval(context: Context): EvalReturn {
     context.currentNode = this
     /** All nodes that override eval() should (usually) exit if they're evaluated */
     if (!this.evaluated) {
@@ -557,11 +552,11 @@ export abstract class Node {
     return this
   }
 
-  toArray () {
+  toArray() {
     return this.nodes
   }
 
-  error (context: Context, message: string) {
+  error(context: Context, message: string) {
     if (context) {
       context.error({ message }, this.fileRoot)
       return this
@@ -569,7 +564,7 @@ export abstract class Node {
     throw new Error(message)
   }
 
-  warn (context: Context, message: string) {
+  warn(context: Context, message: string) {
     if (context) {
       context.warning({ message }, this.fileRoot)
     }
@@ -580,8 +575,8 @@ export abstract class Node {
    * Output is a kind of string builder?
    * @todo - All genCSS and toCSS will get moved out of the AST and
    *         into visitor processing.
-   */
-  genCSS (output: any, context?: Context) {
+  */
+  genCSS(output: any, context?: Context) {
     output.add(this.toString())
   }
 
@@ -631,7 +626,7 @@ export abstract class Node {
   //     };
   // }
 
-  copyVisibilityInfo (info: { isVisible: boolean; visibilityBlocks: number }) {
+  copyVisibilityInfo(info: {isVisible: boolean; visibilityBlocks: number }) {
     if (!info) {
       return
     }
@@ -639,3 +634,4 @@ export abstract class Node {
     this.isVisible = info.isVisible
   }
 }
+

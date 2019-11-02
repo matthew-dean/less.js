@@ -24,7 +24,7 @@ describe('Functions - color', () => {
     try {
       const color = rgba.call(context)
     } catch (e) {
-      expect(e.message).to.eq("value 'undefined' is not an expected type. Expected: Color or Num")
+      expect(e.message).to.eq('value \'undefined\' is not an expected type. Expected: Color or Num')
       expect(e.pos).to.eq(0)
     }
   })
@@ -32,7 +32,7 @@ describe('Functions - color', () => {
     try {
       const color = rgba.call(context, new Color('#fff'), new Value('derp'))
     } catch (e) {
-      expect(e.message).to.eq("value 'derp' is not an expected type. Expected: Num")
+      expect(e.message).to.eq('value \'derp\' is not an expected type. Expected: Num')
       expect(e.pos).to.eq(1)
     }
   })

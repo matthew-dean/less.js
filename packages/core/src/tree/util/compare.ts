@@ -18,10 +18,10 @@ export const compare = (a: Node, b: Node) => {
   let bVal = b.valueOf()
 
   if (aVal === undefined) {
-    aVal = String(a)
+    aVal = a + ''
   }
   if (bVal === undefined) {
-    bVal = String(b)
+    bVal = b + ''
   }
 
   if (Array.isArray(bVal) && !Array.isArray(aVal)) {
@@ -68,7 +68,10 @@ export const compare = (a: Node, b: Node) => {
 /**
  * When doing a boolean compare, anything other than 0 is inequal
  */
-export const primitiveCompare = (a: primitive, b: primitive): number | undefined => {
+export const primitiveCompare = (
+  a: primitive,
+  b: primitive
+): number | undefined => {
   if (a < b) {
     return -1
   }

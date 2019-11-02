@@ -11,7 +11,10 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
     lexedTokens: IToken[]
     errors: IRecognitionException[]
 
-    constructor (cssParser: CssRuleParser, lexedTokens: IToken[]) {
+    constructor(
+      cssParser: CssRuleParser,
+      lexedTokens: IToken[]
+    ) {
       super()
       this.errors = []
       this.cssParser = cssParser
@@ -19,14 +22,14 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
       this.validateVisitor()
     }
 
-    primary (ctx) {
+    primary(ctx) {
       const { rule } = ctx
       if (rule) {
         this.visit(rule)
       }
     }
 
-    rule (ctx) {
+    rule(ctx) {
       const { atRule, componentValues, customPropertyRule } = ctx
       const parser = this.cssParser
 
@@ -39,7 +42,7 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
         const { curlyBlock, colon, expressionList, property } = rule.children
         const { start, expressionEnd, propertyEnd } = rule.tokenRange
         parser.input = this.lexedTokens.slice(start, expressionEnd)
-
+        
         /** Try parsing values as selectors */
         // @ts-ignore
         const selectors = parser.compoundSelectorList()
@@ -92,28 +95,28 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
       return ctx
     }
 
-    atRule (ctx) {
+    atRule(ctx) {
       return ctx
     }
 
-    componentValues (ctx) {
+    componentValues(ctx) {
       return ctx
     }
 
-    customPropertyRule (ctx) {
+    customPropertyRule(ctx) {
       return ctx
     }
 
-    expressionList (ctx) {
+    expressionList(ctx) {
       this.visit(ctx.expression)
       return ctx
     }
 
-    expression (ctx) {
+    expression(ctx) {
       return ctx
     }
 
-    curlyBlock (ctx) {
+    curlyBlock(ctx) {
       this.visit(ctx.primary)
       return ctx
     }
@@ -138,3 +141,4 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
 //        delete ctx.NotSemiColon
 //     }
 // }
+

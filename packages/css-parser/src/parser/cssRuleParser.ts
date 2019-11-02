@@ -14,7 +14,11 @@ import { TokenMap } from '../util'
 export class CssRuleParser extends EmbeddedActionsParser {
   T: TokenMap
 
-  constructor (tokens: TokenType[], T: TokenMap, config: IParserConfig = { maxLookahead: 1 }) {
+  constructor(
+    tokens: TokenType[],
+    T: TokenMap,
+    config: IParserConfig = { maxLookahead: 1 }
+  ) {
     super(tokens, config)
     this.T = T
     if (this.constructor === CssRuleParser) {
@@ -22,17 +26,17 @@ export class CssRuleParser extends EmbeddedActionsParser {
     }
   }
 
-  WS (idx: number = 0) {
+  WS(idx:number = 0) {
     // +10 to avoid conflicts with other OPTION in the calling rule.
-    return this.option(idx + 10, () => {
-      const wsToken = this.consume(idx, this.T.WS)
+    return this.option(idx+10, () => {
+      const  wsToken = this.consume(idx, this.T.WS)
       return wsToken
     })
   }
 
   /** A property is a collection of tokens in case we need to process segments */
   property = this.RULE<IToken[]>('property', () => {
-    return [this.CONSUME(this.T.PropertyName)]
+    return [ this.CONSUME(this.T.PropertyName) ]
   })
 
   expression = this.RULE('expression', () => {
@@ -59,13 +63,13 @@ export class CssRuleParser extends EmbeddedActionsParser {
       val = this.SUBRULE(this.addition)
       this.ACTION(() => val && values.push(val))
     })
-
+    
     return values
   })
 
   addition = this.RULE<CstNode>('addition', () => {
     let rhs: CstElement[]
-    this.ACTION(() => (rhs = []))
+    this.ACTION(() => rhs = [])
     let val: CstElement
     let op: IToken
     let ws: IToken
@@ -79,7 +83,7 @@ export class CssRuleParser extends EmbeddedActionsParser {
           name: 'rhs',
           children: {
             op: [op],
-            ...(ws ? { ws: [ws] } : {}),
+            ...(ws ? { ws: [ws] }: {}),
             expression: [val]
           }
         })
@@ -92,7 +96,7 @@ export class CssRuleParser extends EmbeddedActionsParser {
         children: {
           lhs: [lhs],
           rhs,
-          ...(post ? { post: [post] } : {})
+          ...(post ? { post: [post] }: {})
         }
       }
     } else {
@@ -102,7 +106,7 @@ export class CssRuleParser extends EmbeddedActionsParser {
 
   multiplication = this.RULE<CstNode>('multiplication', () => {
     let rhs: CstElement[]
-    this.ACTION(() => (rhs = []))
+    this.ACTION(() => rhs = [])
     let val: CstElement
     let op: IToken
     let ws: IToken
@@ -116,7 +120,7 @@ export class CssRuleParser extends EmbeddedActionsParser {
           name: 'rhs',
           children: {
             op: [op],
-            ...(ws ? { ws: [ws] } : {}),
+            ...(ws ? { ws: [ws] }: {}),
             expression: [val]
           }
         })
@@ -129,7 +133,7 @@ export class CssRuleParser extends EmbeddedActionsParser {
         children: {
           lhs: [lhs],
           rhs,
-          ...(post ? { post: [post] } : {})
+          ...(post ? { post: [post] }: {})
         }
       }
     } else {
@@ -139,7 +143,7 @@ export class CssRuleParser extends EmbeddedActionsParser {
 
   compare = this.RULE('compare', () => {
     let rhs: CstElement[]
-    this.ACTION(() => (rhs = []))
+    this.ACTION(() => rhs = [])
     let val: CstElement
     let op: IToken
     let ws: IToken
@@ -153,7 +157,7 @@ export class CssRuleParser extends EmbeddedActionsParser {
           name: 'rhs',
           children: {
             op: [op],
-            ...(ws ? { ws: [ws] } : {}),
+            ...(ws ? { ws: [ws] }: {}),
             expression: [val]
           }
         })
@@ -166,7 +170,7 @@ export class CssRuleParser extends EmbeddedActionsParser {
         children: {
           lhs: [lhs],
           rhs,
-          ...(post ? { post: [post] } : {})
+          ...(post ? { post: [post] }: {})
         }
       }
     } else {
