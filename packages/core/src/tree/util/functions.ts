@@ -18,13 +18,13 @@ export const getFunction = (callingNode: Node, name: string, context: Context) =
   if (result) {
     /** This is an AST Func Node */
     return {
-      call (args: Node[]) {}
+      call(args: Node[]) {}
     }
   } else {
     const jsFunction = context.scope[name]
     if (jsFunction && jsFunction.constructor === Function) {
       return {
-        call (args: Node[]) {
+        call(args: Node[]) {
           const result = jsFunction.apply(context, args)
         }
       }
@@ -33,7 +33,7 @@ export const getFunction = (callingNode: Node, name: string, context: Context) =
 }
 
 class functionCaller {
-  constructor (name, context, index, currentFileInfo) {
+  constructor(name, context, index, currentFileInfo) {
     this.name = name.toLowerCase()
     this.index = index
     this.context = context
@@ -42,11 +42,11 @@ class functionCaller {
     this.func = context.frames[0].functionRegistry.get(this.name)
   }
 
-  isValid () {
+  isValid() {
     return Boolean(this.func)
   }
 
-  call (args) {
+  call(args) {
     // This code is terrible and should be replaced as per this issue...
     // https://github.com/less/less.js/issues/2477
     if (Array.isArray(args)) {

@@ -36,7 +36,7 @@ let head
 let style
 
 // Always restore page visibility
-function resolveOrReject (data) {
+function resolveOrReject(data) {
   if (data.filename) {
     console.warn(data)
   }

@@ -10,7 +10,7 @@ import * as utils from '../utils'
  * Removed, move "bubbling" to tree-flattening visitor
  */
 class Media extends AtRule {
-  constructor (value, features, index, currentFileInfo, visibilityInfo) {
+  constructor(value, features, index, currentFileInfo, visibilityInfo) {
     super()
 
     this._index = index
@@ -34,7 +34,7 @@ class Media extends AtRule {
     this.setParent(this.rules, this)
   }
 
-  eval (context) {
+  eval(context) {
     if (!context.mediaBlocks) {
       context.mediaBlocks = []
       context.mediaPath = []
@@ -61,7 +61,7 @@ class Media extends AtRule {
     return context.mediaPath.length === 0 ? media.evalTop(context) : media.evalNested(context)
   }
 
-  evalTop (context) {
+  evalTop(context) {
     let result = this
 
     // Render all dependent Media blocks.
@@ -85,7 +85,7 @@ class Media extends AtRule {
     return result
   }
 
-  evalNested (context) {
+  evalNested(context) {
     let i
     let value
     const path = context.mediaPath.concat([this])
@@ -120,7 +120,7 @@ class Media extends AtRule {
     return new Rules([])
   }
 
-  permute (arr) {
+  permute(arr) {
     if (arr.length === 0) {
       return []
     } else if (arr.length === 1) {
@@ -137,7 +137,7 @@ class Media extends AtRule {
     }
   }
 
-  bubbleSelectors (selectors) {
+  bubbleSelectors(selectors) {
     if (!selectors) {
       return
     }

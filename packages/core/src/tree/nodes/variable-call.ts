@@ -3,7 +3,7 @@ import { Node, Variable, Rules, DetachedRules } from '.'
 import LessError from '../less-error'
 
 export class VariableCall extends Node {
-  constructor (variable, index, currentFileInfo) {
+  constructor(variable, index, currentFileInfo) {
     super()
 
     this.variable = variable
@@ -12,7 +12,7 @@ export class VariableCall extends Node {
     this.allowRoot = true
   }
 
-  eval (context) {
+  eval(context) {
     let rules
     let detachedRules = new Variable(this.variable, this.getIndex(), this.fileInfo()).eval(context)
     const error = new LessError({ message: `Could not evaluate variable call ${this.variable}` })

@@ -30,7 +30,7 @@ export class Rule extends Node {
   selectors: SelectorList
   condition: Bool | Condition | undefined
 
-  constructor (props: IRuleProps, options: INodeOptions, location: ILocationInfo) {
+  constructor(props: IRuleProps, options: INodeOptions, location: ILocationInfo) {
     const { selectors } = props
     if (
       selectors
@@ -41,7 +41,7 @@ export class Rule extends Node {
     super(props, options, location)
   }
 
-  toString (omitPrePost?: boolean) {
+  toString(omitPrePost?: boolean) {
     let text = this.selectors.toString() + this.rules.toString()
     if (omitPrePost) {
       return text
@@ -49,7 +49,7 @@ export class Rule extends Node {
     return this.pre + text + this.post
   }
 
-  eval (context: Context) {
+  eval(context: Context) {
     if (!this.evaluated) {
       this.evaluated = true
 

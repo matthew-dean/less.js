@@ -1,5 +1,5 @@
 class ToCssVisitor {
-  visitDimension (unit: Node) {
+  visitDimension(unit: Node) {
     if (context && context.strictUnits && !this.unit.isSingular()) {
       throw new Error(
         `Multiple units in dimension. Correct the units or use the unit function. Bad unit: ${this.unit.toString()}`

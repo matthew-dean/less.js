@@ -4,7 +4,7 @@ export default abstract class Logger {
   abstract info(msg: string): void
   abstract debug(msg: string): void
 
-  protected log (msg: string) {
+  protected log(msg: string) {
     this.info(msg)
   }
 }

@@ -8,18 +8,18 @@ let colorFunctions: {
   [key: string]: LessFunction
 }
 
-function clamp (val: number) {
+function clamp(val: number) {
   return Math.min(1, Math.max(0, val))
 }
 
-function hsla (origColor: Color, hsl) {
+function hsla(origColor: Color, hsl) {
   const color = colorFunctions.hsla.call(this, hsl.h, hsl.s, hsl.l, hsl.a)
   const colorFormat = origColor.options.colorFormat
   color.options.colorFormat = colorFormat
   return color
 }
 
-function number (n: Num | Dimension | number, size?: number): number {
+function number(n: Num | Dimension | number, size?: number): number {
   if (n instanceof Dimension) {
     const num = n.nodes[0].value
     if (n.nodes[1].value === '%') {
@@ -41,11 +41,11 @@ function number (n: Num | Dimension | number, size?: number): number {
   }
 }
 
-function scaled (n: Num, size: number): number {
+function scaled(n: Num, size: number): number {
   return number(n, size)
 }
 
-function hue (h: number, m1: number, m2: number) {
+function hue(h: number, m1: number, m2: number) {
   h = h < 0 ? h + 1 : h > 1 ? h - 1 : h
   if (h * 6 < 1) {
     return m1 + (m2 - m1) * h * 6

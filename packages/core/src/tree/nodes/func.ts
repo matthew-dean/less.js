@@ -18,7 +18,7 @@ export class Func extends Node {
   /** This can be specified as a lookup value */
   nodes: [MixinDefinition] | []
 
-  constructor (props: IFuncProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor(props: IFuncProps, options?: INodeOptions, location?: ILocationInfo) {
     const { name, jsFunction, ...rest } = props
     super(rest, options, location)
     this.name = name

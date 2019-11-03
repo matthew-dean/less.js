@@ -23,7 +23,7 @@ abstract class Visitor {
   /** Must implement a run() method */
   abstract run(node: tree.Node): void
 
-  protected visit (node: tree.Node) {
+  protected visit(node: tree.Node) {
     const Node = tree.Node
     if (!node) {
       return node

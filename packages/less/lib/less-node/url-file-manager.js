@@ -5,11 +5,11 @@ import AbstractFileManager from '../less/environment/abstract-file-manager.js'
 import logger from '../less/logger'
 
 class UrlFileManager extends AbstractFileManager {
-  supports (filename, currentDirectory, options, environment) {
+  supports(filename, currentDirectory, options, environment) {
     return isUrlRe.test(filename) || isUrlRe.test(currentDirectory)
   }
 
-  loadFile (filename, currentDirectory, options, environment) {
+  loadFile(filename, currentDirectory, options, environment) {
     return new Promise((fulfill, reject) => {
       if (request === undefined) {
         try {

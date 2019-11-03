@@ -30,7 +30,7 @@ class LessError extends Error {
   callLine: number
   callExtract: number
 
-  constructor (e: ILessError, file?: Rules | string, currentFilename?: string) {
+  constructor(e: ILessError, file?: Rules | string, currentFilename?: string) {
     let { message, location, filename, stack } = e
 
     super(message)
@@ -84,7 +84,7 @@ class LessError extends Error {
   /**
    * Re-create input for error messaging
    */
-  getLinesFromNode (lines: Map<number, string>, node: Rules, startLine: number) {
+  getLinesFromNode(lines: Map<number, string>, node: Rules, startLine: number) {
     const rules = node.nodes
 
     let started: boolean = false
@@ -111,7 +111,7 @@ class LessError extends Error {
    * An overridden version of the default Object.prototype.toString
    * which uses additional information to create a helpful message.
    */
-  toString (stylize?: TextStyleFunction): string {
+  toString(stylize?: TextStyleFunction): string {
     const file = this.file
     let lines: Map<number, string>
 

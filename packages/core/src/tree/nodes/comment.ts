@@ -5,7 +5,7 @@ export class Comment extends Node {
   options: {
     isLineComment: boolean
   }
-  constructor (props: string | IProps, options: INodeOptions, location: ILocationInfo) {
+  constructor(props: string | IProps, options: INodeOptions, location: ILocationInfo) {
     let newProps: IProps
     if (props.constructor === String) {
       newProps = { text: <string>props, value: '' }

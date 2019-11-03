@@ -22,7 +22,7 @@ export class Color extends NumericNode {
   value: [number, number, number, number]
   options: IColorOptions
 
-  constructor (props: IColorProps, options: IColorOptions = {}, location?: ILocationInfo) {
+  constructor(props: IColorProps, options: IColorOptions = {}, location?: ILocationInfo) {
     if (options.colorFormat === undefined) {
       options.colorFormat = ColorFormat.HEX
     }
@@ -71,7 +71,7 @@ export class Color extends NumericNode {
     super(newProps, options, location)
   }
 
-  luma () {
+  luma() {
     let r = this.value[0] / 255
     let g = this.value[1] / 255
     let b = this.value[2] / 255
@@ -83,7 +83,7 @@ export class Color extends NumericNode {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
   }
 
-  toString () {
+  toString() {
     let color: any
     let args = []
 
@@ -135,7 +135,7 @@ export class Color extends NumericNode {
   // our result, in the form of an integer triplet,
   // we create a new Color node to hold the result.
   //
-  operate (op: string, other: Node, context?: Context) {
+  operate(op: string, other: Node, context?: Context) {
     let otherVal: [number, number, number, number]
     if (other instanceof Num) {
       const val = other.value
@@ -166,11 +166,11 @@ export class Color extends NumericNode {
   }
 
   /** Clamp values between 0 and max */
-  private clamp (v: number, max: number) {
+  private clamp(v: number, max: number) {
     return Math.min(Math.max(v, 0), max)
   }
 
-  private hslObject () {
+  private hslObject() {
     const value = this.value
     const r = value[0] / 255
     const g = value[1] / 255
@@ -182,7 +182,7 @@ export class Color extends NumericNode {
     return { r, g, b, a, max, min }
   }
 
-  toHSL (): {
+  toHSL(): {
     h: number
     s: number
     l: number
@@ -216,7 +216,7 @@ export class Color extends NumericNode {
   }
 
   // Adapted from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
-  toHSV (): {
+  toHSV(): {
     h: number
     s: number
     v: number
@@ -253,7 +253,7 @@ export class Color extends NumericNode {
     return { h: h * 360, s, v, a }
   }
 
-  toHex (v: number[]) {
+  toHex(v: number[]) {
     return `#${v
       .map(c => {
         c = this.clamp(Math.round(c), 255)
@@ -262,7 +262,7 @@ export class Color extends NumericNode {
       .join('')}`
   }
 
-  toARGB () {
+  toARGB() {
     const rgb = [...this.value]
     const alpha = rgb.pop()
     return this.toHex([alpha * 255].concat(rgb))

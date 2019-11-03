@@ -83,7 +83,7 @@ export class CssStructureParser extends BaseParserClass {
   T: TokenMap
   ruleParser: CssRuleParser
 
-  constructor (
+  constructor(
     tokens: TokenType[],
     T: TokenMap,
     config: IParserConfig = {
@@ -144,7 +144,7 @@ export class CssStructureParser extends BaseParserClass {
     // })
   }
 
-  WS (idx: number = 0) {
+  WS(idx: number = 0) {
     // +10 to avoid conflicts with other OPTION in the calling rule.
     return this.option(idx + 10, () => {
       const wsToken = this.consume(idx, this.T.WS)

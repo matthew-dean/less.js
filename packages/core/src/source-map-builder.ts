@@ -2,11 +2,11 @@ import { SourceMapOutput } from './source-map-output'
 import { Environment } from './environment/environment'
 
 export class SourceMapBuilder {
-  constructor (options, environment: Environment) {
+  constructor(options, environment: Environment) {
     this.options = options
   }
 
-  toCSS (rootNode, options, imports) {
+  toCSS(rootNode, options, imports) {
     const sourceMapOutput = new SourceMapOutput({
       contentsIgnoredCharsMap: imports.contentsIgnoredChars,
       rootNode,
@@ -35,7 +35,7 @@ export class SourceMapBuilder {
     return css + this.getCSSAppendage()
   }
 
-  getCSSAppendage () {
+  getCSSAppendage() {
     let sourceMapURL = this.sourceMapURL
     if (this.options.sourceMapFileInline) {
       if (this.sourceMap === undefined) {
@@ -50,27 +50,27 @@ export class SourceMapBuilder {
     return ''
   }
 
-  getExternalSourceMap () {
+  getExternalSourceMap() {
     return this.sourceMap
   }
 
-  setExternalSourceMap (sourceMap) {
+  setExternalSourceMap(sourceMap) {
     this.sourceMap = sourceMap
   }
 
-  isInline () {
+  isInline() {
     return this.options.sourceMapFileInline
   }
 
-  getSourceMapURL () {
+  getSourceMapURL() {
     return this.sourceMapURL
   }
 
-  getOutputFilename () {
+  getOutputFilename() {
     return this.options.sourceMapOutputFilename
   }
 
-  getInputFilename () {
+  getInputFilename() {
     return this.sourceMapInputFilename
   }
 }

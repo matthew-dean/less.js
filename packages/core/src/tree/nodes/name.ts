@@ -25,11 +25,11 @@ export class Name extends NodeArray {
   evaluating: boolean
   options: INameOptions
 
-  constructor (props: IProps, options?: INameOptions, location?: ILocationInfo) {
+  constructor(props: IProps, options?: INameOptions, location?: ILocationInfo) {
     super(props, options, location)
   }
 
-  eval (context: Context) {
+  eval(context: Context) {
     let value = this.value
     if (!this.evaluated) {
       if (this.evaluating) {

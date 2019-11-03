@@ -38,11 +38,11 @@ import functionRegistry from '../functions/function-registry'
 //    It also takes care of moving all the indices forwards.
 //
 
-const Parser = function Parser (context, imports, fileInfo) {
+const Parser = function Parser(context, imports, fileInfo) {
   let parsers
   const parserInput = getParserInput()
 
-  function error (msg, type) {
+  function error(msg, type) {
     throw new LessError(
       {
         index: parserInput.i,
@@ -54,7 +54,7 @@ const Parser = function Parser (context, imports, fileInfo) {
     )
   }
 
-  function expect (arg, msg) {
+  function expect(arg, msg) {
     // some older browsers return typeof 'function' for RegExp
     const result = arg instanceof Function ? arg.call(parsers) : parserInput.$re(arg)
     if (result) {
@@ -70,14 +70,14 @@ const Parser = function Parser (context, imports, fileInfo) {
   }
 
   // Specialization of expect()
-  function expectChar (arg, msg) {
+  function expectChar(arg, msg) {
     if (parserInput.$char(arg)) {
       return arg
     }
     error(msg || `expected '${arg}' got '${parserInput.currentChar()}'`)
   }
 
-  function getDebugInfo (index) {
+  function getDebugInfo(index) {
     const filename = fileInfo.filename
 
     return {
@@ -94,13 +94,13 @@ const Parser = function Parser (context, imports, fileInfo) {
    *  @param {Number} currentIndex - start number to begin indexing
    *  @param {Object} fileInfo     - fileInfo to attach to created nodes
    */
-  function parseNode (str, parseList, currentIndex, fileInfo, callback) {
+  function parseNode(str, parseList, currentIndex, fileInfo, callback) {
     let result
     const returnNodes = []
     const parser = parserInput
 
     try {
-      parser.start(str, false, function fail (msg, index) {
+      parser.start(str, false, function fail(msg, index) {
         callback({
           message: msg,
           index: index + currentIndex
@@ -194,7 +194,7 @@ const Parser = function Parser (context, imports, fileInfo) {
       // with the `root` property set to true, so no `{}` are
       // output. The callback is called when the input is parsed.
       try {
-        parserInput.start(str, context.chunkInput, function fail (msg, index) {
+        parserInput.start(str, context.chunkInput, function fail(msg, index) {
           throw new LessError(
             {
               index,
@@ -498,7 +498,7 @@ const Parser = function Parser (context, imports, fileInfo) {
             if: f(condition)
           }[name.toLowerCase()]
 
-          function f (parse, stop) {
+          function f(parse, stop) {
             return {
               parse, // parsing function
               stop // when true - stop after parse() and return its result,
@@ -506,7 +506,7 @@ const Parser = function Parser (context, imports, fileInfo) {
             }
           }
 
-          function condition () {
+          function condition() {
             return [expect(parsers.condition, 'expected condition')]
           }
         },
@@ -1696,7 +1696,7 @@ const Parser = function Parser (context, imports, fileInfo) {
         const index = parserInput.i
         const result = []
 
-        function testCurrentChar () {
+        function testCurrentChar() {
           const char = parserInput.currentChar()
           if (typeof tok === 'string') {
             return char === tok
@@ -2248,7 +2248,7 @@ const Parser = function Parser (context, imports, fileInfo) {
         let result
         let logical
         let next
-        function or () {
+        function or() {
           return parserInput.$str('or')
         }
 
@@ -2272,14 +2272,14 @@ const Parser = function Parser (context, imports, fileInfo) {
         let logical
         let next
         const self = this
-        function insideCondition () {
+        function insideCondition() {
           const cond = self.negatedCondition(needsParens) || self.parenthesisCondition(needsParens)
           if (!cond && !needsParens) {
             return self.atomicCondition(needsParens)
           }
           return cond
         }
-        function and () {
+        function and() {
           return parserInput.$str('and')
         }
 
@@ -2308,7 +2308,7 @@ const Parser = function Parser (context, imports, fileInfo) {
         }
       },
       parenthesisCondition: function (needsParens) {
-        function tryConditionFollowedByParenthesis (me) {
+        function tryConditionFollowedByParenthesis(me) {
           let body
           parserInput.save()
           body = me.condition(needsParens)
@@ -2356,7 +2356,7 @@ const Parser = function Parser (context, imports, fileInfo) {
         let c
         let op
 
-        function cond () {
+        function cond() {
           return (
             this.addition() || entities.keyword() || entities.quoted() || entities.mixinLookup()
           )
@@ -2487,7 +2487,7 @@ const Parser = function Parser (context, imports, fileInfo) {
           return name
         }
 
-        function match (re) {
+        function match(re) {
           const i = parserInput.i
           const chunk = parserInput.$re(re)
           if (chunk) {

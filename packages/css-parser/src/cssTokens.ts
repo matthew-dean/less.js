@@ -36,7 +36,7 @@ export const Fragments: [string, string][] = [
 
 type Match = { value: string; index: number }
 
-function matchValue (str: string, index: number) {
+function matchValue(str: string, index: number) {
   this.value = str
   this.index = index
 }
@@ -44,7 +44,7 @@ function matchValue (str: string, index: number) {
 /**
  * When bound to a Regular Expression, it will aggregrate capture groups onto the payload
  */
-export function groupCapture (this: RegExp, text: string, startOffset: number) {
+export function groupCapture(this: RegExp, text: string, startOffset: number) {
   let endOffset = startOffset
   let match: RegExpExecArray
   let lastMatch: RegExpExecArray = null

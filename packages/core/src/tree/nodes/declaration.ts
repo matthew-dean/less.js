@@ -41,7 +41,7 @@ export class Declaration extends Node implements ImportantNode {
   important: Value | undefined
   options: IDeclarationOptions
 
-  constructor (
+  constructor(
     props: IDeclarationProps,
     options: IDeclarationOptions = {},
     location?: ILocationInfo
@@ -70,10 +70,10 @@ export class Declaration extends Node implements ImportantNode {
      * for convenience, it can be accessed as a distinct prop
      */
     Object.defineProperty(this, 'important', {
-      get () {
+      get() {
         return this.nodes[1]
       },
-      set (value: Value) {
+      set(value: Value) {
         this.nodes[1] = value
       },
       configurable: false,
@@ -82,7 +82,7 @@ export class Declaration extends Node implements ImportantNode {
     this.evaluatingName = false
   }
 
-  toString (omitPrePost?: boolean) {
+  toString(omitPrePost?: boolean) {
     const text
       = (this.options.isVariable ? '@' : '') + this.name.toString() + ':' + this.nodes.join('')
 
@@ -94,7 +94,7 @@ export class Declaration extends Node implements ImportantNode {
   }
 
   /** Resolve identifiers first */
-  evalName (context: Context): string {
+  evalName(context: Context): string {
     let value = this.value
     if (value === undefined) {
       const name = this.name.eval(context)
@@ -104,7 +104,7 @@ export class Declaration extends Node implements ImportantNode {
     return value
   }
 
-  eval (context: Context) {
+  eval(context: Context) {
     if (!this.evaluated) {
       context.importantScope.push({})
       this.processNodes(this.nodes, (node: Node) => node.eval(context))
@@ -121,7 +121,7 @@ export class Declaration extends Node implements ImportantNode {
     return this
   }
 
-  makeImportant () {
+  makeImportant() {
     if (!this.important) {
       this.important = new Value({ pre: ' ', text: '!important' })
     }

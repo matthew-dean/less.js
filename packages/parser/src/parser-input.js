@@ -35,7 +35,7 @@ export default () => {
   const CHARCODE_FORWARD_SLASH = 47
   const CHARCODE_9 = 57
 
-  function skipWhitespace (length) {
+  function skipWhitespace(length) {
     const oldi = parserInput.i
     const oldj = j
     const curr = parserInput.i - currentPos

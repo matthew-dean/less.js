@@ -32,7 +32,7 @@ export class RulesCall extends Node {
   name: Node
   args: Node[]
 
-  constructor (props: IRulesCallProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor(props: IRulesCallProps, options?: INodeOptions, location?: ILocationInfo) {
     const { name } = props
     const { args, ...rest } = props
     if (name.constructor === String) {
@@ -44,9 +44,9 @@ export class RulesCall extends Node {
     super(rest, options, location)
   }
 
-  matchMixins (mixins: MixinDefinition[], context: Context) {}
+  matchMixins(mixins: MixinDefinition[], context: Context) {}
 
-  eval (context: Context) {
+  eval(context: Context) {
     const name = this.name
 
     if (name instanceof Variable) {

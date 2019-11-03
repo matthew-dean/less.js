@@ -1,12 +1,12 @@
 class ImportSequencer {
-  constructor (onSequencerEmpty) {
+  constructor(onSequencerEmpty) {
     this.imports = []
     this.variableImports = []
     this._onSequencerEmpty = onSequencerEmpty
     this._currentDepth = 0
   }
 
-  addImport (callback) {
+  addImport(callback) {
     const importSequencer = this
 
     const importItem = {
@@ -23,11 +23,11 @@ class ImportSequencer {
     }
   }
 
-  addVariableImport (callback) {
+  addVariableImport(callback) {
     this.variableImports.push(callback)
   }
 
-  tryRun () {
+  tryRun() {
     this._currentDepth++
     try {
       while (true) {

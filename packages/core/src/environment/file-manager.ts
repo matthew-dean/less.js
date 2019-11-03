@@ -6,7 +6,7 @@ export abstract class FileManager {
   /**
    * Returns whether this file manager supports this file for syncronous file retrieval
    */
-  supportsSync (
+  supportsSync(
     filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,
@@ -18,7 +18,7 @@ export abstract class FileManager {
   /**
    * Returns whether this file manager supports this file
    */
-  supports (
+  supports(
     filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,
@@ -33,7 +33,7 @@ export abstract class FileManager {
    *  { filename: - full resolved path to file
    *    contents: - the contents of the file, as a string }
    */
-  loadFile (
+  loadFile(
     filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,
@@ -52,7 +52,7 @@ export abstract class FileManager {
     return this.loadFileAsync(filePath, currentDirectory, options, environment)
   }
 
-  loadFileAsync (
+  loadFileAsync(
     filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,
@@ -64,7 +64,7 @@ export abstract class FileManager {
   /**
    * Loads a file synchronously. This is still normalized as a Promise to make code paths easier.
    */
-  loadFileSync (
+  loadFileSync(
     filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,

@@ -19,7 +19,7 @@ export class Quoted extends NodeArray {
   options: IQuotedOptions
   value: string
 
-  constructor (
+  constructor(
     props: string | IProps,
     options: IQuotedOptions = { quote: '"' },
     location?: ILocationInfo
@@ -38,11 +38,11 @@ export class Quoted extends NodeArray {
     this.allowRoot = options.escaped
   }
 
-  valueOf () {
+  valueOf() {
     return this.nodes.join('')
   }
 
-  toString (omitPrePost: boolean = false) {
+  toString(omitPrePost: boolean = false) {
     let text = ''
     if (!this.options.escaped) {
       text += this.options.quote

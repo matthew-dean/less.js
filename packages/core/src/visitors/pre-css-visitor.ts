@@ -2,12 +2,12 @@ import tree from '../tree'
 import Visitor from '../../core/src/visitor/visitor'
 
 class CSSVisitorUtils extends Visitor {
-  constructor (context) {
+  constructor(context) {
     this._visitor = new Visitor(this)
     this._context = context
   }
 
-  containsSilentNonBlockedChild (bodyRules) {
+  containsSilentNonBlockedChild(bodyRules) {
     let rule
     if (!bodyRules) {
       return false
@@ -23,21 +23,21 @@ class CSSVisitorUtils extends Visitor {
     return false
   }
 
-  keepOnlyVisibleChilds (owner) {
+  keepOnlyVisibleChilds(owner) {
     if (owner && owner.rules) {
       owner.rules = owner.rules.filter(thing => thing.isVisible())
     }
   }
 
-  isEmpty (owner) {
+  isEmpty(owner) {
     return owner && owner.rules ? owner.rules.length === 0 : true
   }
 
-  hasVisibleSelector (rulesetNode) {
+  hasVisibleSelector(rulesetNode) {
     return rulesetNode && rulesetNode.paths ? rulesetNode.paths.length > 0 : false
   }
 
-  resolveVisibility (node, originalRules) {
+  resolveVisibility(node, originalRules) {
     if (!node.blocksVisibility()) {
       if (this.isEmpty(node) && !this.containsSilentNonBlockedChild(originalRules)) {
         return
@@ -59,7 +59,7 @@ class CSSVisitorUtils extends Visitor {
     return node
   }
 
-  isVisibleRuleset (rulesetNode) {
+  isVisibleRuleset(rulesetNode) {
     if (rulesetNode.firstRoot) {
       return true
     }
@@ -143,11 +143,11 @@ PreCSSVisitor.prototype = {
   visitAtRuleWithBody: function (atRuleNode, visitArgs) {
     // if there is only one nested ruleset and that one has no path, then it is
     // just fake ruleset
-    function hasFakeRuleset (atRuleNode) {
+    function hasFakeRuleset(atRuleNode) {
       const bodyRules = atRuleNode.rules
       return bodyRules.length === 1 && (!bodyRules[0].paths || bodyRules[0].paths.length === 0)
     }
-    function getBodyRules (atRuleNode) {
+    function getBodyRules(atRuleNode) {
       const nodeRules = atRuleNode.rules
       if (hasFakeRuleset(atRuleNode)) {
         return nodeRules[0].rules

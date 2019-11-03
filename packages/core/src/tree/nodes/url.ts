@@ -6,7 +6,7 @@ import { Context, Node, Value, Quoted } from '.'
 export class Url extends Node {
   nodes: [Value | Quoted]
 
-  eval (context: Context) {
+  eval(context: Context) {
     super.eval(context)
 
     if (!this.evaluated) {
@@ -51,6 +51,6 @@ export class Url extends Node {
 
 Url.prototype.type = 'Url'
 
-function escapePath (path) {
+function escapePath(path) {
   return path.replace(/[\(\)'"\s]/g, match => `\\${match}`)
 }

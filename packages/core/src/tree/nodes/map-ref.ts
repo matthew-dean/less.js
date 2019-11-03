@@ -11,7 +11,7 @@ import { Context, Node, Variable, Rules, RulesCall, Selector } from '.'
  */
 export class MapRef extends Node {
   nodes: [RulesCall, Variable]
-  eval (context: Context) {
+  eval(context: Context) {
     this.nodes[0].eval(context)
     let i
     let j

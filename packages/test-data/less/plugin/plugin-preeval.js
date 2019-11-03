@@ -1,5 +1,5 @@
 module.exports = {
-  install (
+  install(
     {
       tree: { Quoted },
       visitors
@@ -7,18 +7,18 @@ module.exports = {
     manager
   ) {
     class Visitor {
-      constructor () {
+      constructor() {
         this.native = new visitors.Visitor(this)
 
         this.isPreEvalVisitor = true
         this.isReplacing = true
       }
 
-      run (root) {
+      run(root) {
         return this.native.visit(root)
       }
 
-      visitVariable (node) {
+      visitVariable(node) {
         if (node.name === '@replace') {
           return new Quoted(`'`, 'bar', true)
         }

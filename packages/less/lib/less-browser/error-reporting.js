@@ -2,7 +2,7 @@ import * as utils from './utils'
 import browser from './browser'
 
 export default (window, less, options) => {
-  function errorHTML (e, rootHref) {
+  function errorHTML(e, rootHref) {
     const id = `less-error-message:${utils.extractId(rootHref || '')}`
     const template = '<li><label>{line}</label><pre class="{class}">{content}</pre></li>'
     const elem = window.document.createElement('div')
@@ -116,18 +116,18 @@ export default (window, less, options) => {
     }
   }
 
-  function removeErrorHTML (path) {
+  function removeErrorHTML(path) {
     const node = window.document.getElementById(`less-error-message:${utils.extractId(path)}`)
     if (node) {
       node.parentNode.removeChild(node)
     }
   }
 
-  function removeErrorConsole (path) {
+  function removeErrorConsole(path) {
     // no action
   }
 
-  function removeError (path) {
+  function removeError(path) {
     if (!options.errorReporting || options.errorReporting === 'html') {
       removeErrorHTML(path)
     } else if (options.errorReporting === 'console') {
@@ -137,7 +137,7 @@ export default (window, less, options) => {
     }
   }
 
-  function errorConsole (e, rootHref) {
+  function errorConsole(e, rootHref) {
     const template = '{line} {content}'
     const filename = e.filename || rootHref
     const errors = []
@@ -167,7 +167,7 @@ export default (window, less, options) => {
     less.logger.error(content)
   }
 
-  function error (e, rootHref) {
+  function error(e, rootHref) {
     if (!options.errorReporting || options.errorReporting === 'html') {
       errorHTML(e, rootHref)
     } else if (options.errorReporting === 'console') {

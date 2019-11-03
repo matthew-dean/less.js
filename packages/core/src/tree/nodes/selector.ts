@@ -15,7 +15,7 @@ export type SelectorList = List<Selector>
 export class Selector extends Expression {
   mixinCompareValue: string
 
-  eval (context: Context): List<Selector> | Selector {
+  eval(context: Context): List<Selector> | Selector {
     if (!this.evaluated) {
       let expressions: Expression[]
       const output: Node = super.eval(context)
@@ -65,7 +65,7 @@ export class Selector extends Expression {
    * Reduces `#sel > .val` or `#sel .val` to `#sel.val`
    * so that we can match `#sel.val()`
    */
-  getMixinCompareValue (): string {
+  getMixinCompareValue(): string {
     let mixinCompareValue = this.mixinCompareValue
     if (!mixinCompareValue) {
       mixinCompareValue = this.nodes
@@ -82,7 +82,7 @@ export class Selector extends Expression {
     return mixinCompareValue
   }
 
-  valueOf () {
+  valueOf() {
     return this.nodes
       .map(node => {
         return node.valueOf()

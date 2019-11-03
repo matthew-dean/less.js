@@ -1,4 +1,4 @@
-function makeRegistry (base) {
+function makeRegistry(base) {
   return {
     _data: {},
     add: function (name, func) {

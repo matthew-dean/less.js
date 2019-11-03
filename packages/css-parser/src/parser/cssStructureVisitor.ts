@@ -11,7 +11,7 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
     lexedTokens: IToken[]
     errors: IRecognitionException[]
 
-    constructor (cssParser: CssRuleParser, lexedTokens: IToken[]) {
+    constructor(cssParser: CssRuleParser, lexedTokens: IToken[]) {
       super()
       this.errors = []
       this.cssParser = cssParser
@@ -19,14 +19,14 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
       this.validateVisitor()
     }
 
-    primary (ctx) {
+    primary(ctx) {
       const { rule } = ctx
       if (rule) {
         this.visit(rule)
       }
     }
 
-    rule (ctx) {
+    rule(ctx) {
       const { atRule, componentValues, customPropertyRule } = ctx
       const parser = this.cssParser
 
@@ -92,28 +92,28 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
       return ctx
     }
 
-    atRule (ctx) {
+    atRule(ctx) {
       return ctx
     }
 
-    componentValues (ctx) {
+    componentValues(ctx) {
       return ctx
     }
 
-    customPropertyRule (ctx) {
+    customPropertyRule(ctx) {
       return ctx
     }
 
-    expressionList (ctx) {
+    expressionList(ctx) {
       this.visit(ctx.expression)
       return ctx
     }
 
-    expression (ctx) {
+    expression(ctx) {
       return ctx
     }
 
-    curlyBlock (ctx) {
+    curlyBlock(ctx) {
       this.visit(ctx.primary)
       return ctx
     }

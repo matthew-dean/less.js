@@ -8,18 +8,18 @@ let fileCache = {}
 
 // TODOS - move log somewhere. pathDiff and doing something similar in node. use pathDiff in the other browser file for the initial load
 class FileManager extends AbstractFileManager {
-  alwaysMakePathsAbsolute () {
+  alwaysMakePathsAbsolute() {
     return true
   }
 
-  join (basePath, laterPath) {
+  join(basePath, laterPath) {
     if (!basePath) {
       return laterPath
     }
     return this.extractUrlParts(laterPath, basePath).path
   }
 
-  doXHR (url, type, callback, errback) {
+  doXHR(url, type, callback, errback) {
     const xhr = new XMLHttpRequest()
     const async = options.isFileProtocol ? options.fileAsync : true
 
@@ -31,7 +31,7 @@ class FileManager extends AbstractFileManager {
     xhr.setRequestHeader('Accept', type || 'text/x-less, text/css; q=0.9, */*; q=0.5')
     xhr.send(null)
 
-    function handleResponse (xhr, callback, errback) {
+    function handleResponse(xhr, callback, errback) {
       if (xhr.status >= 200 && xhr.status < 300) {
         callback(xhr.responseText, xhr.getResponseHeader('Last-Modified'))
       } else if (typeof errback === 'function') {
@@ -56,15 +56,15 @@ class FileManager extends AbstractFileManager {
     }
   }
 
-  supports () {
+  supports() {
     return true
   }
 
-  clearFileCache () {
+  clearFileCache() {
     fileCache = {}
   }
 
-  loadFile (filename, currentDirectory, options, environment) {
+  loadFile(filename, currentDirectory, options, environment) {
     // TODO: Add prefix support like less-node?
     // What about multiple paths?
 
@@ -102,14 +102,14 @@ class FileManager extends AbstractFileManager {
       self.doXHR(
         href,
         options.mime,
-        function doXHRCallback (data, lastModified) {
+        function doXHRCallback(data, lastModified) {
           // per file cache
           fileCache[href] = data
 
           // Use remote copy (re-parse)
           resolve({ contents: data, filename: href, webInfo: { lastModified } })
         },
-        function doXHRError (status, url) {
+        function doXHRError(status, url) {
           reject({ type: 'File', message: `'${url}' wasn't found (${status})`, href })
         }
       )

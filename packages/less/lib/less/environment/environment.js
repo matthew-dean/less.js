@@ -6,7 +6,7 @@
 import logger from '../logger'
 
 class environment {
-  constructor (externalEnvironment, fileManagers) {
+  constructor(externalEnvironment, fileManagers) {
     this.fileManagers = fileManagers || []
     externalEnvironment = externalEnvironment || {}
 
@@ -30,7 +30,7 @@ class environment {
     }
   }
 
-  getFileManager (filename, currentDirectory, options, environment, isSync) {
+  getFileManager(filename, currentDirectory, options, environment, isSync) {
     if (!filename) {
       logger.warn('getFileManager called with no filename.. Please report this issue. continuing.')
     }
@@ -60,11 +60,11 @@ class environment {
     return null
   }
 
-  addFileManager (fileManager) {
+  addFileManager(fileManager) {
     this.fileManagers.push(fileManager)
   }
 
-  clearFileManagers () {
+  clearFileManagers() {
     this.fileManagers = []
   }
 }

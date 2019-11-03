@@ -143,7 +143,7 @@ export abstract class Node {
 
   private static nodeKeys = Node.inheritanceKeys.concat(['childKeys', 'value', 'text', 'options'])
 
-  constructor (props: IProps, options: INodeOptions = {}, location?: ILocationInfo) {
+  constructor(props: IProps, options: INodeOptions = {}, location?: ILocationInfo) {
     if (props instanceof Node) {
       throw { message: 'Node props cannot be a Node' }
     }
@@ -171,7 +171,7 @@ export abstract class Node {
     }
 
     Object.defineProperty(this, 'children', {
-      get () {
+      get() {
         const children = {}
         this.childKeys.forEach((key: string) => {
           children[key] = this[key]
@@ -216,7 +216,7 @@ export abstract class Node {
     this.visibilityBlocks = 0
   }
 
-  protected setParent () {
+  protected setParent() {
     this.childKeys.forEach(key => {
       let nodes = this[key]
       if (!Array.isArray(nodes)) {
@@ -234,21 +234,21 @@ export abstract class Node {
     })
   }
 
-  accept (visitor) {
+  accept(visitor) {
     this.processChildren(this, (node: Node) => visitor.visit(node))
   }
 
   /**
    * Return a primitive value, if it exists, otherwise call `.toString()`
    */
-  valueOf () {
+  valueOf() {
     if (this.value !== undefined) {
       return this.value
     }
     return this.toString(true)
   }
 
-  toString (omitPrePost: boolean = false) {
+  toString(omitPrePost: boolean = false) {
     let text: string
     if (this.text !== undefined) {
       text = this.text
@@ -264,7 +264,7 @@ export abstract class Node {
   }
 
   /** Nodes may have individual compare strategies */
-  compare (node: Node) {
+  compare(node: Node) {
     return compare(this, node)
   }
 
@@ -273,7 +273,7 @@ export abstract class Node {
    * This is used when cloning, but also when
    * doing any kind of node replacement (during eval).
    */
-  inherit (inheritFrom: Node): this {
+  inherit(inheritFrom: Node): this {
     Node.inheritanceKeys.forEach(key => {
       const ref = inheritFrom[key]
       if (ref !== undefined) {
@@ -292,7 +292,7 @@ export abstract class Node {
    *
    * @param shallow - doesn't deeply clone nodes (retains references)
    */
-  clone (shallow: boolean = false): this {
+  clone(shallow: boolean = false): this {
     const Clazz = Object.getPrototypeOf(this).constructor
     const newNode = new Clazz(
       {
@@ -340,7 +340,7 @@ export abstract class Node {
     return newNode
   }
 
-  protected getFileInfo (): IFileInfo {
+  protected getFileInfo(): IFileInfo {
     return this.fileRoot.fileInfo
   }
 
@@ -348,7 +348,7 @@ export abstract class Node {
    * Convenience method if location isn't copied to new nodes
    * for any reason (such as a custom function)
    */
-  protected getLocation (): ILocationInfo {
+  protected getLocation(): ILocationInfo {
     let node: Node = this
     while (node) {
       if (node.location) {
@@ -358,7 +358,7 @@ export abstract class Node {
     }
   }
 
-  find (
+  find(
     context: Context,
     matchFunction: MatchFunction,
     option: MatchOption = MatchOption.FIRST
@@ -418,7 +418,7 @@ export abstract class Node {
   }
 
   /** Moved from Rules property() method */
-  findProperty (context: Context, name: string): Declaration[] {
+  findProperty(context: Context, name: string): Declaration[] {
     return <Declaration[]> this.find(
       context,
       (node: Node) => {
@@ -435,7 +435,7 @@ export abstract class Node {
   }
 
   /** Moved from Rules variable() method */
-  findVariable (context: Context, name: string): Declaration {
+  findVariable(context: Context, name: string): Declaration {
     return <Declaration> this.find(
       context,
       (node: Node) => {
@@ -458,7 +458,7 @@ export abstract class Node {
    * The reason we do this is because the array may not mutate at all depending
    * on the result of processing
    */
-  protected processNodes (nodes: Node[], processFunc: ProcessFunction): Node[] {
+  protected processNodes(nodes: Node[], processFunc: ProcessFunction): Node[] {
     let thisLength = nodes.length
     for (let i = 0; i < thisLength; i++) {
       const item = nodes[i]
@@ -487,7 +487,7 @@ export abstract class Node {
     return nodes
   }
 
-  protected processChildren (node: Node, processFunc: ProcessFunction) {
+  protected processChildren(node: Node, processFunc: ProcessFunction) {
     node.childKeys.forEach(key => {
       let nodes = node[key]
       if (nodes) {
@@ -523,18 +523,18 @@ export abstract class Node {
     })
   }
 
-  protected inheritChild (node: Node) {
+  protected inheritChild(node: Node) {
     node.parent = this
     node.root = this.root
     node.fileRoot = this.fileRoot
   }
 
-  appendNode (nodes: Node[], insertedNode: Node) {
+  appendNode(nodes: Node[], insertedNode: Node) {
     this.inheritChild(insertedNode)
     nodes.push(insertedNode)
   }
 
-  prependNode (nodes: Node[], insertedNode: Node) {
+  prependNode(nodes: Node[], insertedNode: Node) {
     this.inheritChild(insertedNode)
     nodes.unshift(insertedNode)
   }
@@ -544,7 +544,7 @@ export abstract class Node {
    * However, some nodes after evaluating will of course override
    * this to produce different node types or primitive values
    */
-  eval (context: Context): EvalReturn {
+  eval(context: Context): EvalReturn {
     context.currentNode = this
     /** All nodes that override eval() should (usually) exit if they're evaluated */
     if (!this.evaluated) {
@@ -557,11 +557,11 @@ export abstract class Node {
     return this
   }
 
-  toArray () {
+  toArray() {
     return this.nodes
   }
 
-  error (context: Context, message: string) {
+  error(context: Context, message: string) {
     if (context) {
       context.error({ message }, this.fileRoot)
       return this
@@ -569,7 +569,7 @@ export abstract class Node {
     throw new Error(message)
   }
 
-  warn (context: Context, message: string) {
+  warn(context: Context, message: string) {
     if (context) {
       context.warning({ message }, this.fileRoot)
     }
@@ -581,7 +581,7 @@ export abstract class Node {
    * @todo - All genCSS and toCSS will get moved out of the AST and
    *         into visitor processing.
    */
-  genCSS (output: any, context?: Context) {
+  genCSS(output: any, context?: Context) {
     output.add(this.toString())
   }
 
@@ -631,7 +631,7 @@ export abstract class Node {
   //     };
   // }
 
-  copyVisibilityInfo (info: { isVisible: boolean; visibilityBlocks: number }) {
+  copyVisibilityInfo(info: { isVisible: boolean; visibilityBlocks: number }) {
     if (!info) {
       return
     }

@@ -1,4 +1,4 @@
-export function extractId (href) {
+export function extractId(href) {
   return href
     .replace(/^[a-z-]+:\/+?[^\/]+/, '') // Remove protocol & domain
     .replace(/[\?\&]livereload=\w+/, '') // Remove LiveReload cachebuster
@@ -8,7 +8,7 @@ export function extractId (href) {
     .replace(/\./g, ':') // Replace dots with colons(for valid id)
 }
 
-export function addDataAttr (options, tag) {
+export function addDataAttr(options, tag) {
   for (const opt in tag.dataset) {
     if (tag.dataset.hasOwnProperty(opt)) {
       if (

@@ -25,11 +25,11 @@ export class Expression<T extends Node = Node> extends NodeArray {
   options: IExpressionOptions
   nodes: T[]
 
-  toArray () {
+  toArray() {
     return this.nodes.filter(node => !(node instanceof WS) && !(node instanceof Comment))
   }
 
-  toString () {
+  toString() {
     if (this.options.spaced) {
       return this.nodes.join(' ')
     }
@@ -42,7 +42,7 @@ export class Expression<T extends Node = Node> extends NodeArray {
    *
    * We also flatten expressions within expressions to be a flat node list.
    */
-  eval (context: Context): Expression | List | Node {
+  eval(context: Context): Expression | List | Node {
     if (!this.evaluated) {
       super.eval(context)
 
@@ -141,7 +141,7 @@ export class Expression<T extends Node = Node> extends NodeArray {
   //   return returnValue
   // }
 
-  throwAwayComments () {
+  throwAwayComments() {
     this.nodes = this.nodes.filter(v => !(v instanceof Comment))
   }
 }

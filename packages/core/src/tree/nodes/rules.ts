@@ -31,11 +31,11 @@ import {
  */
 export class Rules extends NodeArray implements ImportantNode {
   // context: Context
-  constructor (props: IProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor(props: IProps, options?: INodeOptions, location?: ILocationInfo) {
     super(props, options, location)
     // this.context = new Context()
   }
-  toString () {
+  toString() {
     let text = '{'
     const nodes = this.nodes.filter(node => node.isVisible !== false)
     nodes.forEach((node, i) => {
@@ -62,7 +62,7 @@ export class Rules extends NodeArray implements ImportantNode {
    *
    * ...wait, no, that's not what this does
    */
-  evalImports (context: Context) {
+  evalImports(context: Context) {
     // const rules = this.nodes
     // const numRules = rules.length
     // let importRules: EvalReturn
@@ -83,7 +83,7 @@ export class Rules extends NodeArray implements ImportantNode {
     // }
   }
 
-  eval (context: Context, evalImports?: boolean) {
+  eval(context: Context, evalImports?: boolean) {
     /** Shallow clone was here? */
     // const rules = this.clone(true)
     const rules = this
@@ -189,7 +189,7 @@ export class Rules extends NodeArray implements ImportantNode {
     return rules
   }
 
-  makeImportant (): this {
+  makeImportant(): this {
     this.nodes.forEach(node => {
       if (node.hasOwnProperty('makeImportant')) {
         (<ImportantNode>node).makeImportant()
@@ -199,7 +199,7 @@ export class Rules extends NodeArray implements ImportantNode {
     return this
   }
 
-  lastDeclaration () {
+  lastDeclaration() {
     const nodes = this.nodes
     const nodeLength = this.nodes.length
     for (let i = nodeLength; i > 0; i--) {
@@ -210,17 +210,17 @@ export class Rules extends NodeArray implements ImportantNode {
     }
   }
 
-  getRules () {
+  getRules() {
     return this.nodes.filter((node: Node) => {
       return node instanceof Rules
     })
   }
 
-  prependRule (rule: Node) {
+  prependRule(rule: Node) {
     this.prependNode(this.nodes, rule)
   }
 
-  appendRule (rule: Node) {
+  appendRule(rule: Node) {
     this.appendNode(this.nodes, rule)
   }
 

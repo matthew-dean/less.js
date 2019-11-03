@@ -79,12 +79,12 @@ const parseVariableOption = (option, variables) => {
 
 let sourceMapFileInline = false
 
-function printUsage () {
+function printUsage() {
   less.lesscHelper.printUsage()
   pluginManager.Loader.printUsage(plugins)
   continueProcessing = false
 }
-function render () {
+function render() {
   if (!continueProcessing) {
     return
   }
@@ -331,16 +331,16 @@ function render () {
   }
 }
 
-function processPluginQueue () {
+function processPluginQueue() {
   let x = 0
 
-  function pluginError (name) {
+  function pluginError(name) {
     console.error(
       `Unable to load plugin ${name} please make sure that it is installed under or at the same level as less`
     )
     process.exitCode = 1
   }
-  function pluginFinished (plugin) {
+  function pluginFinished(plugin) {
     x++
     plugins.push(plugin)
     if (x === queuePlugins.length) {

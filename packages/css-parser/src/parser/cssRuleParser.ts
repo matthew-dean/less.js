@@ -14,7 +14,7 @@ import { TokenMap } from '../util'
 export class CssRuleParser extends EmbeddedActionsParser {
   T: TokenMap
 
-  constructor (tokens: TokenType[], T: TokenMap, config: IParserConfig = { maxLookahead: 1 }) {
+  constructor(tokens: TokenType[], T: TokenMap, config: IParserConfig = { maxLookahead: 1 }) {
     super(tokens, config)
     this.T = T
     if (this.constructor === CssRuleParser) {
@@ -22,7 +22,7 @@ export class CssRuleParser extends EmbeddedActionsParser {
     }
   }
 
-  WS (idx: number = 0) {
+  WS(idx: number = 0) {
     // +10 to avoid conflicts with other OPTION in the calling rule.
     return this.option(idx + 10, () => {
       const wsToken = this.consume(idx, this.T.WS)

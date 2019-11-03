@@ -11,14 +11,14 @@ export class Operation extends Node {
    */
   nodes: [Node, Op, Node]
 
-  constructor (props: [Node, Op, Node] | IProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor(props: [Node, Op, Node] | IProps, options?: INodeOptions, location?: ILocationInfo) {
     if (Array.isArray(props)) {
       props = { nodes: props }
     }
     super(props, options, location)
   }
 
-  eval (context: Context) {
+  eval(context: Context) {
     super.eval(context)
 
     const nodes = this.nodes

@@ -4,7 +4,7 @@ import { Node, Context } from '.'
  * @todo - remove and merge with rules
  */
 class DetachedRules extends Node {
-  constructor (rules, frames) {
+  constructor(rules, frames) {
     super()
 
     this.rules = rules
@@ -12,16 +12,16 @@ class DetachedRules extends Node {
     this.setParent(this.rules, this)
   }
 
-  accept (visitor) {
+  accept(visitor) {
     this.rules = visitor.visit(this.rules)
   }
 
-  eval (context) {
+  eval(context) {
     const frames = this.frames || utils.copyArray(context.frames)
     return new DetachedRules(this.rules, frames)
   }
 
-  callEval (context) {
+  callEval(context) {
     return this.rules.eval(
       this.frames ? new contexts.Eval(context, this.frames.concat(context.frames)) : context
     )

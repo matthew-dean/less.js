@@ -12,7 +12,7 @@ const args = require('minimist')(process.argv.slice(2))
 
 let outDir = args.dist ? './dist' : './tmp'
 
-async function buildBrowser () {
+async function buildBrowser() {
   let bundle = await rollup.rollup({
     input: './lib/less-browser/bootstrap.js',
     output: [
@@ -77,10 +77,10 @@ async function buildBrowser () {
   }
 }
 
-async function buildNode () {
+async function buildNode() {
   let bundle = await rollup.rollup({
     input: './lib/less-node/index.js',
-    external (id) {
+    external(id) {
       return /^[^.]/.test(id)
     },
     plugins: [
@@ -112,10 +112,10 @@ async function buildNode () {
   })
 }
 
-async function buildLessC () {
+async function buildLessC() {
   let bundle = await rollup.rollup({
     input: './lib/lessc.js',
-    external (id) {
+    external(id) {
       return /^[^.]/.test(id)
     },
     plugins: [
@@ -148,7 +148,7 @@ async function buildLessC () {
   })
 }
 
-async function build () {
+async function build() {
   if (args.dist || args.lessc) {
     await buildLessC()
   }
