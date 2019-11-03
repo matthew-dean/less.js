@@ -36,7 +36,7 @@ export default (window, options) => {
 
   const typePattern = /^text\/(x-)?less$/
 
-  function clone (obj) {
+  function clone(obj) {
     const cloned = {}
     for (const prop in obj) {
       if (obj.hasOwnProperty(prop)) {
@@ -47,7 +47,7 @@ export default (window, options) => {
   }
 
   // only really needed for phantom
-  function bind (func, thisArg) {
+  function bind(func, thisArg) {
     const curryArgs = Array.prototype.slice.call(arguments, 2)
     return function () {
       const args = curryArgs.concat(Array.prototype.slice.call(arguments, 0))
@@ -55,7 +55,7 @@ export default (window, options) => {
     }
   }
 
-  function loadStyles (modifyVars) {
+  function loadStyles(modifyVars) {
     const styles = document.getElementsByTagName('style')
     let style
 
@@ -93,7 +93,7 @@ export default (window, options) => {
     }
   }
 
-  function loadStyleSheet (sheet, callback, reload, remaining, modifyVars) {
+  function loadStyleSheet(sheet, callback, reload, remaining, modifyVars) {
     const instanceOptions = clone(options)
     addDataAttr(instanceOptions, sheet)
     instanceOptions.mime = sheet.type
@@ -102,7 +102,7 @@ export default (window, options) => {
       instanceOptions.modifyVars = modifyVars
     }
 
-    function loadInitialFileCallback (loadedFile) {
+    function loadInitialFileCallback(loadedFile) {
       const data = loadedFile.contents
       const path = loadedFile.filename
       const webInfo = loadedFile.webInfo
@@ -154,13 +154,13 @@ export default (window, options) => {
       })
   }
 
-  function loadStyleSheets (callback, reload, modifyVars) {
+  function loadStyleSheets(callback, reload, modifyVars) {
     for (let i = 0; i < less.sheets.length; i++) {
       loadStyleSheet(less.sheets[i], callback, reload, less.sheets.length - (i + 1), modifyVars)
     }
   }
 
-  function initRunningMode () {
+  function initRunningMode() {
     if (less.env === 'development') {
       less.watchTimer = setInterval(() => {
         if (less.watchMode) {

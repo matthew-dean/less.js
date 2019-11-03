@@ -3,7 +3,7 @@ import { Environment } from './environment/environment'
 export class SourceMapOutput {
   environment: Environment
 
-  constructor (options, environment: Environment) {
+  constructor(options, environment: Environment) {
     this._css = []
     this._rootNode = options.rootNode
     this._contentsMap = options.contentsMap
@@ -31,7 +31,7 @@ export class SourceMapOutput {
     this._column = 0
   }
 
-  removeBasepath (path) {
+  removeBasepath(path) {
     if (this._sourceMapBasepath && path.indexOf(this._sourceMapBasepath) === 0) {
       path = path.substring(this._sourceMapBasepath.length)
       if (path.charAt(0) === '\\' || path.charAt(0) === '/') {
@@ -42,13 +42,13 @@ export class SourceMapOutput {
     return path
   }
 
-  normalizeFilename (filename) {
+  normalizeFilename(filename) {
     filename = filename.replace(/\\/g, '/')
     filename = this.removeBasepath(filename)
     return (this._sourceMapRootpath || '') + filename
   }
 
-  add (chunk, fileInfo, index, mapLines) {
+  add(chunk, fileInfo, index, mapLines) {
     // ignore adding empty strings
     if (!chunk) {
       return
@@ -115,11 +115,11 @@ export class SourceMapOutput {
     this._css.push(chunk)
   }
 
-  isEmpty () {
+  isEmpty() {
     return this._css.length === 0
   }
 
-  toCSS (context) {
+  toCSS(context) {
     this._sourceMapGenerator = new this._sourceMapGeneratorConstructor({
       file: this._outputFilename,
       sourceRoot: null

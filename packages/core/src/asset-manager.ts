@@ -25,7 +25,7 @@ export class AssetManager {
   // A map of files to Abstract Syntax Trees
   imports: { [filename: string]: Node }
 
-  constructor (less: Less, environment: Environment, context: Context, rootFileInfo: IFileInfo) {
+  constructor(less: Less, environment: Environment, context: Context, rootFileInfo: IFileInfo) {
     this.less = less
     this.environment = environment
     this.context = context
@@ -45,7 +45,7 @@ export class AssetManager {
    * @param importOptions - import options
    * @param callback - callback for when it is imported (or returns an error)
    */
-  addImport (
+  addImport(
     path: string,
     currentFileInfo: IFileInfo,
     importOptions: IImportOptions,
@@ -172,7 +172,7 @@ export class AssetManager {
       })
   }
 
-  addPlugin (plugin: Plugin) {
+  addPlugin(plugin: Plugin) {
     if (plugin instanceof Function) {
       plugin = plugin()
     }
@@ -187,27 +187,27 @@ export class AssetManager {
    * Adds a visitor. The visitor object has options on itself to determine
    * when it should run.
    */
-  addVisitor (visitor: Visitor) {
+  addVisitor(visitor: Visitor) {
     this.environment.visitors.push(visitor)
   }
 
   /**
    * Adds a file manager to the (currently building) environment
    */
-  addFileManager (manager: FileManager) {
+  addFileManager(manager: FileManager) {
     this.environment.fileManagers.push(manager)
   }
 
-  protected getFileManagers (): FileManager[] {
+  protected getFileManagers(): FileManager[] {
     return this.environment.fileManagers
   }
 
-  protected getVisitors (): Visitor[] {
+  protected getVisitors(): Visitor[] {
     return this.environment.visitors
   }
 
   /** Still needed? */
-  visitor () {
+  visitor() {
     return {
       first: () => {
         this.pluginIterator = -1

@@ -1,5 +1,5 @@
 class AbstractFileManager {
-  getPath (filename) {
+  getPath(filename) {
     let j = filename.lastIndexOf('?')
     if (j > 0) {
       filename = filename.slice(0, j)
@@ -14,34 +14,34 @@ class AbstractFileManager {
     return filename.slice(0, j + 1)
   }
 
-  tryAppendExtension (path, ext) {
+  tryAppendExtension(path, ext) {
     return /(\.[a-z]*$)|([\?;].*)$/.test(path) ? path : path + ext
   }
 
-  tryAppendLessExtension (path) {
+  tryAppendLessExtension(path) {
     return this.tryAppendExtension(path, '.less')
   }
 
-  supportsSync () {
+  supportsSync() {
     return false
   }
 
-  alwaysMakePathsAbsolute () {
+  alwaysMakePathsAbsolute() {
     return false
   }
 
-  isPathAbsolute (filename) {
+  isPathAbsolute(filename) {
     return /^(?:[a-z-]+:|\/|\\|#)/i.test(filename)
   }
   // TODO: pull out / replace?
-  join (basePath, laterPath) {
+  join(basePath, laterPath) {
     if (!basePath) {
       return laterPath
     }
     return basePath + laterPath
   }
 
-  pathDiff (url, baseUrl) {
+  pathDiff(url, baseUrl) {
     // diff between two paths to create a relative path
     const urlParts = this.extractUrlParts(url)
     const baseUrlParts = this.extractUrlParts(baseUrl)
@@ -71,7 +71,7 @@ class AbstractFileManager {
     return diff
   }
   // helper function, not part of API
-  extractUrlParts (url, baseUrl) {
+  extractUrlParts(url, baseUrl) {
     // urlParts[1] = protocol://hostname/ OR /
     // urlParts[2] = / if path relative to host base
     // urlParts[3] = directories

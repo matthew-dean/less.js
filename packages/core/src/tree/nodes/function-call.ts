@@ -12,7 +12,7 @@ export class FunctionCall extends Node {
   isCalc: boolean
   args: Node[]
 
-  constructor (props: IFunctionCallProps, options: INodeOptions, location: ILocationInfo) {
+  constructor(props: IFunctionCallProps, options: INodeOptions, location: ILocationInfo) {
     const { name, args, ...rest } = props
     super(<IProps>rest, options, location)
 
@@ -31,7 +31,7 @@ export class FunctionCall extends Node {
   // we try to pass a variable to a function, like: `saturate(@color)`.
   // The function should receive the value, not the variable.
   //
-  eval (context: Context) {
+  eval(context: Context) {
     /**
      * Turn off math for calc(), and switch back on for evaluating nested functions
      */
@@ -82,7 +82,7 @@ export class FunctionCall extends Node {
     return new Call(this.name, args, this.getIndex(), this.fileInfo())
   }
 
-  genCSS (context, output) {
+  genCSS(context, output) {
     output.add(`${this.name}(`, this.fileInfo(), this.getIndex())
 
     for (let i = 0; i < this.args.length; i++) {

@@ -20,7 +20,7 @@ export type IElementProps = [string, string] | IProps
 export class Element extends Node {
   nodes: [Value, Node]
 
-  constructor (props: IElementProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor(props: IElementProps, options?: INodeOptions, location?: ILocationInfo) {
     let newProps: IProps = props
     if (Array.isArray(props)) {
       let nodes: Node[]
@@ -38,7 +38,7 @@ export class Element extends Node {
   /**
    * Make sure an expression contains only elements (is a selector)
    */
-  normalizeElementExpression (expr: Expression | Node): Selector {
+  normalizeElementExpression(expr: Expression | Node): Selector {
     expr = expr.clone()
     if (!(expr instanceof Expression)) {
       expr = new Expression([expr]).inherit(expr)
@@ -56,7 +56,7 @@ export class Element extends Node {
   /**
    * Make sure a list only contains element expressions
    */
-  normalizeSelectorList (list: List): SelectorList {
+  normalizeSelectorList(list: List): SelectorList {
     list = list.clone()
     const nodes = list.nodes
     nodes.forEach((expr, i) => {
@@ -65,7 +65,7 @@ export class Element extends Node {
     return <SelectorList>list
   }
 
-  eval (context: EvalContext) {
+  eval(context: EvalContext) {
     if (!this.evaluated) {
       super.eval(context)
       /**
@@ -100,7 +100,7 @@ export class Element extends Node {
   }
 
   /** Indexable value */
-  valueOf () {
+  valueOf() {
     let combinator = (this.nodes[0].value || '').toString()
     let simpleSelector = (this.nodes[1].value || '').toString()
     return combinator + simpleSelector

@@ -30,7 +30,7 @@ export class Variable extends Node {
   value: string
   options: IVariableOptions
 
-  constructor (props: string | IProps, options: IVariableOptions = {}, location?: ILocationInfo) {
+  constructor(props: string | IProps, options: IVariableOptions = {}, location?: ILocationInfo) {
     let newProps: IProps
     if (props.constructor === String) {
       newProps = { value: <string>props }
@@ -46,7 +46,7 @@ export class Variable extends Node {
     this.type = options.propertyRef ? 'Property' : 'Variable'
   }
 
-  toString () {
+  toString() {
     const name = super.toString()
     if (this.options.propertyRef) {
       return name
@@ -54,7 +54,7 @@ export class Variable extends Node {
     return '@' + name
   }
 
-  eval (context: Context) {
+  eval(context: Context) {
     super.eval(context)
     let name = this.value
     if (!name) {

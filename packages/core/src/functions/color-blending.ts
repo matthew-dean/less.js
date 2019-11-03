@@ -3,7 +3,7 @@ import { Color } from '../tree/nodes'
 // Color Blending
 // ref: http://www.w3.org/TR/compositing-1
 
-function colorBlend (mode: Function, color1: Color, color2: Color) {
+function colorBlend(mode: Function, color1: Color, color2: Color) {
   // result
   const ab = color1.value[3]
   const as = color2.value[3]
@@ -32,19 +32,19 @@ function colorBlend (mode: Function, color1: Color, color2: Color) {
 }
 
 const colorBlendModeFunctions = {
-  multiply (cb: number, cs: number): number {
+  multiply(cb: number, cs: number): number {
     return cb * cs
   },
-  screen (cb: number, cs: number): number {
+  screen(cb: number, cs: number): number {
     return cb + cs - cb * cs
   },
-  overlay (cb: number, cs: number): number {
+  overlay(cb: number, cs: number): number {
     cb *= 2
     return cb <= 1
       ? colorBlendModeFunctions.multiply(cb, cs)
       : colorBlendModeFunctions.screen(cb - 1, cs)
   },
-  softlight (cb: number, cs: number): number {
+  softlight(cb: number, cs: number): number {
     let d = 1
     let e = cb
     if (cs > 0.5) {
@@ -53,21 +53,21 @@ const colorBlendModeFunctions = {
     }
     return cb - (1 - 2 * cs) * e * (d - cb)
   },
-  hardlight (cb: number, cs: number): number {
+  hardlight(cb: number, cs: number): number {
     return colorBlendModeFunctions.overlay(cs, cb)
   },
-  difference (cb: number, cs: number): number {
+  difference(cb: number, cs: number): number {
     return Math.abs(cb - cs)
   },
-  exclusion (cb: number, cs: number): number {
+  exclusion(cb: number, cs: number): number {
     return cb + cs - 2 * cb * cs
   },
 
   // non-w3c functions:
-  average (cb: number, cs: number): number {
+  average(cb: number, cs: number): number {
     return (cb + cs) / 2
   },
-  negation (cb: number, cs: number): number {
+  negation(cb: number, cs: number): number {
     return 1 - Math.abs(cb + cs - 1)
   }
 }

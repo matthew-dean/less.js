@@ -3,7 +3,7 @@ import Expression from '../less/tree/expression'
 import functionRegistry from './../less/functions/function-registry'
 
 export default environment => {
-  function imageSize (functionContext, filePathNode) {
+  function imageSize(functionContext, filePathNode) {
     let filePath = filePathNode.value
     const currentFileInfo = functionContext.currentFileInfo
     const currentDirectory = currentFileInfo.rewriteUrls

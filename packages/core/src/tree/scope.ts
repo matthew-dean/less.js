@@ -17,7 +17,7 @@ const scopeRegistry = (entry: Object) => {
   const entries: any[] = []
 
   return new Proxy(entry, {
-    get (obj, prop) {
+    get(obj, prop) {
       if (!prop) {
         return
       }
@@ -54,7 +54,7 @@ const scopeRegistry = (entry: Object) => {
       }
     },
 
-    set (obj, prop, value): boolean {
+    set(obj, prop, value): boolean {
       if (!prop) {
         return false
       }

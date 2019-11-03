@@ -1,7 +1,7 @@
 import functionRegistry from './../less/functions/function-registry'
 
 export default () => {
-  function imageSize () {
+  function imageSize() {
     throw {
       type: 'Runtime',
       message: 'Image size functions are not supported in browser version of less'

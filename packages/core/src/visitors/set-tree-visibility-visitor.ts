@@ -1,13 +1,13 @@
 class SetTreeVisibilityVisitor {
-  constructor (visible) {
+  constructor(visible) {
     this.visible = visible
   }
 
-  run (root) {
+  run(root) {
     this.visit(root)
   }
 
-  visitArray (nodes) {
+  visitArray(nodes) {
     if (!nodes) {
       return nodes
     }
@@ -20,7 +20,7 @@ class SetTreeVisibilityVisitor {
     return nodes
   }
 
-  visit (node) {
+  visit(node) {
     if (!node) {
       return node
     }

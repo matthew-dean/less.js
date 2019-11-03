@@ -14,7 +14,7 @@ export class AtRule extends Node {
   rules: Rules | undefined
   options: { atRoot?: boolean }
 
-  constructor (props: IAtRuleProps, options: INodeOptions = {}, location: ILocationInfo) {
+  constructor(props: IAtRuleProps, options: INodeOptions = {}, location: ILocationInfo) {
     const { name, ...rest } = props
 
     if (options.atRoot === undefined && /@media|@supports/i.test(name)) {
@@ -26,7 +26,7 @@ export class AtRule extends Node {
     this.name = name
   }
 
-  toString (omitPrePost?: boolean) {
+  toString(omitPrePost?: boolean) {
     let text = this.name + this.prelude.toString()
     if (this.rules) {
       text += this.rules.toString()
@@ -37,7 +37,7 @@ export class AtRule extends Node {
     return this.pre + text + this.post
   }
 
-  eval (context: Context) {
+  eval(context: Context) {
     let mediaPathBackup
     let mediaBlocksBackup
 

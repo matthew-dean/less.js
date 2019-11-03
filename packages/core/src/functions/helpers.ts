@@ -17,7 +17,7 @@ export const define = (func: LessFunction, ...params: any[][]) => {
   } as LessFunction
 }
 
-export function expect<T = any> (
+export function expect<T = any>(
   value: any,
   types: (new (...args: any[]) => T)[]
 ): value is T extends typeof value ? T : never {

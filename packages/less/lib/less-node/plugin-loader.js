@@ -5,7 +5,7 @@ import AbstractPluginLoader from '../less/environment/abstract-plugin-loader.js'
  * Node Plugin Loader
  */
 class PluginLoader extends AbstractPluginLoader {
-  constructor (less) {
+  constructor(less) {
     super()
 
     this.less = less
@@ -22,7 +22,7 @@ class PluginLoader extends AbstractPluginLoader {
     }
   }
 
-  loadPlugin (filename, basePath, context, environment, fileManager) {
+  loadPlugin(filename, basePath, context, environment, fileManager) {
     const prefix = filename.slice(0, 1)
     const explicit = prefix === '.' || prefix === '/' || filename.slice(-3).toLowerCase() === '.js'
     if (!explicit) {

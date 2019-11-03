@@ -21,19 +21,19 @@ export type INumberProps = number | IProps
  */
 export class Num extends NumericNode {
   value: number
-  constructor (props: INumberProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor(props: INumberProps, options?: INodeOptions, location?: ILocationInfo) {
     if (props.constructor === Number) {
       props = <IProps>{ value: <number>props }
     }
     super(<IProps>props, options, location)
   }
 
-  valueOf (): number {
+  valueOf(): number {
     return <number> super.valueOf()
   }
 
   /** @todo */
-  operate (op: string, other: Node, context?: Context) {
+  operate(op: string, other: Node, context?: Context) {
     if (other instanceof NumericNode) {
       if (!(other instanceof Num)) {
         if (op === '/') {

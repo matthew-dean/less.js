@@ -17,5 +17,5 @@ export default {
   /**
    * Gets a source map generator
    */
-  getSourceMapGenerator: function getSourceMapGenerator () {}
+  getSourceMapGenerator: function getSourceMapGenerator() {}
 }

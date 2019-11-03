@@ -2,12 +2,12 @@ import functionRegistry from '../functions/function-registry'
 import LessError from '../less-error'
 
 class AbstractPluginLoader {
-  constructor () {
+  constructor() {
     // Implemented by Node.js plugin loader
     this.require = () => null
   }
 
-  evalPlugin (contents, context, imports, pluginOptions, fileInfo) {
+  evalPlugin(contents, context, imports, pluginOptions, fileInfo) {
     let loader
     let registry
     let pluginObj
@@ -129,7 +129,7 @@ class AbstractPluginLoader {
     return pluginObj
   }
 
-  trySetOptions (plugin, filename, name, options) {
+  trySetOptions(plugin, filename, name, options) {
     if (options && !plugin.setOptions) {
       return new LessError({
         message: `Options have been provided but the plugin ${name} does not support any options.`
@@ -142,7 +142,7 @@ class AbstractPluginLoader {
     }
   }
 
-  validatePlugin (plugin, filename, name) {
+  validatePlugin(plugin, filename, name) {
     if (plugin) {
       // support plugins being a function
       // so that the plugin can be more usable programmatically
@@ -162,7 +162,7 @@ class AbstractPluginLoader {
     return null
   }
 
-  compareVersion (aVersion, bVersion) {
+  compareVersion(aVersion, bVersion) {
     if (typeof aVersion === 'string') {
       aVersion = aVersion.match(/^(\d+)\.?(\d+)?\.?(\d+)?/)
       aVersion.shift()
@@ -175,7 +175,7 @@ class AbstractPluginLoader {
     return 0
   }
 
-  versionToString (version) {
+  versionToString(version) {
     let versionString = ''
     for (let i = 0; i < version.length; i++) {
       versionString += (versionString ? '.' : '') + version[i]
@@ -183,7 +183,7 @@ class AbstractPluginLoader {
     return versionString
   }
 
-  printUsage (plugins) {
+  printUsage(plugins) {
     for (let i = 0; i < plugins.length; i++) {
       const plugin = plugins[i]
       if (plugin.printUsage) {

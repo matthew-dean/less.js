@@ -9,12 +9,12 @@ export class RenderTree {
   root: Rules
   assets: AssetManager
 
-  constructor (root: Rules, assets: AssetManager) {
+  constructor(root: Rules, assets: AssetManager) {
     this.root = root
     this.assets = assets
   }
 
-  toCSS (options: IOptions) {
+  toCSS(options: IOptions) {
     let evaldRoot: Rules
     const result = {}
     let sourceMapBuilder

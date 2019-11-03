@@ -45,7 +45,7 @@ module.exports = function () {
 
   var queueList = [],
     queueRunning = false
-  function queue (func) {
+  function queue(func) {
     if (queueRunning) {
       // console.log("adding to queue");
       queueList.push(func)
@@ -55,7 +55,7 @@ module.exports = function () {
       func()
     }
   }
-  function release () {
+  function release() {
     if (queueList.length) {
       // console.log("running next in queue");
       var func = queueList.shift()
@@ -85,7 +85,7 @@ module.exports = function () {
     }
   })
 
-  function testSourcemap (name, err, compiledLess, doReplacements, sourcemap, baseFolder) {
+  function testSourcemap(name, err, compiledLess, doReplacements, sourcemap, baseFolder) {
     if (err) {
       fail('ERROR: ' + (err && err.message))
       return
@@ -134,7 +134,7 @@ module.exports = function () {
     })
   }
 
-  function testEmptySourcemap (name, err, compiledLess, doReplacements, sourcemap, baseFolder) {
+  function testEmptySourcemap(name, err, compiledLess, doReplacements, sourcemap, baseFolder) {
     process.stdout.write('- ' + path.join(baseFolder, name) + ': ')
     if (err) {
       fail('ERROR: ' + (err && err.message))
@@ -150,7 +150,7 @@ module.exports = function () {
     }
   }
 
-  function testErrors (name, err, compiledLess, doReplacements, sourcemap, baseFolder) {
+  function testErrors(name, err, compiledLess, doReplacements, sourcemap, baseFolder) {
     fs.readFile(path.join(baseFolder, name) + '.txt', 'utf8', function (e, expectedErr) {
       process.stdout.write('- ' + path.join(baseFolder, name) + ': ')
       expectedErr = doReplacements(expectedErr, baseFolder, err && err.filename)
@@ -172,7 +172,7 @@ module.exports = function () {
   }
 
   // https://github.com/less/less.js/issues/3112
-  function testJSImport () {
+  function testJSImport() {
     process.stdout.write('- Testing root function registry')
     less.functions.functionRegistry.add('ext', function () {
       return new less.tree.Anonymous('file')
@@ -192,7 +192,7 @@ module.exports = function () {
     })
   }
 
-  function globalReplacements (input, directory, filename) {
+  function globalReplacements(input, directory, filename) {
     var path = require('path')
     var p = filename ? path.join(path.dirname(filename), '/') : path.join(process.cwd(), directory),
       pathimport = path.join(process.cwd(), directory + 'import/'),
@@ -217,13 +217,13 @@ module.exports = function () {
       .replace(/\r\n/g, '\n')
   }
 
-  function checkGlobalLeaks () {
+  function checkGlobalLeaks() {
     return Object.keys(global).filter(function (v) {
       return globals.indexOf(v) < 0
     })
   }
 
-  function testSyncronous (options, filenameNoExtension) {
+  function testSyncronous(options, filenameNoExtension) {
     if (oneTestOnly && 'Test Sync ' + filenameNoExtension !== oneTestOnly) {
       return
     }
@@ -244,12 +244,12 @@ module.exports = function () {
     })
   }
 
-  function prepBomTest () {
+  function prepBomTest() {
     copyBom.copyFolderWithBom(normalFolder, bomFolder)
     doBomTest = true
   }
 
-  function runTestSet (
+  function runTestSet(
     options,
     foldername,
     verifyFunction,
@@ -280,7 +280,7 @@ module.exports = function () {
     }
   }
 
-  function runTestSetNormalOnly (
+  function runTestSetNormalOnly(
     options,
     foldername,
     verifyFunction,
@@ -299,7 +299,7 @@ module.exports = function () {
     )
   }
 
-  function runTestSetInternal (
+  function runTestSetInternal(
     baseFolder,
     opts,
     foldername,
@@ -316,7 +316,7 @@ module.exports = function () {
       doReplacements = globalReplacements
     }
 
-    function getBasename (file) {
+    function getBasename(file) {
       return foldername + path.basename(file, '.less')
     }
 
@@ -420,7 +420,7 @@ module.exports = function () {
     })
   }
 
-  function diff (left, right) {
+  function diff(left, right) {
     require('diff')
       .diffLines(left, right)
       .forEach(function (item) {
@@ -436,13 +436,13 @@ module.exports = function () {
     process.stdout.write('\n')
   }
 
-  function fail (msg) {
+  function fail(msg) {
     process.stdout.write(stylize(msg, 'red') + '\n')
     failedTests++
     endTest()
   }
 
-  function difference (msg, left, right) {
+  function difference(msg, left, right) {
     process.stdout.write(stylize(msg, 'yellow') + '\n')
     failedTests++
 
@@ -450,18 +450,18 @@ module.exports = function () {
     endTest()
   }
 
-  function ok (msg) {
+  function ok(msg) {
     process.stdout.write(stylize(msg, 'green') + '\n')
     passedTests++
     endTest()
   }
 
-  function finished () {
+  function finished() {
     isFinished = true
     endTest()
   }
 
-  function endTest () {
+  function endTest() {
     if (isFinished && failedTests + passedTests >= totalTests) {
       clearInterval(finishTimer)
       var leaked = checkGlobalLeaks()
@@ -486,7 +486,7 @@ module.exports = function () {
     }
   }
 
-  function contains (fullArray, obj) {
+  function contains(fullArray, obj) {
     for (var i = 0; i < fullArray.length; i++) {
       if (fullArray[i] === obj) {
         return true
@@ -495,7 +495,7 @@ module.exports = function () {
     return false
   }
 
-  function toCSS (options, path, callback) {
+  function toCSS(options, path, callback) {
     options = options || {}
     var str = fs.readFileSync(path, 'utf8'),
       addPath = require('path').dirname(path)
@@ -520,7 +520,7 @@ module.exports = function () {
     less.render(str, options, callback)
   }
 
-  function testNoOptions () {
+  function testNoOptions() {
     if (oneTestOnly && 'Integration' !== oneTestOnly) {
       return
     }

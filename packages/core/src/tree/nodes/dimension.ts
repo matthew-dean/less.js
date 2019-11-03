@@ -17,7 +17,7 @@ export class Dimension extends NumericNode {
   /** Second value is the unit */
   nodes: [Num, Value]
 
-  constructor (props: IDimensionProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor(props: IDimensionProps, options?: INodeOptions, location?: ILocationInfo) {
     let nodes = Array(2)
 
     if (Array.isArray(props)) {
@@ -32,7 +32,7 @@ export class Dimension extends NumericNode {
     this.value = this.nodes[0].value
   }
 
-  operate (op: string, other: Node, context: Context): Node {
+  operate(op: string, other: Node, context: Context): Node {
     const strictUnits = context.options.strictUnits
     if (other instanceof Dimension) {
       const aUnit = this.nodes[1]
@@ -78,7 +78,7 @@ export class Dimension extends NumericNode {
     return this
   }
 
-  unify (other: Dimension, unit: string) {
+  unify(other: Dimension, unit: string) {
     const newDimension = convertDimension(other, unit)
     if (newDimension) {
       return newDimension

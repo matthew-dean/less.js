@@ -11,7 +11,7 @@
  * @param {ignored} deps Ignored. For compatibility with CommonJS AMD Spec
  * @param {function} payload Function with (require, exports, module) params
  */
-function define (moduleName, deps, payload) {
+function define(moduleName, deps, payload) {
   if (typeof moduleName != 'string') {
     throw new TypeError('Expected string, got: ' + moduleName)
   }
@@ -39,7 +39,7 @@ define.modules = {}
  * Perhaps you want 2 command lines with a different set of commands in each,
  * for example.
  */
-function Domain () {
+function Domain() {
   this.modules = {}
   this._currentModule = null
 }
@@ -74,7 +74,7 @@ function Domain () {
     }
   }
 
-  function normalize (path) {
+  function normalize(path) {
     var bits = path.split('/')
     var i = 1
     while (i < bits.length) {
@@ -89,7 +89,7 @@ function Domain () {
     return bits.join('/')
   }
 
-  function join (a, b) {
+  function join(a, b) {
     a = a.trim()
     b = b.trim()
     if (/^\//.test(b)) {
@@ -99,7 +99,7 @@ function Domain () {
     }
   }
 
-  function dirname (path) {
+  function dirname(path) {
     var bits = path.split('/')
     bits.pop()
     return bits.join('/')
@@ -172,7 +172,7 @@ define('source-map/source-map-generator', [
    *   - file: The filename of the generated source.
    *   - sourceRoot: An optional root for all URLs in this source map.
    */
-  function SourceMapGenerator (aArgs) {
+  function SourceMapGenerator(aArgs) {
     this._file = util.getArg(aArgs, 'file')
     this._sourceRoot = util.getArg(aArgs, 'sourceRoot', null)
     this._sources = new ArraySet()
@@ -188,7 +188,7 @@ define('source-map/source-map-generator', [
    *
    * @param aSourceMapConsumer The SourceMap.
    */
-  SourceMapGenerator.fromSourceMap = function SourceMapGenerator_fromSourceMap (aSourceMapConsumer) {
+  SourceMapGenerator.fromSourceMap = function SourceMapGenerator_fromSourceMap(aSourceMapConsumer) {
     var sourceRoot = aSourceMapConsumer.sourceRoot
     var generator = new SourceMapGenerator({
       file: aSourceMapConsumer.file,
@@ -239,7 +239,7 @@ define('source-map/source-map-generator', [
    *   - source: The original source file (relative to the sourceRoot).
    *   - name: An optional original token name for this mapping.
    */
-  SourceMapGenerator.prototype.addMapping = function SourceMapGenerator_addMapping (aArgs) {
+  SourceMapGenerator.prototype.addMapping = function SourceMapGenerator_addMapping(aArgs) {
     var generated = util.getArg(aArgs, 'generated')
     var original = util.getArg(aArgs, 'original', null)
     var source = util.getArg(aArgs, 'source', null)
@@ -268,7 +268,7 @@ define('source-map/source-map-generator', [
   /**
    * Set the source content for a source file.
    */
-  SourceMapGenerator.prototype.setSourceContent = function SourceMapGenerator_setSourceContent (
+  SourceMapGenerator.prototype.setSourceContent = function SourceMapGenerator_setSourceContent(
     aSourceFile,
     aSourceContent
   ) {
@@ -304,7 +304,7 @@ define('source-map/source-map-generator', [
    * @param aSourceFile Optional. The filename of the source file.
    *        If omitted, SourceMapConsumer's file property will be used.
    */
-  SourceMapGenerator.prototype.applySourceMap = function SourceMapGenerator_applySourceMap (
+  SourceMapGenerator.prototype.applySourceMap = function SourceMapGenerator_applySourceMap(
     aSourceMapConsumer,
     aSourceFile
   ) {
@@ -383,7 +383,7 @@ define('source-map/source-map-generator', [
    * To maintain consistency, we validate that any new mapping being added falls
    * in to one of these categories.
    */
-  SourceMapGenerator.prototype._validateMapping = function SourceMapGenerator_validateMapping (
+  SourceMapGenerator.prototype._validateMapping = function SourceMapGenerator_validateMapping(
     aGenerated,
     aOriginal,
     aSource,
@@ -433,7 +433,7 @@ define('source-map/source-map-generator', [
    * Serialize the accumulated mappings in to the stream of base 64 VLQs
    * specified by the source map format.
    */
-  SourceMapGenerator.prototype._serializeMappings = function SourceMapGenerator_serializeMappings () {
+  SourceMapGenerator.prototype._serializeMappings = function SourceMapGenerator_serializeMappings() {
     var previousGeneratedColumn = 0
     var previousGeneratedLine = 1
     var previousOriginalColumn = 0
@@ -492,7 +492,7 @@ define('source-map/source-map-generator', [
     return result
   }
 
-  SourceMapGenerator.prototype._generateSourcesContent = function SourceMapGenerator_generateSourcesContent (
+  SourceMapGenerator.prototype._generateSourcesContent = function SourceMapGenerator_generateSourcesContent(
     aSources,
     aSourceRoot
   ) {
@@ -513,7 +513,7 @@ define('source-map/source-map-generator', [
   /**
    * Externalize the source map.
    */
-  SourceMapGenerator.prototype.toJSON = function SourceMapGenerator_toJSON () {
+  SourceMapGenerator.prototype.toJSON = function SourceMapGenerator_toJSON() {
     var map = {
       version: this._version,
       file: this._file,
@@ -534,7 +534,7 @@ define('source-map/source-map-generator', [
   /**
    * Render the source map being generated to a string.
    */
-  SourceMapGenerator.prototype.toString = function SourceMapGenerator_toString () {
+  SourceMapGenerator.prototype.toString = function SourceMapGenerator_toString() {
     return JSON.stringify(this)
   }
 
@@ -612,7 +612,7 @@ define('source-map/base64-vlq', ['require', 'exports', 'module', 'source-map/bas
    *   1 becomes 2 (10 binary), -1 becomes 3 (11 binary)
    *   2 becomes 4 (100 binary), -2 becomes 5 (101 binary)
    */
-  function toVLQSigned (aValue) {
+  function toVLQSigned(aValue) {
     return aValue < 0 ? (-aValue << 1) + 1 : (aValue << 1) + 0
   }
 
@@ -622,7 +622,7 @@ define('source-map/base64-vlq', ['require', 'exports', 'module', 'source-map/bas
    *   2 (10 binary) becomes 1, 3 (11 binary) becomes -1
    *   4 (100 binary) becomes 2, 5 (101 binary) becomes -2
    */
-  function fromVLQSigned (aValue) {
+  function fromVLQSigned(aValue) {
     var isNegative = (aValue & 1) === 1
     var shifted = aValue >> 1
     return isNegative ? -shifted : shifted
@@ -631,7 +631,7 @@ define('source-map/base64-vlq', ['require', 'exports', 'module', 'source-map/bas
   /**
    * Returns the base 64 VLQ encoded value.
    */
-  exports.encode = function base64VLQ_encode (aValue) {
+  exports.encode = function base64VLQ_encode(aValue) {
     var encoded = ''
     var digit
 
@@ -655,7 +655,7 @@ define('source-map/base64-vlq', ['require', 'exports', 'module', 'source-map/bas
    * Decodes the next base 64 VLQ value from the given string and returns the
    * value and the rest of the string.
    */
-  exports.decode = function base64VLQ_decode (aStr) {
+  exports.decode = function base64VLQ_decode(aStr) {
     var i = 0
     var strLen = aStr.length
     var result = 0
@@ -699,7 +699,7 @@ define('source-map/base64', ['require', 'exports', 'module'], function (require,
   /**
    * Encode an integer in the range of 0 to 63 to a single base 64 digit.
    */
-  exports.encode = function base64_encode (aNumber) {
+  exports.encode = function base64_encode(aNumber) {
     if (aNumber in intToCharMap) {
       return intToCharMap[aNumber]
     }
@@ -709,7 +709,7 @@ define('source-map/base64', ['require', 'exports', 'module'], function (require,
   /**
    * Decode a single base 64 digit to an integer.
    */
-  exports.decode = function base64_decode (aChar) {
+  exports.decode = function base64_decode(aChar) {
     if (aChar in charToIntMap) {
       return charToIntMap[aChar]
     }
@@ -733,7 +733,7 @@ define('source-map/util', ['require', 'exports', 'module'], function (require, e
    * from the object. If this is not specified and the property is missing, an
    * error will be thrown.
    */
-  function getArg (aArgs, aName, aDefaultValue) {
+  function getArg(aArgs, aName, aDefaultValue) {
     if (aName in aArgs) {
       return aArgs[aName]
     } else if (arguments.length === 3) {
@@ -747,7 +747,7 @@ define('source-map/util', ['require', 'exports', 'module'], function (require, e
   var urlRegexp = /([\w+\-.]+):\/\/((\w+:\w+)@)?([\w.]+)?(:(\d+))?(\S+)?/
   var dataUrlRegexp = /^data:.+\,.+/
 
-  function urlParse (aUrl) {
+  function urlParse(aUrl) {
     var match = aUrl.match(urlRegexp)
     if (!match) {
       return null
@@ -762,7 +762,7 @@ define('source-map/util', ['require', 'exports', 'module'], function (require, e
   }
   exports.urlParse = urlParse
 
-  function urlGenerate (aParsedUrl) {
+  function urlGenerate(aParsedUrl) {
     var url = aParsedUrl.scheme + '://'
     if (aParsedUrl.auth) {
       url += aParsedUrl.auth + '@'
@@ -780,7 +780,7 @@ define('source-map/util', ['require', 'exports', 'module'], function (require, e
   }
   exports.urlGenerate = urlGenerate
 
-  function join (aRoot, aPath) {
+  function join(aRoot, aPath) {
     var url
 
     if (aPath.match(urlRegexp) || aPath.match(dataUrlRegexp)) {
@@ -805,17 +805,17 @@ define('source-map/util', ['require', 'exports', 'module'], function (require, e
    *
    * @param String aStr
    */
-  function toSetString (aStr) {
+  function toSetString(aStr) {
     return '$' + aStr
   }
   exports.toSetString = toSetString
 
-  function fromSetString (aStr) {
+  function fromSetString(aStr) {
     return aStr.substr(1)
   }
   exports.fromSetString = fromSetString
 
-  function relative (aRoot, aPath) {
+  function relative(aRoot, aPath) {
     aRoot = aRoot.replace(/\/$/, '')
 
     var url = urlParse(aRoot)
@@ -827,7 +827,7 @@ define('source-map/util', ['require', 'exports', 'module'], function (require, e
   }
   exports.relative = relative
 
-  function strcmp (aStr1, aStr2) {
+  function strcmp(aStr1, aStr2) {
     var s1 = aStr1 || ''
     var s2 = aStr2 || ''
     return (s1 > s2) - (s1 < s2)
@@ -841,7 +841,7 @@ define('source-map/util', ['require', 'exports', 'module'], function (require, e
    * line and column the same. Useful when searching for a mapping with a
    * stubbed out mapping.
    */
-  function compareByOriginalPositions (mappingA, mappingB, onlyCompareOriginal) {
+  function compareByOriginalPositions(mappingA, mappingB, onlyCompareOriginal) {
     var cmp
 
     cmp = strcmp(mappingA.source, mappingB.source)
@@ -882,7 +882,7 @@ define('source-map/util', ['require', 'exports', 'module'], function (require, e
    * source/name/original line and column the same. Useful when searching for a
    * mapping with a stubbed out mapping.
    */
-  function compareByGeneratedPositions (mappingA, mappingB, onlyCompareGenerated) {
+  function compareByGeneratedPositions(mappingA, mappingB, onlyCompareGenerated) {
     var cmp
 
     cmp = mappingA.generatedLine - mappingB.generatedLine
@@ -933,7 +933,7 @@ define('source-map/array-set', ['require', 'exports', 'module', 'source-map/util
    * element is O(1). Removing elements from the set is not supported. Only
    * strings are supported for membership.
    */
-  function ArraySet () {
+  function ArraySet() {
     this._array = []
     this._set = {}
   }
@@ -941,7 +941,7 @@ define('source-map/array-set', ['require', 'exports', 'module', 'source-map/util
   /**
    * Static method for creating ArraySet instances from an existing array.
    */
-  ArraySet.fromArray = function ArraySet_fromArray (aArray, aAllowDuplicates) {
+  ArraySet.fromArray = function ArraySet_fromArray(aArray, aAllowDuplicates) {
     var set = new ArraySet()
     for (var i = 0, len = aArray.length; i < len; i++) {
       set.add(aArray[i], aAllowDuplicates)
@@ -954,7 +954,7 @@ define('source-map/array-set', ['require', 'exports', 'module', 'source-map/util
    *
    * @param String aStr
    */
-  ArraySet.prototype.add = function ArraySet_add (aStr, aAllowDuplicates) {
+  ArraySet.prototype.add = function ArraySet_add(aStr, aAllowDuplicates) {
     var isDuplicate = this.has(aStr)
     var idx = this._array.length
     if (!isDuplicate || aAllowDuplicates) {
@@ -970,7 +970,7 @@ define('source-map/array-set', ['require', 'exports', 'module', 'source-map/util
    *
    * @param String aStr
    */
-  ArraySet.prototype.has = function ArraySet_has (aStr) {
+  ArraySet.prototype.has = function ArraySet_has(aStr) {
     return Object.prototype.hasOwnProperty.call(this._set, util.toSetString(aStr))
   }
 
@@ -979,7 +979,7 @@ define('source-map/array-set', ['require', 'exports', 'module', 'source-map/util
    *
    * @param String aStr
    */
-  ArraySet.prototype.indexOf = function ArraySet_indexOf (aStr) {
+  ArraySet.prototype.indexOf = function ArraySet_indexOf(aStr) {
     if (this.has(aStr)) {
       return this._set[util.toSetString(aStr)]
     }
@@ -991,7 +991,7 @@ define('source-map/array-set', ['require', 'exports', 'module', 'source-map/util
    *
    * @param Number aIdx
    */
-  ArraySet.prototype.at = function ArraySet_at (aIdx) {
+  ArraySet.prototype.at = function ArraySet_at(aIdx) {
     if (aIdx >= 0 && aIdx < this._array.length) {
       return this._array[aIdx]
     }
@@ -1003,7 +1003,7 @@ define('source-map/array-set', ['require', 'exports', 'module', 'source-map/util
    * indicated by indexOf). Note that this is a copy of the internal array used
    * for storing the members so that no one can mess with internal state.
    */
-  ArraySet.prototype.toArray = function ArraySet_toArray () {
+  ArraySet.prototype.toArray = function ArraySet_toArray() {
     return this._array.slice()
   }
 
@@ -1059,7 +1059,7 @@ define('source-map/source-map-consumer', [
    *
    * [0]: https://docs.google.com/document/d/1U1RGAehQwRypUTovF1KRlpiOFze0b-_2gc6fAH0KY0k/edit?pli=1#
    */
-  function SourceMapConsumer (aSourceMap) {
+  function SourceMapConsumer(aSourceMap) {
     var sourceMap = aSourceMap
     if (typeof aSourceMap === 'string') {
       sourceMap = JSON.parse(aSourceMap.replace(/^\)\]\}'/, ''))
@@ -1101,7 +1101,7 @@ define('source-map/source-map-consumer', [
    *        The source map that will be consumed.
    * @returns SourceMapConsumer
    */
-  SourceMapConsumer.fromSourceMap = function SourceMapConsumer_fromSourceMap (aSourceMap) {
+  SourceMapConsumer.fromSourceMap = function SourceMapConsumer_fromSourceMap(aSourceMap) {
     var smc = Object.create(SourceMapConsumer.prototype)
 
     smc._names = ArraySet.fromArray(aSourceMap._names.toArray(), true)
@@ -1193,7 +1193,7 @@ define('source-map/source-map-consumer', [
    * query (the ordered arrays in the `this.__generatedMappings` and
    * `this.__originalMappings` properties).
    */
-  SourceMapConsumer.prototype._parseMappings = function SourceMapConsumer_parseMappings (
+  SourceMapConsumer.prototype._parseMappings = function SourceMapConsumer_parseMappings(
     aStr,
     aSourceRoot
   ) {
@@ -1275,7 +1275,7 @@ define('source-map/source-map-consumer', [
    * Find the mapping that best matches the hypothetical "needle" mapping that
    * we are searching for in the given "haystack" of mappings.
    */
-  SourceMapConsumer.prototype._findMapping = function SourceMapConsumer_findMapping (
+  SourceMapConsumer.prototype._findMapping = function SourceMapConsumer_findMapping(
     aNeedle,
     aMappings,
     aLineName,
@@ -1312,7 +1312,7 @@ define('source-map/source-map-consumer', [
    *   - column: The column number in the original source, or null.
    *   - name: The original identifier, or null.
    */
-  SourceMapConsumer.prototype.originalPositionFor = function SourceMapConsumer_originalPositionFor (
+  SourceMapConsumer.prototype.originalPositionFor = function SourceMapConsumer_originalPositionFor(
     aArgs
   ) {
     var needle = {
@@ -1354,7 +1354,7 @@ define('source-map/source-map-consumer', [
    * original source file. Returns null if no original source content is
    * available.
    */
-  SourceMapConsumer.prototype.sourceContentFor = function SourceMapConsumer_sourceContentFor (
+  SourceMapConsumer.prototype.sourceContentFor = function SourceMapConsumer_sourceContentFor(
     aSource
   ) {
     if (!this.sourcesContent) {
@@ -1402,7 +1402,7 @@ define('source-map/source-map-consumer', [
    *   - line: The line number in the generated source, or null.
    *   - column: The column number in the generated source, or null.
    */
-  SourceMapConsumer.prototype.generatedPositionFor = function SourceMapConsumer_generatedPositionFor (
+  SourceMapConsumer.prototype.generatedPositionFor = function SourceMapConsumer_generatedPositionFor(
     aArgs
   ) {
     var needle = {
@@ -1455,7 +1455,7 @@ define('source-map/source-map-consumer', [
    *        order or the original's source/line/column order, respectively. Defaults to
    *        `SourceMapConsumer.GENERATED_ORDER`.
    */
-  SourceMapConsumer.prototype.eachMapping = function SourceMapConsumer_eachMapping (
+  SourceMapConsumer.prototype.eachMapping = function SourceMapConsumer_eachMapping(
     aCallback,
     aContext,
     aOrder
@@ -1516,7 +1516,7 @@ define('source-map/binary-search', ['require', 'exports', 'module'], function (
    * @param aHaystack The non-empty array being searched.
    * @param aCompare Function which takes two elements and returns -1, 0, or 1.
    */
-  function recursiveSearch (aLow, aHigh, aNeedle, aHaystack, aCompare) {
+  function recursiveSearch(aLow, aHigh, aNeedle, aHaystack, aCompare) {
     // This function terminates when one of the following is true:
     //
     //   1. We find the exact element we are looking for.
@@ -1566,7 +1566,7 @@ define('source-map/binary-search', ['require', 'exports', 'module'], function (
    *     array and returns -1, 0, or 1 depending on whether the needle is less
    *     than, equal to, or greater than the element, respectively.
    */
-  exports.search = function search (aNeedle, aHaystack, aCompare) {
+  exports.search = function search(aNeedle, aHaystack, aCompare) {
     return aHaystack.length > 0
       ? recursiveSearch(-1, aHaystack.length, aNeedle, aHaystack, aCompare)
       : null
@@ -1600,7 +1600,7 @@ define('source-map/source-node', [
    *        generated JS, or other SourceNodes.
    * @param aName The original identifier.
    */
-  function SourceNode (aLine, aColumn, aSource, aChunks, aName) {
+  function SourceNode(aLine, aColumn, aSource, aChunks, aName) {
     this.children = []
     this.sourceContents = {}
     this.line = aLine === undefined ? null : aLine
@@ -1618,7 +1618,7 @@ define('source-map/source-node', [
    * @param aGeneratedCode The generated code
    * @param aSourceMapConsumer The SourceMap for the generated code
    */
-  SourceNode.fromStringWithSourceMap = function SourceNode_fromStringWithSourceMap (
+  SourceNode.fromStringWithSourceMap = function SourceNode_fromStringWithSourceMap(
     aGeneratedCode,
     aSourceMapConsumer
   ) {
@@ -1703,7 +1703,7 @@ define('source-map/source-node', [
 
     return node
 
-    function addMappingWithCode (mapping, code) {
+    function addMappingWithCode(mapping, code) {
       if (mapping === null || mapping.source === undefined) {
         node.add(code)
       } else {
@@ -1726,7 +1726,7 @@ define('source-map/source-node', [
    * @param aChunk A string snippet of generated JS code, another instance of
    *        SourceNode, or an array where each member is one of those things.
    */
-  SourceNode.prototype.add = function SourceNode_add (aChunk) {
+  SourceNode.prototype.add = function SourceNode_add(aChunk) {
     if (Array.isArray(aChunk)) {
       aChunk.forEach(function (chunk) {
         this.add(chunk)
@@ -1749,7 +1749,7 @@ define('source-map/source-node', [
    * @param aChunk A string snippet of generated JS code, another instance of
    *        SourceNode, or an array where each member is one of those things.
    */
-  SourceNode.prototype.prepend = function SourceNode_prepend (aChunk) {
+  SourceNode.prototype.prepend = function SourceNode_prepend(aChunk) {
     if (Array.isArray(aChunk)) {
       for (var i = aChunk.length - 1; i >= 0; i--) {
         this.prepend(aChunk[i])
@@ -1771,7 +1771,7 @@ define('source-map/source-node', [
    *
    * @param aFn The traversal function.
    */
-  SourceNode.prototype.walk = function SourceNode_walk (aFn) {
+  SourceNode.prototype.walk = function SourceNode_walk(aFn) {
     var chunk
     for (var i = 0, len = this.children.length; i < len; i++) {
       chunk = this.children[i]
@@ -1791,7 +1791,7 @@ define('source-map/source-node', [
    *
    * @param aSep The separator.
    */
-  SourceNode.prototype.join = function SourceNode_join (aSep) {
+  SourceNode.prototype.join = function SourceNode_join(aSep) {
     var newChildren
     var i
     var len = this.children.length
@@ -1814,7 +1814,7 @@ define('source-map/source-node', [
    * @param aPattern The pattern to replace.
    * @param aReplacement The thing to replace the pattern with.
    */
-  SourceNode.prototype.replaceRight = function SourceNode_replaceRight (aPattern, aReplacement) {
+  SourceNode.prototype.replaceRight = function SourceNode_replaceRight(aPattern, aReplacement) {
     var lastChild = this.children[this.children.length - 1]
     if (lastChild instanceof SourceNode) {
       lastChild.replaceRight(aPattern, aReplacement)
@@ -1833,7 +1833,7 @@ define('source-map/source-node', [
    * @param aSourceFile The filename of the source file
    * @param aSourceContent The content of the source file
    */
-  SourceNode.prototype.setSourceContent = function SourceNode_setSourceContent (
+  SourceNode.prototype.setSourceContent = function SourceNode_setSourceContent(
     aSourceFile,
     aSourceContent
   ) {
@@ -1846,7 +1846,7 @@ define('source-map/source-node', [
    *
    * @param aFn The traversal function.
    */
-  SourceNode.prototype.walkSourceContents = function SourceNode_walkSourceContents (aFn) {
+  SourceNode.prototype.walkSourceContents = function SourceNode_walkSourceContents(aFn) {
     for (var i = 0, len = this.children.length; i < len; i++) {
       if (this.children[i] instanceof SourceNode) {
         this.children[i].walkSourceContents(aFn)
@@ -1863,7 +1863,7 @@ define('source-map/source-node', [
    * Return the string representation of this source node. Walks over the tree
    * and concatenates all the various snippets together to one string.
    */
-  SourceNode.prototype.toString = function SourceNode_toString () {
+  SourceNode.prototype.toString = function SourceNode_toString() {
     var str = ''
     this.walk(function (chunk) {
       str += chunk
@@ -1875,7 +1875,7 @@ define('source-map/source-node', [
    * Returns the string representation of this source node along with a source
    * map.
    */
-  SourceNode.prototype.toStringWithSourceMap = function SourceNode_toStringWithSourceMap (aArgs) {
+  SourceNode.prototype.toStringWithSourceMap = function SourceNode_toStringWithSourceMap(aArgs) {
     var generated = {
       code: '',
       line: 1,

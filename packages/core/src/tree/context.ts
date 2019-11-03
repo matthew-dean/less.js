@@ -50,7 +50,7 @@ export class Context {
     [key: string]: any
   }
 
-  constructor (less: Less, environment: Environment, options: IOptions) {
+  constructor(less: Less, environment: Environment, options: IOptions) {
     this.less = less
     this.environment = environment
     this.options = options
@@ -66,19 +66,19 @@ export class Context {
     // this.scope = Object.create(environment.scope || null)
   }
 
-  error (err: ILessError, fileRoot: Rules) {
+  error(err: ILessError, fileRoot: Rules) {
     if (!this.options.evalErrors) {
       throw err
     }
     this.errors.push(new LessError(err, fileRoot))
   }
 
-  warning (warn: ILessError, fileRoot: Rules) {
+  warning(warn: ILessError, fileRoot: Rules) {
     warn.type = 'Warning'
     this.warnings.push(new LessError(warn, fileRoot))
   }
 
-  enterCalc () {
+  enterCalc() {
     if (!this.calcStack) {
       this.calcStack = []
     }
@@ -86,7 +86,7 @@ export class Context {
     this.inCalc = true
   }
 
-  exitCalc () {
+  exitCalc() {
     this.calcStack.pop()
     this.inCalc = this.calcStack.length !== 0
   }
@@ -97,15 +97,15 @@ export class Context {
    * `false` into the stack, to 'reset' for the purposes of figuring out
    * if math should be applied.
    */
-  enterBlock (blockValue: boolean = true) {
+  enterBlock(blockValue: boolean = true) {
     this.blockStack.unshift(blockValue)
   }
 
-  exitBlock () {
+  exitBlock() {
     this.blockStack.shift()
   }
 
-  isMathOn (op?: string) {
+  isMathOn(op?: string) {
     if (!this.mathOn) {
       return false
     }
@@ -119,20 +119,20 @@ export class Context {
     return true
   }
 
-  resolveModule (fileContent: string) {
+  resolveModule(fileContent: string) {
     /** This will return a JS object from a string */
     const obj = this.environment
   }
 
-  private isPathRelative (path: string) {
+  private isPathRelative(path: string) {
     return !/^(?:[a-z-]+:|\/|#)/i.test(path)
   }
 
-  private isPathLocalRelative (path: string) {
+  private isPathLocalRelative(path: string) {
     return path.charAt(0) === '.'
   }
 
-  pathRequiresRewrite (path: string): boolean {
+  pathRequiresRewrite(path: string): boolean {
     const isRelative
       = this.options.rewriteUrls === RewriteUrlMode.LOCAL
         ? this.isPathLocalRelative
@@ -141,7 +141,7 @@ export class Context {
     return isRelative(path)
   }
 
-  rewritePath (path: string, rootpath: string): string {
+  rewritePath(path: string, rootpath: string): string {
     let newPath: string
 
     rootpath = rootpath || ''

@@ -6,7 +6,7 @@ import { createLexer } from './util'
 const { lexer, tokens, T } = createLexer(Fragments, Tokens)
 
 class LessParser extends CstParser {
-  constructor () {
+  constructor() {
     super(tokens, {
       maxLookahead: 3
     })
@@ -20,7 +20,7 @@ class LessParser extends CstParser {
   inGuard: boolean
 
   // https://sap.github.io/chevrotain/documentation/6_1_0/classes/baseparser.html#reset
-  reset () {
+  reset() {
     super.reset()
     this.inSelector = false
     this.inCompareBlock = false
@@ -85,7 +85,7 @@ class LessParser extends CstParser {
   }
 
   /** simplify later, verbose for debugging */
-  _declarationGuard () {
+  _declarationGuard() {
     const foundToken = this._searchUntil([T.LCurly, T.RCurly, T.SemiColon])
     const pass = this.inSelector && foundToken !== T.LCurly
     return pass

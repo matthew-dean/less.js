@@ -25,7 +25,7 @@ export abstract class Environment {
   visitors: Visitor[]
   logger: Logger
 
-  constructor (fileManagers: FileManager[], visitors: Visitor[], logger: Logger) {
+  constructor(fileManagers: FileManager[], visitors: Visitor[], logger: Logger) {
     this.fileManagers = fileManagers || []
     this.visitors = visitors
     this.logger = logger
@@ -53,7 +53,7 @@ export abstract class Environment {
    */
   abstract getSourceMapGenerator(): Function
 
-  getFileManager (filePath: string, currentDirectory: string, options: IOptions & IImportOptions) {
+  getFileManager(filePath: string, currentDirectory: string, options: IOptions & IImportOptions) {
     const fileManagers = this.fileManagers
 
     if (!filePath || !currentDirectory) {
@@ -83,7 +83,7 @@ export abstract class Environment {
   abstract tryAppendExtension(path: string, ext: string): string
 
   /* Append a .less extension if appropriate. Only called if less thinks one could be added. */
-  protected tryAppendLessExtension (path: string) {
+  protected tryAppendLessExtension(path: string) {
     return this.tryAppendExtension(path, '.less')
   }
 

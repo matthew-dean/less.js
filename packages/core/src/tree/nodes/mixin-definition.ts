@@ -37,13 +37,13 @@ export class MixinDefinition extends Node implements ImportantNode {
   optionalParameters: string[]
   hasVariadic: boolean
 
-  constructor (props: IMixinDefinitionProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor(props: IMixinDefinitionProps, options?: INodeOptions, location?: ILocationInfo) {
     const { params, ...rest } = props
     super(props, options, location)
     this.arity = params ? params.length : 0
   }
 
-  makeImportant () {
+  makeImportant() {
     const oldRules = this.rules.clone()
     const rules = oldRules.nodes.map(r => {
       if (r.hasOwnProperty('makeImportant')) {
@@ -61,7 +61,7 @@ export class MixinDefinition extends Node implements ImportantNode {
    * Only the mixin params will be eval'd.
    * Rules / condition are eval'd in a mixin call
    */
-  eval (context: Context) {
+  eval(context: Context) {
     if (!this.evaluated) {
       const params = this.params
       if (params) {
@@ -75,7 +75,7 @@ export class MixinDefinition extends Node implements ImportantNode {
   /**
    * Evaluates the mixin arguments
    */
-  evalParams (callContext: Context, args: Node[], evaldArguments: Node[]) {
+  evalParams(callContext: Context, args: Node[], evaldArguments: Node[]) {
     const frame = this.rules[0].clone()
     const params = this.params
 
@@ -177,7 +177,7 @@ export class MixinDefinition extends Node implements ImportantNode {
     return frame
   }
 
-  evalCall (context: Context, args: Node[], important: boolean = false) {
+  evalCall(context: Context, args: Node[], important: boolean = false) {
     const _arguments = []
     // const mixinFrames = this.frames ? this.frames.concat(context.frames) : context.frames;
     const frame = this.evalParams(context, args, _arguments)
@@ -202,7 +202,7 @@ export class MixinDefinition extends Node implements ImportantNode {
     return rules
   }
 
-  matchCondition (context: Context, args?: Node[]): boolean {
+  matchCondition(context: Context, args?: Node[]): boolean {
     const frame = this.evalParams(context, args, [])
     let condition = this.condition && this.condition[0]
     if (condition) {
@@ -213,7 +213,7 @@ export class MixinDefinition extends Node implements ImportantNode {
     return true
   }
 
-  matchArgs (context: Context, args?: Node[]): boolean {
+  matchArgs(context: Context, args?: Node[]): boolean {
     const allArgsCnt = (args && args.length) || 0
     const params = this.params
     let optionalParameters = this.optionalParameters

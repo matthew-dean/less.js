@@ -9,10 +9,10 @@ import { EvalContext } from '../contexts'
 export class List<T extends Node = Node> extends NodeArray {
   nodes: T[]
 
-  eval (context: Context): List<T> {
+  eval(context: Context): List<T> {
     return <List<T>> super.eval(context)
   }
-  toString () {
+  toString() {
     return this.nodes.join(',')
   }
 }

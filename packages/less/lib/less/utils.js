@@ -2,7 +2,7 @@
 import * as Constants from './constants'
 import CloneHelper from 'clone'
 
-export function getLocation (index, inputStream) {
+export function getLocation(index, inputStream) {
   let n = index + 1
   let line = null
   let column = -1
@@ -21,7 +21,7 @@ export function getLocation (index, inputStream) {
   }
 }
 
-export function copyArray (arr) {
+export function copyArray(arr) {
   let i
   const length = arr.length
   const copy = new Array(length)
@@ -32,7 +32,7 @@ export function copyArray (arr) {
   return copy
 }
 
-export function clone (obj) {
+export function clone(obj) {
   const cloned = {}
   for (const prop in obj) {
     if (obj.hasOwnProperty(prop)) {
@@ -42,7 +42,7 @@ export function clone (obj) {
   return cloned
 }
 
-export function defaults (obj1, obj2) {
+export function defaults(obj1, obj2) {
   let newObj = obj2 || {}
   if (!obj2._defaults) {
     newObj = {}
@@ -54,7 +54,7 @@ export function defaults (obj1, obj2) {
   return newObj
 }
 
-export function copyOptions (obj1, obj2) {
+export function copyOptions(obj1, obj2) {
   if (obj2 && obj2._defaults) {
     return obj2
   }
@@ -98,7 +98,7 @@ export function copyOptions (obj1, obj2) {
   return opts
 }
 
-export function merge (obj1, obj2) {
+export function merge(obj1, obj2) {
   for (const prop in obj2) {
     if (obj2.hasOwnProperty(prop)) {
       obj1[prop] = obj2[prop]
@@ -107,7 +107,7 @@ export function merge (obj1, obj2) {
   return obj1
 }
 
-export function flattenArray (arr, result = []) {
+export function flattenArray(arr, result = []) {
   for (let i = 0, length = arr.length; i < length; i++) {
     const value = arr[i]
     if (Array.isArray(value)) {

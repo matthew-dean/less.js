@@ -3,21 +3,21 @@ import fs from './fs'
 import AbstractFileManager from '../less/environment/abstract-file-manager.js'
 
 class FileManager extends AbstractFileManager {
-  constructor () {
+  constructor() {
     super()
 
     this.contents = {}
   }
 
-  supports (filename, currentDirectory, options, environment) {
+  supports(filename, currentDirectory, options, environment) {
     return true
   }
 
-  supportsSync (filename, currentDirectory, options, environment) {
+  supportsSync(filename, currentDirectory, options, environment) {
     return true
   }
 
-  loadFile (filename, currentDirectory, options, environment, callback) {
+  loadFile(filename, currentDirectory, options, environment, callback) {
     let fullFilename
     const isAbsoluteFilename = this.isPathAbsolute(filename)
     const filenamesTried = []
@@ -57,7 +57,7 @@ class FileManager extends AbstractFileManager {
       return new Promise(getFileData)
     }
 
-    function returnData (data) {
+    function returnData(data) {
       if (!data.filename) {
         result = { error: data }
       } else {
@@ -65,10 +65,10 @@ class FileManager extends AbstractFileManager {
       }
     }
 
-    function getFileData (fulfill, reject) {
-      (function tryPathIndex (i) {
+    function getFileData(fulfill, reject) {
+      (function tryPathIndex(i) {
         if (i < paths.length) {
-          (function tryPrefix (j) {
+          (function tryPrefix(j) {
             if (j < prefixes.length) {
               isNodeModule = false
               fullFilename = fileParts.rawPath + prefixes[j] + fileParts.filename
@@ -89,7 +89,7 @@ class FileManager extends AbstractFileManager {
                 tryWithExtension()
               }
 
-              function tryWithExtension () {
+              function tryWithExtension() {
                 const extFilename = options.ext
                   ? self.tryAppendExtension(fullFilename, options.ext)
                   : fullFilename
@@ -163,7 +163,7 @@ class FileManager extends AbstractFileManager {
     }
   }
 
-  loadFileSync (filename, currentDirectory, options, environment) {
+  loadFileSync(filename, currentDirectory, options, environment) {
     options.syncImport = true
     return this.loadFile(filename, currentDirectory, options, environment)
   }

@@ -157,7 +157,7 @@ testSheet = function (sheet) {
 
 // TODO: do it cleaner - the same way as in css
 
-function extractId (href) {
+function extractId(href) {
   return href
     .replace(/^[a-z-]+:\/+?[^\/]+/i, '') // Remove protocol & domain
     .replace(/^\//, '') // Remove root /

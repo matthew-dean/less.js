@@ -8,7 +8,7 @@ import { Node, IProps, INodeOptions, ILocationInfo } from '.'
  *   e.g. { value: ' ', text: ' //foo' }
  */
 export class WS extends Node {
-  constructor (text?: string | IProps, options?: INodeOptions, location?: ILocationInfo) {
+  constructor(text?: string | IProps, options?: INodeOptions, location?: ILocationInfo) {
     let props: IProps
     if (!text || text.constructor === String) {
       if (!text || text === ' ') {

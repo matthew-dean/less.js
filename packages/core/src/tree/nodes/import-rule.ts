@@ -41,7 +41,7 @@ export class ImportRule extends Node {
    * will treat a `.css` extension as a `css` option, and will set that option
    * on the import node.
    */
-  constructor (props: IProps, options: IImportOptions, location: ILocationInfo) {
+  constructor(props: IProps, options: IImportOptions, location: ILocationInfo) {
     /**
      * We add an empty content object, because this.children can't be mutated after
      * the constructor. After the file is resolved, content will be populated either
@@ -51,7 +51,7 @@ export class ImportRule extends Node {
     super(props, options, location)
   }
 
-  eval (context: Context): AtRule | ImportRule {
+  eval(context: Context): AtRule | ImportRule {
     if (!this.evaluated) {
       if (!this.content) {
         super.eval(context)
@@ -76,7 +76,7 @@ export class ImportRule extends Node {
     return this
   }
 
-  toString () {
+  toString() {
     return this.content.toString()
   }
 

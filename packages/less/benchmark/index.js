@@ -29,7 +29,7 @@ fs.readFile(file, 'utf8', function (e, data) {
 
   nextRun()
 
-  function nextRun () {
+  function nextRun() {
     var start, renderEnd, parserEnd
 
     start = now()
@@ -61,8 +61,8 @@ fs.readFile(file, 'utf8', function (e, data) {
     })
   }
 
-  function finish () {
-    function analyze (benchmark, benchMarkData) {
+  function finish() {
+    function analyze(benchmark, benchMarkData) {
       console.log('----------------------')
       console.log(benchmark)
       console.log('----------------------')

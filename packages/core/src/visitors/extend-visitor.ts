@@ -15,27 +15,27 @@ import * as utils from '../utils'
  * should come at "post-flatten" but "pre-remove-invisible"
  */
 class ExtendFinderVisitor {
-  constructor () {
+  constructor() {
     this._visitor = new Visitor(this)
     this.contexts = []
     this.allExtendsStack = [[]]
   }
 
-  run (root) {
+  run(root) {
     root = this._visitor.visit(root)
     root.allExtends = this.allExtendsStack[0]
     return root
   }
 
-  visitDeclaration (declNode, visitArgs) {
+  visitDeclaration(declNode, visitArgs) {
     visitArgs.visitDeeper = false
   }
 
-  visitMixinDefinition (mixinDefinitionNode, visitArgs) {
+  visitMixinDefinition(mixinDefinitionNode, visitArgs) {
     visitArgs.visitDeeper = false
   }
 
-  visitRuleset (rulesetNode, visitArgs) {
+  visitRuleset(rulesetNode, visitArgs) {
     if (rulesetNode.root) {
       return
     }
@@ -88,37 +88,37 @@ class ExtendFinderVisitor {
     this.contexts.push(rulesetNode.selectors)
   }
 
-  visitRulesetOut (rulesetNode) {
+  visitRulesetOut(rulesetNode) {
     if (!rulesetNode.root) {
       this.contexts.length = this.contexts.length - 1
     }
   }
 
-  visitMedia (mediaNode, visitArgs) {
+  visitMedia(mediaNode, visitArgs) {
     mediaNode.allExtends = []
     this.allExtendsStack.push(mediaNode.allExtends)
   }
 
-  visitMediaOut (mediaNode) {
+  visitMediaOut(mediaNode) {
     this.allExtendsStack.length = this.allExtendsStack.length - 1
   }
 
-  visitAtRule (atRuleNode, visitArgs) {
+  visitAtRule(atRuleNode, visitArgs) {
     atRuleNode.allExtends = []
     this.allExtendsStack.push(atRuleNode.allExtends)
   }
 
-  visitAtRuleOut (atRuleNode) {
+  visitAtRuleOut(atRuleNode) {
     this.allExtendsStack.length = this.allExtendsStack.length - 1
   }
 }
 
 class ProcessExtendsVisitor {
-  constructor () {
+  constructor() {
     this._visitor = new Visitor(this)
   }
 
-  run (root) {
+  run(root) {
     const extendFinder = new ExtendFinderVisitor()
     this.extendIndices = {}
     extendFinder.run(root)
@@ -134,7 +134,7 @@ class ProcessExtendsVisitor {
     return newRoot
   }
 
-  checkExtendsForNonMatched (extendList) {
+  checkExtendsForNonMatched(extendList) {
     const indices = this.extendIndices
     extendList
       .filter(extend => !extend.hasFoundMatches && extend.parent_ids.length == 1)
@@ -151,7 +151,7 @@ class ProcessExtendsVisitor {
       })
   }
 
-  doExtendChaining (extendsList, extendsListTarget, iterationCount) {
+  doExtendChaining(extendsList, extendsListTarget, iterationCount) {
     //
     // chaining is different from normal extension.. if we extend an extend then we are not just copying, altering
     // and pasting the selector we would do normally, but we are also adding an extend with the same target selector
@@ -275,19 +275,19 @@ class ProcessExtendsVisitor {
     }
   }
 
-  visitDeclaration (ruleNode, visitArgs) {
+  visitDeclaration(ruleNode, visitArgs) {
     visitArgs.visitDeeper = false
   }
 
-  visitMixinDefinition (mixinDefinitionNode, visitArgs) {
+  visitMixinDefinition(mixinDefinitionNode, visitArgs) {
     visitArgs.visitDeeper = false
   }
 
-  visitSelector (selectorNode, visitArgs) {
+  visitSelector(selectorNode, visitArgs) {
     visitArgs.visitDeeper = false
   }
 
-  visitRuleset (rulesetNode, visitArgs) {
+  visitRuleset(rulesetNode, visitArgs) {
     if (rulesetNode.root) {
       return
     }
@@ -335,7 +335,7 @@ class ProcessExtendsVisitor {
     rulesetNode.paths = rulesetNode.paths.concat(selectorsToAdd)
   }
 
-  findMatch (extend, haystackSelectorPath) {
+  findMatch(extend, haystackSelectorPath) {
     //
     // look through the haystack selector path to try and find the needle - extend.selector
     // returns an array of selector matches that can then be replaced
@@ -434,7 +434,7 @@ class ProcessExtendsVisitor {
     return matches
   }
 
-  isElementValuesEqual (elementValue1, elementValue2) {
+  isElementValuesEqual(elementValue1, elementValue2) {
     if (typeof elementValue1 === 'string' || typeof elementValue2 === 'string') {
       return elementValue1 === elementValue2
     }
@@ -487,7 +487,7 @@ class ProcessExtendsVisitor {
     return false
   }
 
-  extendSelector (matches, selectorPath, replacementSelector, isVisible) {
+  extendSelector(matches, selectorPath, replacementSelector, isVisible) {
     // for a set of matches, replace each match with the replacement selector
 
     let currentSelectorPathIndex = 0
@@ -562,7 +562,7 @@ class ProcessExtendsVisitor {
     return path
   }
 
-  visitMedia (mediaNode, visitArgs) {
+  visitMedia(mediaNode, visitArgs) {
     let newAllExtends = mediaNode.allExtends.concat(
       this.allExtendsStack[this.allExtendsStack.length - 1]
     )
@@ -570,12 +570,12 @@ class ProcessExtendsVisitor {
     this.allExtendsStack.push(newAllExtends)
   }
 
-  visitMediaOut (mediaNode) {
+  visitMediaOut(mediaNode) {
     const lastIndex = this.allExtendsStack.length - 1
     this.allExtendsStack.length = lastIndex
   }
 
-  visitAtRule (atRuleNode, visitArgs) {
+  visitAtRule(atRuleNode, visitArgs) {
     let newAllExtends = atRuleNode.allExtends.concat(
       this.allExtendsStack[this.allExtendsStack.length - 1]
     )
@@ -585,7 +585,7 @@ class ProcessExtendsVisitor {
     this.allExtendsStack.push(newAllExtends)
   }
 
-  visitAtRuleOut (atRuleNode) {
+  visitAtRuleOut(atRuleNode) {
     const lastIndex = this.allExtendsStack.length - 1
     this.allExtendsStack.length = lastIndex
   }
