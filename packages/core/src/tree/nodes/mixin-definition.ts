@@ -30,7 +30,7 @@ export class MixinDefinition extends Node implements ImportantNode {
    * e.g. `@var`        <Name 'var'> or
    *      `@var: value` <Declaration {name: var, nodes: [value] }>
    */
-  params: (Declaration | Name)[]
+  params: (Declaration | Name)[] | undefined
   condition: Condition | undefined
   arity: number
   required: number
