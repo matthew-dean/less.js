@@ -1,18 +1,11 @@
-import {
-  Context,
-  NodeArray,
-  Value,
-  Node,
-  Condition,
-  Operation
-} from '.'
+import { Context, NodeArray, Value, Node, Condition, Operation } from '.'
 
 /**
  * A () [] or {} block that holds an expression
  * Previously named 'Paren'
- * 
+ *
  * nodes will typically be [Value<'('>, Node, Value<')'>]
- * 
+ *
  * @todo - define nodes interface for constructor
  */
 export class Block extends NodeArray {

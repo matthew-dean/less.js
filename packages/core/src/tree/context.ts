@@ -5,15 +5,15 @@ import LessError, { ILessError } from '../less-error'
 import { Less } from '../index'
 import Environment from '../environment/environment'
 
-/** 
- * @note Renamed from contexts.Eval 
- * 
+/**
+ * @note Renamed from contexts.Eval
+ *
  * This is a class instance that gets passed in during evaluation.
  * It keeps a reference to global Less options, as well
  * as environment settings. It also tracks state as it enters
  * and exits blocks, in order to determine what math settings
  * should be applied.
-*/
+ */
 export class Context {
   less: Less
   environment: Environment
@@ -34,7 +34,7 @@ export class Context {
    * As we crawl the tree, we build up a stack of
    * parent selectors we can use for merging into child selectors
    */
-  selectors: (List<Selector>)[]
+  selectors: List<Selector>[]
 
   importQueue: ImportRule[]
 
@@ -43,7 +43,7 @@ export class Context {
    * @todo - is this needed?
    */
   frames: Rules[]
-  
+
   private errors: ILessError[]
   private warnings: ILessError[]
   scope: {
@@ -127,13 +127,16 @@ export class Context {
   private isPathRelative(path: string) {
     return !/^(?:[a-z-]+:|\/|#)/i.test(path)
   }
-  
+
   private isPathLocalRelative(path: string) {
     return path.charAt(0) === '.'
   }
 
   pathRequiresRewrite(path: string): boolean {
-    const isRelative = this.options.rewriteUrls === RewriteUrlMode.LOCAL ? this.isPathLocalRelative : this.isPathRelative
+    const isRelative
+      = this.options.rewriteUrls === RewriteUrlMode.LOCAL
+        ? this.isPathLocalRelative
+        : this.isPathRelative
 
     return isRelative(path)
   }
@@ -141,14 +144,16 @@ export class Context {
   rewritePath(path: string, rootpath: string): string {
     let newPath: string
 
-    rootpath = rootpath || ''
+    rootpath = rootpath || ''
     newPath = this.environment.normalizePath(rootpath + path)
 
     // If a path was explicit relative and the rootpath was not an absolute path
     // we must ensure that the new path is also explicit relative.
-    if (this.isPathLocalRelative(path) &&
-      this.isPathRelative(rootpath) &&
-      this.isPathLocalRelative(newPath) === false) {
+    if (
+      this.isPathLocalRelative(path)
+      && this.isPathRelative(rootpath)
+      && this.isPathLocalRelative(newPath) === false
+    ) {
       newPath = `./${newPath}`
     }
 

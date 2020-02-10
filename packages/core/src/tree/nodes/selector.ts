@@ -1,21 +1,14 @@
-import {
-  Context,
-  Node,
-  Expression,
-  List,
-  Op,
-  WS
-} from '.'
+import { Context, Node, Expression, List, Op, WS } from '.'
 
 export type SelectorList = List<Selector>
 
 // A selector like div .foo@{blah} +/* */ p
-//   
+//
 //  e.g.
 //     elements = ['div',' ','.foo',new Variable('@blah'),'+','p']
 //     text = 'div.foo[bar] +/* */ p'
 //
-/** 
+/**
  * A Selector node is really just an expression wrapper for elements,
  * with some additional processing to merge combinators / whitespace
  */
@@ -42,7 +35,7 @@ export class Selector extends Expression {
           expr = new Selector(expr).inherit(expr)
           expressions[i] = expr
         }
-        
+
         const nodes = expr.nodes
         const nodesLength = nodes.length
         let hasCombinator = false
@@ -68,29 +61,33 @@ export class Selector extends Expression {
     return this
   }
 
-   /**
+  /**
    * Reduces `#sel > .val` or `#sel .val` to `#sel.val`
    * so that we can match `#sel.val()`
    */
   getMixinCompareValue(): string {
     let mixinCompareValue = this.mixinCompareValue
     if (!mixinCompareValue) {
-      mixinCompareValue = this.nodes.map(node => {
-        if (node instanceof Op) {
-          const val = node.value
-          return val === '>' ? '' : val
-        }
-        return node.valueOf()
-      }).join('')
+      mixinCompareValue = this.nodes
+        .map(node => {
+          if (node instanceof Op) {
+            const val = node.value
+            return val === '>' ? '' : val
+          }
+          return node.valueOf()
+        })
+        .join('')
       this.mixinCompareValue = mixinCompareValue
     }
     return mixinCompareValue
   }
 
   valueOf() {
-    return this.nodes.map(node => {
-      return node.valueOf()
-    }).join('')
+    return this.nodes
+      .map(node => {
+        return node.valueOf()
+      })
+      .join('')
   }
 
   /**

@@ -23,8 +23,7 @@ function colorBlend(mode: Function, color1: Color, color2: Color) {
     cs = color2.value[i] / 255
     cr = mode(cb, cs)
     if (ar) {
-      cr = (as * cs + ab * (cb -
-            as * (cb + cs - cr))) / ar
+      cr = (as * cs + ab * (cb - as * (cb + cs - cr))) / ar
     }
     r[i] = cr * 255
   }
@@ -41,17 +40,16 @@ const colorBlendModeFunctions = {
   },
   overlay(cb: number, cs: number): number {
     cb *= 2
-    return (cb <= 1) ?
-      colorBlendModeFunctions.multiply(cb, cs) :
-      colorBlendModeFunctions.screen(cb - 1, cs)
+    return cb <= 1
+      ? colorBlendModeFunctions.multiply(cb, cs)
+      : colorBlendModeFunctions.screen(cb - 1, cs)
   },
   softlight(cb: number, cs: number): number {
     let d = 1
     let e = cb
     if (cs > 0.5) {
       e = 1
-      d = (cb > 0.25) ? Math.sqrt(cb)
-          : ((16 * cb - 12) * cb + 4) * cb
+      d = cb > 0.25 ? Math.sqrt(cb) : ((16 * cb - 12) * cb + 4) * cb
     }
     return cb - (1 - 2 * cs) * e * (d - cb)
   },
@@ -76,7 +74,7 @@ const colorBlendModeFunctions = {
 
 for (const f in colorBlendModeFunctions) {
   if (colorBlendModeFunctions.hasOwnProperty(f)) {
-    colorBlend[f] = function() {
+    colorBlend[f] = function () {
       colorBlend.bind(this, colorBlendModeFunctions[f])
     }
   }

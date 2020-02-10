@@ -16,16 +16,16 @@ import {
 /**
  * @todo - rewrite
  * A Rules is a generic object in Less
- * 
+ *
  * It can have selectors, arguments, a set of rule nodes (as rules), and a guard
- * 
+ *
  * e.g.
  *      1. a plain qualified CSS rule [a {b: c}] will have selectors and rules
  *      2. a mixin will have selectors, args, rules, and possibly a guard
  *      3. A variable can be attached to a rules, which will then have no selectors, but can have args
- * 
+ *
  *  Rules also define a new scope object for variables and functions
- * 
+ *
  * @todo This should be broken up so that a rules is _just_ the parts between { ... }
  * @todo move selector logic to qualified rule
  */
@@ -59,18 +59,16 @@ export class Rules extends NodeArray implements ImportantNode {
   /**
    * This runs before full tree eval. We essentially
    * evaluate the tree enough to determine an import list.
-   * 
+   *
    * ...wait, no, that's not what this does
    */
   evalImports(context: Context) {
     // const rules = this.nodes
     // const numRules = rules.length
     // let importRules: EvalReturn
-    
     // if (!numRules) {
     //   return
     // }
-
     // for (let i = 0; i < numRules; i++) {
     //   const rule = rules[i]
     //   if (rule instanceof Import) {

@@ -18,13 +18,15 @@ describe('can parse all Less stylesheets', () => {
       const { cst, lexerResult, parser } = lessParser.parse(result.toString())
       expect(lexerResult.errors.length).to.equal(0)
       expect(parser.errors.length).to.equal(0)
-    });
-  });
-});
+    })
+  })
+})
 
 // Skipped until we fix these flows
 describe.skip('should throw parsing errors', () => {
-  const files = glob.sync(path.relative(process.cwd(), path.join(testData, 'errors/parse/**/*.less')))
+  const files = glob.sync(
+    path.relative(process.cwd(), path.join(testData, 'errors/parse/**/*.less'))
+  )
   files.sort()
   files.forEach(file => {
     it(`${file}`, () => {
@@ -32,6 +34,6 @@ describe.skip('should throw parsing errors', () => {
       const { cst, lexerResult, parser } = lessParser.parse(result.toString())
       expect(lexerResult.errors.length).to.equal(0)
       expect(parser.errors.length).to.equal(1)
-    });
-  });
-});
+    })
+  })
+})

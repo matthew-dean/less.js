@@ -1,11 +1,4 @@
-import {
-  Context,
-  Node,
-  IProps,
-  INodeOptions,
-  ILocationInfo,
-  Value
-} from '.'
+import { Context, Node, IProps, INodeOptions, ILocationInfo, Value } from '.'
 
 export type IFunctionCallProps = {
   name: string
@@ -53,58 +46,54 @@ export class FunctionCall extends Node {
     }
     context.mathOn = currentMathContext
 
-
     let result
-    const funcCaller = new FunctionCaller(this.name, context, this.getIndex(), this.fileInfo());
+    const funcCaller = new FunctionCaller(this.name, context, this.getIndex(), this.fileInfo())
 
     if (funcCaller.isValid()) {
-        try {
-            result = funcCaller.call(args);
-        } catch (e) {
-            throw { 
-                type: e.type || 'Runtime',
-                message: `error evaluating function \`${this.name}\`${e.message ? `: ${e.message}` : ''}`,
-                index: this.getIndex(), 
-                filename: this.fileInfo().filename,
-                line: e.lineNumber,
-                column: e.columnNumber
-            };
+      try {
+        result = funcCaller.call(args)
+      } catch (e) {
+        throw {
+          type: e.type || 'Runtime',
+          message: `error evaluating function \`${this.name}\`${e.message ? `: ${e.message}` : ''}`,
+          index: this.getIndex(),
+          filename: this.fileInfo().filename,
+          line: e.lineNumber,
+          column: e.columnNumber
         }
+      }
 
-        if (result !== null && result !== undefined) {
-            // Results that that are not nodes are cast as Value nodes
-            // Falsy values or booleans are returned as empty nodes
-            if (!(result instanceof Node)) {
-                if (!result || result === true) {
-                    result = new Value(null)
-                }
-                else {
-                    result = new Value(result.toString())
-                }
-                
-            }
-            result._index = this._index;
-            result._fileInfo = this._fileInfo;
-            return result;
+      if (result !== null && result !== undefined) {
+        // Results that that are not nodes are cast as Value nodes
+        // Falsy values or booleans are returned as empty nodes
+        if (!(result instanceof Node)) {
+          if (!result || result === true) {
+            result = new Value(null)
+          } else {
+            result = new Value(result.toString())
+          }
         }
-
+        result._index = this._index
+        result._fileInfo = this._fileInfo
+        return result
+      }
     }
 
-    return new Call(this.name, args, this.getIndex(), this.fileInfo());
+    return new Call(this.name, args, this.getIndex(), this.fileInfo())
   }
 
-    genCSS(context, output) {
-        output.add(`${this.name}(`, this.fileInfo(), this.getIndex());
+  genCSS(context, output) {
+    output.add(`${this.name}(`, this.fileInfo(), this.getIndex())
 
-        for (let i = 0; i < this.args.length; i++) {
-            this.args[i].genCSS(context, output);
-            if (i + 1 < this.args.length) {
-                output.add(', ');
-            }
-        }
-
-        output.add(')');
+    for (let i = 0; i < this.args.length; i++) {
+      this.args[i].genCSS(context, output)
+      if (i + 1 < this.args.length) {
+        output.add(', ')
+      }
     }
+
+    output.add(')')
+  }
 }
 
 FunctionCall.prototype.type = 'FunctionCall'

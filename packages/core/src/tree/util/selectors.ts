@@ -1,11 +1,4 @@
-import {
-  List,
-  Expression,
-  Declaration,
-  Node,
-  MergeType,
-  WS
-} from '../nodes'
+import { List, Expression, Declaration, Node, MergeType, WS } from '../nodes'
 
 export const mergeProperties = <T extends Node = Node>(rules: T[], clone?: boolean): T[] => {
   const groups: {
@@ -27,7 +20,7 @@ export const mergeProperties = <T extends Node = Node>(rules: T[], clone?: boole
         if (groups[key]) {
           rules.splice(i--, 1)
         } else {
-          groupsArr.push(groups[key] = [])
+          groupsArr.push((groups[key] = []))
         }
         groups[key].push(rule)
       }
@@ -78,7 +71,7 @@ export const mergeProperties = <T extends Node = Node>(rules: T[], clone?: boole
 }
 
 // export const flattenSelectors = (selectorList: List<Selector>): List<Selector> => {
-  // const selectors = selectorList.nodes
+// const selectors = selectorList.nodes
 //     const createdSelectors: Selector[] = []
 
 //     if (selectors && selectors.length > 0) {
@@ -94,5 +87,5 @@ export const mergeProperties = <T extends Node = Node>(rules: T[], clone?: boole
 //       })
 //       this.children.selectors[0].nodes = createdSelectors
 //     }
-  // return selectorList
+// return selectorList
 // }

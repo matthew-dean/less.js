@@ -1,12 +1,4 @@
-import {
-  Context,
-  Node,
-  Rules,
-  IBaseProps,
-  IProps,
-  INodeOptions,
-  ILocationInfo
-} from '.'
+import { Context, Node, Rules, IBaseProps, IProps, INodeOptions, ILocationInfo } from '.'
 
 export type IAtRuleProps = {
   name: string
@@ -25,10 +17,10 @@ export class AtRule extends Node {
   constructor(props: IAtRuleProps, options: INodeOptions = {}, location: ILocationInfo) {
     const { name, ...rest } = props
 
-    if (options.atRoot === undefined && (/@media|@supports/i.test(name))) {
+    if (options.atRoot === undefined && /@media|@supports/i.test(name)) {
       options.atRoot = true
     }
-    
+
     /** Wrap at rule body in an empty rules for proper scoping and collapsing */
     super(<IProps>(rest as unknown), options, location)
 

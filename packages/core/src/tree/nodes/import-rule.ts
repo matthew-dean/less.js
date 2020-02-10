@@ -1,11 +1,4 @@
-import {
-  Context,
-  Node,
-  IProps,
-  ILocationInfo,
-  AtRule,
-  Expression
-} from '.'
+import { Context, Node, IProps, ILocationInfo, AtRule, Expression } from '.'
 
 /**
  * @todo - all imports must resolve to a Less AST, even modules.
@@ -42,7 +35,7 @@ export class ImportRule extends Node {
   options: IImportOptions
 
   /**
-   * Note that when an import is added to the import queue, it's eventually passed 
+   * Note that when an import is added to the import queue, it's eventually passed
    * to the file manager, which may decide to alter the options based on file
    * content or extension. So, for example, by default the Less file manager
    * will treat a `.css` extension as a `css` option, and will set that option
@@ -64,12 +57,16 @@ export class ImportRule extends Node {
         super.eval(context)
         if (this.options.css) {
           this.evaluated = true
-          return new AtRule({
-            pre: this.pre,
-            post: this.post,
-            name: '@import',
-            prelude: new Expression([this.path, this.features]).inherit(this.path)
-          }, {}, this.location).inherit(this)
+          return new AtRule(
+            {
+              pre: this.pre,
+              post: this.post,
+              name: '@import',
+              prelude: new Expression([this.path, this.features]).inherit(this.path)
+            },
+            {},
+            this.location
+          ).inherit(this)
         }
       } else {
         this.content.eval(context)
@@ -118,7 +115,6 @@ export class ImportRule extends Node {
   //       }
 
   //       // return [];
-  
 
   //       if (this.skip) {
   //           if (typeof this.skip === 'function') {

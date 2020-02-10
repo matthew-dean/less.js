@@ -4,7 +4,7 @@ import { Node, IProps, INodeOptions, ILocationInfo } from '.'
  * A white-space node
  * Used to normalize expressions and values for equality testing
  * and list indexing
- * 
+ *
  *   e.g. { value: ' ', text: ' //foo' }
  */
 export class WS extends Node {

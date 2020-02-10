@@ -14,7 +14,7 @@ abstract class Visitor {
    *   200: Selectors joined on rulesets (but tree is not flattened)
    *   300: Node visibility resolved
    *   400: Tree flattening
-   *   500: Extend visitor 
+   *   500: Extend visitor
    */
   priority: number
   isReplacing: boolean

@@ -5,21 +5,39 @@ import Logger from '../../environment/logger'
 
 export class MockEnvironment extends Environment {
   getFileInfo(filePath: string) {
-    return { filename: '', path: ''}
+    return { filename: '', path: '' }
   }
 
-  encodeBase64(str: string) { return str }
-  mimeLookup(filename: string) { return 'text/plain' }
-  charsetLookup(mime: string) { return 'utf-8' }
-  getSourceMapGenerator() {
-    return function() {}
+  encodeBase64(str: string) {
+    return str
   }
-  getPath(filePath: string) { return '' }
-  tryAppendExtension(path: string, ext: string) { return path + ext }
-  alwaysMakePathsAbsolute() { return false }
-  isPathAbsolute(path: string) { return false }
-  joinPath(basePath: string, path: string) { return basePath + path }
-  pathDiff(url: string, baseUrl: string) { return url }
+  mimeLookup(filename: string) {
+    return 'text/plain'
+  }
+  charsetLookup(mime: string) {
+    return 'utf-8'
+  }
+  getSourceMapGenerator() {
+    return function () {}
+  }
+  getPath(filePath: string) {
+    return ''
+  }
+  tryAppendExtension(path: string, ext: string) {
+    return path + ext
+  }
+  alwaysMakePathsAbsolute() {
+    return false
+  }
+  isPathAbsolute(path: string) {
+    return false
+  }
+  joinPath(basePath: string, path: string) {
+    return basePath + path
+  }
+  pathDiff(url: string, baseUrl: string) {
+    return url
+  }
   loadFile(filePath: string) {
     return new Promise<FileObject>((resolve, reject) => {
       resolve(this.loadFileSync(filePath))
@@ -36,18 +54,10 @@ export class MockEnvironment extends Environment {
       contents: 'foo'
     }
   }
-  supportsSync(
-    filePath,
-    currentDirectory,
-    options
-  ) {
+  supportsSync(filePath, currentDirectory, options) {
     return true
   }
-  supports(
-    filePath,
-    currentDirectory,
-    options
-  ) {
+  supports(filePath, currentDirectory, options) {
     return true
   }
 

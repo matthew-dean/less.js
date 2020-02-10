@@ -1,12 +1,4 @@
-import {
-  Context,
-  Node,
-  NodeArray,
-  IProps,
-  ILocationInfo,
-  Op,
-  Bool
-} from '.'
+import { Context, Node, NodeArray, IProps, ILocationInfo, Op, Bool } from '.'
 
 import { compare } from '../util/compare'
 
@@ -30,8 +22,10 @@ export class Condition extends NodeArray {
     const result = ((op, a, b) => {
       if (a instanceof Node && b instanceof Node) {
         switch (op) {
-          case 'and': return Boolean(a.valueOf()) && Boolean(b.valueOf())
-          case 'or':  return Boolean(a.valueOf()) || Boolean(b.valueOf())
+          case 'and':
+            return Boolean(a.valueOf()) && Boolean(b.valueOf())
+          case 'or':
+            return Boolean(a.valueOf()) || Boolean(b.valueOf())
           default:
             switch (compare(a, b)) {
               case -1:

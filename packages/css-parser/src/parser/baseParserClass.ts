@@ -5,7 +5,7 @@ import {
   ConsumeMethodOpts,
   SubruleMethodOpts,
   CstElement
-} from "chevrotain";
+} from 'chevrotain'
 
 export interface ICaptureResult {
   tokens: IToken[]
@@ -32,7 +32,7 @@ export class BaseParserClass extends EmbeddedActionsParser {
     return tokens
   }
 
-  private processCapturedToken (token: IToken): IToken {
+  private processCapturedToken(token: IToken): IToken {
     if (!this.CAPTURING) {
       return token
     }
@@ -52,73 +52,43 @@ export class BaseParserClass extends EmbeddedActionsParser {
   //   }
   // }
 
-  CONSUME(
-    tokType: TokenType,
-    options?: ConsumeMethodOpts
-  ): IToken {
+  CONSUME(tokType: TokenType, options?: ConsumeMethodOpts): IToken {
     return this.processCapturedToken(super.CONSUME(tokType, options))
   }
 
-  CONSUME1(
-    tokType: TokenType,
-    options?: ConsumeMethodOpts
-  ): IToken {
+  CONSUME1(tokType: TokenType, options?: ConsumeMethodOpts): IToken {
     return this.processCapturedToken(super.CONSUME1(tokType, options))
   }
 
-  CONSUME2(
-    tokType: TokenType,
-    options?: ConsumeMethodOpts
-  ): IToken {
+  CONSUME2(tokType: TokenType, options?: ConsumeMethodOpts): IToken {
     return this.processCapturedToken(super.CONSUME2(tokType, options))
   }
 
-  CONSUME3(
-    tokType: TokenType,
-    options?: ConsumeMethodOpts
-  ): IToken {
+  CONSUME3(tokType: TokenType, options?: ConsumeMethodOpts): IToken {
     return this.processCapturedToken(super.CONSUME3(tokType, options))
   }
 
-  CONSUME4(
-    tokType: TokenType,
-    options?: ConsumeMethodOpts
-  ): IToken {
+  CONSUME4(tokType: TokenType, options?: ConsumeMethodOpts): IToken {
     return this.processCapturedToken(super.CONSUME4(tokType, options))
   }
 
-  CONSUME5(
-    tokType: TokenType,
-    options?: ConsumeMethodOpts
-  ): IToken {
+  CONSUME5(tokType: TokenType, options?: ConsumeMethodOpts): IToken {
     return this.processCapturedToken(super.CONSUME5(tokType, options))
   }
 
-  CONSUME6(
-    tokType: TokenType,
-    options?: ConsumeMethodOpts
-  ): IToken {
+  CONSUME6(tokType: TokenType, options?: ConsumeMethodOpts): IToken {
     return this.processCapturedToken(super.CONSUME6(tokType, options))
   }
 
-  CONSUME7(
-    tokType: TokenType,
-    options?: ConsumeMethodOpts
-  ): IToken {
+  CONSUME7(tokType: TokenType, options?: ConsumeMethodOpts): IToken {
     return this.processCapturedToken(super.CONSUME7(tokType, options))
   }
 
-  CONSUME8(
-    tokType: TokenType,
-    options?: ConsumeMethodOpts
-  ): IToken {
+  CONSUME8(tokType: TokenType, options?: ConsumeMethodOpts): IToken {
     return this.processCapturedToken(super.CONSUME8(tokType, options))
   }
 
-  CONSUME9(
-    tokType: TokenType,
-    options?: ConsumeMethodOpts
-  ): IToken {
+  CONSUME9(tokType: TokenType, options?: ConsumeMethodOpts): IToken {
     return this.processCapturedToken(super.CONSUME9(tokType, options))
   }
 

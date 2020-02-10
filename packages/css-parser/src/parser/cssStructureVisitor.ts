@@ -11,10 +11,7 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
     lexedTokens: IToken[]
     errors: IRecognitionException[]
 
-    constructor(
-      cssParser: CssRuleParser,
-      lexedTokens: IToken[]
-    ) {
+    constructor(cssParser: CssRuleParser, lexedTokens: IToken[]) {
       super()
       this.errors = []
       this.cssParser = cssParser
@@ -42,7 +39,7 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
         const { curlyBlock, colon, expressionList, property } = rule.children
         const { start, expressionEnd, propertyEnd } = rule.tokenRange
         parser.input = this.lexedTokens.slice(start, expressionEnd)
-        
+
         /** Try parsing values as selectors */
         // @ts-ignore
         const selectors = parser.compoundSelectorList()
@@ -141,4 +138,3 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
 //        delete ctx.NotSemiColon
 //     }
 // }
-

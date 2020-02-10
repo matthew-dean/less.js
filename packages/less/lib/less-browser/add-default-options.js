@@ -1,13 +1,14 @@
-import {addDataAttr} from './utils';
-import browser from './browser';
+import { addDataAttr } from './utils'
+import browser from './browser'
 
 export default (window, options) => {
-
     // use options from the current script tag data attribues
-    addDataAttr(options, browser.currentScript(window));
+    addDataAttr(options, browser.currentScript(window))
 
     if (options.isFileProtocol === undefined) {
-        options.isFileProtocol = /^(file|(chrome|safari)(-extension)?|resource|qrc|app):/.test(window.location.protocol);
+        options.isFileProtocol = /^(file|(chrome|safari)(-extension)?|resource|qrc|app):/.test(
+            window.location.protocol
+        )
     }
 
     // Load styles asynchronously (default: false)
@@ -16,34 +17,36 @@ export default (window, options) => {
     // doesn't start loading before the stylesheets are parsed.
     // Setting this to `true` can result in flickering.
     //
-    options.async = options.async || false;
-    options.fileAsync = options.fileAsync || false;
+    options.async = options.async || false
+    options.fileAsync = options.fileAsync || false
 
     // Interval between watch polls
-    options.poll = options.poll || (options.isFileProtocol ? 1000 : 1500);
+    options.poll = options.poll || (options.isFileProtocol ? 1000 : 1500)
 
-    options.env = options.env || (window.location.hostname == '127.0.0.1' ||
-        window.location.hostname == '0.0.0.0'   ||
-        window.location.hostname == 'localhost' ||
-        (window.location.port &&
-            window.location.port.length > 0)      ||
-        options.isFileProtocol                   ? 'development'
-        : 'production');
+    options.env =
+    options.env ||
+    (window.location.hostname == '127.0.0.1' ||
+    window.location.hostname == '0.0.0.0' ||
+    window.location.hostname == 'localhost' ||
+    (window.location.port && window.location.port.length > 0) ||
+    options.isFileProtocol
+        ? 'development'
+        : 'production')
 
-    const dumpLineNumbers = /!dumpLineNumbers:(comments|mediaquery|all)/.exec(window.location.hash);
+    const dumpLineNumbers = /!dumpLineNumbers:(comments|mediaquery|all)/.exec(window.location.hash)
     if (dumpLineNumbers) {
-        options.dumpLineNumbers = dumpLineNumbers[1];
+        options.dumpLineNumbers = dumpLineNumbers[1]
     }
 
     if (options.useFileCache === undefined) {
-        options.useFileCache = true;
+        options.useFileCache = true
     }
 
     if (options.onReady === undefined) {
-        options.onReady = true;
+        options.onReady = true
     }
 
     if (options.relativeUrls) {
-        options.rewriteUrls = 'all';
+        options.rewriteUrls = 'all'
     }
-};
+}

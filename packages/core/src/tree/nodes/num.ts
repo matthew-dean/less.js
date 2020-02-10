@@ -15,7 +15,7 @@ export type INumberProps = number | IProps
 /**
  * A Num is any number (dimension without a unit)
  *   e.g. new Num(2, ...)
- * 
+ *
  * @todo - make sure this stores the text representation
  *   e.g. a CSS number can be '+1', the plus would be lost in conversion
  */
@@ -29,7 +29,7 @@ export class Num extends NumericNode {
   }
 
   valueOf(): number {
-    return <number>super.valueOf()
+    return <number> super.valueOf()
   }
 
   /** @todo */

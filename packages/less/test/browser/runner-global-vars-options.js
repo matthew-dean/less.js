@@ -4,4 +4,4 @@ var less = {
     globalVars: {
         '@global-var': 'red'
     }
-};
+}

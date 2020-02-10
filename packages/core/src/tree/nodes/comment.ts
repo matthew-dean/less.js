@@ -1,9 +1,4 @@
-import {
-  Node,
-  IProps,
-  INodeOptions,
-  ILocationInfo
-} from '.'
+import { Node, IProps, INodeOptions, ILocationInfo } from '.'
 
 export class Comment extends Node {
   text: string

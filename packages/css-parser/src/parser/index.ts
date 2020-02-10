@@ -30,12 +30,12 @@ export class Parser {
     }
   }
 
-  parse (text: string): IParseResult {
+  parse(text: string): IParseResult {
     const lexerResult = this.lexer.tokenize(text)
     const lexedTokens: IToken[] = lexerResult.tokens
     this.parser.input = lexedTokens
     const cst = this.parser.primary()
-  
+
     return { cst, lexerResult, parser: this.parser }
   }
 }

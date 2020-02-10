@@ -54,7 +54,7 @@ class LessError extends Error {
         col = location.startColumn
         index = location.startOffset
       }
-      
+
       // const callLine = e.call && utils.getLocation(e.call, input).line
 
       this.type = e.type || 'Syntax'
@@ -64,7 +64,7 @@ class LessError extends Error {
       this.column = col
 
       if (!line && stack) {
-        const found = stack.match(/(<anonymous>|Function):(\d+):(\d+)/);
+        const found = stack.match(/(<anonymous>|Function):(\d+):(\d+)/)
 
         if (found) {
           if (found[2]) {
@@ -130,13 +130,9 @@ class LessError extends Error {
     const errorLines = []
     let error: string = ''
     let extract: string[]
-  
+
     if (lines) {
-      extract = [
-        lines.get(this.line - 1) || '',
-        lines.get(this.line) || '',
-        lines.get(this.line)
-      ]
+      extract = [lines.get(this.line - 1) || '', lines.get(this.line) || '', lines.get(this.line)]
     } else {
       extract = ['', '', '']
     }
@@ -144,7 +140,7 @@ class LessError extends Error {
     if (!stylize) {
       stylize = (str: string) => str
     } else if (stylize.constructor !== Function) {
-      throw Error(`The 'stylize' option for LessError should be a function.`);
+      throw Error(`The 'stylize' option for LessError should be a function.`)
     }
 
     if (this.line !== null) {
@@ -155,9 +151,16 @@ class LessError extends Error {
       if (extract[1]) {
         let errorTxt = `${this.line} `
         if (extract[1]) {
-          errorTxt += extract[1].slice(0, this.column) +
-            stylize(stylize(stylize(extract[1].substr(this.column, 1), TextFormat.BOLD) +
-              extract[1].slice(this.column + 1), TextFormat.RED), TextFormat.INVERSE)
+          errorTxt
+            += extract[1].slice(0, this.column)
+            + stylize(
+              stylize(
+                stylize(extract[1].substr(this.column, 1), TextFormat.BOLD)
+                  + extract[1].slice(this.column + 1),
+                TextFormat.RED
+              ),
+              TextFormat.INVERSE
+            )
         }
         errorLines.push(errorTxt)
       }

@@ -1,13 +1,13 @@
 (function() {
-    window.DEFER = [window.onload];
+    window.DEFER = [window.onload]
     Object.defineProperty(window, 'onload', {
         get: function() {
-            return function() {};
+            return function() {}
         },
         set: function(fn) {
-            window.DEFER.push(fn);
+            window.DEFER.push(fn)
         },
         enumerable: true,
         configurable: true
-    });
-})();
+    })
+})()

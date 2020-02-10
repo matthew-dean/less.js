@@ -4,26 +4,28 @@ import { Node, Context } from '.'
  * @todo - remove and merge with rules
  */
 class DetachedRules extends Node {
-    constructor(rules, frames) {
-        super();
+  constructor(rules, frames) {
+    super()
 
-        this.rules = rules;
-        this.frames = frames;
-        this.setParent(this.rules, this);
-    }
+    this.rules = rules
+    this.frames = frames
+    this.setParent(this.rules, this)
+  }
 
-    accept(visitor) {
-        this.rules = visitor.visit(this.rules);
-    }
+  accept(visitor) {
+    this.rules = visitor.visit(this.rules)
+  }
 
-    eval(context) {
-        const frames = this.frames || utils.copyArray(context.frames);
-        return new DetachedRules(this.rules, frames);
-    }
+  eval(context) {
+    const frames = this.frames || utils.copyArray(context.frames)
+    return new DetachedRules(this.rules, frames)
+  }
 
-    callEval(context) {
-        return this.rules.eval(this.frames ? new contexts.Eval(context, this.frames.concat(context.frames)) : context);
-    }
+  callEval(context) {
+    return this.rules.eval(
+      this.frames ? new contexts.Eval(context, this.frames.concat(context.frames)) : context
+    )
+  }
 }
 
 DetachedRules.prototype.type = 'DetachedRules'

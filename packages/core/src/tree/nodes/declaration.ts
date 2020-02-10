@@ -1,13 +1,4 @@
-import {
-  Context,
-  Node,
-  List,
-  Name,
-  IProps,
-  ILocationInfo,
-  ImportantNode,
-  Value
-} from '.'
+import { Context, Node, List, Name, IProps, ILocationInfo, ImportantNode, Value } from '.'
 
 /**
  * Will merge props using space or comma separators
@@ -34,23 +25,27 @@ export class Declaration extends Node implements ImportantNode {
    * Declaration's nodes are are an array of [Value, Important],
    * The value is either a List (of Expressions), an Expression, or
    * Rules (an anonymous mixin definition)
-   * 
+   *
    * Note that a custom property's value will be a Expression containing
    * just Value nodes and any interpolated Variables, since it can contain
    * nearly anything. This Expression will contain initial
    * and final whitespace, whereas a normal declaration's expression (or list)
    * will have it assigned to the pre / post properties. This aligns with
    * the CSS syntax spec, and means that the nodes' value of `--foo: bar`
-   * does _not_ equal the value of `--foo:bar`, but values within the 
+   * does _not_ equal the value of `--foo:bar`, but values within the
    * declarations of `foo: bar` and `foo:bar` are equal.
-   * 
+   *
    */
-  nodes: [(List<Node> | Node)] | [(List<Node> | Node), Value]
+  nodes: [List<Node> | Node] | [List<Node> | Node, Value]
   name: Name
   important: Value | undefined
   options: IDeclarationOptions
 
-  constructor(props: IDeclarationProps, options: IDeclarationOptions = {}, location?: ILocationInfo) {
+  constructor(
+    props: IDeclarationProps,
+    options: IDeclarationOptions = {},
+    location?: ILocationInfo
+  ) {
     let { name } = props
     const { important, ...rest } = props
     if (important) {
@@ -88,9 +83,9 @@ export class Declaration extends Node implements ImportantNode {
   }
 
   toString(omitPrePost?: boolean) {
-    const text = (this.options.isVariable ? '@' : '') + 
-      this.name.toString() + ':' + this.nodes.join('')
-    
+    const text
+      = (this.options.isVariable ? '@' : '') + this.name.toString() + ':' + this.nodes.join('')
+
     if (omitPrePost) {
       return text
     }

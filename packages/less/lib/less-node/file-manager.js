@@ -1,66 +1,67 @@
-import path from 'path';
-import fs from './fs';
-import AbstractFileManager from '../less/environment/abstract-file-manager.js';
+import path from 'path'
+import fs from './fs'
+import AbstractFileManager from '../less/environment/abstract-file-manager.js'
 
 class FileManager extends AbstractFileManager {
     constructor() {
-        super();
+        super()
 
-        this.contents = {};
+        this.contents = {}
     }
 
     supports(filename, currentDirectory, options, environment) {
-        return true;
+        return true
     }
 
     supportsSync(filename, currentDirectory, options, environment) {
-        return true;
+        return true
     }
 
     loadFile(filename, currentDirectory, options, environment, callback) {
-        let fullFilename;
-        const isAbsoluteFilename = this.isPathAbsolute(filename);
-        const filenamesTried = [];
-        const self = this;
-        const prefix = filename.slice(0, 1);
-        const explicit = prefix === '.' || prefix === '/';
-        let result = null;
-        let isNodeModule = false;
-        const npmPrefix = 'npm://';
+        let fullFilename
+        const isAbsoluteFilename = this.isPathAbsolute(filename)
+        const filenamesTried = []
+        const self = this
+        const prefix = filename.slice(0, 1)
+        const explicit = prefix === '.' || prefix === '/'
+        let result = null
+        let isNodeModule = false
+        const npmPrefix = 'npm://'
 
-        options = options || {};
+        options = options || {}
 
-        const paths = isAbsoluteFilename ? [''] : [currentDirectory];
+        const paths = isAbsoluteFilename ? [''] : [currentDirectory]
 
-        if (options.paths) { paths.push(...options.paths); }
+        if (options.paths) {
+            paths.push(...options.paths)
+        }
 
-        if (!isAbsoluteFilename && paths.indexOf('.') === -1) { paths.push('.'); }
+        if (!isAbsoluteFilename && paths.indexOf('.') === -1) {
+            paths.push('.')
+        }
 
-        const prefixes = options.prefixes || [''];
-        const fileParts = this.extractUrlParts(filename);
+        const prefixes = options.prefixes || ['']
+        const fileParts = this.extractUrlParts(filename)
 
         if (options.syncImport) {
-            getFileData(returnData, returnData);
+            getFileData(returnData, returnData)
             if (callback) {
-                callback(result.error, result);
+                callback(result.error, result)
+            } else {
+                return result
             }
-            else {
-                return result;
-            }
-        }
-        else {
+        } else {
             // promise is guaranteed to be asyncronous
             // which helps as it allows the file handle
             // to be closed before it continues with the next file
-            return new Promise(getFileData);
+            return new Promise(getFileData)
         }
 
         function returnData(data) {
             if (!data.filename) {
-                result = { error: data };
-            }
-            else {
-                result = data;
+                result = { error: data }
+            } else {
+                result = data
             }
         }
 
@@ -69,109 +70,103 @@ class FileManager extends AbstractFileManager {
                 if (i < paths.length) {
                     (function tryPrefix(j) {
                         if (j < prefixes.length) {
-                            isNodeModule = false;
-                            fullFilename = fileParts.rawPath + prefixes[j] + fileParts.filename;
+                            isNodeModule = false
+                            fullFilename = fileParts.rawPath + prefixes[j] + fileParts.filename
 
                             if (paths[i]) {
-                                fullFilename = path.join(paths[i], fullFilename);
+                                fullFilename = path.join(paths[i], fullFilename)
                             }
 
                             if (!explicit && paths[i] === '.') {
                                 try {
-                                    fullFilename = require.resolve(fullFilename);
-                                    isNodeModule = true;
+                                    fullFilename = require.resolve(fullFilename)
+                                    isNodeModule = true
+                                } catch (e) {
+                                    filenamesTried.push(npmPrefix + fullFilename)
+                                    tryWithExtension()
                                 }
-                                catch (e) {
-                                    filenamesTried.push(npmPrefix + fullFilename);
-                                    tryWithExtension();
-                                }
-                            }
-                            else {
-                                tryWithExtension();
+                            } else {
+                                tryWithExtension()
                             }
 
                             function tryWithExtension() {
-                                const extFilename = options.ext ? self.tryAppendExtension(fullFilename, options.ext) : fullFilename;
+                                const extFilename = options.ext
+                                    ? self.tryAppendExtension(fullFilename, options.ext)
+                                    : fullFilename
 
                                 if (extFilename !== fullFilename && !explicit && paths[i] === '.') {
                                     try {
-                                        fullFilename = require.resolve(extFilename);
-                                        isNodeModule = true;
+                                        fullFilename = require.resolve(extFilename)
+                                        isNodeModule = true
+                                    } catch (e) {
+                                        filenamesTried.push(npmPrefix + extFilename)
+                                        fullFilename = extFilename
                                     }
-                                    catch (e) {
-                                        filenamesTried.push(npmPrefix + extFilename);
-                                        fullFilename = extFilename;
-                                    }
-                                }
-                                else {
-                                    fullFilename = extFilename;
+                                } else {
+                                    fullFilename = extFilename
                                 }
                             }
 
-                            let modified = false;
+                            let modified = false
 
                             if (self.contents[fullFilename]) {
                                 try {
-                                    var stat = fs.statSync.apply(this, [fullFilename]);
+                                    var stat = fs.statSync.apply(this, [fullFilename])
                                     if (stat.mtime.getTime() === self.contents[fullFilename].mtime.getTime()) {
-                                        fulfill({ contents: self.contents[fullFilename].data, filename: fullFilename});
+                                        fulfill({ contents: self.contents[fullFilename].data, filename: fullFilename })
+                                    } else {
+                                        modified = true
                                     }
-                                    else {
-                                        modified = true;
-                                    }
-                                }
-                                catch (e) {
-                                    modified = true;
+                                } catch (e) {
+                                    modified = true
                                 }
                             }
                             if (modified || !self.contents[fullFilename]) {
-                                const readFileArgs = [fullFilename];
+                                const readFileArgs = [fullFilename]
                                 if (!options.rawBuffer) {
-                                    readFileArgs.push('utf-8');
+                                    readFileArgs.push('utf-8')
                                 }
                                 if (options.syncImport) {
                                     try {
-                                        const data = fs.readFileSync.apply(this, readFileArgs);
-                                        var stat = fs.statSync.apply(this, [fullFilename]);
-                                        self.contents[fullFilename] = { data, mtime: stat.mtime };
-                                        fulfill({ contents: data, filename: fullFilename});
+                                        const data = fs.readFileSync.apply(this, readFileArgs)
+                                        var stat = fs.statSync.apply(this, [fullFilename])
+                                        self.contents[fullFilename] = { data, mtime: stat.mtime }
+                                        fulfill({ contents: data, filename: fullFilename })
+                                    } catch (e) {
+                                        filenamesTried.push(isNodeModule ? npmPrefix + fullFilename : fullFilename)
+                                        return tryPrefix(j + 1)
                                     }
-                                    catch (e) {
-                                        filenamesTried.push(isNodeModule ? npmPrefix + fullFilename : fullFilename);
-                                        return tryPrefix(j + 1);
-                                    }
-                                }
-                                else {
+                                } else {
                                     readFileArgs.push(function(e, data) {
                                         if (e) {
-                                            filenamesTried.push(isNodeModule ? npmPrefix + fullFilename : fullFilename);
-                                            return tryPrefix(j + 1);
+                                            filenamesTried.push(isNodeModule ? npmPrefix + fullFilename : fullFilename)
+                                            return tryPrefix(j + 1)
                                         }
-                                        const stat = fs.statSync.apply(this, [fullFilename]);
-                                        self.contents[fullFilename] = { data, mtime: stat.mtime };      
-                                        fulfill({ contents: data, filename: fullFilename});
-                                    });
-                                    fs.readFile.apply(this, readFileArgs);
+                                        const stat = fs.statSync.apply(this, [fullFilename])
+                                        self.contents[fullFilename] = { data, mtime: stat.mtime }
+                                        fulfill({ contents: data, filename: fullFilename })
+                                    })
+                                    fs.readFile.apply(this, readFileArgs)
                                 }
-
                             }
-
+                        } else {
+                            tryPathIndex(i + 1)
                         }
-                        else {
-                            tryPathIndex(i + 1);
-                        }
-                    })(0);
+                    })(0)
                 } else {
-                    reject({ type: 'File', message: `'${filename}' wasn't found. Tried - ${filenamesTried.join(',')}` });
+                    reject({
+                        type: 'File',
+                        message: `'${filename}' wasn't found. Tried - ${filenamesTried.join(',')}`
+                    })
                 }
-            }(0));
+            })(0)
         }
     }
 
     loadFileSync(filename, currentDirectory, options, environment) {
-        options.syncImport = true;
-        return this.loadFile(filename, currentDirectory, options, environment);
+        options.syncImport = true
+        return this.loadFile(filename, currentDirectory, options, environment)
     }
 }
 
-export default FileManager;
+export default FileManager

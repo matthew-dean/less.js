@@ -1,4 +1,3 @@
-
 export default abstract class Logger {
   abstract error(msg: string): void
   abstract warn(msg: string): void

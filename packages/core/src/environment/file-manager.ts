@@ -1,9 +1,6 @@
 import { IOptions } from '../options'
 import Environment, { FileObject } from './environment'
-import {
-  Node,
-  IImportOptions
-} from '../tree/nodes'
+import { Node, IImportOptions } from '../tree/nodes'
 
 export abstract class FileManager {
   /**
@@ -79,10 +76,7 @@ export abstract class FileManager {
   /**
    * Given file object and options, returns a single Less AST node
    */
-  abstract parseFile(
-    file: FileObject,
-    options: IOptions & IImportOptions
-  ): Promise<Node>
+  abstract parseFile(file: FileObject, options: IOptions & IImportOptions): Promise<Node>
 }
 
 export default FileManager

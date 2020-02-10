@@ -13,10 +13,10 @@ export type FileObject = {
 /**
  * The Environment class is an abstraction between the Less compiler
  * and the JavaScript environment where it's executed.
- * 
+ *
  * File I/O operations, logging, module resolution etc are all
  * managed by the environment instance.
- * 
+ *
  * e.g. When Less encounters an @import, it passes the URL to the environment,
  *      with a Promise that is either fulfilled or rejected by the environment.
  */
@@ -64,7 +64,7 @@ export abstract class Environment {
      * Search fileManagers from back to front
      * (The last one added is the first one tested.)
      */
-    for (let i = fileManagers.length - 1; i >= 0 ; i--) {
+    for (let i = fileManagers.length - 1; i >= 0; i--) {
       const fileManager = fileManagers[i]
       if (fileManager.supports(filePath, currentDirectory, options, this)) {
         return fileManager
@@ -119,9 +119,8 @@ export abstract class Environment {
   /**
    * @note - The following were moved up from file managers to the environment, as this is
    *         again more logically part of the environment interface, but individual
-   *         file managers can decide to essentially override the 
+   *         file managers can decide to essentially override the
    */
-
 
   /** A Promise-based abstraction between loadFileAsync / loadFileSync */
   abstract loadFile(filePath: string): Promise<FileObject>

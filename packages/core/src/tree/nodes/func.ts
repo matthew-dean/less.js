@@ -1,11 +1,4 @@
-import {
-  Context,
-  Node,
-  IProps,
-  INodeOptions,
-  ILocationInfo,
-  MixinDefinition
-} from '.'
+import { Context, Node, IProps, INodeOptions, ILocationInfo, MixinDefinition } from '.'
 
 export type IFuncProps = {
   name: string
@@ -15,7 +8,7 @@ export type IFuncProps = {
 /**
  * This is a class abstraction for functions added by JS, but can also be
  * added as nodes by plugins or other extensions of the Less AST
- * 
+ *
  * This can be set up to return the last declaration of eval'd rules like a
  * mixin with a `[]` lookup, or will return the result of a bound JS function.
  */

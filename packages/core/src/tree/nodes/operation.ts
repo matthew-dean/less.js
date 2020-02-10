@@ -1,13 +1,4 @@
-import {
-  Context,
-  Expression,
-  Node,
-  IProps,
-  INodeOptions,
-  ILocationInfo,
-  NumericNode,
-  Op
-} from '.'
+import { Context, Expression, Node, IProps, INodeOptions, ILocationInfo, NumericNode, Op } from '.'
 
 /**
  * Values can only be 3 Nodes
@@ -36,11 +27,7 @@ export class Operation extends Node {
     let op = nodes[1].value
     op = op === './' ? '/' : op
 
-    if (
-      context.isMathOn(op) &&
-      a instanceof NumericNode &&
-      b instanceof NumericNode
-    ) {
+    if (context.isMathOn(op) && a instanceof NumericNode && b instanceof NumericNode) {
       return a.operate(op, b, context)
     } else {
       /**

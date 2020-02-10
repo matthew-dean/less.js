@@ -1,10 +1,4 @@
-import {
-  Context,
-  Node,
-  NodeArray,
-  IProps,
-  ILocationInfo
-} from '.'
+import { Context, Node, NodeArray, IProps, ILocationInfo } from '.'
 
 export type INameOptions = {
   /** Name of a variable (v. a property) */
@@ -21,7 +15,7 @@ export type INameOptions = {
  *        e.g. `@param` or `@rest` in `.mixin(@param, @rest...)`
  *   3. As the value in a lookup
  *        e.g. `@lookup` in `.rules[@lookup]`
- * 
+ *
  * The reason for this abstraction is to make evaluation easier,
  * so that there's not logic to distinguish between variables
  * as identifiers and variables that should be eval'd as values.

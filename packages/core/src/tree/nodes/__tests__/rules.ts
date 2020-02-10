@@ -1,13 +1,6 @@
 import { expect } from 'chai'
 import 'mocha'
-import {
-  Name,
-  Rules,
-  Declaration,
-  MergeType,
-  Value,
-  Variable
-} from '..'
+import { Name, Rules, Declaration, MergeType, Value, Variable } from '..'
 
 import { context } from '../../__mocks__/context'
 
@@ -48,7 +41,7 @@ describe('Rules', () => {
   it('should resolve variables (2)', () => {
     const node = new Rules([
       new Declaration({ name: 'prop', nodes: [new Variable('var')] }),
-      new Declaration({ name: 'var', nodes: [new Value('foo')] }, { isVariable: true }),
+      new Declaration({ name: 'var', nodes: [new Value('foo')] }, { isVariable: true })
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq('{prop:foo}')
@@ -57,7 +50,7 @@ describe('Rules', () => {
   it('should resolve variables (3)', () => {
     const node = new Rules([
       new Declaration({ name: 'prop', nodes: [new Variable('var')] }),
-      new Declaration({ name: 'var', nodes: [new Value('foo')] }, { isVariable: true }),
+      new Declaration({ name: 'var', nodes: [new Value('foo')] }, { isVariable: true })
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq('{prop:foo}')
@@ -74,7 +67,10 @@ describe('Rules', () => {
 
       /** We can use @varname for easy shorthand, will set `isVariable: true` */
       new Declaration({ name: '@varname', nodes: [new Value('var')] }),
-      new Declaration({ name: new Name([new Variable('varname')]), nodes: [new Value('foo')] }, { isVariable: true }),
+      new Declaration(
+        { name: new Name([new Variable('varname')]), nodes: [new Value('foo')] },
+        { isVariable: true }
+      )
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq('{prop:foo}')
@@ -87,13 +83,13 @@ describe('Rules', () => {
     const node = new Rules([
       new Declaration({ name: '@varname', nodes: [new Variable('varname')] })
     ])
-    let err: {message?: string} = {}
+    let err: { message?: string } = {}
     try {
       const val = node.eval(context)
     } catch (e) {
       err = e
     }
-    expect(err.message).to.eq('Recursive Variable reference for \'@varname\'')
+    expect(err.message).to.eq("Recursive Variable reference for '@varname'")
   })
 
   it('should merge props', () => {

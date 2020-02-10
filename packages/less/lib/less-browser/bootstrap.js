@@ -5,65 +5,67 @@
  */
 /* global window, document */
 
-import defaultOptions from '../less/default-options';
-import addDefaultOptions from './add-default-options';
-import root from './index';
+import defaultOptions from '../less/default-options'
+import addDefaultOptions from './add-default-options'
+import root from './index'
 
-const options = defaultOptions();
+const options = defaultOptions()
 
 if (window.less) {
     for (const key in window.less) {
         if (window.less.hasOwnProperty(key)) {
-            options[key] = window.less[key];
+            options[key] = window.less[key]
         }
     }
 }
-addDefaultOptions(window, options);
+addDefaultOptions(window, options)
 
-options.plugins = options.plugins || [];
+options.plugins = options.plugins || []
 
 if (window.LESS_PLUGINS) {
-    options.plugins = options.plugins.concat(window.LESS_PLUGINS);
+    options.plugins = options.plugins.concat(window.LESS_PLUGINS)
 }
 
-const less = root(window, options);
-export default less;
+const less = root(window, options)
+export default less
 
-window.less = less;
+window.less = less
 
-let css;
-let head;
-let style;
+let css
+let head
+let style
 
 // Always restore page visibility
 function resolveOrReject(data) {
     if (data.filename) {
-        console.warn(data);
+        console.warn(data)
     }
     if (!options.async) {
-        head.removeChild(style);
+        head.removeChild(style)
     }
 }
 
 if (options.onReady) {
     if (/!watch/.test(window.location.hash)) {
-        less.watch();
+        less.watch()
     }
     // Simulate synchronous stylesheet loading by hiding page rendering
     if (!options.async) {
-        css = 'body { display: none !important }';
-        head = document.head || document.getElementsByTagName('head')[0];
-        style = document.createElement('style');
+        css = 'body { display: none !important }'
+        head = document.head || document.getElementsByTagName('head')[0]
+        style = document.createElement('style')
 
-        style.type = 'text/css';
+        style.type = 'text/css'
         if (style.styleSheet) {
-            style.styleSheet.cssText = css;
+            style.styleSheet.cssText = css
         } else {
-            style.appendChild(document.createTextNode(css));
+            style.appendChild(document.createTextNode(css))
         }
 
-        head.appendChild(style);
+        head.appendChild(style)
     }
-    less.registerStylesheetsImmediately();
-    less.pageLoadFinished = less.refresh(less.env === 'development').then(resolveOrReject, resolveOrReject);
+    less.registerStylesheetsImmediately()
+    less.pageLoadFinished = less
+        .refresh(less.env === 'development')
+        .then(resolveOrReject, resolveOrReject)
 }
