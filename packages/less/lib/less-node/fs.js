@@ -1,7 +1,7 @@
 let fs
 try {
-    fs = require('graceful-fs')
+  fs = require('graceful-fs')
 } catch (e) {
-    fs = require('fs')
+  fs = require('fs')
 }
 export default fs

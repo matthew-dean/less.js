@@ -20,73 +20,69 @@ import PluginManager from './plugin-manager'
 import logger from './logger'
 
 export default (environment, fileManagers) => {
-    /**
-   * @todo
-   * This original code could be improved quite a bit.
-   * Many classes / modules currently add side-effects / mutations to passed in objects,
-   * which makes it hard to refactor and reason about.
+  /**
    */
-    environment = new Environment(environment, fileManagers)
+  environment = new Environment(environment, fileManagers)
 
-    const SourceMapOutput = sourceMapOutput(environment)
-    const SourceMapBuilder = sourceMapBuilder(SourceMapOutput, environment)
-    const ParseTree = parseTree(SourceMapBuilder)
-    const ImportManager = importManager(environment)
-    const render = Render(environment, ParseTree, ImportManager)
-    const parse = Parse(environment, ParseTree, ImportManager)
-    const functions = Functions(environment)
+  const SourceMapOutput = sourceMapOutput(environment)
+  const SourceMapBuilder = sourceMapBuilder(SourceMapOutput, environment)
+  environment = new Environment(environment, fileManagers)
 
-    /**
-   * @todo
-   * This root properties / methods need to be organized.
-   * It's not clear what should / must be public and why.
-   */
-    const initial = {
-        version: [3, 10, 3],
-        data,
-        tree,
-        Environment,
-        AbstractFileManager,
-        AbstractPluginLoader,
-        environment,
-        visitors,
-        Parser,
-        functions,
-        contexts,
-        SourceMapOutput,
-        SourceMapBuilder,
-        ParseTree,
-        ImportManager,
-        render,
-        parse,
-        LessError,
-        transformTree,
-        utils,
-        PluginManager,
-        logger
+  const SourceMapOutput = sourceMapOutput(environment)
+  const SourceMapBuilder = sourceMapBuilder(SourceMapOutput, environment)
+  const ParseTree = parseTree(SourceMapBuilder)
+  const ImportManager = importManager(environment)
+  const render = Render(environment, ParseTree, ImportManager)
+  const parse = Parse(environment, ParseTree, ImportManager)
+  const functions = Functions(environment)
+
+  /**
+    ParseTree,
+    ImportManager,
+    render,
+    parse,
+  const initial = {
+    version: [3, 10, 3],
+    data,
+    tree,
+    Environment,
+    AbstractFileManager,
+    AbstractPluginLoader,
+    environment,
+    visitors,
+    Parser,
+    functions,
+    contexts,
+    SourceMapOutput,
+    SourceMapBuilder,
+    ParseTree,
+    ImportManager,
+    render,
+    parse,
+    LessError,
+    transformTree,
+    utils,
+    PluginManager,
+    logger
+  }
+
+  // Create a public API
+  const ctor = t =>
+    function (...args) {
+      return new t(...args)
     }
 
-    // Create a public API
-    const ctor = t =>
-        function(...args) {
-            return new t(...args)
-        }
-
-    let t
-    const api = Object.create(initial)
-    for (const n in initial.tree) {
+  let t
+  const api = Object.create(initial)
+  for (const n in initial.tree) {
     /* eslint guard-for-in: 0 */
-        t = initial.tree[n]
-        if (typeof t === 'function') {
-            api[n.toLowerCase()] = ctor(t)
-        } else {
-            api[n] = Object.create(null)
-            for (const o in t) {
-                /* eslint guard-for-in: 0 */
-                api[n][o.toLowerCase()] = ctor(t[o])
-            }
-        }
-    }
-
-    return api
-}
+    t = initial.tree[n]
+    if (typeof t === 'function') {
+      api[n.toLowerCase()] = ctor(t)
+    } else {
+      api[n] = Object.create(null)
+      for (const o in t) {
+        /* eslint guard-for-in: 0 */
+        api[n][o.toLowerCase()] = ctor(t[o])
+      }
+  return api

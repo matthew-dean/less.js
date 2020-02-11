@@ -34,8 +34,7 @@ export class Rule extends Node {
     const { selectors } = props
     if (
       selectors
-      && Array.isArray(selectors)
-      && (selectors.length !== 1 || selectors[0] instanceof Expression)
+      && (Array.isArray(selectors) && (selectors.length !== 1 || selectors[0] instanceof Expression))
     ) {
       props.selectors = new List<Selector>(<Selector[]>selectors)
     }

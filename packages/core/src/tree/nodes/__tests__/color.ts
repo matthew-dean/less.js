@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import 'mocha'
 import { Color, Operation, Value } from '..'
 import { context } from '../../__mocks__/context'
-import Default from '../../../options'
 
 describe('Color', () => {
   it('accepts hex values', () => {

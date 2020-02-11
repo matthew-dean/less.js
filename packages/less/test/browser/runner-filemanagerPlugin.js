@@ -1,3 +1,3 @@
-describe('less.js filemanager Plugin', function() {
-    testLessEqualsInDocument()
+describe('less.js filemanager Plugin', function () {
+  testLessEqualsInDocument()
 })

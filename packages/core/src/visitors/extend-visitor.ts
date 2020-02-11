@@ -408,9 +408,9 @@ class ProcessExtendsVisitor {
             potentialMatch.finished = potentialMatch.matched === needleElements.length
             if (
               potentialMatch.finished
-              && !extend.allowAfter
-              && (hackstackElementIndex + 1 < hackstackSelector.elements.length
-                || haystackSelectorIndex + 1 < haystackSelectorPath.length)
+              && (!extend.allowAfter
+                && (hackstackElementIndex + 1 < hackstackSelector.elements.length
+                  || haystackSelectorIndex + 1 < haystackSelectorPath.length))
             ) {
               potentialMatch = null
             }

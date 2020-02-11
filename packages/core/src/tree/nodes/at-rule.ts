@@ -23,7 +23,6 @@ export class AtRule extends Node {
 
     /** Wrap at rule body in an empty rules for proper scoping and collapsing */
     super(<IProps>(rest as unknown), options, location)
-
     this.name = name
   }
 
