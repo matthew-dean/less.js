@@ -4,7 +4,7 @@ import { Context } from './context'
 import { compare } from './util/compare'
 import { ImportRule, Declaration, Rules } from './nodes'
 
-export type SimpleValue = string | number | boolean | number[]
+export type SimpleValue = string | number | boolean | number[] | undefined
 
 export type IBaseProps = {
   /** Each node may have pre or post Nodes for comments or whitespace */
@@ -59,7 +59,7 @@ export interface IFileInfo {
 
 export type INodeOptions = {
   atRoot?: boolean
-  [key: string]: boolean | number | string
+  [key: string]: boolean | number | string | undefined
 } & Partial<IFileInfo>
 
 export enum MatchOption {
@@ -76,7 +76,7 @@ export enum MatchOption {
   IN_SCOPE
 }
 
-type MatchFunction = (node: Node) => Node
+type MatchFunction = (node: Node) => Node | undefined
 
 export abstract class Node {
   /**
@@ -92,8 +92,8 @@ export abstract class Node {
   childKeys: string[]
 
   /** Used if string does not equal normalized primitive */
-  value: SimpleValue
-  text: string
+  value?: SimpleValue
+  text?: string
 
   options: INodeOptions
   lessOptions: IOptions
@@ -105,7 +105,7 @@ export abstract class Node {
    * This will be the start values from the first token and the end
    * values from the last token, as well as file info
    */
-  location: ILocationInfo
+  location?: ILocationInfo
 
   parent: Node
   root: Rules
@@ -150,7 +150,7 @@ export abstract class Node {
     const { pre, post, value, text, ...children } = props
     /** nodes is always present as an array, even if empty */
 
-    const keys = []
+    const keys: string[] = []
     this.childKeys = keys
 
     /**
@@ -348,7 +348,7 @@ export abstract class Node {
    * Convenience method if location isn't copied to new nodes
    * for any reason (such as a custom function)
    */
-  protected getLocation(): ILocationInfo {
+  protected getLocation(): ILocationInfo | undefined {
     let node: Node = this
     while (node) {
       if (node.location) {
@@ -362,8 +362,8 @@ export abstract class Node {
     context: Context,
     matchFunction: MatchFunction,
     option: MatchOption = MatchOption.FIRST
-  ): Node | Node[] {
-    let node: Node = this
+  ): Node | Node[] | undefined {
+    let node: Node | undefined = this
     const matches: Node[] = []
     const crawlRules = (rulesNode: Node) => {
       const nodes = rulesNode.nodes
