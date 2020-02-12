@@ -64,7 +64,7 @@ export type Plugin = {
 export type PluginExport = Plugin | ((args?: { [key: string]: any }) => Plugin)
 
 export interface LessFunction {
-  (this: Context, ...args: Node[]): EvalReturn
+  (this: Context, ...args: (Node | undefined)[]): EvalReturn
   evalArgs?: boolean
 }
 
