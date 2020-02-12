@@ -20,8 +20,8 @@ export type Less = {
   options: IOptions
   environment: Environment
   // functions
-  parse: ParseFunction
-  render: RenderFunction
+  parse?: ParseFunction
+  render?: RenderFunction
 
   /** @todo - is there any way to generate these types or make a generic type? */
   atrule?(...args: GetConstructorArgs<typeof tree.AtRule>): tree.AtRule
@@ -64,10 +64,8 @@ export default (environment: Environment, options?: IOptions): Less => {
   const less: Less = {
     version: [4, 0, 0],
     environment,
-    options: opts,
+    options: opts
     // functions: functions,
-    parse: null,
-    render: null
   }
 
   less.parse = parse.bind(less)
