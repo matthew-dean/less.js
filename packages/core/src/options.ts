@@ -24,7 +24,7 @@ export interface IOptions {
   /**
    * Runs the less parser and just reports errors without any output.
    */
-  lint?: boolean
+  lint: boolean
 
   /**
    * By default, Less throws errors immediately when evaluating,
@@ -34,7 +34,7 @@ export interface IOptions {
    *   1 REPORT    - collect and list ALL eval errors, but no output
    *   2 IGNORE    - return errors along with recovered output
    */
-  evalErrors?: EvalErrorMode
+  evalErrors: EvalErrorMode
 
   /**
    * Sets available include paths.
@@ -52,12 +52,12 @@ export interface IOptions {
    * @media blocks or (a later addition) other selector blocks.
    * See: https://github.com/less/less.js/issues/656
    */
-  strictImports?: boolean
+  strictImports: boolean
 
   /**
    * Load files synchronously, if possible
    */
-  syncImport?: boolean
+  syncImport: boolean
 
   /**
    * color output in the terminal
@@ -88,7 +88,7 @@ export interface IOptions {
    * This option allows you to re-write URL's in imported files so that the
    * URL is always relative to the base imported file
    */
-  rewriteUrls?: RewriteUrlMode
+  rewriteUrls: RewriteUrlMode
 
   /**
    * How to process math
@@ -97,14 +97,14 @@ export interface IOptions {
    *   2 strict                    - process math only in blocks
    *   3 strict-legacy (REMOVED)   - legacy strict behavior (super-strict)
    */
-  math?: MathMode
+  math: MathMode
 
   /*
    *   0 loose            - Coerce units to the first unit's type during operations
    *   1 warn (default)   - Don't coerce units, and instead output expressions as they are
    *   2 error            - Don't coerce units, and throw error
    */
-  strictUnits?: StrictUnitMode
+  strictUnits: StrictUnitMode
 
   /**
    * Effectively the declaration is put at the top of your base Less file,
@@ -128,18 +128,19 @@ export interface IOptions {
   /**
    * An argument to be appended to every URL (post-eval)
    */
-  urlArgs?: string
+  urlArgs: string
 }
 
 // Export a new default each time
 /** @todo - where are sourcemap options? */
-export default () => ({
-  lint: false,
-  evalErrors: EvalErrorMode.THROW,
-  strictImports: false,
-  syncImport: false,
-  rewriteUrls: RewriteUrlMode.OFF,
-  math: MathMode.NO_DIVISION,
-  strictUnits: StrictUnitMode.WARN,
-  urlArgs: ''
-})
+export default () =>
+  ({
+    lint: false,
+    evalErrors: EvalErrorMode.THROW,
+    strictImports: false,
+    syncImport: false,
+    rewriteUrls: RewriteUrlMode.OFF,
+    math: MathMode.NO_DIVISION,
+    strictUnits: StrictUnitMode.WARN,
+    urlArgs: ''
+  } as IOptions)

@@ -40,7 +40,7 @@ export type IProps = {
 /**
  * The result of an eval can be one of these types
  */
-export type EvalReturn<T extends Node = Node> = T[] | T | false | null | undefined
+export type EvalReturn<T extends Node = Node> = T[] | T | ''
 export type ProcessFunction<T extends Node = Node> = (node: T) => EvalReturn
 
 // export type IProps = Node[] | (IChildren & ISimpleProps)
@@ -126,7 +126,10 @@ export abstract class Node {
 
   /** eval() was called */
   evaluated: boolean
-  access: number
+  access: number;
+
+  /** Nodes are allowed to set arbitrary properties */
+  [k: string]: any
 
   private static inheritanceKeys = [
     'pre',
@@ -172,7 +175,7 @@ export abstract class Node {
 
     Object.defineProperty(this, 'children', {
       get() {
-        const children = {}
+        const children: { [key: string]: Node | Node[] } = {}
         this.childKeys.forEach((key: string) => {
           children[key] = this[key]
         })
@@ -222,7 +225,7 @@ export abstract class Node {
       if (!Array.isArray(nodes)) {
         nodes = [nodes]
       }
-      nodes.forEach(node => {
+      nodes.forEach((node: Node) => {
         node.parent = this
         if (!node.fileRoot) {
           node.fileRoot = this.fileRoot
@@ -234,7 +237,8 @@ export abstract class Node {
     })
   }
 
-  accept(visitor) {
+  /** @todo - Visitor type */
+  accept(visitor: any) {
     this.processChildren(this, (node: Node) => visitor.visit(node))
   }
 

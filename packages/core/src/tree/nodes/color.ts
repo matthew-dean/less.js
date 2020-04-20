@@ -264,7 +264,7 @@ export class Color extends NumericNode {
 
   toARGB() {
     const rgb = [...this.value]
-    const alpha = rgb.pop()
+    const alpha: number = rgb.pop()
     return this.toHex([alpha * 255].concat(rgb))
   }
 }

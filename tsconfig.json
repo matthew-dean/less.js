@@ -2,7 +2,6 @@
   "extends": "./tsconfig.build.json",
   "compilerOptions": {
     "baseUrl": "./packages",
-    "strictNullChecks": true,
     "paths": {
       "less": ["less/lib"],
       "@less/test-data": ["test-data"],

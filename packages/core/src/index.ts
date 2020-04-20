@@ -1,23 +1,19 @@
 import Environment from './environment/environment'
 import * as tree from './tree/nodes'
-// import Functions from './functions'
-import { Context } from './tree/context'
-import SourceMapOutputFactory, { SourceMapOutput } from './source-map-output'
-import SourceMapBuilderFactory from './source-map-builder'
-import { RenderTree } from './render-tree'
-import AssetManagerFactory from './asset-manager'
 import { render, RenderFunction } from './render'
 import { parse, ParseFunction } from './parse'
-import LessError from './less-error'
-// import TransformTree from './transform-tree'
 import Default, { IOptions } from './options'
-import { Node } from './tree/nodes'
+import { IProps, INodeOptions, ILocationInfo } from './tree/node'
+
+const { Node } = tree
 
 type GetConstructorArgs<T> = T extends new (...args: infer U) => any ? U : never
 
 export type Less = {
-  version: number[]
-  options: IOptions
+  /** e.g. [4, 0, 0] */
+  version: [number, number, number]
+  /** Options are optional (will be defaulted) */
+  options: Partial<IOptions>
   environment: Environment
   // functions
   parse?: ParseFunction
@@ -76,7 +72,12 @@ export default (environment: Environment, options?: IOptions): Less => {
    * isn't required. To distinguish from nodes, the interfaces are lowercase,
    * as in `less.dimension(...)`
    */
-  const ctor = t => (...args) => new t(...args)
+  class NodeClass extends Node {}
+  const ctor = (t: typeof NodeClass) => (
+    props: IProps,
+    options?: INodeOptions,
+    location?: ILocationInfo
+  ) => new NodeClass(props, options, location)
 
   let t: any
   for (const n in tree) {

@@ -26,7 +26,7 @@ class LessError extends Error {
   filename: string
   index: number
   line: number
-  column: number
+  column: number | undefined
   callLine: number
   callExtract: number
 
@@ -51,11 +51,13 @@ class LessError extends Error {
 
       if (location) {
         line = location.startLine
-        col = location.startColumn
+        col = location.startColumn ?? 0
         index = location.startOffset
+      } else {
+        line = 0
+        col = 0
+        index = 0
       }
-
-      // const callLine = e.call && utils.getLocation(e.call, input).line
 
       this.type = e.type || 'Syntax'
       this.filename = filename
@@ -75,9 +77,6 @@ class LessError extends Error {
           }
         }
       }
-
-      // this.callLine = callLine + 1
-      // this.callExtract = this.sourceLines[callLine]
     }
   }
 

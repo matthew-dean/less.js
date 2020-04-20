@@ -19,7 +19,7 @@ export type TextStyleFunction = {
   (str: string, color?: TextFormat)
 }
 
-export type ParseOptions = IOptions & {
+export type ParseOptions = Partial<IOptions> & {
   plugins?: Plugin[]
   /** Full path of the file, including the filename */
   filePath?: string

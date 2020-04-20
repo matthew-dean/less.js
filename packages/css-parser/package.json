@@ -20,6 +20,5 @@
   "dependencies": {
     "chevrotain": "6.5.0",
     "xregexp": "^4.2.4"
-  },
-  "devDependencies": {}
+  }
 }
