@@ -26,7 +26,7 @@ class LessError extends Error {
   filename: string
   index: number
   line: number
-  column: number | undefined
+  column: number
   callLine: number
   callExtract: number
 
@@ -90,15 +90,15 @@ class LessError extends Error {
     for (let i = 0; i < rules.length; i++) {
       const rule = rules[i]
       const location = rule.location
-      if (!started && location.startLine > startLine) {
+      if (!started && location && location.startLine > startLine) {
         started = true
         const lastRule = rules[i - 1]
-        let lastStartLine = lastRule.location.startLine
+        let lastStartLine = lastRule.location?.startLine ?? 0
         const input = lastRule.toString().split('\n')
         input.forEach((line, offset) => {
           lines.set(lastStartLine + offset, line)
         })
-        if (location.endLine > startLine + 2) {
+        if (location && (location.endLine ?? 0) > startLine + 2) {
           break
         }
       }
@@ -112,10 +112,9 @@ class LessError extends Error {
    */
   toString(stylize?: TextStyleFunction): string {
     const file = this.file
-    let lines: Map<number, string>
+    let lines: Map<number, string> = new Map()
 
     if (file) {
-      lines = new Map()
       if (file instanceof Rules) {
         this.getLinesFromNode(lines, file, this.line - 1)
       } else {
@@ -130,8 +129,12 @@ class LessError extends Error {
     let error: string = ''
     let extract: string[]
 
-    if (lines) {
-      extract = [lines.get(this.line - 1) || '', lines.get(this.line) || '', lines.get(this.line)]
+    if (lines.size) {
+      extract = [
+        lines.get(this.line - 1) || '',
+        lines.get(this.line) || '',
+        lines.get(this.line + 1) || ''
+      ]
     } else {
       extract = ['', '', '']
     }

@@ -40,8 +40,8 @@ export type IProps = {
 /**
  * The result of an eval can be one of these types
  */
-export type EvalReturn<T extends Node = Node> = T[] | T | ''
-export type ProcessFunction<T extends Node = Node> = (node: T) => EvalReturn
+export type EvalReturn<T extends Node = Node> = T[] | T
+export type ProcessFunction<T extends Node = Node> = (node: T) => EvalReturn<T>
 
 // export type IProps = Node[] | (IChildren & ISimpleProps)
 export interface ILocationInfo extends CstNodeLocation {}
@@ -400,7 +400,7 @@ export abstract class Node {
        * node.parent to a child (or itself), we need to exit at some point.
        */
       if (currDepth > maxTreeDepth) {
-        return this.error(context, 'Maximum tree depth exceeded')
+        return this.error('Maximum tree depth exceeded', context)
       }
       if (node instanceof Rules) {
         crawlRules(node)
@@ -565,7 +565,7 @@ export abstract class Node {
     return this.nodes
   }
 
-  error(context: Context, message: string) {
+  error(message: string, context?: Context) {
     if (context) {
       context.error({ message }, this.fileRoot)
       return this
@@ -573,7 +573,7 @@ export abstract class Node {
     throw new Error(message)
   }
 
-  warn(context: Context, message: string) {
+  warn(message: string, context?: Context) {
     if (context) {
       context.warning({ message }, this.fileRoot)
     }

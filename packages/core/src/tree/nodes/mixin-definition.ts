@@ -3,13 +3,15 @@ import {
   Condition,
   Declaration,
   Expression,
+  List,
   Node,
   IProps,
   INodeOptions,
   ILocationInfo,
   Rules,
   Name,
-  ImportantNode
+  ImportantNode,
+  Value
 } from '.'
 
 export type IMixinDefinitionProps = IProps & {
@@ -30,7 +32,7 @@ export class MixinDefinition extends Node implements ImportantNode {
    * e.g. `@var`        <Name 'var'> or
    *      `@var: value` <Declaration {name: var, nodes: [value] }>
    */
-  params: (Declaration | Name)[] | undefined
+  params: (Declaration | Name)[]
   condition: Condition | undefined
   arity: number
   required: number
@@ -38,9 +40,11 @@ export class MixinDefinition extends Node implements ImportantNode {
   hasVariadic: boolean
 
   constructor(props: IMixinDefinitionProps, options?: INodeOptions, location?: ILocationInfo) {
-    const { params, ...rest } = props
+    let { params, ...rest } = props
+    params = params ?? []
+    props.params = params
     super(props, options, location)
-    this.arity = params ? params.length : 0
+    this.arity = params.length
   }
 
   makeImportant() {
@@ -75,7 +79,7 @@ export class MixinDefinition extends Node implements ImportantNode {
   /**
    * Evaluates the mixin arguments
    */
-  evalParams(callContext: Context, args: Node[], evaldArguments: Node[]) {
+  evalParams(callContext: Context, args: Node[] | undefined, evaldArguments: Node[]) {
     const frame = this.rules[0].clone()
     const params = this.params
 
@@ -120,7 +124,7 @@ export class MixinDefinition extends Node implements ImportantNode {
             i--
             continue
           } else {
-            this.error(callContext, `Named argument matching '${arg.toString(true)}' not found`)
+            this.error(`Named argument matching '${arg.toString(true)}' not found`, callContext)
           }
         }
       }
@@ -136,8 +140,10 @@ export class MixinDefinition extends Node implements ImportantNode {
       if ((name = param.value)) {
         if (param instanceof Name && param.options.variadic) {
           const varargs = []
-          for (let j = argIndex; j < argsLength; j++) {
-            varargs.push(args[j])
+          if (args) {
+            for (let j = argIndex; j < argsLength; j++) {
+              varargs.push(args[j])
+            }
           }
           frame.prependRule(
             new Declaration(
@@ -146,14 +152,14 @@ export class MixinDefinition extends Node implements ImportantNode {
             )
           )
         } else {
-          let nodes: Node[]
+          let nodes: [List<Node> | Node] | [List<Node> | Node, Value]
           if (!arg) {
             if (param instanceof Declaration) {
               nodes = param.nodes
             } else {
-              this.error(
-                callContext,
-                `wrong number of arguments for mixin (${argsLength} for ${this.arity})`
+              return this.error(
+                `wrong number of arguments for mixin (${argsLength} for ${this.arity})`,
+                callContext
               )
             }
           } else {
@@ -161,7 +167,7 @@ export class MixinDefinition extends Node implements ImportantNode {
           }
 
           frame.prependRule(new Declaration({ name, nodes }, { isVariable: true }))
-          evaldArguments[i] = arg
+          evaldArguments[i] = <Node>arg
         }
       }
 
@@ -178,7 +184,7 @@ export class MixinDefinition extends Node implements ImportantNode {
   }
 
   evalCall(context: Context, args: Node[], important: boolean = false) {
-    const _arguments = []
+    const _arguments: Node[] = []
     // const mixinFrames = this.frames ? this.frames.concat(context.frames) : context.frames;
     const frame = this.evalParams(context, args, _arguments)
     let rules: Rules
@@ -260,12 +266,14 @@ export class MixinDefinition extends Node implements ImportantNode {
     // check patterns
     const len = Math.min(requiredArgsCnt, this.arity)
 
-    for (let i = 0; i < len; i++) {
-      const param = params[i]
-      const arg = args[i]
-      if (param instanceof Name && !param.options.variadic) {
-        if (arg.toString(true) !== param.toString(true)) {
-          return false
+    if (args) {
+      for (let i = 0; i < len; i++) {
+        const param = params[i]
+        const arg = args[i]
+        if (param instanceof Name && !param.options.variadic) {
+          if (arg.toString(true) !== param.toString(true)) {
+            return false
+          }
         }
       }
     }

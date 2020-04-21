@@ -57,7 +57,7 @@ export class RulesCall extends Node {
         if (this.args.length === 0) {
           return result.clone().inherit(this)
         }
-        return this.error(context, `Mixin reference '${varName}' does not accept args`)
+        return this.error(`Mixin reference '${varName}' does not accept args`, context)
       }
       if (result instanceof MixinDefinition) {
         return this.matchMixins([result], context)
@@ -72,7 +72,7 @@ export class RulesCall extends Node {
     const collectedRules = []
     const selector = new Selector([this.name]).eval(context)
     if (!(selector instanceof Selector)) {
-      return this.error(context, `Mixin name ${this.name.toString(true)} could not be evaluated.`)
+      return this.error(`Mixin name ${this.name.toString(true)} could not be evaluated.`, context)
     }
     const findValues = selector.getMixinCompareValue().split(/[#.]/)
 

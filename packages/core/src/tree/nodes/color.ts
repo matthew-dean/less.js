@@ -1,6 +1,7 @@
 import { Context, Node, IProps, ILocationInfo, NumericNode, Num } from '.'
 
 import { fround, operate } from '../util/math'
+import { Operator } from '../../constants'
 
 export enum ColorFormat {
   HEX,
@@ -46,7 +47,7 @@ export class Color extends NumericNode {
       const hex = text.slice(1)
 
       if (hex.length >= 6) {
-        hex.match(/.{2}/g).map((c, i) => {
+        (<RegExpMatchArray>hex.match(/.{2}/g)).map((c, i) => {
           if (i < 3) {
             newValue.push(parseInt(c, 16))
           } else {
@@ -85,7 +86,7 @@ export class Color extends NumericNode {
 
   toString() {
     let color: any
-    let args = []
+    let args: (string | number)[] = []
 
     if (this.text) {
       return this.text
@@ -98,7 +99,7 @@ export class Color extends NumericNode {
     if (alpha !== 1 && colorFormat === ColorFormat.HEX) {
       colorFormat = ColorFormat.RGB
     }
-    let colorFunction: string
+    let colorFunction: string | undefined
 
     switch (colorFormat) {
       case ColorFormat.RGB:
@@ -135,21 +136,20 @@ export class Color extends NumericNode {
   // our result, in the form of an integer triplet,
   // we create a new Color node to hold the result.
   //
-  operate(op: string, other: Node, context?: Context) {
+  operate(op: Operator, other: Node, context?: Context) {
     let otherVal: [number, number, number, number]
     if (other instanceof Num) {
       const val = other.value
       otherVal = [val, val, val, 1]
-    }
-    if (!otherVal && !(other instanceof Color)) {
-      return this.error(
-        context,
-        `Incompatible units. An operation can't be between a color and a non-number`
-      )
-    }
-
-    if (other instanceof Color) {
-      otherVal = other.value
+    } else {
+      if (other instanceof Color) {
+        otherVal = other.value
+      } else {
+        return this.error(
+          `Incompatible units. An operation can't be between a color and a non-number`,
+          context
+        )
+      }
     }
 
     const rgba = new Array(4)
@@ -157,9 +157,9 @@ export class Color extends NumericNode {
      * @todo - Someone should document why this alpha result is logical for any math op
      *         It seems arbitrary at first glance, but maybe it's the best result?
      */
-    const alpha = this.value[3] * (1 - other.value[3]) + other.value[3]
+    const alpha = this.value[3] * (1 - otherVal[3]) + otherVal[3]
     for (let c = 0; c < 3; c++) {
-      rgba[c] = operate(op, this.value[c], other.value[c])
+      rgba[c] = operate(op, this.value[c], otherVal[c])
     }
     rgba[3] = alpha
     return new Color({ value: rgba }, { ...this.options }).inherit(this)
@@ -207,6 +207,7 @@ export class Color extends NumericNode {
           h = (b - r) / d + 2
           break
         case b:
+        default:
           h = (r - g) / d + 4
           break
       }
@@ -245,6 +246,7 @@ export class Color extends NumericNode {
           h = (b - r) / d + 2
           break
         case b:
+        default:
           h = (r - g) / d + 4
           break
       }
@@ -264,7 +266,7 @@ export class Color extends NumericNode {
 
   toARGB() {
     const rgb = [...this.value]
-    const alpha: number = rgb.pop()
+    const alpha: number = <number>rgb.pop()
     return this.toHex([alpha * 255].concat(rgb))
   }
 }

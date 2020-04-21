@@ -37,6 +37,10 @@ export class Variable extends Node {
     } else {
       newProps = <IProps>props
     }
+    if (!newProps.value) {
+      throw { message: 'Variable has no name.' }
+    }
+
     let val: string = newProps.value.toString()
 
     if (options.propertyRef && newProps.value !== undefined && val.charAt(0) === '$') {
@@ -64,7 +68,7 @@ export class Variable extends Node {
     const type = this.type
 
     if (this.evaluating) {
-      return this.error(context, `Recursive ${type} reference for '${this.toString()}'`)
+      return this.error(`Recursive ${type} reference for '${this.toString()}'`, context)
     }
 
     this.evaluating = true
@@ -87,7 +91,7 @@ export class Variable extends Node {
       }
     }
     this.evaluating = false
-    return this.error(context, `${type} '${name}' is undefined`)
+    return this.error(`${type} '${name}' is undefined`, context)
 
     // const variable = this.find(node => {
     //   const v = frame.variable(name)

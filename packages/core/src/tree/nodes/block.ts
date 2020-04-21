@@ -1,4 +1,4 @@
-import { Context, NodeArray, Value, Node, Condition, Operation } from '.'
+import { Context, EvalReturn, NodeArray, Value, Node, Condition, Operation } from '.'
 
 /**
  * A () [] or {} block that holds an expression
@@ -11,7 +11,7 @@ import { Context, NodeArray, Value, Node, Condition, Operation } from '.'
 export class Block extends NodeArray {
   nodes: [Value, Node, Value]
 
-  eval(context: Context) {
+  eval(context: Context): EvalReturn {
     if (!this.evaluated) {
       let content = this.nodes[1]
       let escape = content instanceof Operation || content instanceof Condition

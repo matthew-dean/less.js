@@ -1,4 +1,15 @@
-import { Context, Expression, Node, IProps, INodeOptions, ILocationInfo, NumericNode, Op } from '.'
+import {
+  Context,
+  EvalReturn,
+  Expression,
+  Node,
+  IProps,
+  INodeOptions,
+  ILocationInfo,
+  NumericNode,
+  Op
+} from '.'
+import { Operator } from 'core/src/constants'
 
 /**
  * Values can only be 3 Nodes
@@ -18,7 +29,7 @@ export class Operation extends Node {
     super(props, options, location)
   }
 
-  eval(context: Context) {
+  eval(context: Context): EvalReturn {
     super.eval(context)
 
     const nodes = this.nodes
@@ -27,6 +38,8 @@ export class Operation extends Node {
     let op = nodes[1].value
     op = op === './' ? '/' : op
 
+    /** @todo - check if operator is a valid math operator */
+
     if (context.isMathOn(op) && a instanceof NumericNode && b instanceof NumericNode) {
       return a.operate(op, b, context)
     } else {
@@ -34,7 +47,7 @@ export class Operation extends Node {
        * We'll output as-is, and warn about it, in case we want to use the text of the
        * expression somewhere else.
        */
-      this.warn(context, 'Operation on an invalid type')
+      this.warn('Operation on an invalid type', context)
       return new Expression(this.nodes).inherit(this)
     }
   }

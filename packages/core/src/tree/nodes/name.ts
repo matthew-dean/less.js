@@ -26,7 +26,7 @@ export class Name extends NodeArray {
   evaluating: boolean
   options: INameOptions
 
-  constructor(props: IProps, options?: INameOptions, location?: ILocationInfo) {
+  constructor(props: Node[] | IProps, options?: INameOptions, location?: ILocationInfo) {
     super(props, options, location)
     /** Convenience assignment for mixin params, so that it can just check for .name */
     this.name = this

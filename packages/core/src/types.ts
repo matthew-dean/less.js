@@ -16,7 +16,7 @@ export enum TextFormat {
 }
 
 export type TextStyleFunction = {
-  (str: string, color?: TextFormat)
+  (str: string, color?: TextFormat): string
 }
 
 export type ParseOptions = Partial<IOptions> & {

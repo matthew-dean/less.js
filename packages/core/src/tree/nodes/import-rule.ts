@@ -33,6 +33,7 @@ export class ImportRule extends Node {
   features: Node | undefined
   path: Node
   options: IImportOptions
+  location: ILocationInfo
 
   /**
    * Note that when an import is added to the import queue, it's eventually passed
@@ -68,6 +69,7 @@ export class ImportRule extends Node {
             this.location
           ).inherit(this)
         }
+        /** @todo - import file and assign to content */
       } else {
         this.content.eval(context)
         this.evaluated = true
@@ -77,7 +79,8 @@ export class ImportRule extends Node {
   }
 
   toString() {
-    return this.content.toString()
+    /** @todo - return this.content.toString() */
+    return ''
   }
 
   // eval(context: Context) {

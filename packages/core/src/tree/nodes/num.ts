@@ -10,6 +10,7 @@ import {
 } from '.'
 
 import { operate } from '../util/math'
+import { Operator } from '../../constants'
 
 export type INumberProps = number | IProps
 /**
@@ -33,11 +34,11 @@ export class Num extends NumericNode {
   }
 
   /** @todo */
-  operate(op: string, other: Node, context?: Context) {
+  operate(op: Operator, other: Node, context?: Context): Node {
     if (other instanceof NumericNode) {
       if (!(other instanceof Num)) {
         if (op === '/') {
-          return this.error(context, `Can't divide a number by a non-number.`)
+          return this.error(`Can't divide a number by a non-number.`, context)
         }
         /** 8 - 2px */
         if (op === '-') {

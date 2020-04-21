@@ -1,6 +1,6 @@
 import { Dimension } from '../nodes'
 
-const unitConversions = {
+const unitConversions: { [k: string]: any } = {
   length: {
     m: 1,
     cm: 0.01,
@@ -21,6 +21,7 @@ const unitConversions = {
     turn: 1
   }
 }
+
 let keyed = false
 
 export const convertDimension = (node: Dimension, toUnit: string) => {
@@ -29,10 +30,8 @@ export const convertDimension = (node: Dimension, toUnit: string) => {
   }
   if (!keyed) {
     /** Simplify lookups */
-    ['length', 'duration', 'angle'].forEach(key => {
-      for (let prop in unitConversions[key]) {
-        unitConversions[prop] = key
-      }
+    Object.keys(unitConversions).forEach((key: 'length' | 'duration' | 'angle') => {
+      Object.keys(unitConversions[key]).forEach(unit => (unitConversions[unit] = key))
     })
     keyed = true
   }

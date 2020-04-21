@@ -2,6 +2,7 @@
  * Math utilities
  */
 import { Node } from '../nodes'
+import { Operator } from '../../constants'
 
 /**
  * Generalized list-merging utility, used for selectors and values
@@ -58,15 +59,15 @@ export const subtract = (a: number, b: number) => a - b
 export const multiply = (a: number, b: number) => a * b
 export const divide = (a: number, b: number) => a / b
 
-export const operate = (op: string, a: number, b: number) => {
+export const operate = (op: Operator, a: number, b: number): number => {
   switch (op) {
-    case '+':
+    case Operator.PLUS:
       return a + b
-    case '-':
+    case Operator.MINUS:
       return a - b
-    case '*':
+    case Operator.MULTIPLY:
       return a * b
-    case '/':
+    case Operator.DIVIDE:
       return a / b
   }
 }
