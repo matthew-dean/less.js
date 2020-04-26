@@ -46,7 +46,7 @@ export class RulesCall extends Node {
 
   matchMixins(mixins: MixinDefinition[], context: Context) {}
 
-  eval(context: Context) {
+  eval(context: Context): Rules | RulesCall {
     const name = this.name
 
     if (name instanceof Variable) {

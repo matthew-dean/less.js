@@ -5,6 +5,20 @@ import { IFileInfo, IImportOptions } from '../../tree/nodes'
 import DefaultOptions, { IOptions } from '../../options'
 import { Less } from '../../'
 
+/** Mock files */
+const files: { [k: string]: string } = {
+  'a.less': `
+    @var: foo;
+  `,
+  'b.less': `
+    .mixin() {
+      .example {
+        a: b;
+      }
+    }
+  `
+}
+
 export class MockEnvironment extends Environment {
   getFileInfo(filePath: string) {
     return { filename: '', path: '' }
@@ -42,18 +56,26 @@ export class MockEnvironment extends Environment {
   }
   loadFile(filePath: string) {
     return new Promise<FileObject>((resolve, reject) => {
-      resolve(this.loadFileSync(filePath))
+      const file = this.loadFileSync(filePath)
+      if (file) {
+        resolve(file)
+      } else {
+        reject(filePath)
+      }
     })
   }
 
   loadFileAsync(filePath: string) {
     return this.loadFile(filePath)
   }
+  /**
+   * This mock will return the contents
+   */
   loadFileSync(filePath: string) {
     return {
-      filename: '',
+      filename: filePath,
       path: '',
-      contents: 'foo'
+      contents: files[filePath]
     }
   }
   supportsSync(filePath: string, currentDirectory?: string, options?: IOptions & IImportOptions) {

@@ -6,6 +6,7 @@ import {
   INodeOptions,
   ILocationInfo,
   List,
+  Null,
   SelectorList,
   Selector,
   Rules,
@@ -34,7 +35,7 @@ export class Rule extends Node {
     const { selectors } = props
     if (
       selectors
-      && (Array.isArray(selectors) && (selectors.length !== 1 || selectors[0] instanceof Expression))
+      && Array.isArray(selectors) && (selectors.length !== 1 || selectors[0] instanceof Expression)
     ) {
       props.selectors = new List<Selector>(<Selector[]>selectors)
     }
@@ -49,7 +50,7 @@ export class Rule extends Node {
     return this.pre + text + this.post
   }
 
-  eval(context: Context) {
+  eval(context: Context): Rule | Null {
     if (!this.evaluated) {
       this.evaluated = true
 
@@ -70,7 +71,7 @@ export class Rule extends Node {
         this.condition = condition
 
         if (condition.valueOf() === false) {
-          return false
+          return new Null().inherit(this)
         }
       }
 

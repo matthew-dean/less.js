@@ -9,7 +9,7 @@ import {
   NumericNode,
   Op
 } from '.'
-import { Operator } from 'core/src/constants'
+import { Operator } from '../../constants'
 
 /**
  * Values can only be 3 Nodes
@@ -17,6 +17,7 @@ import { Operator } from 'core/src/constants'
  *        [Operation, Op, Node]
  */
 export class Operation extends Node {
+  static operators: string[] = Object.values(Operator)
   /**
    * Represents lhs, op, rhs
    */
@@ -38,10 +39,11 @@ export class Operation extends Node {
     let op = nodes[1].value
     op = op === './' ? '/' : op
 
-    /** @todo - check if operator is a valid math operator */
-
     if (context.isMathOn(op) && a instanceof NumericNode && b instanceof NumericNode) {
-      return a.operate(op, b, context)
+      if (Operation.operators.indexOf(op) === -1) {
+        return this.error('Operation using invalid operator.', context)
+      }
+      return a.operate(<Operator>op, b, context)
     } else {
       /**
        * We'll output as-is, and warn about it, in case we want to use the text of the

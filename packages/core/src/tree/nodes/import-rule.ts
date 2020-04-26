@@ -1,9 +1,25 @@
-import { Context, Node, IProps, ILocationInfo, AtRule, Expression } from '.'
+import { Context, Quoted, Url, Node, IProps, ILocationInfo, AtRule, Expression } from '.'
 
 /**
  * @todo - all imports must resolve to a Less AST, even modules.
  *         a module essentially returns Rules<FunctionDefinition[]>
  */
+
+export type IImportProps = {
+  path: Quoted | Url
+  features?: Node
+  content?: null
+}
+
+export type IImportOptions = {
+  reference?: boolean
+  css?: boolean
+  less?: boolean
+  inline?: boolean
+  /** future feature */
+  module?: boolean
+  [key: string]: boolean | any
+}
 //
 // CSS @import node
 //
@@ -16,14 +32,6 @@ import { Context, Node, IProps, ILocationInfo, AtRule, Expression } from '.'
 // `import,push`, we also pass it a callback, which it'll call once
 // the file has been fetched, and parsed.
 //
-export type IImportOptions = {
-  reference?: boolean
-  css?: boolean
-  less?: boolean
-  inline?: boolean
-  js?: boolean
-  [key: string]: boolean | any
-}
 /**
  * @todo - rewrite the above to make browser importing not a factor
  * Also, the import queue should be loaded during evalImports, not parsing
@@ -31,7 +39,7 @@ export type IImportOptions = {
 export class ImportRule extends Node {
   content: Node | null
   features: Node | undefined
-  path: Node
+  path: Quoted | Url
   options: IImportOptions
   location: ILocationInfo
 
@@ -42,9 +50,9 @@ export class ImportRule extends Node {
    * will treat a `.css` extension as a `css` option, and will set that option
    * on the import node.
    */
-  constructor(props: IProps, options: IImportOptions, location: ILocationInfo) {
+  constructor(props: IImportProps, options?: IImportOptions, location?: ILocationInfo) {
     /**
-     * We add an empty content object, because this.children can't be mutated after
+     * We add a null content object, because this.children can't be mutated after
      * the constructor. After the file is resolved, content will be populated either
      * by a single Rules node, or a Value node (such as in the case of inline)
      */
@@ -54,6 +62,10 @@ export class ImportRule extends Node {
 
   eval(context: Context): AtRule | ImportRule {
     if (!this.evaluated) {
+      /**
+       * Before we have the _content_ of the @import, we evaluate
+       * the statement itself, not the file.
+       */
       if (!this.content) {
         super.eval(context)
         if (this.options.css) {
@@ -69,8 +81,12 @@ export class ImportRule extends Node {
             this.location
           ).inherit(this)
         }
-        /** @todo - import file and assign to content */
+        /** @todo - import file and assign to content - in rules eval? */
       } else {
+        /**
+         * Now we're eval-ing the content only in this context.
+         * It's outer statement was eval'd to queue the import.
+         */
         this.content.eval(context)
         this.evaluated = true
       }
@@ -79,7 +95,12 @@ export class ImportRule extends Node {
   }
 
   toString() {
-    /** @todo - return this.content.toString() */
+    /**
+     * When an import is eval'd, if it's Less, this node
+     * disappears and returns the Rules node. If it's to be
+     * output, then it converts to an AtRule. Meaning, an
+     * @import has no final output.
+     */
     return ''
   }
 

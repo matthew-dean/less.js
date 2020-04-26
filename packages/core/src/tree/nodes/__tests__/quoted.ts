@@ -24,6 +24,6 @@ describe('Quoted', () => {
     const A = new Quoted([new Value('this is the string contents')], { quote: '"' })
     const B = new Quoted([new Value('this is the string contents')], { quote: "'" })
 
-    expect(String(A)).to.eq(String(B))
+    expect(A.valueOf()).to.eq(B.valueOf())
   })
 })
