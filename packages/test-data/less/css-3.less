@@ -19,26 +19,26 @@ p:not([class*="lead"]) {
   color: black;
 }
 
-input[type="text"].class#id[attr=b32]:not(1) {
-  color: white;
+input[type="text"].class#id[attr=32]:not(1) {
+  color: inherit;
 }
 
-div#id.class[a=a1-_][b=-x_2].class:not(1) {
-  color: white;
+div#id.class[a=1][b=2].class:not(1) {
+  color: inherit;
 }
 
 ul.comma > li:not(:only-child)::after {
-  color: white;
+  color: inherit;
 }
 
 ol.comma > li:nth-last-child(2)::after {
-  color: white;
+  color: inherit;
 }
 
 li:nth-child(4n+1),
 li:nth-child(-5n),
 li:nth-child(-n+2) {
-  color: white;
+  color: inherit;
 }
 
 a[href^="http://"] {
@@ -87,7 +87,7 @@ p::before {
   }
 }
 
-@-x-document url-prefix("github.com") {
+@-x-document url-prefix(""github.com"") {
   h1 {
     color: red;
   }
@@ -100,7 +100,7 @@ p::before {
 
 foo|h1 { color: blue; }
 foo|* { color: yellow; }
-// |h1 { color: red; }  // not supported
+|h1 { color: red; }
 *|h1 { color: green; }
 h1 { color: green; }
 .upper-test {
@@ -111,34 +111,26 @@ h1 { color: green; }
     display: block;
   }
 }
-
-// No such pseudo-function syntax, removed in Less 4.x
-// ::distributed(input::placeholder) {
-//   color: #b3b3b3;
-// }
-:distributed(input::placeholder) {
+::distributed(input::placeholder) {
   color: #b3b3b3;
 }
-
-// DEPRECATED / REMOVED in 4.x
-// .shadow ^ .dom,
-// body ^^ .shadow {
-//   display: done;
-// }
+.shadow ^ .dom,
+body ^^ .shadow {
+  display: done;
+}
 
 :host(.sel .a),
 :host-context(.sel .b),
-// DEPRECATED / Removed in 4.x .sel /deep/ .b,
+.sel /deep/ .b,
 ::content .sel {
   type: shadow-dom;
 }
-// DEPRECATED / Removed
-// /deep/ b {
-//  c: 'd';
-//  &[e]{
-//    f: 'g';
-//  }
-// }
+/deep/ b {
+ c: 'd';
+ &[e]{
+   f: 'g';
+ }
+}
 
 #issue2066 {
   background: url('/images/icon-team.svg') 0 0 / contain;

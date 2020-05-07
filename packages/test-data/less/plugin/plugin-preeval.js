@@ -1,11 +1,5 @@
 module.exports = {
-  install(
-    {
-      tree: { Quoted },
-      visitors
-    },
-    manager
-  ) {
+  install({ tree: { Quoted }, visitors }, manager) {
     class Visitor {
       constructor() {
         this.native = new visitors.Visitor(this)
