@@ -1,6 +1,5 @@
 import { rawTokenConfig, LexerType } from './util'
-import * as XRegExp from 'xregexp'
-import { start } from 'repl'
+
 /**
  * references:
  * https://github.com/antlr/grammars-v4/blob/master/css3/css3.g4
@@ -36,9 +35,14 @@ export const Fragments: [string, string][] = [
 
 type Match = { value: string; index: number }
 
-function matchValue(str: string, index: number) {
-  this.value = str
-  this.index = index
+class matchValue implements Match {
+  value: string
+  index: number
+
+  constructor(str: string, index: number) {
+    this.value = str
+    this.index = index
+  }
 }
 
 /**
@@ -46,8 +50,8 @@ function matchValue(str: string, index: number) {
  */
 export function groupCapture(this: RegExp, text: string, startOffset: number) {
   let endOffset = startOffset
-  let match: RegExpExecArray
-  let lastMatch: RegExpExecArray = null
+  let match: RegExpExecArray | null
+  let lastMatch: RegExpExecArray | null = null
   const matches: RegExpExecArray[] = []
 
   this.lastIndex = startOffset

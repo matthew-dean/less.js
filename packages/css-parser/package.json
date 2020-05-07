@@ -12,13 +12,16 @@
     "prepublishOnly": "npm run build",
     "build": "npm-run-all clean compile",
     "clean": "shx rm -rf ./dist",
-    "compile": "tsc -p tsconfig.build.json",
+    "compile": "tsc -p tsconfig.json",
     "test": "ts-mocha test/**/*.ts"
   },
   "author": "Matthew Dean",
   "license": "(Apache-2.0 or MIT)",
   "dependencies": {
-    "chevrotain": "6.5.0",
+    "chevrotain": "7.0.1",
     "xregexp": "^4.2.4"
+  },
+  "devDependencies": {
+    "@types/xregexp": "^4.3.0"
   }
 }

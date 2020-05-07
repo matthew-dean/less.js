@@ -24,6 +24,9 @@ test/sourcemaps/*.map
 test/sourcemaps/*.css
 test/less-bom
 
+# typescript
+tsconfig.tsbuildinfo
+
 # grunt
 .grunt
 

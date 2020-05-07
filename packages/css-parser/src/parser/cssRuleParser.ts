@@ -49,7 +49,7 @@ export class CssRuleParser extends EmbeddedActionsParser {
     }
   })
 
-  valueExpression = this.RULE<CstElement[]>('valueExpression', () => {
+  valueExpression = this.RULE('valueExpression', (): CstElement[] => {
     let values: CstElement[] = []
     let val: CstElement
     val = this.WS()
@@ -63,128 +63,137 @@ export class CssRuleParser extends EmbeddedActionsParser {
     return values
   })
 
-  addition = this.RULE<CstNode>('addition', () => {
-    let rhs: CstElement[]
-    this.ACTION(() => (rhs = []))
-    let val: CstElement
-    let op: IToken
-    let ws: IToken
-    const lhs = this.SUBRULE(this.multiplication)
-    this.MANY(() => {
-      op = this.CONSUME(this.T.AdditionOperator)
-      ws = this.WS()
-      val = this.SUBRULE2(this.multiplication)
-      this.ACTION(() => {
-        rhs.push({
-          name: 'rhs',
-          children: {
-            op: [op],
-            ...(ws ? { ws: [ws] } : {}),
-            expression: [val]
-          }
+  addition = this.RULE(
+    'addition',
+    (): CstElement => {
+      let rhs: CstElement[] = []
+      let val: CstElement
+      let op: IToken
+      let ws: IToken
+      const lhs = this.SUBRULE(this.multiplication)
+      this.MANY(() => {
+        op = this.CONSUME(this.T.AdditionOperator)
+        ws = this.WS()
+        val = this.SUBRULE2(this.multiplication)
+        this.ACTION(() => {
+          rhs.push({
+            name: 'rhs',
+            children: {
+              op: [op],
+              ...(ws ? { ws: [ws] } : {}),
+              expression: [val]
+            }
+          })
         })
       })
-    })
-    const post = this.WS(1)
-    if (rhs && rhs.length > 0) {
-      return {
-        name: 'addition',
-        children: {
-          lhs: [lhs],
-          rhs,
-          ...(post ? { post: [post] } : {})
-        }
-      }
-    } else {
-      return lhs
-    }
-  })
-
-  multiplication = this.RULE<CstNode>('multiplication', () => {
-    let rhs: CstElement[]
-    this.ACTION(() => (rhs = []))
-    let val: CstElement
-    let op: IToken
-    let ws: IToken
-    const lhs = this.SUBRULE(this.compare)
-    this.MANY(() => {
-      op = this.CONSUME(this.T.MultiplicationOperator)
-      ws = this.WS()
-      val = this.SUBRULE2(this.compare)
-      this.ACTION(() => {
-        rhs.push({
-          name: 'rhs',
+      const post = this.WS(1)
+      if (rhs?.length > 0) {
+        return {
+          name: 'addition',
           children: {
-            op: [op],
-            ...(ws ? { ws: [ws] } : {}),
-            expression: [val]
+            lhs: [lhs],
+            rhs,
+            ...(post ? { post: [post] } : {})
           }
+        } as CstNode
+      } else {
+        return lhs
+      }
+    }
+  )
+
+  multiplication = this.RULE(
+    'multiplication',
+    (): CstElement => {
+      let rhs: CstElement[] = []
+      let val: CstElement
+      let op: IToken
+      let ws: IToken
+      const lhs = this.SUBRULE(this.compare)
+      this.MANY(() => {
+        op = this.CONSUME(this.T.MultiplicationOperator)
+        ws = this.WS()
+        val = this.SUBRULE2(this.compare)
+        this.ACTION(() => {
+          rhs.push({
+            name: 'rhs',
+            children: {
+              op: [op],
+              ...(ws ? { ws: [ws] } : {}),
+              expression: [val]
+            }
+          })
         })
       })
-    })
-    const post = this.WS(1)
-    if (rhs && rhs.length > 0) {
-      return {
-        name: 'multiplication',
-        children: {
-          lhs: [lhs],
-          rhs,
-          ...(post ? { post: [post] } : {})
-        }
-      }
-    } else {
-      return lhs
-    }
-  })
-
-  compare = this.RULE('compare', () => {
-    let rhs: CstElement[]
-    this.ACTION(() => (rhs = []))
-    let val: CstElement
-    let op: IToken
-    let ws: IToken
-    const lhs = this.SUBRULE(this.value)
-    this.MANY(() => {
-      op = this.CONSUME(this.T.CompareOperator)
-      ws = this.WS()
-      val = this.SUBRULE2(this.value)
-      this.ACTION(() => {
-        rhs.push({
-          name: 'rhs',
+      const post = this.WS(1)
+      if (rhs.length > 0) {
+        return {
+          name: 'multiplication',
           children: {
-            op: [op],
-            ...(ws ? { ws: [ws] } : {}),
-            expression: [val]
+            lhs: [lhs],
+            rhs,
+            ...(post ? { post: [post] } : {})
           }
+        }
+      } else {
+        return lhs
+      }
+    }
+  )
+
+  compare = this.RULE(
+    'compare',
+    (): CstElement => {
+      let rhs: CstElement[] = []
+      let val: CstElement
+      let op: IToken
+      let ws: IToken
+      const lhs = this.SUBRULE(this.value)
+      this.MANY(() => {
+        op = this.CONSUME(this.T.CompareOperator)
+        ws = this.WS()
+        val = this.SUBRULE2(this.value)
+        this.ACTION(() => {
+          rhs.push({
+            name: 'rhs',
+            children: {
+              op: [op],
+              ...(ws ? { ws: [ws] } : {}),
+              expression: [val]
+            }
+          })
         })
       })
-    })
-    const post = this.WS(2)
-    if (rhs && rhs.length > 0) {
-      return {
-        name: 'compare',
-        children: {
-          lhs: [lhs],
-          rhs,
-          ...(post ? { post: [post] } : {})
+      const post = this.WS(2)
+      if (rhs.length > 0) {
+        return {
+          name: 'compare',
+          children: {
+            lhs: [lhs],
+            rhs,
+            ...(post ? { post: [post] } : {})
+          }
         }
+      } else {
+        return lhs
       }
-    } else {
-      return lhs
     }
-  })
+  )
 
-  value = this.RULE('value', () => {
-    return this.OR([
-      // { ALT: () => this.SUBRULE(this.block) },
-      { ALT: () => this.CONSUME(this.T.Unit) },
-      { ALT: () => this.CONSUME(this.T.Ident) },
-      { ALT: () => this.CONSUME(this.T.StringLiteral) },
-      { ALT: () => this.CONSUME(this.T.Uri) },
-      { ALT: () => this.CONSUME(this.T.Color) },
-      { ALT: () => this.CONSUME(this.T.UnicodeRange) }
-    ])
-  })
+  value = this.RULE(
+    'value',
+    (): IToken => {
+      return this.OR([
+        // { ALT: () => this.SUBRULE(this.block) },
+        { ALT: () => this.CONSUME(this.T.Unit) },
+        { ALT: () => this.CONSUME(this.T.Ident) },
+        { ALT: () => this.CONSUME(this.T.StringLiteral) },
+        { ALT: () => this.CONSUME(this.T.Uri) },
+        { ALT: () => this.CONSUME(this.T.Color) },
+        { ALT: () => this.CONSUME(this.T.UnicodeRange) }
+      ])
+    }
+  )
 
   // value = this.OVERRIDE_RULE('value', () => {
   //   this.OR([
