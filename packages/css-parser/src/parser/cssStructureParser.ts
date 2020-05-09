@@ -1,4 +1,12 @@
-import { EMPTY_ALT, TokenType, CstNode, CstElement, IParserConfig, IToken } from 'chevrotain'
+import {
+  EMPTY_ALT,
+  TokenType,
+  CstNode,
+  CstElement,
+  IParserConfig,
+  IToken,
+  EmbeddedActionsParser
+} from 'chevrotain'
 import { TokenMap } from '../util'
 import { CssRuleParser } from './cssRuleParser'
 import { BaseParserClass } from './baseParserClass'
@@ -134,14 +142,20 @@ export class CssStructureParser extends BaseParserClass {
   }
 
   /** Wrapper for secondary parsing by rule parser */
-  _parseNode = (node: CstNode): CstNode => {
+  _parseNode = (
+    node: CstNode,
+    tokens: IToken[],
+    startIdx: number,
+    parseMethod?: string
+  ): CstNode => {
+    // @ts-ignore
+    const method = this.ruleParser[parseMethod || node.name]
+    if (method) {
+      this.ruleParser.input = tokens
+      const cst = method()
+      return cst
+    }
     return node
-    // if (!this.ruleParser || this.RECORDING_PHASE) {
-    //   return node
-    // }
-    // this.ACTION(() => {
-    //   this.ruleParser.input
-    // })
   }
 
   WS(idx: number = 0) {
@@ -195,6 +209,7 @@ export class CssStructureParser extends BaseParserClass {
 
   rule = this.RULE('rule', (): CstNode | undefined => {
     const ws = this.WS()
+    const startIdx = this.CAPTURE()
     const rule: CstNode = this.OR([
       { ALT: () => this.SUBRULE(this.atRule) },
       { ALT: () => this.SUBRULE(this.componentValues) },
@@ -205,11 +220,13 @@ export class CssStructureParser extends BaseParserClass {
       { ALT: () => EMPTY_ALT }
     ])
 
+    const tokens = this.END_CAPTURE()
+
     if (rule.children) {
       if (ws) {
         rule.children.pre = [ws]
       }
-      return rule
+      return this._parseNode(rule, tokens, startIdx)
     } else if (ws) {
       return {
         name: 'ws',
@@ -280,7 +297,7 @@ export class CssStructureParser extends BaseParserClass {
       let valueTokens: IToken[]
       const parser = this.ruleParser
 
-      this.CAPTURE()
+      const startIdx = this.CAPTURE()
 
       this.OR([
         {
@@ -343,6 +360,8 @@ export class CssStructureParser extends BaseParserClass {
             expr = this._mergeValues(values, expr)
           })
         }
+
+        const selectorList = this._parseNode(expr, expressionTokens, startIdx, 'selectorList')
 
         return {
           name: 'qualifiedRule',
@@ -456,7 +475,12 @@ export class CssStructureParser extends BaseParserClass {
     }
   )
 
-  /** List of expression lists (or expression list if only 1) */
+  /**
+   * List of expression lists (or expression list if only 1),
+   * separated by semi-colon. This handles / formats arbitrary
+   * semi-colons or separating semi-colons in declaration lists
+   * within parentheses or brackets.
+   */
   expressionListGroup = this.RULE(
     'expressionListGroup',
     (): CstNode => {
@@ -583,6 +607,10 @@ export class CssStructureParser extends BaseParserClass {
   /**
    * This will detect a declaration-like expression within an expression,
    * but note that the declaration is essentially a duplicate of the entire expression.
+   *
+   * The purpose for this is to handle ambiguity within, say, at-rules. An at-rule may
+   * specifically allow selectors or a declaration, and there's no way for the parser to tell
+   * which is which, depending on formatting.
    */
   customExpression = this.RULE<CstNode | undefined>('customExpression', () => {
     let exprValues: CstElement[] = []

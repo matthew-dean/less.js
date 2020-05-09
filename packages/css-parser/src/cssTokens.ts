@@ -123,7 +123,7 @@ export const Tokens: rawTokenConfig[] = [
   { name: 'AttrMatchOperator', pattern: LexerType.NA },
   // Some tokens have to appear after AttrMatch
   { name: 'Eq', pattern: /=/, categories: ['CompareOperator', 'AttrMatchOperator'] },
-  { name: 'Star', pattern: /\*/, categories: ['MultiplicationOperator'] },
+  { name: 'Star', pattern: /\*/, categories: ['MultiplicationOperator', 'Selector'] },
   { name: 'Tilde', pattern: /~/, categories: ['SelectorPart'] },
   /** Rare: a namespace combinator */
   { name: 'Pipe', pattern: /\|/, categories: ['SelectorPart'] },

@@ -6,6 +6,10 @@
     background: white
 }
 
+@media (width > 0) {
+    background: black;
+}
+
 @font-face {
     family-name: "A;' /**/";
 }

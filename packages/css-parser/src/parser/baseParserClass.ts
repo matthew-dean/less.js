@@ -16,11 +16,14 @@ export class BaseParserClass extends EmbeddedActionsParser {
   protected CAPTURE_INDEX: number[] = []
   protected currIdx: number
 
-  public CAPTURE() {
+  public CAPTURE(): number {
+    let idx = -1
     if (!this.RECORDING_PHASE) {
       /** Capture start index */
-      this.CAPTURE_INDEX.push(this.currIdx + 1)
+      idx = this.currIdx + 1
+      this.CAPTURE_INDEX.push(idx)
     }
+    return idx
   }
 
   public END_CAPTURE(): IToken[] {

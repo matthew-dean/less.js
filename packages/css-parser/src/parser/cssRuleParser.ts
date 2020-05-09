@@ -6,29 +6,150 @@ import {
   CstNode,
   CstElement
 } from 'chevrotain'
+import { CssStructureParser } from './cssStructureParser'
 import { TokenMap } from '../util'
 
 /**
  * This class further parses general rules into known rules
  */
-export class CssRuleParser extends EmbeddedActionsParser {
+export class CssRuleParser extends CssStructureParser {
   T: TokenMap
 
   constructor(tokens: TokenType[], T: TokenMap, config: IParserConfig = { maxLookahead: 1 }) {
-    super(tokens, config)
+    super(tokens, T, config)
     this.T = T
     if (this.constructor === CssRuleParser) {
       this.performSelfAnalysis()
     }
   }
 
-  WS(idx: number = 0) {
-    // +10 to avoid conflicts with other OPTION in the calling rule.
-    return this.option(idx + 10, () => {
-      const wsToken = this.consume(idx, this.T.WS)
-      return wsToken
-    })
-  }
+  /** A comma-separated list of selectors */
+  selectorList = this.RULE(
+    'selectorList',
+    (): CstNode => {
+      let selectors: CstNode[]
+      let Comma: IToken[]
+      let sel: CstNode
+
+      this.OPTION(() => {
+        sel = this.SUBRULE(this.selector)
+        if (sel) {
+          selectors = [sel]
+        } else {
+          selectors = []
+        }
+        Comma = []
+        this.MANY(() => {
+          const comma = this.CONSUME(this.T.Comma)
+          Comma.push(comma)
+          sel = this.SUBRULE(this.selector)
+          selectors.push(sel)
+        })
+      })
+
+      if (sel) {
+        return {
+          name: 'selectorList',
+          children: {
+            ...(Comma && Comma.length > 0 ? { Comma } : {}),
+            ...(selectors ? { selectors } : {})
+          }
+        }
+      }
+    }
+  )
+
+  /** *
+   * @todo working on selectors
+   */
+  selector = this.RULE(
+    'selector',
+    (): CstNode => {
+      let selector: CstNode[] = [this.SUBRULE(this.simpleSelector)]
+
+      this.MANY(() => {
+        val = this.SUBRULE(this.value)
+        values.push(val)
+      })
+      return {
+        name: 'selector',
+        children: {}
+      }
+    }
+  )
+
+  /**
+   * A simple selector is a single condition on an element. A type selector,
+   * universal selector, attribute selector, class selector, ID selector,
+   * or pseudo-class is a simple selector.
+   *
+   * @see https://www.w3.org/TR/selectors-4/#structure
+   */
+  simpleSelector = this.RULE(
+    'simpleSelector',
+    (): CstNode => {
+      let values: CstElement[]
+      this.OR([
+        {
+          /** e.g. :pseudo */
+          ALT: () => {
+            values = [this.CONSUME(this.T.Colon), this.CONSUME(this.T.Ident)]
+            /** e.g. :pseudo(...) */
+            this.OPTION(() => {
+              values.push(this.CONSUME(this.T.LParen))
+              values.push(this.SUBRULE(this.expressionListGroup))
+              values.push(this.CONSUME(this.T.RParen))
+            })
+          }
+        },
+        {
+          /** e.g. [id^="bar"] */
+          ALT: () => {
+            values = [this.CONSUME(this.T.LSquare), this.CONSUME2(this.T.Ident)]
+            this.OPTION2(() => {
+              this.OR2([
+                {
+                  ALT: () => {
+                    values.push(this.CONSUME(this.T.Eq))
+                  }
+                },
+                {
+                  ALT: () => {
+                    values.push(this.CONSUME(this.T.AttrMatchOperator))
+                    values.push(this.CONSUME(this.T.Eq))
+                  }
+                }
+              ])
+              this.OR3([
+                {
+                  ALT: () => {
+                    values.push(this.CONSUME3(this.T.Ident))
+                  }
+                },
+                {
+                  ALT: () => {
+                    values.push(this.CONSUME(this.T.StringLiteral))
+                  }
+                }
+              ])
+            })
+            values.push(this.CONSUME(this.T.RSquare))
+          }
+        },
+        {
+          ALT: () => {
+            values = [this.CONSUME(this.T.Selector)]
+          }
+        }
+      ])
+      return {
+        name: 'simpleSelector',
+        children: {
+          values
+        }
+      }
+    }
+  )
 
   /** A property is a collection of tokens in case we need to process segments */
   property = this.RULE<IToken[]>('property', () => {
@@ -184,7 +305,6 @@ export class CssRuleParser extends EmbeddedActionsParser {
     'value',
     (): IToken => {
       return this.OR([
-        // { ALT: () => this.SUBRULE(this.block) },
         { ALT: () => this.CONSUME(this.T.Unit) },
         { ALT: () => this.CONSUME(this.T.Ident) },
         { ALT: () => this.CONSUME(this.T.StringLiteral) },
