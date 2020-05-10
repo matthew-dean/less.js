@@ -92,7 +92,7 @@ export class CssParser extends EmbeddedActionsParser {
     tokens: TokenType[],
     T: TokenMap,
     config: IParserConfig = {
-      maxLookahead: 3
+      maxLookahead: 1
       /* , traceInitPerf:2 */
     }
   ) {
@@ -151,8 +151,15 @@ export class CssParser extends EmbeddedActionsParser {
     const ws = this.WS()
     const rule: CstNode = this.OR([
       { ALT: () => this.SUBRULE(this.atRule) },
-      { ALT: () => this.SUBRULE(this.declaration) },
-      { ALT: () => this.SUBRULE(this.qualifiedRule) },
+      { ALT: () => this.SUBRULE(this.declaration, { ARGS: [true] }) },
+      {
+        GATE: this.BACKTRACK(this.qualifiedRule),
+        ALT: () => this.SUBRULE(this.qualifiedRule)
+      },
+      {
+        GATE: this.BACKTRACK(this.declaration),
+        ALT: () => this.SUBRULE2(this.declaration)
+      },
 
       /** Capture any isolated / redundant semi-colons */
       { ALT: () => this.SUBRULE(this.semi) },
@@ -413,8 +420,10 @@ export class CssParser extends EmbeddedActionsParser {
    */
   declaration = this.RULE(
     'declaration',
-    (): CstNode => {
-      const property = this.SUBRULE(this.property)
+    (isCustomProperty): CstNode => {
+      const property = isCustomProperty
+        ? this.SUBRULE(this.customProperty)
+        : this.SUBRULE(this.property)
 
       const ws = this.WS()
       let colon: IToken = this.CONSUME(this.T.Assign)
@@ -438,11 +447,11 @@ export class CssParser extends EmbeddedActionsParser {
     }
   )
 
-  /**
-   * @example "color" in "color: red"
-   *          "--color": in "--color: red"
-   */
-  property = this.RULE('property', (): IToken[] => [this.CONSUME(this.T.PropertyName)])
+  /** "color" in "color: red" */
+  property = this.RULE('property', (): IToken[] => [this.CONSUME(this.T.Ident)])
+  customProperty = this.RULE('customProperty', (): IToken[] => [
+    this.CONSUME(this.T.CustomProperty)
+  ])
 
   /**
    * List of expression lists (or expression list if only 1),
@@ -530,6 +539,12 @@ export class CssParser extends EmbeddedActionsParser {
    * The purpose for this is to handle ambiguity within, say, at-rules. An at-rule may
    * specifically allow selectors or a declaration, and there's no way for the parser to tell
    * which is which, depending on formatting.
+   *
+   * For example:
+   *   @arbitrary-at-rule (val:left) {}
+   *
+   * According to spec, an at-rule's parsing may include anything. The above may allow
+   * selectors (`val :left`), or it may allow an assignment (`val: left`)
    */
   expression = this.RULE<CstNode | undefined>('expression', () => {
     let exprValues: CstElement[] = []

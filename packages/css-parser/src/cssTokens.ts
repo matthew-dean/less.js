@@ -85,7 +85,8 @@ export function groupCapture(this: RegExp, text: string, startOffset: number) {
 }
 
 /**
- * Anything that is not 'BlockMarker' will be parsed as a generic 'Value'
+ * Anything that is not 'BlockMarker' will be parsed as a generic 'Value',
+ * so 'Value' can be considered `!BlockMarker`
  */
 export const Tokens: rawTokenConfig[] = [
   { name: 'Value', pattern: LexerType.NA },
