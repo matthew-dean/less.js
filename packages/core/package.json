@@ -23,8 +23,6 @@
     "The Core Less Team"
   ],
   "license": "Apache-2.0",
-  "dependencies": {
-    "chevrotain": "7.0.1"
-  },
+  "dependencies": {},
   "devDependencies": {}
 }

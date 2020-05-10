@@ -3,13 +3,11 @@ import {
   TokenType,
   CstNode,
   CstElement,
+  EmbeddedActionsParser,
   IParserConfig,
-  IToken,
-  EmbeddedActionsParser
+  IToken
 } from 'chevrotain'
 import { TokenMap } from '../util'
-import { CssRuleParser } from './cssRuleParser'
-import { BaseParserClass } from './baseParserClass'
 
 /**
  *  A Note About CSS Syntax
@@ -87,78 +85,23 @@ interface spaceToken {
  *  at-rule bodies (in {}) can be almost anything, and the outer grammar should
  *  not care about what at-rules or declaration values contain.
  */
-export class CssStructureParser extends BaseParserClass {
+export class CssParser extends EmbeddedActionsParser {
   T: TokenMap
-  ruleParser: CssRuleParser
 
   constructor(
     tokens: TokenType[],
     T: TokenMap,
     config: IParserConfig = {
-      maxLookahead: 1
+      maxLookahead: 3
       /* , traceInitPerf:2 */
-    },
-    /** An optional instance to further refine rules */
-    ruleParser?: CssRuleParser
+    }
   ) {
     super(tokens, config)
     this.T = T
-    if (ruleParser) {
-      this.ruleParser = ruleParser
-    }
-    if (this.constructor === CssStructureParser) {
+    /** If this is extended, don't perform self-analysis twice */
+    if (this.constructor === CssParser) {
       this.performSelfAnalysis()
     }
-  }
-
-  /** If an expression ends up not being a declaration, merge initial values into expression */
-  _mergeValues = (values: CstElement[], expr?: CstNode): CstNode => {
-    if (!expr) {
-      /** Create new expression list */
-      expr = {
-        name: 'expressionList',
-        children: {
-          expression: [
-            {
-              name: 'expression',
-              children: {
-                values: []
-              }
-            }
-          ]
-        }
-      }
-    }
-    const listChildren = expr.children
-    const expressions: CstNode[] = listChildren.expression as CstNode[]
-    if (expressions) {
-      const firstExpression = expressions[0].children
-      const firstValues = firstExpression.values
-      firstExpression.values = values.concat(firstValues)
-    } else {
-      listChildren.expression = values
-    }
-    return expr
-  }
-
-  /** Wrapper for secondary parsing by rule parser */
-  _parseNode = (
-    node: CstNode,
-    tokens: IToken[],
-    startIdx: number,
-    parseMethod?: string
-  ): CstNode => {
-    if (this.RECORDING_PHASE) {
-      return node
-    }
-    // @ts-ignore
-    const method = this.ruleParser[parseMethod || node.name]
-    if (method) {
-      this.ruleParser.input = tokens
-      const cst = method()
-      return cst
-    }
-    return node
   }
 
   WS(idx: number = 0) {
@@ -168,12 +111,6 @@ export class CssStructureParser extends BaseParserClass {
       return wsToken
     })
   }
-  // /** Optional whitespace */
-  // _ = this.RULE<IToken | undefined>('_', () => {
-  //   let token: IToken
-  //   this.OPTION(() => token = this.CONSUME(this.T.WS))
-  //   return token
-  // })
 
   primary = this.RULE(
     'primary',
@@ -212,24 +149,21 @@ export class CssStructureParser extends BaseParserClass {
 
   rule = this.RULE('rule', (): CstNode | undefined => {
     const ws = this.WS()
-    const startIdx = this.CAPTURE()
     const rule: CstNode = this.OR([
       { ALT: () => this.SUBRULE(this.atRule) },
-      { ALT: () => this.SUBRULE(this.componentValues) },
-      { ALT: () => this.SUBRULE(this.customPropertyRule) },
+      { ALT: () => this.SUBRULE(this.declaration) },
+      { ALT: () => this.SUBRULE(this.qualifiedRule) },
 
       /** Capture any isolated / redundant semi-colons */
       { ALT: () => this.SUBRULE(this.semi) },
       { ALT: () => EMPTY_ALT }
     ])
 
-    const tokens = this.END_CAPTURE()
-
     if (rule.children) {
       if (ws) {
         rule.children.pre = [ws]
       }
-      return this._parseNode(rule, tokens, startIdx)
+      return rule
     } else if (ws) {
       return {
         name: 'ws',
@@ -277,213 +211,238 @@ export class CssStructureParser extends BaseParserClass {
     }
   )
 
-  propertyValue = this.RULE(
-    'propertyValue',
-    (): CstElement => {
-      return this.OR([
-        { ALT: () => this.SUBRULE(this.block) },
-        { ALT: () => this.CONSUME(this.T.Value) }
-      ])
-    }
-  )
-
-  componentValues = this.RULE(
-    'componentValues',
-    (): CstNode => {
-      const values: CstElement[] = []
-      let val: CstElement
-      let ws: IToken
-      let colon: IToken
-      let expr: CstNode
-      let expressionTokens: IToken[]
-      let propertyTokens: IToken[]
-      let valueTokens: IToken[]
-      let propertyIdx: number
-      let valueIdx: number
-      const parser = this.ruleParser
-
-      const startIdx = this.CAPTURE()
-
-      this.OR([
-        {
-          /** Grab initial colon (or 2), in case this is a selector list */
-          ALT: () => {
-            val = this.CONSUME(this.T.Colon)
-            values.push(val)
-            this.OPTION(() => {
-              val = this.CONSUME2(this.T.Colon)
-              values.push(val)
-            })
-          }
-        },
-        {
-          /** Grab curly if it's the first member of an expression */
-          ALT: () => {
-            val = this.SUBRULE(this.curlyBlock)
-            values.push(val)
-          }
-        },
-        {
-          ALT: () => {
-            propertyIdx = this.CAPTURE()
-            this.AT_LEAST_ONE(() => {
-              val = this.SUBRULE(this.propertyValue)
-              values.push(val)
-            })
-            propertyTokens = this.END_CAPTURE()
-            ws = this.WS()
-            this.OPTION2(() => {
-              colon = this.CONSUME(this.T.Assign)
-            })
-          }
-        }
-      ])
-
-      /** Consume any remaining values */
-      valueIdx = this.CAPTURE()
-      expr = this.SUBRULE(this.expressionList)
-      let curly: CstNode, semi: IToken
-
-      valueTokens = this.END_CAPTURE()
-      expressionTokens = this.END_CAPTURE()
-
-      this.OR2([
-        { ALT: () => (curly = this.SUBRULE2(this.curlyBlock)) },
-        { ALT: () => (semi = this.CONSUME(this.T.SemiColon)) },
-        { ALT: () => EMPTY_ALT }
-      ])
-      if (curly) {
-        /** Treat as qualified rule */
-        if (ws) {
-          values.push(ws)
-        }
-        if (colon) {
-          values.push(colon)
-        }
-        if (values.length > 0) {
-          this.ACTION(() => {
-            expr = this._mergeValues(values, expr)
-          })
-        }
-
-        const selectorList = this._parseNode(expr, expressionTokens, startIdx, 'selectorList')
-
-        return {
-          name: 'qualifiedRule',
-          children: {
-            expressionList: [expr],
-            body: [curly]
-          }
-        }
-      } else if (colon) {
-        /** Treat as declaration */
-        let property: CstNode[]
-        let value: CstNode[]
-        this.ACTION(() => {
-          property = [
-            this._parseNode(
-              { name: 'property', children: { values: propertyTokens } },
-              propertyTokens,
-              propertyIdx
-            )
-          ]
-          value = [
-            this._parseNode(
-              { name: 'expression', children: { values: valueTokens } },
-              valueTokens,
-              valueIdx
-            )
-          ]
-        })
-        return {
-          name: 'declaration',
-          children: {
-            property,
-            ...(ws ? { ws: [ws] } : {}),
-            Colon: [colon],
-            value,
-            ...(semi ? { SemiColon: [semi] } : {})
-          }
-        }
-      }
-      /**
-       * Treat as a plain expression list
-       * @todo - Any error flagging to do here?
-       */
-      if (ws) {
-        values.push(ws)
-      }
-      if (colon) {
-        values.push(colon)
-      }
-      if (values.length > 0) {
-        expr = this._mergeValues(values, expr)
-      }
-      return expr
-    }
-  )
-
   /**
-   * Custom property values can consume everything, including curly blocks
+   *
    */
-  customPropertyRule = this.RULE<CstNode>('customPropertyRule', () => {
-    const name = this.CONSUME(this.T.CustomProperty)
-    const ws = this.WS()
-    let colon: IToken = this.CONSUME(this.T.Assign)
+  qualifiedRule = this.RULE(
+    'qualifiedRule',
+    (): CstNode => {
+      const selector = [this.SUBRULE(this.selectorList)]
+      const body = [this.SUBRULE(this.curlyBlock)]
 
-    const value = this.SUBRULE(this.customExpressionList)
-    let semi: IToken
-    this.OPTION(() => {
-      semi = this.CONSUME(this.T.SemiColon)
-    })
-
-    return {
-      name: 'declaration',
-      children: {
-        property: [name],
-        ...(ws ? { ws: [ws] } : {}),
-        Colon: [colon],
-        value: [value],
-        ...(semi ? { SemiColon: [semi] } : {})
+      return {
+        name: 'qualifiedRule',
+        children: { selector, body }
       }
     }
-  })
+  )
 
-  /** A comma-separated list of expressions */
-  expressionList = this.RULE(
-    'expressionList',
+  /** A comma-separated list of selectors */
+  selectorList = this.RULE(
+    'selectorList',
     (): CstNode => {
-      let expressions: CstNode[]
+      let selectors: CstNode[]
       let Comma: IToken[]
-      let expr: CstNode
+      let sel: CstNode
 
       this.OPTION(() => {
-        expr = this.SUBRULE(this.expression)
-        if (expr) {
-          expressions = [expr]
+        sel = this.SUBRULE(this.selector)
+        if (sel) {
+          selectors = [sel]
         } else {
-          expressions = []
+          selectors = []
         }
         Comma = []
         this.MANY(() => {
           const comma = this.CONSUME(this.T.Comma)
           Comma.push(comma)
-          expr = this.SUBRULE(this.subExpression)
-          expressions.push(expr)
+          sel = this.SUBRULE2(this.selector)
+          selectors.push(sel)
         })
       })
 
-      if (expr) {
+      if (sel) {
         return {
-          name: 'expressionList',
+          name: 'selectorList',
           children: {
             ...(Comma && Comma.length > 0 ? { Comma } : {}),
-            ...(expressions ? { expression: expressions } : {})
+            ...(selectors ? { selectors } : {})
           }
         }
       }
     }
   )
+
+  /**
+   * AKA a 'complex selector' --
+   * "A complex selector is a sequence of one or more compound selectors
+   *  separated by combinators. It represents a set of simultaneous
+   *  conditions on a set of elements in the particular relationships
+   *  described by its combinators."
+   *
+   * @see https://www.w3.org/TR/selectors-4/#structure
+   */
+  selector = this.RULE(
+    'selector',
+    (): CstNode => {
+      let selector: CstElement[] = [this.SUBRULE(this.compoundSelector)]
+
+      this.MANY(() => {
+        this.OR([
+          {
+            ALT: () => {
+              /**
+               * Combinator with optional whitespace
+               */
+              selector.push(this.CONSUME(this.T.Combinator))
+              this.OPTION(() => {
+                selector.push(this.CONSUME(this.T.WS))
+              })
+            }
+          },
+          {
+            /**
+             * Combinator with optional whitespace
+             */
+            ALT: () => {
+              selector.push(this.CONSUME2(this.T.WS))
+              this.OPTION2(() => {
+                selector.push(this.CONSUME2(this.T.Combinator))
+                this.OPTION3(() => {
+                  selector.push(this.CONSUME3(this.T.WS))
+                })
+              })
+            }
+          }
+        ])
+        selector.push(this.SUBRULE2(this.compoundSelector))
+      })
+      return {
+        name: 'selector',
+        children: { selector }
+      }
+    }
+  )
+
+  /**
+   * "A compound selector is a sequence of simple selectors that are not separated by a combinator,
+   * and represents a set of simultaneous conditions on a single element. If it contains a type
+   * selector or universal selector, that selector must come first in the sequence."
+   *
+   * @see https://www.w3.org/TR/selectors-4/#structure
+   */
+  compoundSelector = this.RULE(
+    'compoundSelector',
+    (): CstNode => {
+      let selector: CstElement[] = []
+
+      this.OR([
+        { ALT: () => selector.push(this.CONSUME(this.T.Star)) },
+        {
+          ALT: () => {
+            this.MANY(() => selector.push(this.SUBRULE(this.simpleSelector)))
+          }
+        }
+      ])
+
+      return {
+        name: 'compoundSelector',
+        children: { selector }
+      }
+    }
+  )
+
+  /**
+   * "A simple selector is a single condition on an element. A type selector,
+   * universal selector, attribute selector, class selector, ID selector,
+   * or pseudo-class is a simple selector."
+   *
+   * @see https://www.w3.org/TR/selectors-4/#structure
+   */
+  simpleSelector = this.RULE(
+    'simpleSelector',
+    (): CstNode => {
+      let values: CstElement[]
+      this.OR([
+        {
+          /** e.g. :pseudo */
+          ALT: () => {
+            values = [this.CONSUME(this.T.Colon), this.CONSUME(this.T.Ident)]
+            /** e.g. :pseudo(...) */
+            this.OPTION(() => {
+              values.push(this.CONSUME(this.T.LParen))
+              values.push(this.SUBRULE(this.expressionListGroup))
+              values.push(this.CONSUME(this.T.RParen))
+            })
+          }
+        },
+        {
+          /** e.g. [id^="bar"] */
+          ALT: () => {
+            values = [this.CONSUME(this.T.LSquare), this.CONSUME2(this.T.Ident)]
+            this.OPTION2(() => {
+              this.OR2([
+                { ALT: () => values.push(this.CONSUME(this.T.Eq)) },
+                { ALT: () => values.push(this.CONSUME(this.T.AttrMatch)) }
+              ])
+              this.OR3([
+                {
+                  ALT: () => {
+                    values.push(this.CONSUME3(this.T.Ident))
+                  }
+                },
+                {
+                  ALT: () => {
+                    values.push(this.CONSUME(this.T.StringLiteral))
+                  }
+                }
+              ])
+            })
+            values.push(this.CONSUME(this.T.RSquare))
+          }
+        },
+        {
+          ALT: () => {
+            values = [this.CONSUME(this.T.Selector)]
+          }
+        }
+      ])
+      return {
+        name: 'simpleSelector',
+        children: {
+          values
+        }
+      }
+    }
+  )
+
+  /**
+   * e.g.
+   *   color: red
+   *   --color: { ;red }
+   */
+  declaration = this.RULE(
+    'declaration',
+    (): CstNode => {
+      const property = this.SUBRULE(this.property)
+
+      const ws = this.WS()
+      let colon: IToken = this.CONSUME(this.T.Assign)
+
+      const value = this.SUBRULE(this.expressionList)
+      let semi: IToken
+      this.OPTION(() => {
+        semi = this.CONSUME(this.T.SemiColon)
+      })
+
+      return {
+        name: 'declaration',
+        children: {
+          property,
+          ...(ws ? { ws: [ws] } : {}),
+          Colon: [colon],
+          value: [value],
+          ...(semi ? { SemiColon: [semi] } : {})
+        }
+      }
+    }
+  )
+
+  /**
+   * @example "color" in "color: red"
+   *          "--color": in "--color: red"
+   */
+  property = this.RULE('property', (): IToken[] => [this.CONSUME(this.T.PropertyName)])
 
   /**
    * List of expression lists (or expression list if only 1),
@@ -497,7 +456,7 @@ export class CssStructureParser extends BaseParserClass {
       let isGroup = false
       let SemiColon: IToken[]
       let expressionList: CstNode[]
-      let list: CstNode = this.SUBRULE(this.customExpressionList)
+      let list: CstNode = this.SUBRULE(this.expressionList)
       let semi: IToken
 
       this.OPTION(() => {
@@ -506,7 +465,7 @@ export class CssStructureParser extends BaseParserClass {
         expressionList = [list]
         SemiColon = [semi]
         this.MANY(() => {
-          list = this.SUBRULE2(this.customExpressionList)
+          list = this.SUBRULE2(this.expressionList)
           expressionList.push(list)
           SemiColon = [semi]
           this.OPTION2(() => {
@@ -529,15 +488,15 @@ export class CssStructureParser extends BaseParserClass {
     }
   )
 
-  customExpressionList = this.RULE(
-    'customExpressionList',
+  expressionList = this.RULE(
+    'expressionList',
     (): CstNode => {
       let expressions: CstNode[]
       let expr: CstNode
       let Comma: IToken[]
 
       this.OPTION(() => {
-        expr = this.SUBRULE(this.customExpression)
+        expr = this.SUBRULE(this.expression)
         if (expr) {
           expressions = [expr]
         } else {
@@ -547,7 +506,7 @@ export class CssStructureParser extends BaseParserClass {
         this.MANY(() => {
           let comma = this.CONSUME(this.T.Comma)
           Comma.push(comma)
-          expr = this.SUBRULE2(this.customExpression)
+          expr = this.SUBRULE2(this.expression)
           expressions.push(expr)
         })
       })
@@ -565,56 +524,6 @@ export class CssStructureParser extends BaseParserClass {
   )
 
   /**
-   *  An expression contains values and spaces
-   */
-  expression = this.RULE('expression', (): CstNode | undefined => {
-    let values: CstElement[] = []
-    let val: CstElement | undefined
-
-    this.MANY(() => {
-      val = this.SUBRULE(this.value)
-      values.push(val)
-    })
-
-    if (val) {
-      return {
-        name: 'expression',
-        children: { values }
-      }
-    }
-  })
-
-  /**
-   * Immediately following a comma and optional whitespace
-   * This allows a curly block of rules to be a single value in an expression
-   */
-  subExpression = this.RULE<CstNode | undefined>('subExpression', () => {
-    let values: CstElement[] = []
-    let val: CstElement
-
-    this.OPTION(() => {
-      val = this.CONSUME(this.T.WS)
-      values.push(val)
-    })
-
-    this.OPTION2(() => {
-      val = this.SUBRULE(this.curlyBlock)
-      values.push(val)
-    })
-
-    this.MANY(() => {
-      val = this.SUBRULE(this.value)
-      values.push(val)
-    })
-    if (val) {
-      return {
-        name: 'expression',
-        children: { values }
-      }
-    }
-  })
-
-  /**
    * This will detect a declaration-like expression within an expression,
    * but note that the declaration is essentially a duplicate of the entire expression.
    *
@@ -622,7 +531,7 @@ export class CssStructureParser extends BaseParserClass {
    * specifically allow selectors or a declaration, and there's no way for the parser to tell
    * which is which, depending on formatting.
    */
-  customExpression = this.RULE<CstNode | undefined>('customExpression', () => {
+  expression = this.RULE<CstNode | undefined>('expression', () => {
     let exprValues: CstElement[] = []
     let propertyValues: CstElement[] = []
     let values: CstElement[] = []
@@ -716,23 +625,29 @@ export class CssStructureParser extends BaseParserClass {
     ])
   })
 
+  /** "red" in "color: red" */
+  propertyValue = this.RULE(
+    'propertyValue',
+    (): CstElement => {
+      return this.OR([
+        { ALT: () => this.SUBRULE(this.block) },
+        { ALT: () => this.CONSUME(this.T.Value) }
+      ])
+    }
+  )
+
   curlyBlock = this.RULE<CstNode>('curlyBlock', () => {
-    let children: { [key: string]: CstElement[] }
-
-    const L = this.CONSUME(this.T.LCurly)
-    const blockBody = this.SUBRULE(this.primary)
-
-    children = { L: [L], blockBody: [blockBody] }
-
-    /** @todo - Add a parsing error if this is missing */
-    this.OPTION(() => {
-      const R = this.CONSUME(this.T.RCurly)
-      children.R = [R]
-    })
+    const L = [this.CONSUME(this.T.LCurly)]
+    const blockBody = [this.SUBRULE(this.primary)]
+    const R = [this.CONSUME(this.T.RCurly)]
 
     return {
       name: 'curlyBlock',
-      children
+      children: {
+        L,
+        blockBody,
+        R
+      }
     }
   })
 

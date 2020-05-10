@@ -97,12 +97,12 @@ export const Tokens: rawTokenConfig[] = [
   { name: 'ListMarker', pattern: LexerType.NA },
   { name: 'CompareOperator', pattern: LexerType.NA },
   { name: 'Selector', pattern: LexerType.NA },
-  { name: 'SelectorPart', pattern: LexerType.NA },
+  { name: 'Combinator', pattern: LexerType.NA },
   { name: 'Color', pattern: LexerType.NA },
   { name: 'Function', pattern: LexerType.NA },
   { name: 'Assign', pattern: LexerType.NA },
   // TODO: can use string literals for simple patterns (e.g: /\)/ vs ')')
-  { name: 'Gt', pattern: />/, categories: ['CompareOperator', 'SelectorPart'] },
+  { name: 'Gt', pattern: />/, categories: ['CompareOperator', 'Combinator'] },
   { name: 'Lt', pattern: /</, categories: ['CompareOperator'] },
   { name: 'GtEq', pattern: />=/, categories: ['CompareOperator'] },
   { name: 'LtEq', pattern: /<=/, categories: ['CompareOperator'] },
@@ -115,7 +115,7 @@ export const Tokens: rawTokenConfig[] = [
   { name: 'SemiColon', pattern: /;/, categories: ['BlockMarker'] },
   { name: 'AdditionOperator', pattern: LexerType.NA },
   { name: 'MultiplicationOperator', pattern: LexerType.NA },
-  { name: 'Plus', pattern: /\+/, categories: ['AdditionOperator', 'SelectorPart'] },
+  { name: 'Plus', pattern: /\+/, categories: ['AdditionOperator', 'Combinator'] },
   { name: 'Minus', pattern: /-/, categories: ['AdditionOperator'] },
   { name: 'Divide', pattern: /\//, categories: ['MultiplicationOperator'] },
   { name: 'Comma', pattern: /,/, categories: ['BlockMarker'] },
@@ -123,10 +123,10 @@ export const Tokens: rawTokenConfig[] = [
   { name: 'AttrMatchOperator', pattern: LexerType.NA },
   // Some tokens have to appear after AttrMatch
   { name: 'Eq', pattern: /=/, categories: ['CompareOperator', 'AttrMatchOperator'] },
-  { name: 'Star', pattern: /\*/, categories: ['MultiplicationOperator', 'Selector'] },
-  { name: 'Tilde', pattern: /~/, categories: ['SelectorPart'] },
-  /** Rare: a namespace combinator */
-  { name: 'Pipe', pattern: /\|/, categories: ['SelectorPart'] },
+  { name: 'Star', pattern: /\*/, categories: ['MultiplicationOperator'] },
+  { name: 'Tilde', pattern: /~/, categories: ['Combinator'] },
+  /** a namespace or column combinator */
+  { name: 'Pipe', pattern: /\|\|?/, categories: ['Combinator'] },
   { name: 'AttrMatch', pattern: /[*~|^$]=/, categories: ['AttrMatchOperator'] },
   { name: 'Ident', pattern: LexerType.NA, categories: ['Selector'] },
   { name: 'PropertyName', pattern: LexerType.NA },

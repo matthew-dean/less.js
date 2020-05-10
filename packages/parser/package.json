@@ -18,8 +18,7 @@
   "author": "Matthew Dean",
   "license": "(Apache-2.0 or MIT)",
   "dependencies": {
-    "@less/css-parser": "^4.0.0-dev.1",
-    "chevrotain": "7.0.1"
+    "@less/css-parser": "^4.0.0-dev.1"
   },
   "devDependencies": {
     "@less/test-data": "^4.0.0-dev.1"

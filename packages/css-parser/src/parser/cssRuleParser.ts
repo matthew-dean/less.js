@@ -1,11 +1,4 @@
-import {
-  TokenType,
-  IParserConfig,
-  IToken,
-  EmbeddedActionsParser,
-  CstNode,
-  CstElement
-} from 'chevrotain'
+import { TokenType, IParserConfig, IToken, CstNode, CstElement } from 'chevrotain'
 import { CssStructureParser } from './cssStructureParser'
 import { TokenMap } from '../util'
 
@@ -15,7 +8,11 @@ import { TokenMap } from '../util'
 export class CssRuleParser extends CssStructureParser {
   T: TokenMap
 
-  constructor(tokens: TokenType[], T: TokenMap, config: IParserConfig = { maxLookahead: 1 }) {
+  constructor(
+    tokens: TokenType[],
+    T: TokenMap,
+    config: IParserConfig = { maxLookahead: 1, recoveryEnabled: true }
+  ) {
     super(tokens, T, config)
     this.T = T
     if (this.constructor === CssRuleParser) {
@@ -59,29 +56,89 @@ export class CssRuleParser extends CssStructureParser {
     }
   )
 
-  /** *
-   * @todo working on selectors
+  /**
+   * AKA a 'complex selector' --
+   * "A complex selector is a sequence of one or more compound selectors
+   *  separated by combinators. It represents a set of simultaneous
+   *  conditions on a set of elements in the particular relationships
+   *  described by its combinators."
+   *
+   * @see https://www.w3.org/TR/selectors-4/#structure
    */
   selector = this.RULE(
     'selector',
     (): CstNode => {
-      let selector: CstNode[] = [this.SUBRULE(this.simpleSelector)]
+      let selector: CstElement[] = [this.SUBRULE(this.compoundSelector)]
 
       this.MANY(() => {
-        val = this.SUBRULE(this.value)
-        values.push(val)
+        this.OR([
+          {
+            ALT: () => {
+              /**
+               * Combinator with optional whitespace
+               */
+              selector.push(this.CONSUME(this.T.Combinator))
+              this.OPTION(() => {
+                selector.push(this.CONSUME(this.T.WS))
+              })
+            }
+          },
+          {
+            /**
+             * Combinator with optional whitespace
+             */
+            ALT: () => {
+              selector.push(this.CONSUME2(this.T.WS))
+              this.OPTION2(() => {
+                selector.push(this.CONSUME2(this.T.Combinator))
+                this.OPTION(() => {
+                  selector.push(this.CONSUME3(this.T.WS))
+                })
+              })
+            }
+          }
+        ])
+        selector.push(this.SUBRULE2(this.compoundSelector))
       })
       return {
         name: 'selector',
-        children: {}
+        children: { selector }
       }
     }
   )
 
   /**
-   * A simple selector is a single condition on an element. A type selector,
+   * "A compound selector is a sequence of simple selectors that are not separated by a combinator,
+   * and represents a set of simultaneous conditions on a single element. If it contains a type
+   * selector or universal selector, that selector must come first in the sequence."
+   *
+   * @see https://www.w3.org/TR/selectors-4/#structure
+   */
+  compoundSelector = this.RULE(
+    'compoundSelector',
+    (): CstNode => {
+      let selector: CstElement[] = []
+
+      this.OR([
+        { ALT: () => selector.push(this.CONSUME(this.T.Star)) },
+        {
+          ALT: () => {
+            this.MANY(() => selector.push(this.SUBRULE(this.simpleSelector)))
+          }
+        }
+      ])
+
+      return {
+        name: 'compoundSelector',
+        children: { selector }
+      }
+    }
+  )
+
+  /**
+   * "A simple selector is a single condition on an element. A type selector,
    * universal selector, attribute selector, class selector, ID selector,
-   * or pseudo-class is a simple selector.
+   * or pseudo-class is a simple selector."
    *
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
@@ -152,7 +209,7 @@ export class CssRuleParser extends CssStructureParser {
   )
 
   /** A property is a collection of tokens in case we need to process segments */
-  property = this.RULE<IToken[]>('property', () => {
+  property = this.RULE('property', () => {
     return [this.CONSUME(this.T.PropertyName)]
   })
 
@@ -326,97 +383,6 @@ export class CssRuleParser extends CssStructureParser {
   //     { ALT: () => this.CONSUME(this.T.UnicodeRange) },
   //     { ALT: () => this.CONSUME(this.T.WS) }
   //   ])
-  // })
-
-  // compoundSelectorList = this.RULE('compoundSelectorList', () => {
-  //   this.SUBRULE(this.compoundSelector)
-  //   this.MANY(() => {
-  //     this.WS()
-  //     this.CONSUME(this.T.Comma)
-  //     this.SUBRULE2(this._)
-  //     this.SUBRULE2(this.compoundSelector)
-  //   })
-  // })
-
-  // /**
-  //  * e.g. div.foo[bar] + p
-  //  */
-  // compoundSelector = this.RULE('compoundSelector', () => {
-  //   this.SUBRULE(this.selector)
-  //   this.MANY(() => {
-  //     this.OPTION(() => this.CONSUME(this.T.WS, { LABEL: 'ws' }))
-  //     this.OPTION2(() => {
-  //       this.SUBRULE(this.selectorCombinator)
-  //       this.WS()
-  //     })
-  //     this.SUBRULE(this.compoundSelector)
-  //   })
-  //   this.SUBRULE2(this._)
-  // })
-
-  // selector = this.RULE('selector', () => {
-  //   this.OR([
-  //     {
-  //       ALT: () => {
-  //         this.SUBRULE(this.selectorElement)
-  //         this.MANY(() => {
-  //           this.SUBRULE(this.selectorSuffix)
-  //         })
-  //       }
-  //     },
-  //     {
-  //       ALT: () => {
-  //         this.AT_LEAST_ONE(() => {
-  //           this.SUBRULE2(this.selectorSuffix)
-  //         })
-  //       }
-  //     }
-  //   ])
-  // })
-
-  // // IDENT | '*'
-  // selectorElement = this.RULE('selectorElement', () => {
-  //   this.OR([
-  //     { ALT: () => this.CONSUME(this.T.Ident) },
-  //     { ALT: () => this.CONSUME(this.T.Star) },
-  //     { ALT: () => this.CONSUME(this.T.DimensionInt) }
-  //   ])
-  // })
-
-  //   // helper grammar rule to avoid repetition
-  // // [ HASH | class | attrib | pseudo ]+
-  // selectorSuffix = this.RULE('selectorSuffix', () => {
-  //   this.OR([
-  //     { ALT: () => this.CONSUME(this.T.ClassOrId) },
-  //     { ALT: () => this.SUBRULE(this.selectorAttribute) },
-  //     { ALT: () => this.SUBRULE(this.pseudoSelector) }
-  //   ])
-  // })
-
-  // selectorCombinator = this.RULE('selectorCombinator', () => {
-  //   this.OR([
-  //     { ALT: () => this.CONSUME(this.T.Plus) },
-  //     { ALT: () => this.CONSUME(this.T.Gt) },
-  //     { ALT: () => this.CONSUME(this.T.Tilde) },
-  //     { ALT: () => this.CONSUME(this.T.Pipe) }
-  //   ])
-  // })
-
-  // selectorAttribute = this.RULE('selectorAttribute', () => {
-  //   this.CONSUME(this.T.LSquare)
-  //   this.CONSUME(this.T.Ident)
-
-  //   this.OPTION(() => {
-  //     this.CONSUME(this.T.AttrMatchOperator)
-  //     this.OR([
-  //       { ALT: () => this.CONSUME2(this.T.Ident) },
-  //       { ALT: () => this.CONSUME(this.T.StringLiteral) }
-  //     ])
-  //   })
-  //   this.OPTION2(() => {
-  //     this.CONSUME(this.T.AttrFlag)
-  //   });
-  //   this.CONSUME(this.T.RSquare)
   // })
 
   // // ':' [ IDENT | FUNCTION S* [IDENT S*]? ')' ]
