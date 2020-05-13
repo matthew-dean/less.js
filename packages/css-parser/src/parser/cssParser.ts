@@ -66,11 +66,6 @@ import { TokenMap } from '../util'
  *  should be a parse error.)
  */
 
-interface optionalValues {
-  selector?: CstNode[]
-  declaration?: CstNode[]
-}
-
 interface spaceToken {
   pre?: IToken[]
   post?: IToken[]
@@ -151,15 +146,15 @@ export class CssParser extends EmbeddedActionsParser {
     const ws = this.WS()
     const rule: CstNode = this.OR([
       { ALT: () => this.SUBRULE(this.atRule) },
-      { ALT: () => this.SUBRULE(this.declaration, { ARGS: [true] }) },
       {
-        GATE: this.BACKTRACK(this.qualifiedRule),
+        GATE: this.BACKTRACK(this.customProperty),
+        ALT: () => this.SUBRULE(this.declaration, { ARGS: [true] })
+      },
+      {
+        GATE: this.BACKTRACK(this.testQualifiedRule),
         ALT: () => this.SUBRULE(this.qualifiedRule)
       },
-      {
-        GATE: this.BACKTRACK(this.declaration),
-        ALT: () => this.SUBRULE2(this.declaration)
-      },
+      { ALT: () => this.SUBRULE2(this.declaration, { ARGS: [false] }) },
 
       /** Capture any isolated / redundant semi-colons */
       { ALT: () => this.SUBRULE(this.semi) },
@@ -231,6 +226,24 @@ export class CssParser extends EmbeddedActionsParser {
         name: 'qualifiedRule',
         children: { selector, body }
       }
+    }
+  )
+
+  /**
+   * Test for qualified rule start
+   */
+  testQualifiedRule = this.RULE(
+    'testQualifiedRule',
+    (): IToken => {
+      this.AT_LEAST_ONE(() =>
+        this.OR([
+          { ALT: () => this.SUBRULE(this.block) },
+          { ALT: () => this.CONSUME(this.T.Value) },
+          { ALT: () => this.CONSUME(this.T.WS) },
+          { ALT: () => this.CONSUME(this.T.Colon) }
+        ])
+      )
+      return this.CONSUME(this.T.LCurly)
     }
   )
 
