@@ -1,6 +1,5 @@
 import { rawTokenConfig, LexerType } from './util'
-import * as XRegExp from 'xregexp'
-import { start } from 'repl'
+
 /**
  * references:
  * https://github.com/antlr/grammars-v4/blob/master/css3/css3.g4
@@ -36,9 +35,14 @@ export const Fragments: [string, string][] = [
 
 type Match = { value: string; index: number }
 
-function matchValue(str: string, index: number) {
-  this.value = str
-  this.index = index
+class matchValue implements Match {
+  value: string
+  index: number
+
+  constructor(str: string, index: number) {
+    this.value = str
+    this.index = index
+  }
 }
 
 /**
@@ -46,8 +50,8 @@ function matchValue(str: string, index: number) {
  */
 export function groupCapture(this: RegExp, text: string, startOffset: number) {
   let endOffset = startOffset
-  let match: RegExpExecArray
-  let lastMatch: RegExpExecArray = null
+  let match: RegExpExecArray | null
+  let lastMatch: RegExpExecArray | null = null
   const matches: RegExpExecArray[] = []
 
   this.lastIndex = startOffset
@@ -81,7 +85,8 @@ export function groupCapture(this: RegExp, text: string, startOffset: number) {
 }
 
 /**
- * Anything that is not 'BlockMarker' will be parsed as a generic 'Value'
+ * Anything that is not 'BlockMarker' will be parsed as a generic 'Value',
+ * so 'Value' can be considered `!BlockMarker`
  */
 export const Tokens: rawTokenConfig[] = [
   { name: 'Value', pattern: LexerType.NA },
@@ -93,12 +98,12 @@ export const Tokens: rawTokenConfig[] = [
   { name: 'ListMarker', pattern: LexerType.NA },
   { name: 'CompareOperator', pattern: LexerType.NA },
   { name: 'Selector', pattern: LexerType.NA },
-  { name: 'SelectorPart', pattern: LexerType.NA },
+  { name: 'Combinator', pattern: LexerType.NA },
   { name: 'Color', pattern: LexerType.NA },
   { name: 'Function', pattern: LexerType.NA },
   { name: 'Assign', pattern: LexerType.NA },
   // TODO: can use string literals for simple patterns (e.g: /\)/ vs ')')
-  { name: 'Gt', pattern: />/, categories: ['CompareOperator', 'SelectorPart'] },
+  { name: 'Gt', pattern: />/, categories: ['CompareOperator', 'Combinator'] },
   { name: 'Lt', pattern: /</, categories: ['CompareOperator'] },
   { name: 'GtEq', pattern: />=/, categories: ['CompareOperator'] },
   { name: 'LtEq', pattern: /<=/, categories: ['CompareOperator'] },
@@ -111,7 +116,7 @@ export const Tokens: rawTokenConfig[] = [
   { name: 'SemiColon', pattern: /;/, categories: ['BlockMarker'] },
   { name: 'AdditionOperator', pattern: LexerType.NA },
   { name: 'MultiplicationOperator', pattern: LexerType.NA },
-  { name: 'Plus', pattern: /\+/, categories: ['AdditionOperator', 'SelectorPart'] },
+  { name: 'Plus', pattern: /\+/, categories: ['AdditionOperator', 'Combinator'] },
   { name: 'Minus', pattern: /-/, categories: ['AdditionOperator'] },
   { name: 'Divide', pattern: /\//, categories: ['MultiplicationOperator'] },
   { name: 'Comma', pattern: /,/, categories: ['BlockMarker'] },
@@ -120,9 +125,9 @@ export const Tokens: rawTokenConfig[] = [
   // Some tokens have to appear after AttrMatch
   { name: 'Eq', pattern: /=/, categories: ['CompareOperator', 'AttrMatchOperator'] },
   { name: 'Star', pattern: /\*/, categories: ['MultiplicationOperator'] },
-  { name: 'Tilde', pattern: /~/, categories: ['SelectorPart'] },
-  /** Rare: a namespace combinator */
-  { name: 'Pipe', pattern: /\|/, categories: ['SelectorPart'] },
+  { name: 'Tilde', pattern: /~/, categories: ['Combinator'] },
+  /** a namespace or column combinator */
+  { name: 'Pipe', pattern: /\|\|?/, categories: ['Combinator'] },
   { name: 'AttrMatch', pattern: /[*~|^$]=/, categories: ['AttrMatchOperator'] },
   { name: 'Ident', pattern: LexerType.NA, categories: ['Selector'] },
   { name: 'PropertyName', pattern: LexerType.NA },

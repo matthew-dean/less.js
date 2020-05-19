@@ -1,7 +1,23 @@
 import { Context } from '../nodes'
-// import Less from '../index'
 import Environment, { FileObject } from '../../environment/environment'
 import Logger from '../../environment/logger'
+import { IFileInfo, IImportOptions } from '../../tree/nodes'
+import DefaultOptions, { IOptions } from '../../options'
+import { Less } from '../../'
+
+/** Mock files */
+const files: { [k: string]: string } = {
+  'a.less': `
+    @var: foo;
+  `,
+  'b.less': `
+    .mixin() {
+      .example {
+        a: b;
+      }
+    }
+  `
+}
 
 export class MockEnvironment extends Environment {
   getFileInfo(filePath: string) {
@@ -40,24 +56,32 @@ export class MockEnvironment extends Environment {
   }
   loadFile(filePath: string) {
     return new Promise<FileObject>((resolve, reject) => {
-      resolve(this.loadFileSync(filePath))
+      const file = this.loadFileSync(filePath)
+      if (file) {
+        resolve(file)
+      } else {
+        reject(filePath)
+      }
     })
   }
 
   loadFileAsync(filePath: string) {
     return this.loadFile(filePath)
   }
+  /**
+   * This mock will return the contents
+   */
   loadFileSync(filePath: string) {
     return {
-      filename: '',
+      filename: filePath,
       path: '',
-      contents: 'foo'
+      contents: files[filePath]
     }
   }
-  supportsSync(filePath, currentDirectory, options) {
+  supportsSync(filePath: string, currentDirectory?: string, options?: IOptions & IImportOptions) {
     return true
   }
-  supports(filePath, currentDirectory, options) {
+  supports(filePath: string, currentDirectory?: string, options?: IOptions & IImportOptions) {
     return true
   }
 
@@ -82,11 +106,9 @@ export class MockLogger extends Logger {
 }
 
 export const environment = new MockEnvironment([], [], new MockLogger())
-const less = {
-  version: [0, 0, 0],
+const less: Less = {
+  version: [4, 0, 0],
   environment,
-  options: {},
-  parse: null,
-  render: null
+  options: {}
 }
-export const context = new Context(less, environment, {})
+export const context = new Context(less, environment, DefaultOptions())

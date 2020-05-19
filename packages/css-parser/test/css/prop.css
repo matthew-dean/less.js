@@ -1,7 +1,9 @@
 a {
-    *color : black;
+    /* removed *color : black; */
     _background: white;
     font-size/**/: big;
+    /** removed
     $(var)-size: 100%;
     ${var}-size: 100%;
+    **/
 }

@@ -1,5 +1,4 @@
 import { Context, Node, NodeArray, IProps, INodeOptions, ILocationInfo } from '.'
-import { EvalContext } from '../contexts'
 
 /**
  * Renamed from 'Value'

@@ -9,8 +9,8 @@
     "@types/glob": "^7.1.1",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.7.4",
-    "@typescript-eslint/eslint-plugin": "^2.6.0",
-    "@typescript-eslint/parser": "^2.6.0",
+    "@typescript-eslint/eslint-plugin": "^2.29.0",
+    "@typescript-eslint/parser": "^2.29.0",
     "chai": "^4.2.0",
     "eslint": "^6.6.0",
     "glob": "^7.1.4",
@@ -23,12 +23,14 @@
     "shx": "^0.3.2",
     "ts-mocha": "^6.0.0",
     "ts-node": "^8.4.1",
-    "typescript": "^3.6.2"
+    "typescript": "^3.8.3"
   },
   "scripts": {
     "ci": "lerna run ci && yarn run format:validate",
-    "format:fix": "prettier-eslint --write \"**/*.@(ts|js|json|md)\"",
-    "format:validate": "prettier-eslint --list-different \"**/*.@(ts|js|json|md)\""
+    "format:fix": "prettier-eslint --write $PWD/\"**/*.@(ts|js|json|md)\"",
+    "format:validate": "prettier-eslint --list-different $PWD/\"**/*.@(ts|js|json|md)\"",
+    "bootstrap": "lerna bootstrap",
+    "compile": "lerna run compile"
   },
   "bugs": {
     "url": "https://github.com/less/less.js/issues"
@@ -60,5 +62,8 @@
       "prettier-eslint --write",
       "git add"
     ]
+  },
+  "dependencies": {
+    "chevrotain": "^7.0.1"
   }
 }

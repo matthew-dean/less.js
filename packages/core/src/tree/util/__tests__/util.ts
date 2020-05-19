@@ -30,7 +30,10 @@ describe('listMerge()', () => {
   })
 
   it('should merge to .a.c, .a.d, .b.c, .b.d', () => {
-    const list = [['.a', '.b'], ['.c', '.d']]
+    const list = [
+      ['.a', '.b'],
+      ['.c', '.d']
+    ]
     const result = mergeList(list)
     expect(JSON.stringify(result)).to.eq('[[".a",".c"],[".b",".c"],[".a",".d"],[".b",".d"]]')
   })

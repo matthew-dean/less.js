@@ -6,6 +6,7 @@ import {
   ImportRule,
   EvalReturn,
   ImportantNode,
+  Null,
   Rule,
   AtRule,
   IProps,
@@ -102,7 +103,9 @@ export class Rules extends NodeArray implements ImportantNode {
             context.importQueue.push(imprt)
           }
         } else if (rule instanceof Rule || rule instanceof AtRule) {
-          (<Rule | AtRule>rule).rules.eval(context, evalImports)
+          if (rule.rules) {
+            rule.rules.eval(context, evalImports)
+          }
         } else if (rule instanceof Rules) {
           rule.eval(context, evalImports)
         }
@@ -162,7 +165,7 @@ export class Rules extends NodeArray implements ImportantNode {
       if (rule) {
         if (Array.isArray(rule)) {
           replaceRules = replaceRules.concat(rule)
-        } else {
+        } else if (!(rule instanceof Null)) {
           replaceRules.push(rule)
         }
       }

@@ -12,7 +12,7 @@
     "prepublishOnly": "npm run build",
     "build": "npm-run-all clean compile",
     "clean": "shx rm -rf ./dist",
-    "compile": "tsc -p tsconfig.build.json",
+    "compile": "tsc -p tsconfig.json",
     "test": "ts-mocha --recursive \"src/**/__tests__/*.ts\""
   },
   "author": "Alexis Sellier",
@@ -23,8 +23,6 @@
     "The Core Less Team"
   ],
   "license": "Apache-2.0",
-  "dependencies": {
-    "chevrotain": "6.4.0"
-  },
+  "dependencies": {},
   "devDependencies": {}
 }

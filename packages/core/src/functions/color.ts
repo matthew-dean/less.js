@@ -136,7 +136,14 @@ colorFunctions = {
     let f = hu / 60 - i
 
     const vs = [va, va * (1 - sa), va * (1 - f * sa), va * (1 - (1 - f) * sa)]
-    const perm = [[0, 3, 1], [2, 0, 1], [1, 0, 3], [1, 2, 0], [3, 1, 0], [0, 1, 2]]
+    const perm = [
+      [0, 3, 1],
+      [2, 0, 1],
+      [1, 0, 3],
+      [1, 2, 0],
+      [3, 1, 0],
+      [0, 1, 2]
+    ]
 
     return colorFunctions.rgba.call(
       this,

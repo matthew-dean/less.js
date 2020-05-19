@@ -3,6 +3,13 @@ export enum MathMode {
   STRICT = 2
 }
 
+export enum Operator {
+  PLUS = '+',
+  MINUS = '-',
+  MULTIPLY = '*',
+  DIVIDE = '/'
+}
+
 export enum RewriteUrlMode {
   OFF,
   LOCAL,

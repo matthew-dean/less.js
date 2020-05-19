@@ -10,12 +10,6 @@ try {
   errno = require('errno')
 } catch (err) {
   errno = null
-}
-
-import less from './less-node'
-const pluginManager = new less.PluginManager(less)
-const fileManager = new less.FileManager()
-const plugins = []
 const queuePlugins = []
 let args = process.argv.slice(1)
 let silent = false
@@ -37,6 +31,12 @@ let continueProcessing = true
 // @see https://github.com/less/less.js/issues/2881
 // This code can safely be removed if node 0.10.x is not supported anymore.
 process.on('exit', () => {
+  process.reallyExit(process.exitCode)
+})
+process.on('uncaughtException', err => {
+  console.error(err)
+  process.exitCode = 1
+})
   process.reallyExit(process.exitCode)
 })
 process.on('uncaughtException', err => {
@@ -75,11 +75,11 @@ const checkBooleanArg = arg => {
 const parseVariableOption = (option, variables) => {
   const parts = option.split('=', 2)
   variables[parts[0]] = parts[1]
-}
-
-let sourceMapFileInline = false
-
-function printUsage() {
+      const mapFilename = path.resolve(process.cwd(), sourceMapOptions.sourceMapFullFilename)
+      const mapDir = path.dirname(mapFilename)
+      const outputDir = path.dirname(output)
+      // find the path from the map to the output file
+      sourceMapOptions.sourceMapOutputFilename = path.join(
   less.lesscHelper.printUsage()
   pluginManager.Loader.printUsage(plugins)
   continueProcessing = false
@@ -173,9 +173,9 @@ function render() {
       }
       cmd = (mkdirp && mkdirp.sync) || fs.mkdirSync
       cmd(dir)
-    }
-  }
-
+          console.error(description)
+          process.exitCode = 1
+        } else {
   if (options.depends) {
     if (!outputbase) {
       console.error('option --depends requires an output path to be specified')
@@ -205,9 +205,9 @@ function render() {
         }
         onDone()
       })
-    }
-  }
 
+    less.logger.addListener({
+      info: function (msg) {
   const writeSourceMapIfNeeded = (output, onDone) => {
     if (options.sourceMap && !sourceMapFileInline) {
       writeSourceMap(output, onDone)
@@ -235,14 +235,14 @@ function render() {
         } else {
           less.logger.info(`lessc: wrote ${output}`)
           onSuccess()
-        }
-      })
-    } else if (!options.depends) {
-      process.stdout.write(result.css)
-      onSuccess()
+    if (x === queuePlugins.length) {
+      render()
     }
   }
-
+  queuePlugins.forEach(queue => {
+    const context = utils.clone(options)
+    pluginManager.Loader.loadPlugin(
+      queue.name,
   const logDependencies = (options, result) => {
     if (options.depends) {
       let depends = ''
@@ -250,9 +250,9 @@ function render() {
         depends += `${result.imports[i]} `
       }
       console.log(depends)
-    }
-  }
-
+      .catch(() => {
+        pluginError(queue.name)
+      })
   const parseLessFile = (e, data) => {
     if (e) {
       console.error(`lessc: ${e.message}`)
@@ -267,9 +267,9 @@ function render() {
 
     if (options.lint) {
       options.sourceMap = false
-    }
-    sourceMapOptions.sourceMapFileInline = sourceMapFileInline
-
+        if (checkArgFunc(arg, match[2])) {
+          options.maxLineLen = parseInt(match[2], 10)
+          if (options.maxLineLen <= 0) {
     if (options.sourceMap) {
       options.sourceMap = sourceMapOptions
     }
@@ -367,10 +367,6 @@ function processPluginQueue() {
         pluginError(queue.name)
       })
   })
-}
-
-// self executing function so we can return
-(() => {
   args = args.filter(arg => {
     let match
 
@@ -577,4 +573,3 @@ function processPluginQueue() {
   } else {
     render()
   }
-})()

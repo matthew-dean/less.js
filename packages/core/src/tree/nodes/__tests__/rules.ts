@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 import 'mocha'
-import { Name, Rules, Declaration, MergeType, Value, Variable } from '..'
+import { Name, ImportRule, Rules, Declaration, MergeType, Value, Variable } from '..'
 
 import { context } from '../../__mocks__/context'
 
@@ -100,5 +100,9 @@ describe('Rules', () => {
     ])
     const val = node.eval(context)
     expect(val.valueOf()).to.eq('{merge:foo;merge:bar;prop:bar,foo}')
+  })
+
+  it('should eval imports', () => {
+    const node = new Rules([new ImportRule()])
   })
 })

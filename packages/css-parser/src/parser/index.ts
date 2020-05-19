@@ -1,33 +1,22 @@
 import { IToken, Lexer, CstNode, ILexingResult } from 'chevrotain'
 import { Tokens, Fragments } from '../cssTokens'
-import { CssStructureParser } from './cssStructureParser'
-import { CssRuleParser } from './cssRuleParser'
-import { CssStructureVisitor } from './cssStructureVisitor'
+import { CssParser } from './cssParser'
 import { createLexer } from '../util'
 
-// let { parser, lexer, tokens, T } = createParser(CssStructureParser, Fragments, Tokens)
-// const cssVisitor = CssStructureVisitor(
-//   parser.getBaseCstVisitorConstructorWithDefaults()
-// )
 export interface IParseResult {
   cst: CstNode
   lexerResult: ILexingResult
-  parser: CssStructureParser
+  parser: CssParser
 }
 
 export class Parser {
   lexer: Lexer
-  parser: CssStructureParser
+  parser: CssParser
 
-  constructor(structureOnly: boolean = false) {
+  constructor() {
     const { lexer, tokens, T } = createLexer(Fragments, Tokens)
     this.lexer = lexer
-    if (structureOnly) {
-      this.parser = new CssStructureParser(tokens, T)
-    } else {
-      const ruleParser = new CssRuleParser(tokens, T)
-      this.parser = new CssStructureParser(tokens, T, undefined, ruleParser)
-    }
+    this.parser = new CssParser(tokens, T)
   }
 
   parse(text: string): IParseResult {

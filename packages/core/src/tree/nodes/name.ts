@@ -21,12 +21,15 @@ export type INameOptions = {
  * as identifiers and variables that should be eval'd as values.
  */
 export class Name extends NodeArray {
+  name: Name
   value: string
   evaluating: boolean
   options: INameOptions
 
-  constructor(props: IProps, options?: INameOptions, location?: ILocationInfo) {
+  constructor(props: Node[] | IProps, options?: INameOptions, location?: ILocationInfo) {
     super(props, options, location)
+    /** Convenience assignment for mixin params, so that it can just check for .name */
+    this.name = this
   }
 
   eval(context: Context) {

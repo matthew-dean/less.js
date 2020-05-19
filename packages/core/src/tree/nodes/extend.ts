@@ -1,5 +1,4 @@
 import { Node, ILocationInfo, Selector, List, SelectorList } from '.'
-import { SelectorList } from '../node'
 
 export enum ExtendMode {
   ALL

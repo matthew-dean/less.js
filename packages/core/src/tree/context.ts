@@ -34,7 +34,7 @@ export class Context {
    * As we crawl the tree, we build up a stack of
    * parent selectors we can use for merging into child selectors
    */
-  selectors: (List<Selector>)[]
+  selectors: List<Selector>[]
 
   importQueue: ImportRule[]
 

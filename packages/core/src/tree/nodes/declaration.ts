@@ -14,6 +14,7 @@ export type IDeclarationOptions = {
 }
 
 export type IDeclarationProps = IProps & {
+  nodes: [List<Node> | Node] | [List<Node> | Node, Value]
   name: string | Name
   important?: Value
 }
@@ -36,7 +37,7 @@ export class Declaration extends Node implements ImportantNode {
    * declarations of `foo: bar` and `foo:bar` are equal.
    *
    */
-  nodes: [(List<Node> | Node)] | [(List<Node> | Node), Value]
+  nodes: [List<Node> | Node] | [List<Node> | Node, Value]
   name: Name
   important: Value | undefined
   options: IDeclarationOptions
@@ -67,7 +68,7 @@ export class Declaration extends Node implements ImportantNode {
     }
     /**
      * `important` is part of a declaration's value, but
-     * for convenience, it can be accessed as a distinct prop
+     * for convenience, it can be accessed/set as a distinct prop
      */
     Object.defineProperty(this, 'important', {
       get() {
@@ -113,7 +114,7 @@ export class Declaration extends Node implements ImportantNode {
 
       let important = this.important
       const importantResult = context.importantScope.pop()
-      if (!important && importantResult.important) {
+      if (!important && importantResult?.important) {
         this.important = new Value(importantResult.important)
       }
     }

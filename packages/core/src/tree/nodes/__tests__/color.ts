@@ -31,6 +31,7 @@ describe('Color', () => {
       new Color('#222')
     ])
     const val = A.eval(context)
+    console.log(val.toString(), A.toString())
     expect(val.toString()).to.eq('#333333')
     /** Just checks that this operation can be stringified */
     expect(A.toString()).to.eq('#111 + #222')

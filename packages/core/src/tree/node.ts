@@ -4,7 +4,7 @@ import { Context } from './context'
 import { compare } from './util/compare'
 import { ImportRule, Declaration, Rules } from './nodes'
 
-export type SimpleValue = string | number | boolean | number[]
+export type SimpleValue = string | number | boolean | number[] | undefined
 
 export type IBaseProps = {
   /** Each node may have pre or post Nodes for comments or whitespace */
@@ -40,8 +40,8 @@ export type IProps = {
 /**
  * The result of an eval can be one of these types
  */
-export type EvalReturn<T extends Node = Node> = T[] | T | false | null | undefined
-export type ProcessFunction<T extends Node = Node> = (node: T) => EvalReturn
+export type EvalReturn<T extends Node = Node> = T[] | T
+export type ProcessFunction<T extends Node = Node> = (node: T) => EvalReturn<T>
 
 // export type IProps = Node[] | (IChildren & ISimpleProps)
 export interface ILocationInfo extends CstNodeLocation {}
@@ -59,7 +59,7 @@ export interface IFileInfo {
 
 export type INodeOptions = {
   atRoot?: boolean
-  [key: string]: boolean | number | string
+  [key: string]: boolean | number | string | undefined
 } & Partial<IFileInfo>
 
 export enum MatchOption {
@@ -76,7 +76,7 @@ export enum MatchOption {
   IN_SCOPE
 }
 
-type MatchFunction = (node: Node) => Node
+type MatchFunction = (node: Node) => Node | undefined
 
 export abstract class Node {
   /**
@@ -92,8 +92,8 @@ export abstract class Node {
   childKeys: string[]
 
   /** Used if string does not equal normalized primitive */
-  value: SimpleValue
-  text: string
+  value?: SimpleValue
+  text?: string
 
   options: INodeOptions
   lessOptions: IOptions
@@ -105,7 +105,7 @@ export abstract class Node {
    * This will be the start values from the first token and the end
    * values from the last token, as well as file info
    */
-  location: ILocationInfo
+  location?: ILocationInfo
 
   parent: Node
   root: Rules
@@ -126,7 +126,10 @@ export abstract class Node {
 
   /** eval() was called */
   evaluated: boolean
-  access: number
+  access: number;
+
+  /** Nodes are allowed to set arbitrary properties */
+  [k: string]: any
 
   private static inheritanceKeys = [
     'pre',
@@ -150,7 +153,7 @@ export abstract class Node {
     const { pre, post, value, text, ...children } = props
     /** nodes is always present as an array, even if empty */
 
-    const keys = []
+    const keys: string[] = []
     this.childKeys = keys
 
     /**
@@ -172,7 +175,7 @@ export abstract class Node {
 
     Object.defineProperty(this, 'children', {
       get() {
-        const children = {}
+        const children: { [key: string]: Node | Node[] } = {}
         this.childKeys.forEach((key: string) => {
           children[key] = this[key]
         })
@@ -222,7 +225,7 @@ export abstract class Node {
       if (!Array.isArray(nodes)) {
         nodes = [nodes]
       }
-      nodes.forEach(node => {
+      nodes.forEach((node: Node) => {
         node.parent = this
         if (!node.fileRoot) {
           node.fileRoot = this.fileRoot
@@ -234,7 +237,8 @@ export abstract class Node {
     })
   }
 
-  accept(visitor) {
+  /** @todo - Visitor type */
+  accept(visitor: any) {
     this.processChildren(this, (node: Node) => visitor.visit(node))
   }
 
@@ -348,7 +352,7 @@ export abstract class Node {
    * Convenience method if location isn't copied to new nodes
    * for any reason (such as a custom function)
    */
-  protected getLocation(): ILocationInfo {
+  protected getLocation(): ILocationInfo | undefined {
     let node: Node = this
     while (node) {
       if (node.location) {
@@ -362,8 +366,8 @@ export abstract class Node {
     context: Context,
     matchFunction: MatchFunction,
     option: MatchOption = MatchOption.FIRST
-  ): Node | Node[] {
-    let node: Node = this
+  ): Node | Node[] | undefined {
+    let node: Node | undefined = this
     const matches: Node[] = []
     const crawlRules = (rulesNode: Node) => {
       const nodes = rulesNode.nodes
@@ -396,7 +400,7 @@ export abstract class Node {
        * node.parent to a child (or itself), we need to exit at some point.
        */
       if (currDepth > maxTreeDepth) {
-        return this.error(context, 'Maximum tree depth exceeded')
+        return this.error('Maximum tree depth exceeded', context)
       }
       if (node instanceof Rules) {
         crawlRules(node)
@@ -561,7 +565,7 @@ export abstract class Node {
     return this.nodes
   }
 
-  error(context: Context, message: string) {
+  error(message: string, context?: Context) {
     if (context) {
       context.error({ message }, this.fileRoot)
       return this
@@ -569,7 +573,7 @@ export abstract class Node {
     throw new Error(message)
   }
 
-  warn(context: Context, message: string) {
+  warn(message: string, context?: Context) {
     if (context) {
       context.warning({ message }, this.fileRoot)
     }

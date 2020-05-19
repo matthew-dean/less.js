@@ -16,10 +16,10 @@ export enum TextFormat {
 }
 
 export type TextStyleFunction = {
-  (str: string, color?: TextFormat)
+  (str: string, color?: TextFormat): string
 }
 
-export type ParseOptions = IOptions & {
+export type ParseOptions = Partial<IOptions> & {
   plugins?: Plugin[]
   /** Full path of the file, including the filename */
   filePath?: string
@@ -64,7 +64,7 @@ export type Plugin = {
 export type PluginExport = Plugin | ((args?: { [key: string]: any }) => Plugin)
 
 export interface LessFunction {
-  (this: Context, ...args: Node[]): EvalReturn
+  (this: Context, ...args: (Node | undefined)[]): EvalReturn
   evalArgs?: boolean
 }
 

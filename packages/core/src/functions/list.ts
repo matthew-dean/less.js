@@ -71,49 +71,32 @@ export const range = define(function (start: Num | Dimension, end: Num | Dimensi
   return new Expression(list)
 }, [Num, Dimension], [Num, Dimension], [Num])
 
-export const each = define(function (list: Node, rs: Mixin) {
-  const rules = []
-  let newRules
-  let iterator
-
-  if (list.value && !(list instanceof Quote)) {
-    if (Array.isArray(list.value)) {
-      iterator = list.value
-    } else {
-      iterator = [list.value]
-    }
-  } else if (list.ruleset) {
-    iterator = list.ruleset.rules
-  } else if (list.rules) {
-    iterator = list.rules
-  } else if (Array.isArray(list)) {
-    iterator = list
-  } else {
-    iterator = [list]
-  }
+export const each = define(function (list: Node, mixin: MixinDefinition) {
+  const iterator = list.toArray()
+  let rs: Rules
+  let newRules: Rules
+  const returnRules: Rules[] = []
 
   let valueName = '@value'
   let keyName = '@key'
   let indexName = '@index'
 
-  if (rs.params) {
-    valueName = rs.params[0] && rs.params[0].name
-    keyName = rs.params[1] && rs.params[1].name
-    indexName = rs.params[2] && rs.params[2].name
-    rs = rs.rules
-  } else {
-    rs = rs.ruleset
+  if (mixin.params) {
+    valueName = mixin.params[0] && mixin.params[0].name.value
+    keyName = mixin.params[1] && mixin.params[1].name.value
+    indexName = mixin.params[2] && mixin.params[2].name.value
+    rs = mixin.rules
   }
 
   for (let i = 0; i < iterator.length; i++) {
-    let key
-    let value
+    let key: Node
+    let value: Node
     const item = iterator[i]
     if (item instanceof Declaration) {
-      key = typeof item.name === 'string' ? item.name : item.name[0].value
-      value = item.value
+      key = item.name.clone()
+      value = item.nodes[0]
     } else {
-      key = new Dimension(i + 1)
+      key = new Num(i + 1)
       value = item
     }
 
@@ -121,42 +104,22 @@ export const each = define(function (list: Node, rs: Mixin) {
       continue
     }
 
-    newRules = rs.rules.slice(0)
+    newRules = rs.clone()
+
     if (valueName) {
-      newRules.push(
-        new Declaration(valueName, value, false, false, this.index, this.currentFileInfo)
-      )
-    }
-    if (indexName) {
-      newRules.push(
-        new Declaration(
-          indexName,
-          new Dimension(i + 1),
-          false,
-          false,
-          this.index,
-          this.currentFileInfo
-        )
-      )
-    }
-    if (keyName) {
-      newRules.push(new Declaration(keyName, key, false, false, this.index, this.currentFileInfo))
+      newRules.appendRule(new Declaration({ name: valueName, nodes: [value] }))
     }
 
-    rules.push(
-      new Ruleset(
-        [new Selector([new Element('', '&')])],
-        newRules,
-        rs.strictImports,
-        rs.visibilityInfo()
-      )
-    )
+    if (indexName) {
+      newRules.appendRule(new Declaration({ name: indexName, nodes: [new Num(i + 1)] }))
+    }
+
+    if (keyName) {
+      newRules.appendRule(new Declaration({ name: keyName, nodes: [key] }))
+    }
+
+    returnRules.push(newRules)
   }
 
-  return new Ruleset(
-    [new Selector([new Element('', '&')])],
-    rules,
-    rs.strictImports,
-    rs.visibilityInfo()
-  ).eval(this.context)
-}, [Node])
+  return new Rules(newRules).eval(this)
+}, [Node], [MixinDefinition])

@@ -2,7 +2,7 @@ import { Context, Node, IProps, INodeOptions, ILocationInfo, NumericNode, Num, V
 
 import { convertDimension } from '../util/convert'
 import { operate } from '../util/math'
-import { StrictUnitMode } from '../../constants'
+import { StrictUnitMode, Operator } from '../../constants'
 
 export type IDimensionProps = [number | Num, string | Value] | IProps
 
@@ -32,7 +32,7 @@ export class Dimension extends NumericNode {
     this.value = this.nodes[0].value
   }
 
-  operate(op: string, other: Node, context: Context): Node {
+  operate(op: Operator, other: Node, context: Context): Node {
     const strictUnits = context.options.strictUnits
     if (other instanceof Dimension) {
       const aUnit = this.nodes[1]
@@ -42,9 +42,9 @@ export class Dimension extends NumericNode {
       if (aUnit.value !== bUnit.value) {
         if (strictUnits === StrictUnitMode.ERROR) {
           return this.error(
-            context,
             `Incompatible units. Change the units or use the unit function. `
-              + `Bad units: '${aUnit.value}' and '${bUnit.value}'.`
+              + `Bad units: '${aUnit.value}' and '${bUnit.value}'.`,
+            context
           )
         } else if (strictUnits === StrictUnitMode.LOOSE) {
           /**
@@ -58,7 +58,7 @@ export class Dimension extends NumericNode {
           const result = operate(op, this.value, bNode.value)
           return new Dimension([result, aUnit.clone()]).inherit(this)
         } else {
-          return this.warn(context, `Incompatible units. Operation will be preserved.`)
+          return this.warn(`Incompatible units. Operation will be preserved.`, context)
         }
       } else {
         const result = operate(op, this.value, bNode.value)
@@ -66,7 +66,7 @@ export class Dimension extends NumericNode {
         if (op === '/') {
           return new Num(result).inherit(this)
         } else if (op === '*') {
-          return this.error(context, `Can't multiply a unit by a unit.`)
+          return this.error(`Can't multiply a unit by a unit.`, context)
         }
         return new Dimension([result, aUnit.clone()]).inherit(this)
       }

@@ -1,4 +1,4 @@
-import { ICstVisitor, IToken, IRecognitionException } from 'chevrotain'
+import { ICstVisitor, IToken, IRecognitionException, CstNode } from 'chevrotain'
 import { CssRuleParser } from './cssRuleParser'
 
 export interface CstVisitorInstance {
@@ -19,14 +19,14 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
       this.validateVisitor()
     }
 
-    primary(ctx) {
+    primary(ctx: any) {
       const { rule } = ctx
       if (rule) {
         this.visit(rule)
       }
     }
 
-    rule(ctx) {
+    rule(ctx: any) {
       const { atRule, componentValues, customPropertyRule } = ctx
       const parser = this.cssParser
 
@@ -92,28 +92,28 @@ export const CssStructureVisitor = (baseConstructor: CstVisitorInstance) => {
       return ctx
     }
 
-    atRule(ctx) {
+    atRule(ctx: any) {
       return ctx
     }
 
-    componentValues(ctx) {
+    componentValues(ctx: any) {
       return ctx
     }
 
-    customPropertyRule(ctx) {
+    customPropertyRule(ctx: any) {
       return ctx
     }
 
-    expressionList(ctx) {
+    expressionList(ctx: any) {
       this.visit(ctx.expression)
       return ctx
     }
 
-    expression(ctx) {
+    expression(ctx: any) {
       return ctx
     }
 
-    curlyBlock(ctx) {
+    curlyBlock(ctx: any) {
       this.visit(ctx.primary)
       return ctx
     }

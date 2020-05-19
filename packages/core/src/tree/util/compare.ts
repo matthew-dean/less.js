@@ -41,13 +41,13 @@ export const compare = (a: Node, b: Node) => {
       return undefined
     }
     aVal.forEach((val, index) => {
-      if (val < bVal[index]) {
+      if (val < (<number[]>bVal)[index]) {
         lt++
       }
-      if (val > bVal[index]) {
+      if (val > (<number[]>bVal)[index]) {
         gt++
       }
-      if (val == bVal[index]) {
+      if (val == (<number[]>bVal)[index]) {
         eq++
       }
     })

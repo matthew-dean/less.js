@@ -1,11 +1,20 @@
 {
-  "extends": "./tsconfig.build.json",
   "compilerOptions": {
+    "composite": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "declaration": true,
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "module": "commonjs",
+    "target": "es6",
+    "lib": ["es6"],
     "baseUrl": "./packages",
     "paths": {
       "less": ["less/lib"],
       "@less/test-data": ["test-data"],
       "@less/*": ["*/src"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist"]
 }

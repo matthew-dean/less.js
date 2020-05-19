@@ -1,4 +1,4 @@
-import { Context, Node, NodeArray, Block, Comment, Dimension, List, WS } from '.'
+import { Context, Node, NodeArray, Null, Comment, List, WS } from '.'
 
 export type IExpressionOptions = {
   inBlock?: boolean
@@ -57,7 +57,7 @@ export class Expression<T extends Node = Node> extends NodeArray {
             node.nodes.forEach((listItem: Node) => {
               const newNodes: Node[] = nodes.map((n: Node, x) => {
                 if (x === i) {
-                  return null
+                  return new Null().inherit(n)
                 }
                 return n.clone()
               })
