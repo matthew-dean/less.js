@@ -19,7 +19,7 @@ h1\\{
     color: \\;
 }
 
-[attr=;] { }
+/** removed [attr=;] { } */
 
 .prop {
     \62 olor: red
