@@ -2,7 +2,8 @@ import {
   Fragments as CSSFragments,
   Tokens as CSSTokens,
   rawTokenConfig,
-  LexerType
+  LexerType,
+  groupCapture
 } from '@less/css-parser'
 
 interface IMerges {
@@ -13,7 +14,7 @@ export const Fragments = [...CSSFragments]
 export let Tokens = [...CSSTokens]
 
 Fragments.unshift(['lineComment', '\\/\\/[^\\n\\r]*'])
-Fragments.push(['interpolated', '({{ident}}?[@$]{[\\w-]+}{{ident}}?)+'])
+// Fragments.push(['interpolated', '({{ident}}|[@$]\\{{{ident}}\\})+'])
 
 Fragments.forEach(fragment => {
   if (fragment[0].indexOf('wsorcomment') !== -1) {
@@ -23,13 +24,16 @@ Fragments.forEach(fragment => {
 
 /** Keyed by what to insert after */
 const merges: IMerges = {
+  PropertyName: [{ name: 'Interpolated', pattern: LexerType.NA }],
   Unknown: [{ name: 'Ampersand', pattern: /&/ }],
   PlainIdent: [
-    {
-      name: 'InterpolatedIdent',
-      pattern: '{{interpolated}}',
-      categories: ['Interpolated']
-    },
+    // {
+    //   name: 'InterpolatedIdent',
+    //   pattern: '{{interpolated}}',
+    //   categories: ['Interpolated']
+    // },
+    { name: 'InterpolatedStart', pattern: /[@$#]\{/, categories: ['Interpolated'] },
+    { name: 'InterpolatedSelectorStart', pattern: /[@$#]\{/, categories: ['Interpolated'] },
     { name: 'PlusAssign', pattern: /\+:/, categories: ['BlockMarker', 'Assign'] },
     { name: 'UnderscoreAssign', pattern: /_:/, categories: ['BlockMarker', 'Assign'] },
     // {
@@ -41,7 +45,7 @@ const merges: IMerges = {
       name: 'When',
       pattern: /when/,
       longer_alt: 'PlainIdent',
-      categories: ['Ident', 'Interpolated']
+      categories: ['Ident']
     },
     {
       name: 'VarOrProp',
@@ -49,7 +53,8 @@ const merges: IMerges = {
     },
     {
       name: 'NestedReference',
-      pattern: '([@$]+{{ident}}?){2,}',
+      pattern: ['([@$]+{{ident}}?){2,}', groupCapture],
+      start_chars_hint: ['@', '$'],
       categories: ['VarOrProp']
     },
     {
@@ -95,27 +100,27 @@ for (let i = 0; i < tokenLength; i++) {
       copyToken()
       token.categories = categories.concat(['VarOrProp'])
       break
-    case 'Interpolated':
-      copyToken()
-      token.pattern = LexerType.NA
-      break
-    case 'DotName':
-      copyToken()
-      token.pattern = '\\.{{interpolated}}'
-      break
-    case 'HashName':
-      copyToken()
-      token.pattern = '#{{interpolated}}'
-      break
-    case 'PlainIdent':
-    case 'AttrFlag':
-    case 'And':
-    case 'Or':
-    case 'Not':
-    case 'Only':
-      copyToken()
-      token.categories = categories.concat(['Ident', 'Interpolated'])
-      break
+    // case 'Interpolated':
+    //   copyToken()
+    //   token.pattern = LexerType.NA
+    //   break
+    // case 'DotName':
+    //   copyToken()
+    //   token.pattern = '\\.{{interpolated}}'
+    //   break
+    // case 'HashName':
+    //   copyToken()
+    //   token.pattern = '#{{interpolated}}'
+    //   break
+    // case 'PlainIdent':
+    // case 'AttrFlag':
+    // case 'And':
+    // case 'Or':
+    // case 'Not':
+    // case 'Only':
+    //   copyToken()
+    //   token.categories = categories.concat(['Ident', 'Interpolated'])
+    //   break
     default:
       alterations = false
   }

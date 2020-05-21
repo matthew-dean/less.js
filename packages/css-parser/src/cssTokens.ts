@@ -131,16 +131,6 @@ export const Tokens: rawTokenConfig[] = [
   { name: 'AttrMatch', pattern: /[*~|^$]=/, categories: ['AttrMatchOperator'] },
   { name: 'Ident', pattern: LexerType.NA, categories: ['Selector'] },
   { name: 'PropertyName', pattern: LexerType.NA },
-
-  /**
-   * This is the only token outside of spec.
-   * It's done to avoid parsing errors of common pre-processor stylesheets, since curly
-   * blocks need such special handling.
-   *
-   * Pre-processors will / can easily override this.
-   */
-  { name: 'Interpolated', pattern: /[#$@]{[^}]+}/ },
-
   { name: 'PlainIdent', pattern: '{{ident}}', categories: ['Ident', 'PropertyName'] },
   { name: 'CustomProperty', pattern: '--{{ident}}', categories: ['BlockMarker', 'PropertyName'] },
   { name: 'CDOToken', pattern: /<!--/, group: LexerType.SKIPPED },

@@ -1,21 +1,16 @@
 import { IToken, Lexer } from 'chevrotain'
 import { Tokens, Fragments } from './lessTokens'
-import { CssStructureParser, createLexer, IParseResult } from '@less/css-parser'
-import { LessRuleParser } from './lessRuleParser'
+import { createLexer, IParseResult } from '@less/css-parser'
+import { LessParser } from './lessParser'
 
 export class Parser {
   lexer: Lexer
-  parser: CssStructureParser
+  parser: LessParser
 
-  constructor(structureOnly: boolean = false) {
+  constructor() {
     const { lexer, tokens, T } = createLexer(Fragments, Tokens)
     this.lexer = lexer
-    if (structureOnly) {
-      this.parser = new CssStructureParser(tokens, T)
-    } else {
-      const ruleParser = new LessRuleParser(tokens, T)
-      this.parser = new CssStructureParser(tokens, T, undefined, ruleParser)
-    }
+    this.parser = new LessParser(tokens, T)
   }
 
   parse(text: string): IParseResult {

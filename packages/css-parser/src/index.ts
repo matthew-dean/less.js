@@ -1,5 +1,4 @@
 export * from './cssTokens'
 export * from './util'
-export * from './parser/cssStructureParser'
-export * from './parser/cssRuleParser'
+export * from './parser/cssParser'
 export * from './parser/index'
