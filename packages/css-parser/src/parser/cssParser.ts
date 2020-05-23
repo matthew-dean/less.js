@@ -232,14 +232,7 @@ export class CssParser extends EmbeddedActionsParser {
   testQualifiedRule = this.RULE(
     'testQualifiedRule',
     (): IToken => {
-      this.AT_LEAST_ONE(() =>
-        this.OR([
-          { ALT: () => this.SUBRULE(this.block) },
-          { ALT: () => this.CONSUME(this.T.Value) },
-          { ALT: () => this.CONSUME(this.T.WS) },
-          { ALT: () => this.CONSUME(this.T.Colon) }
-        ])
-      )
+      this.SUBRULE(this.selectorList)
       return this.CONSUME(this.T.LCurly)
     }
   )
@@ -437,11 +430,15 @@ export class CssParser extends EmbeddedActionsParser {
       },
       {
         ALT: () => {
-          values = [this.CONSUME(this.T.Selector)]
+          values = [this.SUBRULE(this.nameSelector)]
         }
       }
     ])
     return values
+  })
+
+  nameSelector = this.RULE('nameSelector', () => {
+    return this.CONSUME(this.T.Selector)
   })
 
   /**
@@ -656,8 +653,6 @@ export class CssParser extends EmbeddedActionsParser {
     (): CstElement => {
       return this.OR([
         { ALT: () => this.CONSUME(this.T.Value) },
-        { ALT: () => this.CONSUME(this.T.AtName) },
-        { ALT: () => this.CONSUME(this.T.CustomProperty) },
         { ALT: () => this.CONSUME(this.T.Colon) },
         { ALT: () => this.CONSUME(this.T.WS) }
       ])
@@ -671,6 +666,8 @@ export class CssParser extends EmbeddedActionsParser {
     'extraValues',
     (): CstElement => {
       return this.OR([
+        { ALT: () => this.CONSUME(this.T.AtName) },
+        { ALT: () => this.CONSUME(this.T.CustomProperty) },
         { ALT: () => this.CONSUME(this.T.Comma) },
         { ALT: () => this.CONSUME(this.T.SemiColon) }
       ])

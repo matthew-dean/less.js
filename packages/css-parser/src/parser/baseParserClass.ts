@@ -4,7 +4,9 @@ import {
   IToken,
   ConsumeMethodOpts,
   SubruleMethodOpts,
-  CstElement
+  CstElement,
+  tokenMatcher,
+  EOF
 } from 'chevrotain'
 
 export interface ICaptureResult {
@@ -15,6 +17,22 @@ export interface ICaptureResult {
 export class BaseParserClass extends EmbeddedActionsParser {
   protected CAPTURE_INDEX: number[] = []
   protected currIdx: number
+
+  public PEEK(tokenToFind: IToken): boolean {
+    let token: IToken = this.LA(1)
+    const tokenType = tokenToFind.tokenType
+    let i = 1
+    let found = false
+    while (token.tokenType !== EOF) {
+      if (tokenMatcher(token, tokenType)) {
+        found = true
+        break
+      }
+      i++
+      token = this.LA(i)
+    }
+    return found
+  }
 
   public CAPTURE(): number {
     let idx = -1

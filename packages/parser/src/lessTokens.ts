@@ -32,8 +32,9 @@ const merges: IMerges = {
     //   pattern: '{{interpolated}}',
     //   categories: ['Interpolated']
     // },
-    { name: 'InterpolatedStart', pattern: /[@$#]\{/, categories: ['Interpolated'] },
-    { name: 'InterpolatedSelectorStart', pattern: /[@$#]\{/, categories: ['Interpolated'] },
+    { name: 'InterpolatedStart', pattern: /[@$]\{/, categories: ['Interpolated'] },
+    /** Removed in v4 */
+    // { name: 'InterpolatedSelectorStart', pattern: /[\.#][@$]\{/, categories: ['Interpolated'] },
     { name: 'PlusAssign', pattern: /\+:/, categories: ['BlockMarker', 'Assign'] },
     { name: 'UnderscoreAssign', pattern: /_:/, categories: ['BlockMarker', 'Assign'] },
     // {
