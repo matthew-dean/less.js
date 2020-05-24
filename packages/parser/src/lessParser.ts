@@ -1,8 +1,9 @@
-import { TokenType, IParserConfig, IToken, CstNode, CstElement, EMPTY_ALT } from 'chevrotain'
+import { TokenType, IParserConfig, CstNode, EMPTY_ALT } from 'chevrotain'
 import { TokenMap, CssParser } from '@less/css-parser'
 
 export class LessParser extends CssParser {
-  T: TokenMap
+  T: TokenMap;
+  [k: string]: any
 
   constructor(tokens: TokenType[], T: TokenMap, config: IParserConfig = { maxLookahead: 1 }) {
     super(tokens, T, config)
@@ -12,14 +13,14 @@ export class LessParser extends CssParser {
     }
   }
 
-  rule = this.OVERRIDE_RULE('rule', (): CstNode | undefined => {
-    const ws = this.WS()
-    const rule: CstNode = this.OR([
+  rule = this.OVERRIDE_RULE('rule', () => {
+    this._()
+    this.OR([
       { ALT: () => this.SUBRULE(this.atRule) },
       { ALT: () => this.SUBRULE(this.customDeclaration) },
       {
         GATE: this.BACKTRACK(this.testMixin),
-        ALT: () => this.SUBRULE(this.mixin)
+        ALT: () => this.SUBRULE(this.mixinDefinition)
       },
       {
         GATE: this.BACKTRACK(this.testQualifiedRule),
@@ -28,118 +29,98 @@ export class LessParser extends CssParser {
       { ALT: () => this.SUBRULE2(this.declaration) },
 
       /** Capture any isolated / redundant semi-colons */
-      { ALT: () => this.SUBRULE(this.semi) },
+      { ALT: () => this.CONSUME(this.T.SemiColon) },
       { ALT: () => EMPTY_ALT }
     ])
-
-    if (rule.children) {
-      if (ws) {
-        rule.children.pre = [ws]
-      }
-      return rule
-    } else if (ws) {
-      return {
-        name: 'ws',
-        children: {
-          value: [ws]
-        }
-      }
-    }
   })
 
   /**
    * Test for mixin start
    */
-  testMixin = this.RULE(
-    'textMixin',
-    (): IToken => {
-      this.SUBRULE(this.mixinStart)
-      this.WS()
-      return this.CONSUME(this.T.LParen)
-    }
-  )
+  testMixin = this.RULE('textMixin', () => {
+    this.SUBRULE(this.mixinDefStart)
+    this._()
+    this.CONSUME(this.T.LParen)
+  })
 
-  mixinStart = this.RULE('mixinStart', () => {
-    return this.OR([
+  interpolate = this.RULE('interpolate', () => {
+    this.CONSUME(this.T.InterpolatedStart), this.CONSUME(this.T.Ident), this.CONSUME(this.T.RCurly)
+  })
+
+  mixinDefinition = this.RULE('mixinDefinition', () => {
+    this.SUBRULE(this.mixinDefStart)
+    this._()
+    this.OR([
+      {
+        GATE: this.BACKTRACK(this.mixinDefArgsSemi),
+        ALT: () => this.SUBRULE(this.mixinDefArgsSemi, { LABEL: 'args' })
+      },
+      { ALT: () => this.SUBRULE(this.mixinDefArgsComma, { LABEL: 'args' }) }
+    ])
+  })
+
+  mixinDefStart = this.RULE('mixinStart', () => {
+    this.OR([
       { ALT: () => this.CONSUME(this.T.DotName) },
       { ALT: () => this.CONSUME(this.T.HashName) },
       { ALT: () => this.SUBRULE(this.interpolate) }
     ])
   })
 
-  interpolate = this.RULE('interpolate', () => {
-    const values = [
-      this.CONSUME(this.T.InterpolatedStart),
-      this.CONSUME(this.T.Ident),
-      this.CONSUME(this.T.RCurly)
-    ]
-    return {
-      name: 'interpolated',
-      children: { values }
-    }
-  })
-
-  mixin = this.RULE(
-    'mixin',
-    (): CstNode => {
-      const name = this.SUBRULE(this.mixinStart)
-      const ws = this.WS()
-      const args = this.SUBRULE(this.mixinArgs)
-      return {
-        name: 'mixin',
-        children: {}
-      }
-    }
-  )
+  createMixinDefArgs = (suffix: 'Comma' | 'Semi', SEP: TokenType) =>
+    this.RULE(`mixinDefArgs${suffix}`, () => {
+      this.CONSUME(this.T.LParen, { LABEL: 'L' })
+      this.MANY_SEP({
+        SEP,
+        DEF: () => this.SUBRULE(this[`mixinDefArg${suffix}`])
+      })
+      this.CONSUME(this.T.RParen, { LABEL: 'R' })
+    })
 
   /**
    * Mixin Definition arguments.
-   *
-   * Capture as if commas were argument separators.
-   * Then join if semi-colon not found
    */
-  mixinArgs = this.RULE(
-    'mixinArgs',
-    (): CstNode => {
-      const L = [this.CONSUME(this.T.LParen)]
-      const args = [this.SUBRULE(this.mixinArg)]
-      let sep = [this.WS()]
-      this.MANY(() => {
-        sep.push(this.CONSUME(this.T.Comma))
-        args.push(this.SUBRULE2(this.mixinArg))
-        sep.push(this.WS(2))
-      })
-      const R = [this.CONSUME(this.T.RParen)]
-      return {
-        name: 'mixinArgs',
-        children: {
-          L,
-          R,
-          args,
-          sep
-        }
-      }
-    }
-  )
+  mixinDefArgsComma = this.createMixinDefArgs('Comma', this.T.Comma)
+  mixinDefArgsSemi = this.createMixinDefArgs('Semi', this.T.SemiColon)
 
-  mixinArg = this.RULE(
-    'mixinArg',
-    (): CstNode => {
-      const pre = this.WS()
+  /**
+   * e.g. `@var1`
+   *      `@var2: value`
+   *      `@rest...`
+   *      `keyword`
+   *
+   * @param subrule - this.expression or this.expressionList
+   */
+  createMixinDefArg = (suffix: 'Comma' | 'Semi', subrule: () => CstNode) =>
+    this.RULE(`mixinDefArg${suffix}`, () => {
+      this._(1)
       this.OR([
         {
           ALT: () => {
-            const variable = this.CONSUME(this.T.AtName)
-            const pre = this.WS(2)
-            const assign = this.CONSUME(this.T.Colon)
-            const expr = this.SUBRULE(this.expression)
+            this.CONSUME(this.T.AtName)
+            this._(2)
+            this.OR2([
+              {
+                ALT: () => {
+                  this.CONSUME(this.T.Colon)
+                  this._(3)
+                  this.SUBRULE(subrule)
+                }
+              },
+              {
+                ALT: () => {
+                  this.CONSUME(this.T.Ellipsis)
+                }
+              },
+              { ALT: () => EMPTY_ALT }
+            ])
           }
-        }
+        },
+        { ALT: () => this.CONSUME(this.T.Ident) }
       ])
-      return {
-        name: 'arg',
-        children: {}
-      }
-    }
-  )
+      this._(4)
+    })
+
+  mixinDefArgComma = this.createMixinDefArg('Comma', this.expression)
+  mixinDefArgSemi = this.createMixinDefArg('Semi', this.expressionList)
 }

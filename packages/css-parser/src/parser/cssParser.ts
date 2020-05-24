@@ -1,12 +1,4 @@
-import {
-  EMPTY_ALT,
-  TokenType,
-  CstNode,
-  CstElement,
-  CstParser,
-  IParserConfig,
-  IToken
-} from 'chevrotain'
+import { EMPTY_ALT, TokenType, CstParser, IParserConfig, IToken } from 'chevrotain'
 import { TokenMap } from '../util'
 
 /**
@@ -64,21 +56,6 @@ import { TokenMap } from '../util'
  *  a few exceptions, such as a closing block symbol e.g. ']' without a corresponding
  *  opening block, and other such cases where the CSS spec explicitly expresses
  *  should be a parse error.)
- */
-
-interface spaceToken {
-  pre?: IToken[]
-  post?: IToken[]
-}
-
-/**
- *  Parsing is broken into 2 phases, so that we:
- *    1. Don't have to do any backtracking to refine rules (like @media).
- *    2. Don't have to have special parsing rules based on block context.
- *
- *  This actually matches the spec, which essentially says that preludes and
- *  at-rule bodies (in {}) can be almost anything, and the outer grammar should
- *  not care about what at-rules or declaration values contain.
  */
 export class CssParser extends CstParser {
   T: TokenMap
