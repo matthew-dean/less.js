@@ -3,7 +3,7 @@ import {
   TokenType,
   CstNode,
   CstElement,
-  EmbeddedActionsParser,
+  CstParser,
   IParserConfig,
   IToken
 } from 'chevrotain'
@@ -80,7 +80,7 @@ interface spaceToken {
  *  at-rule bodies (in {}) can be almost anything, and the outer grammar should
  *  not care about what at-rules or declaration values contain.
  */
-export class CssParser extends EmbeddedActionsParser {
+export class CssParser extends CstParser {
   T: TokenMap
 
   constructor(
@@ -99,52 +99,20 @@ export class CssParser extends EmbeddedActionsParser {
     }
   }
 
-  WS(idx: number = 0) {
+  /** Optional whitespace */
+  _(idx: number = 0) {
     // +10 to avoid conflicts with other OPTION in the calling rule.
-    return this.option(idx + 10, () => {
-      const wsToken = this.consume(idx, this.T.WS)
-      return wsToken
-    })
+    return this.option(idx + 10, () => this.consume(idx + 10, this.T.WS))
   }
 
-  primary = this.RULE(
-    'primary',
-    (): CstNode => {
-      const rules: CstElement[] = []
-      this.MANY(() => {
-        const rule = this.SUBRULE(this.rule)
-        rule && rules.push(rule)
-      })
-      let post: spaceToken = {}
-      const ws = this.WS()
-      if (ws) {
-        post = { post: [ws] }
-      }
-      return <CstNode>{
-        name: 'primary',
-        children: {
-          rules,
-          ...post
-        }
-      }
-    }
-  )
+  primary = this.RULE('primary', () => {
+    this.MANY(() => this.SUBRULE(this.rule))
+    this._()
+  })
 
-  /** Capture semi-colon fragment */
-  semi = this.RULE(
-    'semi',
-    (): CstNode => {
-      const semi = this.CONSUME(this.T.SemiColon)
-      return {
-        name: 'isolatedSemiColon',
-        children: { semi: [semi] }
-      }
-    }
-  )
-
-  rule = this.RULE('rule', (): CstNode | undefined => {
-    const ws = this.WS()
-    const rule: CstNode = this.OR([
+  rule = this.RULE('rule', () => {
+    this._()
+    this.OR([
       { ALT: () => this.SUBRULE(this.atRule) },
       { ALT: () => this.SUBRULE(this.customDeclaration) },
       {
@@ -154,115 +122,49 @@ export class CssParser extends EmbeddedActionsParser {
       { ALT: () => this.SUBRULE2(this.declaration) },
 
       /** Capture any isolated / redundant semi-colons */
-      { ALT: () => this.SUBRULE(this.semi) },
+      { ALT: () => this.CONSUME(this.T.SemiColon) },
       { ALT: () => EMPTY_ALT }
     ])
-
-    if (rule.children) {
-      if (ws) {
-        rule.children.pre = [ws]
-      }
-      return rule
-    } else if (ws) {
-      return {
-        name: 'ws',
-        children: {
-          value: [ws]
-        }
-      }
-    }
   })
 
   /**
    * Everything up to an (outer) ';' or '{' is the AtRule's prelude
    */
-  atRule = this.RULE(
-    'atRule',
-    (): CstNode => {
-      const name = [this.CONSUME(this.T.AtName)]
-      const expr = this.SUBRULE(this.expressionList)
-      const optionals: {
-        body?: CstNode[]
-        SemiColon?: IToken[]
-      } = {}
-      this.OR([
-        {
-          ALT: () => {
-            optionals.body = [this.SUBRULE(this.curlyBlock)]
-          }
-        },
-        {
-          ALT: () =>
-            this.OPTION(() => {
-              optionals.SemiColon = [this.CONSUME(this.T.SemiColon)]
-            })
-        }
-      ])
+  atRule = this.RULE('atRule', () => {
+    this.CONSUME(this.T.AtName)
+    this.SUBRULE(this.expressionList)
 
-      return <CstNode>{
-        name: 'atRule',
-        children: {
-          name,
-          ...(expr ? { prelude: [expr] } : {}),
-          ...optionals
-        }
+    this.OR([
+      { ALT: () => this.SUBRULE(this.curlyBlock) },
+      {
+        ALT: () => this.OPTION(() => this.CONSUME(this.T.SemiColon))
       }
-    }
-  )
+    ])
+  })
 
   /**
    *
    */
-  qualifiedRule = this.RULE(
-    'qualifiedRule',
-    (): CstNode => {
-      const selector = [this.SUBRULE(this.selectorList)]
-      const body = [this.SUBRULE(this.curlyBlock)]
-
-      return {
-        name: 'qualifiedRule',
-        children: { selector, body }
-      }
-    }
-  )
+  qualifiedRule = this.RULE('qualifiedRule', () => {
+    this.SUBRULE(this.selectorList)
+    this.SUBRULE(this.curlyBlock)
+  })
 
   /**
    * Test for qualified rule start
    */
-  testQualifiedRule = this.RULE(
-    'testQualifiedRule',
-    (): IToken => {
-      this.SUBRULE(this.selectorList)
-      return this.CONSUME(this.T.LCurly)
-    }
-  )
+  testQualifiedRule = this.RULE('testQualifiedRule', () => {
+    this.SUBRULE(this.selectorList)
+    this.CONSUME(this.T.LCurly)
+  })
 
   /** A comma-separated list of selectors */
-  selectorList = this.RULE(
-    'selectorList',
-    (): CstNode => {
-      let Comma: IToken[] = []
-      let sel: CstNode
-      let selectors: CstNode[] = [this.SUBRULE(this.complexSelector)]
-
-      this.MANY(() => {
-        const comma = this.CONSUME(this.T.Comma)
-        Comma.push(comma)
-        sel = this.SUBRULE2(this.complexSelector)
-        selectors.push(sel)
-      })
-
-      if (sel) {
-        return {
-          name: 'selectorList',
-          children: {
-            ...(Comma && Comma.length > 0 ? { Comma } : {}),
-            ...(selectors ? { selectors } : {})
-          }
-        }
-      }
-    }
-  )
+  selectorList = this.RULE('selectorList', () => {
+    this.MANY_SEP({
+      SEP: this.T.Comma,
+      DEF: () => this.SUBRULE(this.complexSelector)
+    })
+  })
 
   /**
    * "A complex selector is a sequence of one or more compound selectors
@@ -275,75 +177,46 @@ export class CssParser extends EmbeddedActionsParser {
    *
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
-  complexSelector = this.RULE(
-    'complexSelector',
-    (): CstNode => {
-      const space: spaceToken = {}
-      let ws = this.WS(8)
-      if (ws) {
-        space.pre = [ws]
-      }
-      ws = undefined
-      let selector: CstElement[] = [this.SUBRULE(this.compoundSelector)]
+  complexSelector = this.RULE('complexSelector', () => {
+    this._()
+    this.SUBRULE(this.compoundSelector, { LABEL: 'Selector' })
+    this.MANY(() => this.SUBRULE(this.combinatorSelector))
+  })
 
-      this.MANY(() => {
-        this.OR([
-          {
-            ALT: () => {
-              /**
-               * Combinator with optional whitespace
-               */
-              const tokens: IToken[] = [this.CONSUME(this.T.Combinator)]
-              this.OPTION(() => {
-                tokens.push(this.CONSUME(this.T.WS))
-              })
-              selector.push({
-                name: 'combinator',
-                children: { tokens }
-              })
-              selector.push(this.SUBRULE2(this.compoundSelector))
-            }
-          },
-          {
-            /**
-             * Whitespace with optional combinator,
-             * (or we treat as trailing ws)
-             */
-            ALT: () => {
-              let tokens: IToken[]
-              let ws = this.CONSUME2(this.T.WS)
-              this.OPTION2(() => {
-                tokens = [ws]
-                this.OPTION3(() => {
-                  tokens.push(this.CONSUME2(this.T.Combinator))
-                  this.OPTION4(() => {
-                    tokens.push(this.CONSUME3(this.T.WS))
-                  })
-                })
-                selector.push({
-                  name: 'combinator',
-                  children: { tokens }
-                })
-                selector.push(this.SUBRULE3(this.compoundSelector))
-              })
-            }
-          }
-        ])
-      })
-
-      if (ws) {
-        space.post = [ws]
-      }
-
-      return {
-        name: 'complexSelector',
-        children: {
-          selector,
-          ...space
+  /**
+   * A combinator, then a compound selector
+   *  e.g. `> div.class`
+   */
+  combinatorSelector = this.RULE('combinatorSelector', () => {
+    this.OR([
+      {
+        ALT: () => {
+          /**
+           * Combinator with optional whitespace
+           */
+          this.CONSUME(this.T.Combinator, { LABEL: 'Selector' })
+          this.OPTION(() => this.CONSUME(this.T.WS, { LABEL: 'Selector' }))
+          this.SUBRULE2(this.compoundSelector, { LABEL: 'Selector' })
+        }
+      },
+      {
+        /**
+         * Whitespace with optional combinator,
+         * (or we treat as trailing ws)
+         */
+        ALT: () => {
+          this.CONSUME2(this.T.WS, { LABEL: 'Selector' })
+          this.OPTION2(() => {
+            this.OPTION3(() => {
+              this.CONSUME2(this.T.Combinator, { LABEL: 'Selector' })
+              this.OPTION4(() => this.CONSUME3(this.T.WS, { LABEL: 'Selector' }))
+            })
+            this.SUBRULE3(this.compoundSelector, { LABEL: 'Selector' })
+          })
         }
       }
-    }
-  )
+    ])
+  })
 
   /**
    * "A compound selector is a sequence of simple selectors that are not separated by a combinator,
@@ -352,26 +225,16 @@ export class CssParser extends EmbeddedActionsParser {
    *
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
-  compoundSelector = this.RULE(
-    'compoundSelector',
-    (): CstNode => {
-      let selector: CstElement[] = []
-
-      this.OR([
-        { ALT: () => selector.push(this.CONSUME(this.T.Star)) },
-        {
-          ALT: () => {
-            this.AT_LEAST_ONE(() => selector.concat(this.SUBRULE(this.simpleSelector)))
-          }
+  compoundSelector = this.RULE('compoundSelector', () => {
+    this.OR([
+      { ALT: () => this.CONSUME(this.T.Star) },
+      {
+        ALT: () => {
+          this.AT_LEAST_ONE(() => this.SUBRULE(this.simpleSelector))
         }
-      ])
-
-      return {
-        name: 'compoundSelector',
-        children: { selector }
       }
-    }
-  )
+    ])
+  })
 
   /**
    * "A simple selector is a single condition on an element. A type selector,
@@ -380,24 +243,21 @@ export class CssParser extends EmbeddedActionsParser {
    *
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
-  simpleSelector = this.RULE('simpleSelector', (): CstElement[] => {
-    let values: CstElement[]
+  simpleSelector = this.RULE('simpleSelector', () => {
     this.OR([
       {
         /** e.g. :pseudo or ::pseudo */
         ALT: () => {
-          values = [this.CONSUME(this.T.Colon)]
-          this.OPTION(() => {
-            values.push(this.CONSUME2(this.T.Colon))
-          })
+          this.CONSUME(this.T.Colon, { LABEL: 'Selector' })
+          this.OPTION(() => this.CONSUME2(this.T.Colon))
           this.OR2([
-            { ALT: () => values.push(this.CONSUME(this.T.Ident)) },
+            { ALT: () => this.CONSUME(this.T.Ident) },
             /** e.g. :pseudo(...) */
             {
               ALT: () => {
-                values.push(this.CONSUME(this.T.Function))
-                values.push(this.SUBRULE(this.expressionListGroup))
-                values.push(this.CONSUME(this.T.RParen))
+                this.CONSUME(this.T.Function)
+                this.SUBRULE(this.expressionListGroup)
+                this.CONSUME(this.T.RParen)
               }
             }
           ])
@@ -406,127 +266,76 @@ export class CssParser extends EmbeddedActionsParser {
       {
         /** e.g. [id^="bar"] */
         ALT: () => {
-          values = [this.CONSUME(this.T.LSquare), this.CONSUME2(this.T.Ident)]
+          this.CONSUME(this.T.LSquare)
+          this.CONSUME2(this.T.Ident)
           this.OPTION2(() => {
             this.OR3([
-              { ALT: () => values.push(this.CONSUME(this.T.Eq)) },
-              { ALT: () => values.push(this.CONSUME(this.T.AttrMatch)) }
+              { ALT: () => this.CONSUME(this.T.Eq) },
+              { ALT: () => this.CONSUME(this.T.AttrMatch) }
             ])
             this.OR4([
               {
                 ALT: () => {
-                  values.push(this.CONSUME3(this.T.Ident))
+                  this.CONSUME3(this.T.Ident)
                 }
               },
               {
                 ALT: () => {
-                  values.push(this.CONSUME(this.T.StringLiteral))
+                  this.CONSUME(this.T.StringLiteral)
                 }
               }
             ])
           })
-          values.push(this.CONSUME(this.T.RSquare))
+          this.CONSUME(this.T.RSquare)
         }
       },
       {
         ALT: () => {
-          values = [this.SUBRULE(this.nameSelector)]
+          this.SUBRULE(this.nameSelector)
         }
       }
     ])
-    return values
   })
 
-  nameSelector = this.RULE('nameSelector', () => {
-    return this.CONSUME(this.T.Selector)
-  })
+  nameSelector = this.RULE('nameSelector', () => this.CONSUME(this.T.Selector))
 
   /**
    * e.g.
    *   color: red
-   *   --color: { ;red }
    */
-  declarationBody = this.RULE(
-    'declarationBody',
-    (): CstNode => {
-      const ws = this.WS()
-      let colon: IToken = this.CONSUME(this.T.Assign)
-
-      const value = this.SUBRULE(this.expressionList)
-      let semi: IToken
-      this.OPTION(() => {
-        semi = this.CONSUME(this.T.SemiColon)
-      })
-
-      return {
-        name: 'declaration',
-        children: {
-          ...(ws ? { ws: [ws] } : {}),
-          Colon: [colon],
-          value: [value],
-          ...(semi ? { SemiColon: [semi] } : {})
-        }
-      }
-    }
-  )
-
-  declaration = this.RULE(
-    'declaration',
-    (): CstNode => {
-      const property = this.SUBRULE(this.property)
-      const decl = this.SUBRULE(this.declarationBody)
-      this.ACTION(() => {
-        decl.children.property = property
-      })
-      return decl
-    }
-  )
-
-  customValue = this.RULE('customValue', (): CstElement[] => {
-    const value: CstElement[] = []
-    this.MANY(() => {
-      value.push(
-        this.OR([
-          { ALT: () => this.SUBRULE(this.anyValue) },
-          { ALT: () => this.SUBRULE(this.extraValues) },
-          { ALT: () => this.SUBRULE(this.customBlock) }
-        ])
-      )
-    })
-    return value
+  declaration = this.RULE('declaration', () => {
+    this.SUBRULE(this.property)
+    this._()
+    this.CONSUME(this.T.Assign)
+    this.SUBRULE(this.expressionList)
+    this.OPTION(() => this.CONSUME(this.T.SemiColon))
   })
 
-  customDeclaration = this.RULE(
-    'customDeclaration',
-    (): CstNode => {
-      const property = this.SUBRULE(this.customProperty)
-      const ws = this.WS()
-      const colon: IToken = this.CONSUME(this.T.Assign)
-      const value = this.SUBRULE(this.customValue)
-      let semi: IToken
+  customValue = this.RULE('customValue', () => {
+    this.MANY(() =>
+      this.OR([
+        { ALT: () => this.SUBRULE(this.anyValue, { LABEL: 'value' }) },
+        { ALT: () => this.SUBRULE(this.extraValues, { LABEL: 'value' }) },
+        { ALT: () => this.SUBRULE(this.customBlock, { LABEL: 'value' }) }
+      ])
+    )
+  })
 
-      this.OPTION(() => {
-        semi = this.CONSUME(this.T.SemiColon)
-      })
-
-      return {
-        name: 'declaration',
-        children: {
-          property,
-          ...(ws ? { ws: [ws] } : {}),
-          Colon: [colon],
-          value: value,
-          ...(semi ? { SemiColon: [semi] } : {})
-        }
-      }
-    }
-  )
+  /**
+   * e.g.
+   *   --color: { ;red }
+   */
+  customDeclaration = this.RULE('customDeclaration', () => {
+    this.SUBRULE(this.customProperty)
+    this._()
+    this.CONSUME(this.T.Assign)
+    this.SUBRULE(this.customValue)
+    this.OPTION(() => this.CONSUME(this.T.SemiColon))
+  })
 
   /** "color" in "color: red" */
-  property = this.RULE('property', (): IToken[] => [this.CONSUME(this.T.Ident)])
-  customProperty = this.RULE('customProperty', (): IToken[] => [
-    this.CONSUME(this.T.CustomProperty)
-  ])
+  property = this.RULE('property', () => this.CONSUME(this.T.Ident))
+  customProperty = this.RULE('customProperty', () => this.CONSUME(this.T.CustomProperty))
 
   /**
    * List of expression lists (or expression list if only 1),
@@ -534,93 +343,25 @@ export class CssParser extends EmbeddedActionsParser {
    * semi-colons or separating semi-colons in declaration lists
    * within parentheses or brackets.
    */
-  expressionListGroup = this.RULE(
-    'expressionListGroup',
-    (): CstNode => {
-      let isGroup = false
-      let SemiColon: IToken[]
-      let expressionList: CstNode[]
-      let list: CstNode = this.SUBRULE(this.expressionList)
-      let semi: IToken
+  expressionListGroup = this.RULE('expressionListGroup', () => {
+    this.AT_LEAST_ONE(() => {
+      this.SUBRULE(this.expressionList)
+      this.OPTION(() => this.CONSUME(this.T.SemiColon))
+    })
+  })
 
-      this.OPTION(() => {
-        semi = this.CONSUME(this.T.SemiColon)
-        isGroup = true
-        expressionList = [list]
-        SemiColon = [semi]
-        this.MANY(() => {
-          list = this.SUBRULE2(this.expressionList)
-          expressionList.push(list)
-          SemiColon = [semi]
-          this.OPTION2(() => {
-            semi = this.CONSUME2(this.T.SemiColon)
-            SemiColon.push(semi)
-          })
-        })
-      })
-      if (isGroup) {
-        return {
-          name: 'expressionListGroup',
-          children: {
-            SemiColon,
-            expressionList
-          }
-        }
-      } else if (list) {
-        return list
-      }
-    }
-  )
-
-  expressionList = this.RULE(
-    'expressionList',
-    (): CstNode => {
-      let expressions: CstNode[]
-      let Comma: IToken[] = []
-      let expr: CstNode = this.SUBRULE(this.expression)
-      if (expr) {
-        expressions = [expr]
-      } else {
-        expressions = []
-      }
-
-      this.MANY(() => {
-        let comma = this.CONSUME(this.T.Comma)
-        Comma.push(comma)
-        expr = this.SUBRULE2(this.expression)
-        expressions.push(expr)
-      })
-
-      if (expr) {
-        return {
-          name: 'expressionList',
-          children: {
-            ...(Comma && Comma.length > 0 ? { Comma } : {}),
-            ...(expressions ? { expression: expressions } : {})
-          }
-        }
-      }
-    }
-  )
+  expressionList = this.RULE('expressionList', () => {
+    this.MANY_SEP({
+      SEP: this.T.Comma,
+      DEF: () => this.SUBRULE(this.expression)
+    })
+  })
 
   /**
    *  An expression contains values and spaces
    */
-  expression = this.RULE('expression', (): CstNode | undefined => {
-    let values: CstElement[] = []
-    let val: CstElement | undefined
-
-    this.MANY(() => {
-      val = this.SUBRULE(this.value)
-      values.push(val)
-    })
-
-    if (val) {
-      return {
-        name: 'expression',
-        children: { values }
-      }
-    }
+  expression = this.RULE('expression', () => {
+    this.MANY(() => this.SUBRULE(this.value))
   })
 
   /**
@@ -638,66 +379,34 @@ export class CssParser extends EmbeddedActionsParser {
    * following a ':' and ends at ';' (or until automatically closed by
    * '}', ']', ')' or the end of a file).
    */
-  value = this.RULE(
-    'value',
-    (): CstElement => {
-      return this.OR([
-        { ALT: () => this.SUBRULE(this.block) },
-        { ALT: () => this.SUBRULE(this.anyValue) }
-      ])
-    }
+  value = this.RULE('value', () =>
+    this.OR([{ ALT: () => this.SUBRULE(this.block) }, { ALT: () => this.SUBRULE(this.anyValue) }])
   )
 
-  anyValue = this.RULE(
-    'anyValue',
-    (): CstElement => {
-      return this.OR([
-        { ALT: () => this.CONSUME(this.T.Value) },
-        { ALT: () => this.CONSUME(this.T.Colon) },
-        { ALT: () => this.CONSUME(this.T.WS) }
-      ])
-    }
+  anyValue = this.RULE('anyValue', () =>
+    this.OR([
+      { ALT: () => this.CONSUME(this.T.Value) },
+      { ALT: () => this.CONSUME(this.T.Colon) },
+      { ALT: () => this.CONSUME(this.T.WS) }
+    ])
   )
 
   /**
    * Extra tokens in a custom property
    */
-  extraValues = this.RULE(
-    'extraValues',
-    (): CstElement => {
-      return this.OR([
-        { ALT: () => this.CONSUME(this.T.AtName) },
-        { ALT: () => this.CONSUME(this.T.CustomProperty) },
-        { ALT: () => this.CONSUME(this.T.Comma) },
-        { ALT: () => this.CONSUME(this.T.SemiColon) }
-      ])
-    }
+  extraValues = this.RULE('extraValues', () =>
+    this.OR([
+      { ALT: () => this.CONSUME(this.T.AtName) },
+      { ALT: () => this.CONSUME(this.T.CustomProperty) },
+      { ALT: () => this.CONSUME(this.T.Comma) },
+      { ALT: () => this.CONSUME(this.T.SemiColon) }
+    ])
   )
 
-  /** "red" in "color: red" */
-  propertyValue = this.RULE(
-    'propertyValue',
-    (): CstElement => {
-      return this.OR([
-        { ALT: () => this.SUBRULE(this.block) },
-        { ALT: () => this.CONSUME(this.T.Value) }
-      ])
-    }
-  )
-
-  curlyBlock = this.RULE<CstNode>('curlyBlock', () => {
-    const L = [this.CONSUME(this.T.LCurly)]
-    const blockBody = [this.SUBRULE(this.primary)]
-    const R = [this.CONSUME(this.T.RCurly)]
-
-    return {
-      name: 'curlyBlock',
-      children: {
-        L,
-        blockBody,
-        R
-      }
-    }
+  curlyBlock = this.RULE('curlyBlock', () => {
+    this.CONSUME(this.T.LCurly, { LABEL: 'L' })
+    this.SUBRULE(this.primary, { LABEL: 'blockBody' })
+    this.CONSUME(this.T.RCurly, { LABEL: 'R' })
   })
 
   /**
@@ -713,91 +422,57 @@ export class CssParser extends EmbeddedActionsParser {
    * It would be great if CSS formalized this distinction, but for now,
    * this seems safe.
    */
-  block = this.RULE(
-    'block',
-    (): CstNode => {
-      let L: IToken[]
-      let R: IToken[]
-      let Function: IToken[]
-      let blockBody: CstNode[]
-
-      this.OR([
-        {
-          ALT: () => {
-            this.OR2([
-              { ALT: () => (L = [this.CONSUME(this.T.LParen)]) },
-              { ALT: () => (Function = [this.CONSUME(this.T.Function)]) }
-            ])
-            blockBody = [this.SUBRULE(this.expressionListGroup)]
-            R = [this.CONSUME(this.T.RParen)]
-          }
-        },
-        {
-          ALT: () => {
-            L = [this.CONSUME(this.T.LSquare)]
-            blockBody = [this.SUBRULE2(this.expressionListGroup)]
-            R = [this.CONSUME(this.T.RSquare)]
-          }
+  block = this.RULE('block', () => {
+    this.OR([
+      {
+        ALT: () => {
+          this.OR2([
+            { ALT: () => this.CONSUME(this.T.LParen, { LABEL: 'L' }) },
+            { ALT: () => this.CONSUME(this.T.Function, { LABEL: 'Function' }) }
+          ])
+          this.SUBRULE(this.expressionListGroup, { LABEL: 'blockBody' })
+          this.CONSUME(this.T.RParen, { LABEL: 'R' })
         }
-      ])
-      return {
-        name: 'block',
-        children: {
-          ...(L ? { L } : {}),
-          ...(Function ? { Function } : {}),
-          blockBody,
-          R
+      },
+      {
+        ALT: () => {
+          this.CONSUME(this.T.LSquare, { LABEL: 'L' })
+          this.SUBRULE2(this.expressionListGroup, { LABEL: 'blockBody' })
+          this.CONSUME(this.T.RSquare, { LABEL: 'R' })
         }
       }
-    }
-  )
+    ])
+  })
 
   /**
    * Blocks assigned to custom properties
    */
-  customBlock = this.RULE(
-    'customBlock',
-    (): CstNode => {
-      let L: IToken[]
-      let R: IToken[]
-      let Function: IToken[]
-      let blockBody: CstElement[]
-
-      this.OR([
-        {
-          ALT: () => {
-            this.OR2([
-              { ALT: () => (L = [this.CONSUME(this.T.LParen)]) },
-              { ALT: () => (Function = [this.CONSUME(this.T.Function)]) }
-            ])
-            blockBody = this.SUBRULE(this.customValue)
-            R = [this.CONSUME(this.T.RParen)]
-          }
-        },
-        {
-          ALT: () => {
-            L = [this.CONSUME(this.T.LSquare)]
-            blockBody = this.SUBRULE2(this.customValue)
-            R = [this.CONSUME(this.T.RSquare)]
-          }
-        },
-        {
-          ALT: () => {
-            L = [this.CONSUME(this.T.LCurly)]
-            blockBody = this.SUBRULE3(this.customValue)
-            R = [this.CONSUME(this.T.RCurly)]
-          }
+  customBlock = this.RULE('customBlock', () => {
+    this.OR([
+      {
+        ALT: () => {
+          this.OR2([
+            { ALT: () => this.CONSUME(this.T.LParen, { LABEL: 'L' }) },
+            { ALT: () => this.CONSUME(this.T.Function, { LABEL: 'Function' }) }
+          ])
+          this.SUBRULE(this.customValue, { LABEL: 'blockBody' })
+          this.CONSUME(this.T.RParen, { LABEL: 'R' })
         }
-      ])
-      return {
-        name: 'block',
-        children: {
-          ...(L ? { L } : {}),
-          ...(Function ? { Function } : {}),
-          blockBody,
-          R
+      },
+      {
+        ALT: () => {
+          this.CONSUME(this.T.LSquare, { LABEL: 'L' })
+          this.SUBRULE2(this.customValue, { LABEL: 'blockBody' })
+          this.CONSUME(this.T.RSquare, { LABEL: 'R' })
+        }
+      },
+      {
+        ALT: () => {
+          this.CONSUME(this.T.LCurly, { LABEL: 'L' })
+          this.SUBRULE3(this.customValue, { LABEL: 'blockBody' })
+          this.CONSUME(this.T.RCurly, { LABEL: 'R' })
         }
       }
-    }
-  )
+    ])
+  })
 }
