@@ -1,4 +1,34 @@
+import type { IToken, Lexer, CstNode, ILexingResult } from 'chevrotain'
+import { Tokens, Fragments } from './cssTokens'
+import { CssParser } from './cssParser'
+import { createLexer } from './util'
+
 export * from './cssTokens'
 export * from './util'
-export * from './parser/cssParser'
-export * from './parser/index'
+export * from './cssParser'
+
+export interface IParseResult {
+  cst: CstNode
+  lexerResult: ILexingResult
+  parser: CssParser
+}
+
+export class Parser {
+  lexer: Lexer
+  parser: CssParser
+
+  constructor() {
+    const { lexer, tokens, T } = createLexer(Fragments, Tokens)
+    this.lexer = lexer
+    this.parser = new CssParser(tokens, T)
+  }
+
+  parse(text: string): IParseResult {
+    const lexerResult = this.lexer.tokenize(text)
+    const lexedTokens: IToken[] = lexerResult.tokens
+    this.parser.input = lexedTokens
+    const cst = this.parser.primary()
+
+    return { cst, lexerResult, parser: this.parser }
+  }
+}

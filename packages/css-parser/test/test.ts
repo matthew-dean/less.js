@@ -2,7 +2,7 @@ import * as glob from 'glob'
 import * as fs from 'fs'
 import { expect } from 'chai'
 import 'mocha'
-import { Parser } from '../src/parser'
+import { Parser } from '../src'
 
 const cssParser = new Parser()
 
