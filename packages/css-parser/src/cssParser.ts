@@ -95,6 +95,7 @@ export class CssParser extends CstParser {
 
   /** declarations */
   declaration: Rule
+  testDeclaration: Rule
   customDeclaration: Rule
   property: Rule
   customProperty: Rule
@@ -106,9 +107,10 @@ export class CssParser extends CstParser {
 
   /** values */
   value: Rule
+  atomicValue: Rule
   customValue: Rule
-  anyValue: Rule
-  extraValues: Rule
+  anyToken: Rule
+  extraTokens: Rule
 
   constructor(
     tokens: TokenType[],

@@ -11,8 +11,8 @@
     "ci": "echo \"FIX ME!!! npm-run-all build test\"",
     "prepublishOnly": "npm run build",
     "build": "npm-run-all clean compile",
-    "clean": "shx rm -rf ./dist",
-    "compile": "tsc -p tsconfig.json",
+    "clean": "shx rm -rf ./dist tsconfig.tsbuildinfo",
+    "compile": "tsc -b tsconfig.json",
     "test": "ts-mocha test/**/*.ts"
   },
   "author": "Matthew Dean",

@@ -100,6 +100,10 @@ for (let i = 0; i < tokenLength; i++) {
       copyToken()
       token.pattern = /\.?\//
       break
+    case 'StringLiteral':
+      copyToken()
+      token.pattern = '~?{{string1}}|~?{{string2}}'
+      break
     case 'AtKeyword':
       copyToken()
       token.categories = categories.concat(['VarOrProp'])

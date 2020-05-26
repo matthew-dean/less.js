@@ -7,8 +7,8 @@ export default function(this: CssParser, $: CssParser) {
   $.customValue = $.RULE('customValue', () => {
     $.MANY(() =>
       $.OR([
-        { ALT: () => $.SUBRULE($.anyValue, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.extraValues, { LABEL: 'value' }) },
+        { ALT: () => $.SUBRULE($.anyToken, { LABEL: 'value' }) },
+        { ALT: () => $.SUBRULE($.extraTokens, { LABEL: 'value' }) },
         { ALT: () => $.SUBRULE($.customBlock, { LABEL: 'value' }) }
       ])
     )
@@ -57,10 +57,10 @@ export default function(this: CssParser, $: CssParser) {
    * '}', ']', ')' or the end of a file).
    */
   $.value = $.RULE('value', () =>
-    $.OR([{ ALT: () => $.SUBRULE($.block) }, { ALT: () => $.SUBRULE($.anyValue) }])
+    $.OR([{ ALT: () => $.SUBRULE($.block) }, { ALT: () => $.SUBRULE($.anyToken) }])
   )
 
-  $.anyValue = $.RULE('anyValue', () =>
+  $.anyToken = $.RULE('anyToken', () =>
     $.OR([
       { ALT: () => $.CONSUME($.T.Value) },
       { ALT: () => $.CONSUME($.T.Colon) },
@@ -68,10 +68,10 @@ export default function(this: CssParser, $: CssParser) {
     ])
   )
 
-    /**
+  /**
    * Extra tokens in a custom property
    */
-  $.extraValues = $.RULE('extraValues', () =>
+  $.extraTokens = $.RULE('extraTokens', () =>
     $.OR([
       { ALT: () => $.CONSUME($.T.AtName) },
       { ALT: () => $.CONSUME($.T.CustomProperty) },

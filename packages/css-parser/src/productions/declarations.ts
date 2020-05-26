@@ -1,6 +1,16 @@
 import type { CssParser } from '../cssParser'
 
 export default function(this: CssParser, $: CssParser) {
+
+  $.testDeclaration = $.RULE('testDeclaration', () => {
+    $.OR([
+      { ALT: () => $.SUBRULE(this.property) },
+      { ALT: () => $.SUBRULE(this.customProperty) }
+    ])
+    $._()
+    $.CONSUME($.T.Assign)
+  })
+
   /**
    * e.g.
    *   color: red

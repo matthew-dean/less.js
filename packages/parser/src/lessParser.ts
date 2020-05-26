@@ -1,14 +1,41 @@
-import { TokenType, IParserConfig, CstNode, EMPTY_ALT } from 'chevrotain'
-import { TokenMap, CssParser } from '@less/css-parser'
+import { TokenType, IParserConfig } from 'chevrotain'
+import { TokenMap, CssParser, Rule } from '@less/css-parser'
 import overrides from './productions/overrides'
 import mixin from './productions/mixin'
 import interpolation from './productions/interpolation'
+import values from './productions/values'
 
 export class LessParser extends CssParser {
-  T: TokenMap;
+  T: TokenMap
+  inCompareBlock: boolean
+
+  interpolate: Rule
+
+  /** values */
+  addition: Rule
+  multiplication: Rule
+  compare: Rule
+
+  /** mixins */
+  createMixinDefArgs: Function
+  testMixin: Rule
+  mixinDefStart: Rule
+  mixinDefinition: Rule
+  mixinDefArgsSemi: Rule
+  mixinDefArgsComma: Rule
+  mixinDefArgSemi: Rule
+  mixinDefArgComma: Rule;
+
+  /** For dynamic references */
   [k: string]: any
 
-  constructor(tokens: TokenType[], T: TokenMap, config: IParserConfig = { maxLookahead: 1 }) {
+  constructor(
+    tokens: TokenType[],
+    T: TokenMap,
+    config: IParserConfig = {
+      maxLookahead: 1
+    }
+  ) {
     super(tokens, T, config)
     const $ = this
     $.T = T
@@ -16,9 +43,16 @@ export class LessParser extends CssParser {
     overrides.call($, $)
     interpolation.call($, $)
     mixin.call($, $)
+    values.call($, $)
 
     if ($.constructor === LessParser) {
       $.performSelfAnalysis()
     }
+  }
+
+  // https://sap.github.io/chevrotain/documentation/6_1_0/classes/baseparser.html#reset
+  reset() {
+    super.reset()
+    this.inCompareBlock = false
   }
 }
