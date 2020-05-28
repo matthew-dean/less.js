@@ -81,6 +81,7 @@ export class CssParser extends CstParser {
   /** blocks */
   qualifiedRule: Rule
   testQualifiedRule: Rule
+  testQualifiedRuleExpression: Rule
   block: Rule
   curlyBlock: Rule
   customBlock: Rule

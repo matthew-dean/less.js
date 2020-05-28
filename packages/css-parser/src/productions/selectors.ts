@@ -124,6 +124,11 @@ export default function(this: CssParser, $: CssParser) {
               },
               {
                 ALT: () => {
+                  $.CONSUME3($.T.Unit)
+                }
+              },
+              {
+                ALT: () => {
                   $.CONSUME($.T.StringLiteral)
                 }
               }

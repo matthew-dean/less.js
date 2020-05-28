@@ -29,7 +29,7 @@ export default function (this: LessParser, $: LessParser) {
       {
         ALT: () => {
           $.CONSUME($.T.LSquare)
-          $.SUBRULE($.value)
+          $.SUBRULE2($.expression)
           $.CONSUME($.T.RSquare)
         }
       },
@@ -43,12 +43,15 @@ export default function (this: LessParser, $: LessParser) {
       { ALT: () => $.CONSUME($.T.VarOrProp) },
       { ALT: () => $.CONSUME($.T.CustomProperty) },
       { ALT: () => $.CONSUME($.T.Unit) },
-      { ALT: () => $.CONSUME($.T.Ident) },
       { ALT: () => $.CONSUME($.T.StringLiteral) },
       { ALT: () => $.CONSUME($.T.Uri) },
-      { ALT: () => $.CONSUME($.T.Color) },
+      { ALT: () => $.CONSUME($.T.ColorIntStart) },
       { ALT: () => $.CONSUME($.T.UnicodeRange) },
-      { ALT: () => $.CONSUME($.T.Colon) }
+
+      /** Can be found in selector expressions */
+      { ALT: () => $.CONSUME($.T.AttrMatchOperator) },
+      { ALT: () => $.CONSUME($.T.Colon) },
+      { ALT: () => $.CONSUME($.T.Selector) },
     ])
   })
 
