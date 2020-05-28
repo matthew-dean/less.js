@@ -25,8 +25,8 @@ Fragments.forEach(fragment => {
 /** Keyed by what to insert after */
 const merges: IMerges = {
   PropertyName: [{ name: 'Interpolated', pattern: LexerType.NA }],
-  Unknown: [
-    { name: 'Ampersand', pattern: /&/ },
+  Assign: [
+    { name: 'Ampersand', pattern: /&/, categories: ['Selector'] },
     { name: 'Ellipsis', pattern: /\.\.\./ }
   ],
   PlainIdent: [

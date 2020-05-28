@@ -6,7 +6,7 @@ export default function(this: CssParser, $: CssParser) {
    */
   $.atRule = $.RULE('atRule', () => {
     $.CONSUME($.T.AtName)
-    $.SUBRULE($.expressionList)
+    $.SUBRULE($.customValue, { ARGS: [true] })
 
     $.OR([
       { ALT: () => $.SUBRULE($.curlyBlock) },

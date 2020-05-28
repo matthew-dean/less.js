@@ -2,6 +2,7 @@ import { TokenType, IParserConfig } from 'chevrotain'
 import { TokenMap, CssParser, Rule } from '@less/css-parser'
 import root from './productions/root'
 import mixin from './productions/mixin'
+import selectors from './productions/selectors'
 import interpolation from './productions/interpolation'
 import values from './productions/values'
 
@@ -46,6 +47,7 @@ export class LessParser extends CssParser {
     root.call($, $)
     interpolation.call($, $)
     mixin.call($, $)
+    selectors.call($, $)
     values.call($, $)
 
     if ($.constructor === LessParser) {

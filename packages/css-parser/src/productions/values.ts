@@ -4,12 +4,12 @@ export default function(this: CssParser, $: CssParser) {
   /**
    * A custom property's value
    */
-  $.customValue = $.RULE('customValue', () => {
+  $.customValue = $.RULE('customValue', (inAtRule: boolean) => {
     $.MANY(() =>
       $.OR([
         { ALT: () => $.SUBRULE($.anyToken, { LABEL: 'value' }) },
         { ALT: () => $.SUBRULE($.extraTokens, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.customBlock, { LABEL: 'value' }) }
+        { ALT: () => $.SUBRULE($.customBlock, { ARGS: [inAtRule], LABEL: 'value' }) }
       ])
     )
   })

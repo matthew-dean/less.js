@@ -1,4 +1,5 @@
 import type { CssParser } from '../cssParser'
+import { EMPTY_ALT } from 'chevrotain'
 
 export default function(this: CssParser, $: CssParser) {
   /**
@@ -10,7 +11,11 @@ export default function(this: CssParser, $: CssParser) {
   })
 
   /**
-   * Test for qualified rule start
+   * Test for qualified rule start.
+   * 
+   * In order to detect specific errors, we backtrack this very permissive rule,
+   * which allows almost anything, because we're just determining if this is
+   * _intended_ to be a qualified rule, not if it's a valid one.
    */
   $.testQualifiedRule = $.RULE('testQualifiedRule', () => {
     $.SUBRULE($.testQualifiedRuleExpression)
@@ -85,9 +90,9 @@ export default function(this: CssParser, $: CssParser) {
   })
 
   /**
-   * Blocks assigned to custom properties
+   * Blocks assigned to custom properties or at-rules
    */
-  $.customBlock = $.RULE('customBlock', () => {
+  $.customBlock = $.RULE('customBlock', (inAtRule) => {
     $.OR([
       {
         ALT: () => {
@@ -107,11 +112,15 @@ export default function(this: CssParser, $: CssParser) {
         }
       },
       {
+        GATE: () => !inAtRule,
         ALT: () => {
           $.CONSUME($.T.LCurly, { LABEL: 'L' })
           $.SUBRULE3($.customValue, { LABEL: 'blockBody' })
           $.CONSUME($.T.RCurly, { LABEL: 'R' })
         }
+      },
+      {
+        ALT: () => EMPTY_ALT
       }
     ])
   })
