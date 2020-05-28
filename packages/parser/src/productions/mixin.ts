@@ -5,7 +5,7 @@ export default function(this: LessParser, $: LessParser) {
   /**
    * Test for mixin start
    */
-  $.testMixin = $.RULE('textMixin', () => {
+  $.testMixin = $.RULE('testMixin', () => {
     $.SUBRULE($.mixinDefStart)
     $._()
     $.CONSUME($.T.LParen)
@@ -22,9 +22,41 @@ export default function(this: LessParser, $: LessParser) {
       },
       { ALT: () => $.SUBRULE($.mixinDefArgsComma, { LABEL: 'args' }) }
     ])
+    $._(1)
+    $.OPTION(() => {
+      $.CONSUME($.T.When)
+      $._(2)
+      $.SUBRULE($.mixinOr)
+    })
   })
 
-  $.mixinDefStart = $.RULE('mixinStart', () => {
+  $.mixinOr = $.RULE('mixinOr', () => {
+    $.SUBRULE($.mixinAnd, { LABEL: 'lhs' })
+    $.MANY(() => {
+      $.CONSUME($.T.Comma)
+      $._()
+      $.SUBRULE2($.mixinAnd, { LABEL: 'rhs' })
+    })
+    $._(1)
+  })
+
+  $.mixinAnd = $.RULE('mixinAnd', () => {
+    $.SUBRULE($.mixinExpression, { LABEL: 'lhs' })
+    $.MANY(() => {
+      $.CONSUME($.T.And)
+      $._()
+      $.SUBRULE2($.mixinExpression, { LABEL: 'rhs' })
+    })
+    $._(1)
+  })
+
+  $.mixinExpression = $.RULE('mixinExpression', () => {
+    $.CONSUME($.T.LParen)
+    $.SUBRULE($.compare)
+    $.CONSUME($.T.RParen)
+  })
+
+  $.mixinDefStart = $.RULE('mixinDefStart', () => {
     $.OR([
       { ALT: () => $.CONSUME($.T.DotName) },
       { ALT: () => $.CONSUME($.T.HashName) },
@@ -38,6 +70,10 @@ export default function(this: LessParser, $: LessParser) {
       $.MANY_SEP({
         SEP,
         DEF: () => $.SUBRULE($[`mixinDefArg${suffix}`])
+      })
+      $.OPTION({
+        GATE: () => suffix === 'Semi',
+        DEF: () => $.CONSUME($.T.SemiColon)
       })
       $.CONSUME($.T.RParen, { LABEL: 'R' })
     })

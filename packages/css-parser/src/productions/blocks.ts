@@ -13,7 +13,7 @@ export default function(this: CssParser, $: CssParser) {
    * Test for qualified rule start
    */
   $.testQualifiedRule = $.RULE('testQualifiedRule', () => {
-    $.SUBRULE($.selectorList)
+    $.SUBRULE($.expressionList)
     $.CONSUME($.T.LCurly)
   })
 

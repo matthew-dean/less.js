@@ -1,25 +1,66 @@
+import { EMPTY_ALT } from 'chevrotain'
 import { LessParser } from '../lessParser'
 
 export default function (this: LessParser, $: LessParser) {
+  const compareGate = () => $.inCompareBlock
+
   $.expression = $.OVERRIDE_RULE('expression', () => {
-    $.MANY(() => $.SUBRULE($.addition))
+    $._()
+    $.OR([
+      {
+        GATE: compareGate,
+        ALT: () => $.MANY(() => $.SUBRULE($.compare))
+      },
+      { ALT: () => $.MANY2(() => $.SUBRULE($.addition)) }
+    ])
   })
 
   /** This is more specific than the CSS parser */
-  $.value = $.OVERRIDE_RULE('value', () =>
+  $.value = $.OVERRIDE_RULE('value', () => {
     $.OR([
-      { ALT: () => $.SUBRULE($.block) },
+      /** Blocks */
+      {
+        ALT: () => {
+          $.CONSUME($.T.LParen)
+          $.SUBRULE($.expression)
+          $.CONSUME($.T.RParen)
+        }
+      },
+      {
+        ALT: () => {
+          $.CONSUME($.T.LSquare)
+          $.SUBRULE($.value)
+          $.CONSUME($.T.RSquare)
+        }
+      },
+      {
+        ALT: () => {
+          $.CONSUME($.T.Function)
+          $.SUBRULE($.expressionList)
+          $.CONSUME2($.T.RParen)
+        }
+      },
       { ALT: () => $.CONSUME($.T.VarOrProp) },
+      { ALT: () => $.CONSUME($.T.CustomProperty) },
       { ALT: () => $.CONSUME($.T.Unit) },
       { ALT: () => $.CONSUME($.T.Ident) },
       { ALT: () => $.CONSUME($.T.StringLiteral) },
       { ALT: () => $.CONSUME($.T.Uri) },
       { ALT: () => $.CONSUME($.T.Color) },
       { ALT: () => $.CONSUME($.T.UnicodeRange) },
-      { ALT: () => $.CONSUME($.T.Colon) },
-      { ALT: () => $.CONSUME($.T.WS) }
+      { ALT: () => $.CONSUME($.T.Colon) }
     ])
-  )
+  })
+
+  $.compare = $.RULE('compare', () => {
+    $.SUBRULE($.addition, { LABEL: 'lhs' })
+    $.MANY(() => {
+      $.CONSUME($.T.CompareOperator)
+      $._()
+      $.SUBRULE2($.addition, { LABEL: 'rhs' })
+    })
+    $._(1)
+  })
 
   $.addition = $.RULE('addition', () => {
     $.SUBRULE($.multiplication, { LABEL: 'lhs' })
@@ -31,25 +72,14 @@ export default function (this: LessParser, $: LessParser) {
     $._(1)
   })
 
-  const compareGate = () => $.inCompareBlock
-
   $.multiplication = $.RULE('multiplication', () => {
-    $.SUBRULE($.compare, { LABEL: 'lhs' })
+    $.SUBRULE($.value, { LABEL: 'lhs' })
+    $._()
     $.MANY(() => {
       $.CONSUME($.T.MultiplicationOperator)
-      $._()
-      $.SUBRULE2($.compare, { LABEL: 'rhs' })
-    })
-    $._(1)
-  })
-
-  $.compare = $.RULE('compare', () => {
-    $.SUBRULE($.value, { LABEL: 'lhs' })
-    $.MANY(() => {
-      $.CONSUME($.T.CompareOperator)
-      $._()
+      $._(1)
       $.SUBRULE2($.value, { LABEL: 'rhs' })
+      $._(2)
     })
-    $._(1)
   })
 }

@@ -1,6 +1,6 @@
 import { TokenType, IParserConfig } from 'chevrotain'
 import { TokenMap, CssParser, Rule } from '@less/css-parser'
-import overrides from './productions/overrides'
+import root from './productions/root'
 import mixin from './productions/mixin'
 import interpolation from './productions/interpolation'
 import values from './productions/values'
@@ -24,7 +24,10 @@ export class LessParser extends CssParser {
   mixinDefArgsSemi: Rule
   mixinDefArgsComma: Rule
   mixinDefArgSemi: Rule
-  mixinDefArgComma: Rule;
+  mixinDefArgComma: Rule
+  mixinExpression: Rule
+  mixinOr: Rule
+  mixinAnd: Rule;
 
   /** For dynamic references */
   [k: string]: any
@@ -40,7 +43,7 @@ export class LessParser extends CssParser {
     const $ = this
     $.T = T
 
-    overrides.call($, $)
+    root.call($, $)
     interpolation.call($, $)
     mixin.call($, $)
     values.call($, $)

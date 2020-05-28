@@ -136,6 +136,12 @@ export default function(this: CssParser, $: CssParser) {
         ALT: () => {
           $.SUBRULE($.nameSelector)
         }
+      },
+      {
+        /** Used in keyframes as a selector */
+        ALT: () => {
+          $.CONSUME($.T.Unit)
+        }
       }
     ])
   })

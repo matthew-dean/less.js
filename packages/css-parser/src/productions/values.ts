@@ -63,6 +63,8 @@ export default function(this: CssParser, $: CssParser) {
   $.anyToken = $.RULE('anyToken', () =>
     $.OR([
       { ALT: () => $.CONSUME($.T.Value) },
+      /** Can be in a var() function */
+      { ALT: () => $.CONSUME($.T.CustomProperty) },
       { ALT: () => $.CONSUME($.T.Colon) },
       { ALT: () => $.CONSUME($.T.WS) }
     ])
@@ -74,7 +76,6 @@ export default function(this: CssParser, $: CssParser) {
   $.extraTokens = $.RULE('extraTokens', () =>
     $.OR([
       { ALT: () => $.CONSUME($.T.AtName) },
-      { ALT: () => $.CONSUME($.T.CustomProperty) },
       { ALT: () => $.CONSUME($.T.Comma) },
       { ALT: () => $.CONSUME($.T.SemiColon) }
     ])
