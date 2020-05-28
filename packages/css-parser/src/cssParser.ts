@@ -77,6 +77,17 @@ export class CssParser extends CstParser {
   primary: Rule
   rule: Rule
   atRule: Rule
+  knownAtRule: Rule
+  unknownAtRule: Rule
+  atImport: Rule
+  atMedia: Rule
+  atSupports: Rule
+
+  /** @media */
+  mediaQuery: Rule
+  mediaCondition: Rule
+  mediaFeature: Rule
+  mediaAnd: Rule
 
   /** blocks */
   qualifiedRule: Rule

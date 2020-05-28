@@ -2,6 +2,8 @@ import { LessFunction, FunctionError } from '../types'
 
 /**
  * Supports run-time type checking of Less functions
+ * 
+ * @todo - Do this as a @decorator instead
  */
 export const define = (func: LessFunction, ...params: any[][]) => {
   return function (...args: any[]) {
