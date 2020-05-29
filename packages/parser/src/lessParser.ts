@@ -8,7 +8,9 @@ import values from './productions/values'
 
 export class LessParser extends CssParser {
   T: TokenMap
-  inCompareBlock: boolean
+  inCompareBlock: boolean = false
+  isMixinDefinition: boolean = false
+  isSemiColonSeparated: boolean = false
 
   interpolate: Rule
 
@@ -16,19 +18,32 @@ export class LessParser extends CssParser {
   addition: Rule
   multiplication: Rule
   compare: Rule
+  function: Rule
 
   /** mixins */
   createMixinDefArgs: Function
+  createMixinDefArg: Function
   testMixin: Rule
-  mixinDefStart: Rule
+  mixin: Rule
+  mixinName: Rule
+  mixinStart: Rule
+
+  /** Mixin definition */
   mixinDefinition: Rule
   mixinDefArgsSemi: Rule
   mixinDefArgsComma: Rule
   mixinDefArgSemi: Rule
   mixinDefArgComma: Rule
-  mixinExpression: Rule
-  mixinOr: Rule
-  mixinAnd: Rule;
+
+  /** Mixin call */
+  mixinCall: Rule
+
+  /** guards */
+  guard: Rule
+  guardExpression: Rule
+  guardOr: Rule
+  guardAnd: Rule
+
 
   /** For dynamic references */
   [k: string]: any
@@ -59,5 +74,7 @@ export class LessParser extends CssParser {
   reset() {
     super.reset()
     this.inCompareBlock = false
+    this.isMixinDefinition = false
+    this.isSemiColonSeparated = false
   }
 }

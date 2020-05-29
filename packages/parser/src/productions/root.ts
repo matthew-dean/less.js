@@ -16,6 +16,7 @@ export default function(this: LessParser, $: LessParser) {
         ALT: () => $.SUBRULE($.qualifiedRule)
       },
       { ALT: () => $.SUBRULE2($.declaration) },
+      { ALT: () => $.SUBRULE($.function) },
 
       /** Capture any isolated / redundant semi-colons */
       { ALT: () => $.CONSUME($.T.SemiColon) },

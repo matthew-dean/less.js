@@ -1,4 +1,5 @@
 import { LessParser } from '../lessParser'
+import { Rule } from 'chevrotain'
 
 export default function (this: LessParser, $: LessParser) {
   const compareGate = () => $.inCompareBlock
@@ -12,6 +13,13 @@ export default function (this: LessParser, $: LessParser) {
       },
       { ALT: () => $.MANY2(() => $.SUBRULE($.addition)) }
     ])
+  })
+
+  /** @todo - allow semi-colon separators? */
+  $.function = $.RULE('function', () => {
+    $.CONSUME($.T.Function)
+    $.SUBRULE($.expressionList)
+    $.CONSUME($.T.RParen)
   })
 
   /** This is more specific than the CSS parser */
@@ -32,13 +40,7 @@ export default function (this: LessParser, $: LessParser) {
           $.CONSUME($.T.RSquare)
         }
       },
-      {
-        ALT: () => {
-          $.CONSUME($.T.Function)
-          $.SUBRULE($.expressionList)
-          $.CONSUME2($.T.RParen)
-        }
-      },
+      { ALT: () => $.SUBRULE($.function) },
       { ALT: () => $.CONSUME($.T.VarOrProp) },
       { ALT: () => $.CONSUME($.T.CustomProperty) },
       { ALT: () => $.CONSUME($.T.Unit) },

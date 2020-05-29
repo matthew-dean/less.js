@@ -2,66 +2,124 @@ import { TokenType, CstNode, EMPTY_ALT } from 'chevrotain'
 import type { LessParser } from '../lessParser'
 
 export default function(this: LessParser, $: LessParser) {
+  const resetState = () => {
+    $.isSemiColonSeparated = false
+    $.isMixinDefinition = false
+  }
   /**
    * Test for mixin start
    */
   $.testMixin = $.RULE('testMixin', () => {
-    $.SUBRULE($.mixinDefStart)
-    $._()
+    resetState()
+
+    $.SUBRULE($.mixinStart)
     $.CONSUME($.T.LParen)
+    $.MANY(() => {
+      $.SUBRULE($.expressionList)
+      $.OPTION(() => {
+        $.CONSUME($.T.SemiColon)
+        $.isSemiColonSeparated = true
+      })
+    })
+    $.CONSUME($.T.RParen)
+    $._(1)
+    /** Allow when guard */
+    $.SUBRULE2($.expressionList)
+    $.OPTION2(() => {
+      $.CONSUME($.T.LCurly)
+      $.isMixinDefinition = true
+    })
   })
 
-
-  $.mixinDefinition = $.RULE('mixinDefinition', () => {
-    $.SUBRULE($.mixinDefStart)
-    $._()
+  $.mixin = $.RULE('mixin', () => {
     $.OR([
       {
-        GATE: $.BACKTRACK($.mixinDefArgsSemi),
-        ALT: () => $.SUBRULE($.mixinDefArgsSemi, { LABEL: 'args' })
+        GATE: () => $.isMixinDefinition,
+        ALT: () => $.SUBRULE($.mixinDefinition)
       },
-      { ALT: () => $.SUBRULE($.mixinDefArgsComma, { LABEL: 'args' }) }
+      { ALT: () => $.SUBRULE($.mixinCall) }
     ])
-    $._(1)
-    $.OPTION(() => {
-      $.CONSUME($.T.When)
+  })
+
+  $.mixinStart = $.RULE('mixinStart', () => {
+    $.SUBRULE($.mixinName)
+    $._()
+    $.MANY(() => {
+      $.OPTION(() => $.CONSUME($.T.Gt))
+      $._(1)
+      $.SUBRULE2($.mixinName)
       $._(2)
-      $.SUBRULE($.mixinOr)
     })
   })
 
-  $.mixinOr = $.RULE('mixinOr', () => {
-    $.SUBRULE($.mixinAnd, { LABEL: 'lhs' })
-    $.MANY(() => {
-      $.CONSUME($.T.Comma)
-      $._()
-      $.SUBRULE2($.mixinAnd, { LABEL: 'rhs' })
-    })
-    $._(1)
-  })
-
-  $.mixinAnd = $.RULE('mixinAnd', () => {
-    $.SUBRULE($.mixinExpression, { LABEL: 'lhs' })
-    $.MANY(() => {
-      $.CONSUME($.T.And)
-      $._()
-      $.SUBRULE2($.mixinExpression, { LABEL: 'rhs' })
-    })
-    $._(1)
-  })
-
-  $.mixinExpression = $.RULE('mixinExpression', () => {
-    $.CONSUME($.T.LParen)
-    $.SUBRULE($.compare)
-    $.CONSUME($.T.RParen)
-  })
-
-  $.mixinDefStart = $.RULE('mixinDefStart', () => {
+  $.mixinName = $.RULE('mixinName', () => {
     $.OR([
       { ALT: () => $.CONSUME($.T.DotName) },
       { ALT: () => $.CONSUME($.T.HashName) },
       { ALT: () => $.SUBRULE($.interpolate) }
     ])
+  })
+
+  $.mixinCall = $.RULE('mixinCall', () => {
+    const semiColonSeparated = $.isSemiColonSeparated
+    resetState()
+
+    $.AT_LEAST_ONE(() => {
+      $.SUBRULE($.mixinName)
+    })
+    $.CONSUME($.T.LParen)
+    $.CONSUME($.T.RParen)
+  })
+
+  $.mixinDefinition = $.RULE('mixinDefinition', () => {
+    const semiColonSeparated = $.isSemiColonSeparated
+    resetState()
+  
+    $.SUBRULE($.mixinName)
+    $._()
+    $.OR([
+      {
+        GATE: () => semiColonSeparated,
+        ALT: () => $.SUBRULE($.mixinDefArgsSemi, { LABEL: 'args' })
+      },
+      { ALT: () => $.SUBRULE($.mixinDefArgsComma, { LABEL: 'args' }) }
+    ])
+    $._(1)
+    $.SUBRULE($.guard)
+  })
+
+  $.guard = $.RULE('guard', () => {
+    $.OPTION(() => {
+      $.CONSUME($.T.When)
+      $._(2)
+      $.SUBRULE($.guardOr)
+    })
+  })
+
+  $.guardOr = $.RULE('guardOr', () => {
+    $.SUBRULE($.guardAnd, { LABEL: 'lhs' })
+    $.MANY(() => {
+      $.CONSUME($.T.Comma)
+      $._()
+      $.SUBRULE2($.guardAnd, { LABEL: 'rhs' })
+    })
+    $._(1)
+  })
+
+  $.guardAnd = $.RULE('guardAnd', () => {
+    $.SUBRULE($.guardExpression, { LABEL: 'lhs' })
+    $.MANY(() => {
+      $.CONSUME($.T.And)
+      $._()
+      $.SUBRULE2($.guardExpression, { LABEL: 'rhs' })
+    })
+    $._(1)
+  })
+
+  $.guardExpression = $.RULE('guardExpression', () => {
+    $.CONSUME($.T.LParen)
+    $.SUBRULE($.compare)
+    $.CONSUME($.T.RParen)
   })
 
   $.createMixinDefArgs = (suffix: 'Comma' | 'Semi', SEP: TokenType) =>
@@ -120,6 +178,9 @@ export default function(this: LessParser, $: LessParser) {
         { ALT: () => $.CONSUME($.T.Ident) }
       ])
       $._(4)
+      if (suffix === 'Semi') {
+        $.OPTION(() => $.CONSUME($.T.SemiColon))
+      }
     })
 
   $.mixinDefArgComma = $.createMixinDefArg('Comma', $.expression)
