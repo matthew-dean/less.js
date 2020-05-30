@@ -1,6 +1,7 @@
 import { TokenType, IParserConfig } from 'chevrotain'
 import { TokenMap, CssParser, Rule } from '@less/css-parser'
 import root from './productions/root'
+import atRules from './productions/atRules'
 import blocks from './productions/blocks'
 import mixin from './productions/mixin'
 import selectors from './productions/selectors'
@@ -12,6 +13,7 @@ export class LessParser extends CssParser {
   inCompareBlock: boolean = false
   isMixinDefinition: boolean = false
   isSemiColonSeparated: boolean = false
+  isVariableCall: boolean = false
 
   interpolate: Rule
 
@@ -20,10 +22,12 @@ export class LessParser extends CssParser {
   multiplication: Rule
   compare: Rule
   function: Rule
+  testVariable: Rule
+  variable: Rule
+  variableCall: Rule
+  variableDeclaration: Rule
 
   /** mixins */
-  createMixinDefArgs: Function
-  createMixinDefArg: Function
   testMixin: Rule
   mixin: Rule
   mixinName: Rule
@@ -31,23 +35,19 @@ export class LessParser extends CssParser {
 
   /** Mixin definition */
   mixinDefinition: Rule
-  mixinDefArgsSemi: Rule
-  mixinDefArgsComma: Rule
-  mixinDefArgSemi: Rule
-  mixinDefArgComma: Rule
+  mixinArgs: Rule
+  mixinDefArg: Rule
 
   /** Mixin call */
+  testNamedArg: Rule
   mixinCall: Rule
+  mixinCallArg: Rule
 
   /** guards */
   guard: Rule
   guardExpression: Rule
   guardOr: Rule
   guardAnd: Rule
-
-
-  /** For dynamic references */
-  [k: string]: any
 
   constructor(
     tokens: TokenType[],
@@ -61,6 +61,7 @@ export class LessParser extends CssParser {
     $.T = T
 
     root.call($, $)
+    atRules.call($, $)
     blocks.call($, $)
     interpolation.call($, $)
     mixin.call($, $)
@@ -78,5 +79,6 @@ export class LessParser extends CssParser {
     this.inCompareBlock = false
     this.isMixinDefinition = false
     this.isSemiColonSeparated = false
+    this.isVariableCall = false
   }
 }

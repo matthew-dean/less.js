@@ -13,8 +13,22 @@ export default function(this: CssParser, $: CssParser) {
     $.OR([
       { ALT: () => $.SUBRULE($.atImport) },
       { ALT: () => $.SUBRULE($.atMedia) },
-      { ALT: () => $.SUBRULE($.atSupports) }
+      { ALT: () => $.SUBRULE($.atSupports) },
+      { ALT: () => $.SUBRULE($.atNested) },
+      { ALT: () => $.SUBRULE($.atNonNested) }
     ])
+  })
+
+  $.atNested = $.RULE('atNested', () => {
+    $.CONSUME($.T.AtNested)
+    $.SUBRULE($.customValue, { ARGS: [true], LABEL: 'prelude' })
+    $.SUBRULE($.curlyBlock)
+  })
+
+  $.atNonNested = $.RULE('atNonNested', () => {
+    $.CONSUME($.T.AtNonNested)
+    $.SUBRULE($.customValue, { ARGS: [true], LABEL: 'prelude' })
+    $.OPTION(() => $.CONSUME($.T.SemiColon))
   })
 
   $.atImport = $.RULE('atImport', () => {
@@ -112,7 +126,7 @@ export default function(this: CssParser, $: CssParser) {
   $.unknownAtRule = $.RULE('unknownAtRule', () => {
     $.CONSUME($.T.AtKeyword)
     $.SUBRULE($.customValue, { ARGS: [true], LABEL: 'prelude' })
-    $.OR([
+    $.OR2([
       { ALT: () => $.SUBRULE($.curlyBlock) },
       {
         ALT: () => $.OPTION(() => $.CONSUME($.T.SemiColon))

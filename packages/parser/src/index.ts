@@ -14,11 +14,12 @@ export class Parser {
   }
 
   parse(text: string): IParseResult {
+    const parser = this.parser
     const lexerResult = this.lexer.tokenize(text)
     const lexedTokens: IToken[] = lexerResult.tokens
-    this.parser.input = lexedTokens
-    const cst = this.parser.primary()
+    parser.input = lexedTokens
+    const cst = parser.primary()
 
-    return { cst, lexerResult, parser: this.parser }
+    return { cst, lexerResult, parser }
   }
 }

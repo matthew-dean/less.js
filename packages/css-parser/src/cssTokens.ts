@@ -184,6 +184,18 @@ export const Tokens: rawTokenConfig[] = [
     categories: ['BlockMarker', 'AtName']
   },
   {
+    name: 'AtNested',
+    pattern: /@page|@font-face|@keyframes|@viewport|@document/,
+    longer_alt: 'AtKeyword',
+    categories: ['BlockMarker', 'AtName']
+  },
+  {
+    name: 'AtNonNested',
+    pattern: /@charset|@namespace/,
+    longer_alt: 'AtKeyword',
+    categories: ['BlockMarker', 'AtName']
+  },
+  {
     name: 'UnicodeRange',
     pattern: /[uU]\+[0-9a-fA-F?]+(\-[0-9a-fA-F?]+)?/
   },

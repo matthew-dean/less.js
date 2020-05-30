@@ -96,10 +96,11 @@ for (let i = 0; i < tokenLength; i++) {
   let alterations = true
 
   switch (name) {
-    case 'Divide':
-      copyToken()
-      token.pattern = /\.?\//
-      break
+    // Removed in Less v4
+    // case 'Divide':
+    //   copyToken()
+    //   token.pattern = /\.?\//
+    //   break
     case 'StringLiteral':
       copyToken()
       token.pattern = '~?{{string1}}|~?{{string2}}'

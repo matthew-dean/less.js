@@ -32,12 +32,15 @@ export default function(this: LessParser, $: LessParser) {
   })
 
   $.mixin = $.RULE('mixin', () => {
+    const isMixinDefinition = $.isMixinDefinition
+    const isSemiColonSeparated = $.isSemiColonSeparated
+    resetState()
     $.OR([
       {
-        GATE: () => $.isMixinDefinition,
-        ALT: () => $.SUBRULE($.mixinDefinition)
+        GATE: () => isMixinDefinition,
+        ALT: () => $.SUBRULE($.mixinDefinition, { ARGS: [isSemiColonSeparated] })
       },
-      { ALT: () => $.SUBRULE($.mixinCall) }
+      { ALT: () => $.SUBRULE($.mixinCall, { ARGS: [isSemiColonSeparated] }) }
     ])
   })
 
@@ -60,33 +63,141 @@ export default function(this: LessParser, $: LessParser) {
     ])
   })
 
-  $.mixinCall = $.RULE('mixinCall', () => {
-    const semiColonSeparated = $.isSemiColonSeparated
-    resetState()
-
+  $.mixinCall = $.RULE('mixinCall', (semiColonSeparated: boolean) => {
     $.AT_LEAST_ONE(() => {
       $.SUBRULE($.mixinName)
     })
-    $.CONSUME($.T.LParen)
-    $.CONSUME($.T.RParen)
+    $.SUBRULE($.mixinArgs, { ARGS: [true, semiColonSeparated] })
+    $._()
     $.OPTION(() => $.CONSUME($.T.SemiColon))
   })
 
-  $.mixinDefinition = $.RULE('mixinDefinition', () => {
-    const semiColonSeparated = $.isSemiColonSeparated
-    resetState()
-  
+  $.mixinDefinition = $.RULE('mixinDefinition', (semiColonSeparated: boolean) => {
     $.SUBRULE($.mixinName)
     $._()
-    $.OR([
-      {
-        GATE: () => semiColonSeparated,
-        ALT: () => $.SUBRULE($.mixinDefArgsSemi, { LABEL: 'args' })
-      },
-      { ALT: () => $.SUBRULE($.mixinDefArgsComma, { LABEL: 'args' }) }
-    ])
+    $.SUBRULE($.mixinArgs, { ARGS: [false, semiColonSeparated] })
     $._(1)
     $.SUBRULE($.guard)
+    $.SUBRULE($.curlyBlock)
+  })
+
+  $.mixinArgs = $.RULE('mixinArgs', (isCall: boolean, semiColonSeparated: boolean) => {
+    $.CONSUME($.T.LParen, { LABEL: 'L' })
+    $.OPTION({
+      GATE: () => $.LA(1).tokenType !== $.T.RParen,
+      DEF: () => $.OR([
+        {
+          GATE: () => semiColonSeparated,
+          ALT: () => {
+            $.MANY_SEP({
+              SEP: $.T.SemiColon,
+              DEF: () => $.OR2([
+                {
+                  GATE: () => isCall,
+                  ALT: () => $.SUBRULE($.mixinCallArg, { ARGS: [true] })
+                },
+                { ALT: () => $.SUBRULE($.mixinDefArg, { ARGS: [true] }) }
+              ])
+            })
+            $.OPTION2(() => $.CONSUME($.T.SemiColon))
+          }
+        },
+        {
+          ALT: () => {
+            $.MANY_SEP2({
+              SEP: $.T.Comma,
+              DEF: () => $.OR3([
+                {
+                  GATE: () => isCall,
+                  ALT: () => $.SUBRULE2($.mixinCallArg, { ARGS: [false] })
+                },
+                { ALT: () => $.SUBRULE2($.mixinDefArg, { ARGS: [false] }) }
+              ])
+            })
+          }
+        }
+      ])
+    })
+    $.CONSUME($.T.RParen, { LABEL: 'R' })
+  })
+
+  /**
+   * e.g. `@var1`
+   *      `@var2: value`
+   *      `@rest...`
+   *      `...`
+   *      `keyword`
+   *
+   * subrule - $.expression or $.expressionList
+   */
+  $.mixinCallArg = $.RULE('mixinCallArg', (semiColonSeparated: boolean) => {
+    $._(1)
+    $.OR({
+      IGNORE_AMBIGUITIES: true,
+      DEF: [
+        {
+          GATE: () => {
+            const isDeclaration = $.BACKTRACK($.testVariable) && !$.isVariableCall
+            $.isVariableCall = false
+            return isDeclaration
+          },
+          ALT: () => $.SUBRULE($.variableDeclaration, { ARGS: [true] })
+        },
+        { ALT: () => $.SUBRULE($.curlyBlock) },
+        {
+          GATE: () => semiColonSeparated,
+          ALT: () => $.SUBRULE($.expressionList)
+        },
+        { ALT: () => $.SUBRULE($.expression) }
+      ]
+    })
+    $._(4)
+  })
+
+  /**
+   * e.g. `@var1`
+   *      `@var2: value`
+   *      `@rest...`
+   *      `...`
+   *      `keyword`
+   *
+   * subrule - $.expression or $.expressionList
+   */
+  $.mixinDefArg = $.RULE('mixinDefArg', (semiColonSeparated: boolean) => {
+    $._(1)
+    $.OR([
+      {
+        ALT: () => {
+          $.CONSUME($.T.AtName)
+          $._(2)
+          $.OR2([
+            {
+              ALT: () => {
+                $.CONSUME($.T.Colon)
+                $._(3)
+                $.OR3([
+                  {
+                    GATE: () => semiColonSeparated,
+                    ALT: () =>  $.SUBRULE($.expressionList)
+                  },
+                  { ALT: () => $.SUBRULE($.expression) }
+                ])
+                
+              }
+            },
+            {
+              ALT: () => {
+                $.CONSUME($.T.Ellipsis)
+              }
+            },
+            { ALT: () => EMPTY_ALT }
+          ])
+        }
+      },
+      { ALT: () => $.CONSUME2($.T.Ellipsis) },
+      { ALT: () => $.CONSUME($.T.Ident) }
+    ])
+    $._(4)
   })
 
   $.guard = $.RULE('guard', () => {
@@ -122,68 +233,4 @@ export default function(this: LessParser, $: LessParser) {
     $.SUBRULE($.compare)
     $.CONSUME($.T.RParen)
   })
-
-  $.createMixinDefArgs = (suffix: 'Comma' | 'Semi', SEP: TokenType) =>
-    $.RULE(`mixinDefArgs${suffix}`, () => {
-      $.CONSUME($.T.LParen, { LABEL: 'L' })
-      $.MANY_SEP({
-        SEP,
-        DEF: () => $.SUBRULE($[`mixinDefArg${suffix}`])
-      })
-      $.OPTION({
-        GATE: () => suffix === 'Semi',
-        DEF: () => $.CONSUME($.T.SemiColon)
-      })
-      $.CONSUME($.T.RParen, { LABEL: 'R' })
-    })
-
-  /**
-   * Mixin Definition arguments.
-   */
-  $.mixinDefArgsComma = $.createMixinDefArgs('Comma', $.T.Comma)
-  $.mixinDefArgsSemi = $.createMixinDefArgs('Semi', $.T.SemiColon)
-
-  /**
-   * e.g. `@var1`
-   *      `@var2: value`
-   *      `@rest...`
-   *      `keyword`
-   *
-   * @param subrule - $.expression or $.expressionList
-   */
-  $.createMixinDefArg = (suffix: 'Comma' | 'Semi', subrule: () => CstNode) =>
-    $.RULE(`mixinDefArg${suffix}`, () => {
-      $._(1)
-      $.OR([
-        {
-          ALT: () => {
-            $.CONSUME($.T.AtName)
-            $._(2)
-            $.OR2([
-              {
-                ALT: () => {
-                  $.CONSUME($.T.Colon)
-                  $._(3)
-                  $.SUBRULE(subrule)
-                }
-              },
-              {
-                ALT: () => {
-                  $.CONSUME($.T.Ellipsis)
-                }
-              },
-              { ALT: () => EMPTY_ALT }
-            ])
-          }
-        },
-        { ALT: () => $.CONSUME($.T.Ident) }
-      ])
-      $._(4)
-      if (suffix === 'Semi') {
-        $.OPTION(() => $.CONSUME($.T.SemiColon))
-      }
-    })
-
-  $.mixinDefArgComma = $.createMixinDefArg('Comma', $.expression)
-  $.mixinDefArgSemi = $.createMixinDefArg('Semi', $.expressionList)
 }

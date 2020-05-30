@@ -9,7 +9,7 @@ export default function(this: LessParser, $: LessParser) {
       { ALT: () => $.SUBRULE($.customDeclaration) },
       {
         GATE: $.BACKTRACK($.testMixin),
-        ALT: () => $.SUBRULE($.mixinDefinition)
+        ALT: () => $.SUBRULE($.mixin)
       },
       {
         GATE: $.BACKTRACK($.testQualifiedRule),

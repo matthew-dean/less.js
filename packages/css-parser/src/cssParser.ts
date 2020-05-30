@@ -82,6 +82,8 @@ export class CssParser extends CstParser {
   atImport: Rule
   atMedia: Rule
   atSupports: Rule
+  atNested: Rule
+  atNonNested: Rule
 
   /** @media */
   mediaQuery: Rule
@@ -107,7 +109,6 @@ export class CssParser extends CstParser {
 
   /** declarations */
   declaration: Rule
-  testDeclaration: Rule
   customDeclaration: Rule
   property: Rule
   customProperty: Rule
