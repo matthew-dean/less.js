@@ -69,6 +69,7 @@ export default function(this: LessParser, $: LessParser) {
     })
     $.CONSUME($.T.LParen)
     $.CONSUME($.T.RParen)
+    $.OPTION(() => $.CONSUME($.T.SemiColon))
   })
 
   $.mixinDefinition = $.RULE('mixinDefinition', () => {

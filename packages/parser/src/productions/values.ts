@@ -41,6 +41,7 @@ export default function (this: LessParser, $: LessParser) {
         }
       },
       { ALT: () => $.SUBRULE($.function) },
+      { ALT: () => $.CONSUME($.T.Ident) },
       { ALT: () => $.CONSUME($.T.VarOrProp) },
       { ALT: () => $.CONSUME($.T.CustomProperty) },
       { ALT: () => $.CONSUME($.T.Unit) },

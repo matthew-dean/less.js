@@ -129,9 +129,9 @@ export const Tokens: rawTokenConfig[] = [
   /** a namespace or column combinator */
   { name: 'Pipe', pattern: /\|\|?/, categories: ['Combinator'] },
   { name: 'AttrMatch', pattern: /[*~|^$]=/, categories: ['AttrMatchOperator'] },
-  { name: 'Ident', pattern: LexerType.NA, categories: ['Selector'] },
+  { name: 'Ident', pattern: LexerType.NA },
   { name: 'PropertyName', pattern: LexerType.NA },
-  { name: 'PlainIdent', pattern: '{{ident}}', categories: ['Ident', 'PropertyName'] },
+  { name: 'PlainIdent', pattern: '{{ident}}', categories: ['Ident', 'PropertyName', 'Selector'] },
   { name: 'CustomProperty', pattern: '--{{ident}}', categories: ['BlockMarker', 'PropertyName'] },
   { name: 'CDOToken', pattern: /<!--/, group: LexerType.SKIPPED },
   { name: 'CDCToken', pattern: /-->/, group: LexerType.SKIPPED },

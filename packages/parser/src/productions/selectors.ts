@@ -10,7 +10,5 @@ export default function(this: LessParser, $: LessParser) {
       }},
       { ALT: () => $.AT_LEAST_ONE(() => $.SUBRULE2($.combinatorSelector))}
     ])
-    $._(1)
-    $.SUBRULE($.guard)
   })  
 }
