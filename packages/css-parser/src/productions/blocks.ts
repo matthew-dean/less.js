@@ -100,30 +100,29 @@ export default function(this: CssParser, $: CssParser) {
             { ALT: () => $.CONSUME($.T.LParen, { LABEL: 'L' }) },
             { ALT: () => $.CONSUME($.T.Function, { LABEL: 'Function' }) }
           ])
-          $.SUBRULE($.customValue, { LABEL: 'blockBody' })
+          $.SUBRULE($.customValueOrSemi, { LABEL: 'blockBody' })
           $.CONSUME($.T.RParen, { LABEL: 'R' })
         }
       },
       {
         ALT: () => {
           $.CONSUME($.T.LSquare, { LABEL: 'L' })
-          $.SUBRULE2($.customValue, { LABEL: 'blockBody' })
+          $.SUBRULE2($.customValueOrSemi, { LABEL: 'blockBody' })
           $.CONSUME($.T.RSquare, { LABEL: 'R' })
         }
       },
       {
         GATE: () => !inAtRule,
-        ALT: () => $.SUBRULE($.customCurlyBlock)
+        ALT: () => {
+          $.CONSUME($.T.LCurly, { LABEL: 'L' })
+          $.SUBRULE3($.customValueOrSemi, { LABEL: 'blockBody' })
+          $.CONSUME($.T.RCurly, { LABEL: 'R' })
+        }
       },
       {
+        GATE: () => inAtRule,
         ALT: () => EMPTY_ALT
       }
     ])
-  })
-
-  $.customCurlyBlock = $.RULE('customCurlyBlock', () => {
-    $.CONSUME($.T.LCurly, { LABEL: 'L' })
-    $.SUBRULE3($.customValue, { LABEL: 'blockBody' })
-    $.CONSUME($.T.RCurly, { LABEL: 'R' })
   })
 }

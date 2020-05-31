@@ -15,7 +15,10 @@ export default function(this: LessParser, $: LessParser) {
     $.SUBRULE($.mixinStart)
     $.CONSUME($.T.LParen)
     $.MANY(() => {
-      $.SUBRULE($.customValue)
+      $.OR([
+        { ALT: () => $.SUBRULE($.curlyBlock) },
+        { ALT: () => $.SUBRULE($.expressionList) }
+      ])
       
       $.OPTION(() => {
         $.CONSUME($.T.SemiColon)
@@ -137,11 +140,7 @@ export default function(this: LessParser, $: LessParser) {
       IGNORE_AMBIGUITIES: true,
       DEF: [
         {
-          GATE: () => {
-            const isDeclaration = $.BACKTRACK($.testVariable) && !$.isVariableCall
-            $.isVariableCall = false
-            return isDeclaration
-          },
+          GATE: () => ($.BACKTRACK($.testVariable)).call($) && !$.isVariableCall,
           ALT: () => $.SUBRULE($.variableDeclaration, { ARGS: [true] })
         },
         { ALT: () => $.SUBRULE($.curlyBlock) },

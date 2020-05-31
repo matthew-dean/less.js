@@ -47,6 +47,44 @@ describe('can parse any rule', () => {
     const cst = parser.mixinDefinition()
     expect(parser.errors.length).to.equal(0)
   })
+
+  it('mixin call', () => {
+    let lexerResult = 
+      lessParser.lexer.tokenize(`.mixin-with-guard-inside(0px);`)
+    let lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    parser.mixinCall()
+    expect(parser.errors.length).to.equal(0)
+
+    lexerResult = 
+      lessParser.lexer.tokenize(`.wrap-mixin(@ruleset: {
+        color: red;
+      });`
+    )
+    lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    parser.mixinCall()
+    expect(parser.errors.length).to.equal(0)
+  })
+
+  it('variable declaration', () => {
+    let lexerResult = 
+      lessParser.lexer.tokenize(`@ruleset:`)
+    let lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    parser.testVariable()
+    expect(parser.errors.length).to.equal(0)
+
+    lexerResult = 
+      lessParser.lexer.tokenize(`@ruleset: {
+        color: red;
+      }`
+    )
+    lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    parser.variableDeclaration()
+    expect(parser.errors.length).to.equal(0)
+  })
 })
 
 describe('can parse all Less stylesheets', () => {

@@ -1,12 +1,27 @@
 import type { CssParser } from '../cssParser'
+import { EMPTY_ALT } from 'chevrotain'
 
 export default function(this: CssParser, $: CssParser) {
   /**
-   * A custom property's value
+   * A custom property's (or unknown at-rule's) outer value
    */
   $.customValue = $.RULE('customValue', (inAtRule: boolean) => {
-    $.MANY(() =>
-      $.OR([
+    $.MANY(
+      () => $.OR([
+        { ALT: () => $.SUBRULE($.anyToken, { LABEL: 'value' }) },
+        { ALT: () => $.SUBRULE($.extraTokens, { LABEL: 'value' }) },
+        { ALT: () => $.SUBRULE($.customBlock, { ARGS: [inAtRule], LABEL: 'value' }) }
+      ])
+    )
+  })
+
+  /** 
+   * A custom value within a block 
+   */
+  $.customValueOrSemi = $.RULE('customValueOrSemi', (inAtRule: boolean) => {
+    $.MANY(
+      () => $.OR([
+        { ALT: () => $.CONSUME($.T.SemiColon, { LABEL: 'value' }) },
         { ALT: () => $.SUBRULE($.anyToken, { LABEL: 'value' }) },
         { ALT: () => $.SUBRULE($.extraTokens, { LABEL: 'value' }) },
         { ALT: () => $.SUBRULE($.customBlock, { ARGS: [inAtRule], LABEL: 'value' }) }
@@ -71,13 +86,13 @@ export default function(this: CssParser, $: CssParser) {
   )
 
   /**
-   * Extra tokens in a custom property
+   * Extra tokens in a custom property. Should include any
+   * and every token possible, including unknown tokens.
    */
   $.extraTokens = $.RULE('extraTokens', () =>
     $.OR([
       { ALT: () => $.CONSUME($.T.AtName) },
-      { ALT: () => $.CONSUME($.T.Comma) },
-      { ALT: () => $.CONSUME($.T.SemiColon) }
+      { ALT: () => $.CONSUME($.T.Comma) }
     ])
   )
 }

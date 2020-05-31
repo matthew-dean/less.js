@@ -13,6 +13,8 @@ export default function(this: LessParser, $: LessParser) {
   })
 
   $.testVariable = $.RULE('testVariable', () => {
+    $.isVariableCall = false
+
     $.CONSUME($.T.AtKeyword)
     $.OR([
       { ALT: () => {

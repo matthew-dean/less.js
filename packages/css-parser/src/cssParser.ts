@@ -98,7 +98,6 @@ export class CssParser extends CstParser {
   block: Rule
   curlyBlock: Rule
   customBlock: Rule
-  customCurlyBlock: Rule
 
   /** Selector rules */
   selectorList: Rule
@@ -123,6 +122,7 @@ export class CssParser extends CstParser {
   value: Rule
   atomicValue: Rule
   customValue: Rule
+  customValueOrSemi: Rule
   anyToken: Rule
   extraTokens: Rule
 
