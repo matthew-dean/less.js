@@ -113,15 +113,17 @@ export default function(this: CssParser, $: CssParser) {
       },
       {
         GATE: () => !inAtRule,
-        ALT: () => {
-          $.CONSUME($.T.LCurly, { LABEL: 'L' })
-          $.SUBRULE3($.customValue, { LABEL: 'blockBody' })
-          $.CONSUME($.T.RCurly, { LABEL: 'R' })
-        }
+        ALT: () => $.SUBRULE($.customCurlyBlock)
       },
       {
         ALT: () => EMPTY_ALT
       }
     ])
+  })
+
+  $.customCurlyBlock = $.RULE('customCurlyBlock', () => {
+    $.CONSUME($.T.LCurly, { LABEL: 'L' })
+    $.SUBRULE3($.customValue, { LABEL: 'blockBody' })
+    $.CONSUME($.T.RCurly, { LABEL: 'R' })
   })
 }

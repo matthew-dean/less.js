@@ -15,7 +15,8 @@ export default function(this: LessParser, $: LessParser) {
     $.SUBRULE($.mixinStart)
     $.CONSUME($.T.LParen)
     $.MANY(() => {
-      $.SUBRULE($.expressionList)
+      $.SUBRULE($.customValue)
+      
       $.OPTION(() => {
         $.CONSUME($.T.SemiColon)
         $.isSemiColonSeparated = true

@@ -98,6 +98,7 @@ export class CssParser extends CstParser {
   block: Rule
   curlyBlock: Rule
   customBlock: Rule
+  customCurlyBlock: Rule
 
   /** Selector rules */
   selectorList: Rule
