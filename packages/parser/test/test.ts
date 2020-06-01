@@ -32,7 +32,7 @@ describe('can parse any rule', () => {
   })
 
   it('mixin definition', () => {
-    const lexerResult = lessParser.lexer.tokenize(
+    let lexerResult = lessParser.lexer.tokenize(
       `.mixin_def_with_colors(@a: white, // in
               @b: 1px //put in @b - causes problems! --->
               ) // the
@@ -42,9 +42,20 @@ describe('can parse any rule', () => {
           }
       }`
     )
-    const lexedTokens = lexerResult.tokens
+    let lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
-    const cst = parser.mixinDefinition()
+    parser.mixinDefinition()
+    expect(parser.errors.length).to.equal(0)
+
+    lexerResult = lessParser.lexer.tokenize(
+      `.mixin-definition(@a: {}, @b: {default: works;}) {
+        @a();
+        @b();
+      }`
+    )
+    lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    parser.mixinDefinition()
     expect(parser.errors.length).to.equal(0)
   })
 

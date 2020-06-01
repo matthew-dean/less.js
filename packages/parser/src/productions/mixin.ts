@@ -141,7 +141,7 @@ export default function(this: LessParser, $: LessParser) {
       DEF: [
         {
           GATE: () => ($.BACKTRACK($.testVariable)).call($) && !$.isVariableCall,
-          ALT: () => $.SUBRULE($.variableDeclaration, { ARGS: [true] })
+          ALT: () => $.SUBRULE($.variableDeclaration, { ARGS: [true, semiColonSeparated] })
         },
         { ALT: () => $.SUBRULE($.curlyBlock) },
         {
@@ -176,6 +176,7 @@ export default function(this: LessParser, $: LessParser) {
                 $.CONSUME($.T.Colon)
                 $._(3)
                 $.OR3([
+                  { ALT: () => $.SUBRULE($.curlyBlock) },
                   {
                     GATE: () => semiColonSeparated,
                     ALT: () =>  $.SUBRULE($.expressionList)

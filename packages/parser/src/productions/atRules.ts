@@ -58,14 +58,26 @@ export default function(this: LessParser, $: LessParser) {
     $.CONSUME($.T.RParen)
   })
 
-  $.variableDeclaration = $.RULE('variableDeclaration', (inArgs: boolean) => {
+  $.variableDeclaration = $.RULE(
+    'variableDeclaration', (
+      inArgs: boolean,
+      semiColonSeparated: boolean
+    ) => {
     $.CONSUME($.T.AtKeyword)
     $._()
     $.CONSUME($.T.Assign)
     $._(1)
     $.OR([
       { ALT: () => $.SUBRULE($.curlyBlock) },
-      { ALT: () => $.SUBRULE($.expressionList) }
+      {
+        ALT: () => $.OR2([
+          {
+            GATE: () => semiColonSeparated,
+            ALT: () => $.SUBRULE($.expressionList)
+          },
+          { ALT: () => $.SUBRULE($.expression) }
+        ])
+      }
     ])
     $.OPTION({
       GATE: () => !inArgs,
