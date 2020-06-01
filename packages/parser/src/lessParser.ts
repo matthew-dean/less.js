@@ -35,12 +35,13 @@ export class LessParser extends CssParser {
 
   /** Mixin definition */
   mixinDefinition: Rule
-  mixinArgs: Rule
+  mixinDefArgs: Rule
   mixinDefArg: Rule
 
   /** Mixin call */
   testNamedArg: Rule
   mixinCall: Rule
+  mixinCallArgs: Rule
   mixinCallArg: Rule
 
   /** guards */

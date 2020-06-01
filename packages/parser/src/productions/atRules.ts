@@ -43,7 +43,7 @@ export default function(this: LessParser, $: LessParser) {
       IGNORE_AMBIGUITIES: true,
       DEF: [
         {
-          GATE: () => isCall,
+          GATE: () => !!isCall,
           ALT: () => $.SUBRULE($.variableCall)
         },
         { ALT: () => $.SUBRULE($.variableDeclaration) }
@@ -72,7 +72,7 @@ export default function(this: LessParser, $: LessParser) {
       {
         ALT: () => $.OR2([
           {
-            GATE: () => semiColonSeparated,
+            GATE: () => !!semiColonSeparated,
             ALT: () => $.SUBRULE($.expressionList)
           },
           { ALT: () => $.SUBRULE($.expression) }

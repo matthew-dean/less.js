@@ -71,7 +71,9 @@ export default function(this: LessParser, $: LessParser) {
     $.AT_LEAST_ONE(() => {
       $.SUBRULE($.mixinName)
     })
-    $.SUBRULE($.mixinArgs, { ARGS: [true, semiColonSeparated] })
+    $.CONSUME($.T.LParen, { LABEL: 'L' })
+    $.SUBRULE($.mixinCallArgs, { ARGS: [semiColonSeparated] })
+    $.CONSUME($.T.RParen, { LABEL: 'R' })
     $._()
     $.OPTION(() => $.CONSUME($.T.SemiColon))
   })
@@ -79,50 +81,66 @@ export default function(this: LessParser, $: LessParser) {
   $.mixinDefinition = $.RULE('mixinDefinition', (semiColonSeparated: boolean) => {
     $.SUBRULE($.mixinName)
     $._()
-    $.SUBRULE($.mixinArgs, { ARGS: [false, semiColonSeparated] })
+    $.CONSUME($.T.LParen, { LABEL: 'L' })
+    $.SUBRULE($.mixinDefArgs, { ARGS: [semiColonSeparated] })
+    $.CONSUME($.T.RParen, { LABEL: 'R' })
     $._(1)
     $.SUBRULE($.guard)
     $.SUBRULE($.curlyBlock)
   })
 
-  $.mixinArgs = $.RULE('mixinArgs', (isCall: boolean, semiColonSeparated: boolean) => {
-    $.CONSUME($.T.LParen, { LABEL: 'L' })
-    $.OPTION({
-      GATE: () => $.LA(1).tokenType !== $.T.RParen,
-      DEF: () => $.OR([
+  $.mixinCallArgs = $.RULE('mixinCallArgs', (semiColonSeparated: boolean) => {
+    $.SUBRULE($.mixinCallArg, { ARGS: [semiColonSeparated] })
+    $.MANY(() => {
+      $.OR([
         {
-          GATE: () => semiColonSeparated,
+          GATE: () => !!semiColonSeparated,
           ALT: () => {
-            $.MANY_SEP({
-              SEP: $.T.SemiColon,
-              DEF: () => $.OR2([
-                {
-                  GATE: () => isCall,
-                  ALT: () => $.SUBRULE($.mixinCallArg, { ARGS: [true] })
-                },
-                { ALT: () => $.SUBRULE($.mixinDefArg, { ARGS: [true] }) }
-              ])
+            $.CONSUME($.T.SemiColon)
+            $._()
+            $.OPTION({
+              GATE: () => $.LA(1).tokenType !== $.T.RParen,
+              DEF: () => $.SUBRULE2($.mixinCallArg, { ARGS: [true] })
             })
-            $.OPTION2(() => $.CONSUME($.T.SemiColon))
           }
         },
-        {
-          ALT: () => {
-            $.MANY_SEP2({
-              SEP: $.T.Comma,
-              DEF: () => $.OR3([
-                {
-                  GATE: () => isCall,
-                  ALT: () => $.SUBRULE2($.mixinCallArg, { ARGS: [false] })
-                },
-                { ALT: () => $.SUBRULE2($.mixinDefArg, { ARGS: [false] }) }
-              ])
-            })
-          }
-        }
+        { ALT: () => {
+          $.CONSUME($.T.Comma)
+          $._(1)
+          $.SUBRULE3($.mixinCallArg, { ARGS: [false] })
+        }}
       ])
     })
-    $.CONSUME($.T.RParen, { LABEL: 'R' })
+  })
+
+  $.mixinDefArgs = $.RULE('mixinDefArgs', (semiColonSeparated: boolean) => {
+    $._()
+    $.OPTION({
+      GATE: () => $.LA(1).tokenType !== $.T.RParen,
+      DEF: () => {
+        $.SUBRULE($.mixinDefArg, { ARGS: [semiColonSeparated] })
+        $.MANY(() => {
+          $.OR([
+            {
+              GATE: () => !!semiColonSeparated,
+              ALT: () => {
+                $.CONSUME($.T.SemiColon)
+                $._(1)
+                $.OPTION2({
+                  GATE: () => $.LA(1).tokenType !== $.T.RParen,
+                  DEF: () => $.SUBRULE2($.mixinDefArg, { ARGS: [true] })
+                })
+              }
+            },
+            { ALT: () => {
+              $.CONSUME($.T.Comma)
+              $._(2)
+              $.SUBRULE3($.mixinDefArg, { ARGS: [false] })
+            }}
+          ])
+        })
+      }
+    })
   })
 
   /**
@@ -135,7 +153,6 @@ export default function(this: LessParser, $: LessParser) {
    * subrule - $.expression or $.expressionList
    */
   $.mixinCallArg = $.RULE('mixinCallArg', (semiColonSeparated: boolean) => {
-    $._(1)
     $.OR({
       IGNORE_AMBIGUITIES: true,
       DEF: [
@@ -145,7 +162,7 @@ export default function(this: LessParser, $: LessParser) {
         },
         { ALT: () => $.SUBRULE($.curlyBlock) },
         {
-          GATE: () => semiColonSeparated,
+          GATE: () => !!semiColonSeparated,
           ALT: () => $.SUBRULE($.expressionList)
         },
         { ALT: () => $.SUBRULE($.expression) }
@@ -164,7 +181,6 @@ export default function(this: LessParser, $: LessParser) {
    * subrule - $.expression or $.expressionList
    */
   $.mixinDefArg = $.RULE('mixinDefArg', (semiColonSeparated: boolean) => {
-    $._(1)
     $.OR([
       {
         ALT: () => {
@@ -178,7 +194,7 @@ export default function(this: LessParser, $: LessParser) {
                 $.OR3([
                   { ALT: () => $.SUBRULE($.curlyBlock) },
                   {
-                    GATE: () => semiColonSeparated,
+                    GATE: () => !!semiColonSeparated,
                     ALT: () =>  $.SUBRULE($.expressionList)
                   },
                   { ALT: () => $.SUBRULE($.expression) }
