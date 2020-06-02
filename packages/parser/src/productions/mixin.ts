@@ -10,8 +10,6 @@ export default function(this: LessParser, $: LessParser) {
    * Test for mixin start
    */
   $.testMixin = $.RULE('testMixin', () => {
-    resetState()
-
     $.SUBRULE($.mixinStart)
     $.CONSUME($.T.LParen)
     $.MANY(() => {
@@ -158,7 +156,7 @@ export default function(this: LessParser, $: LessParser) {
       DEF: [
         {
           GATE: () => ($.BACKTRACK($.testVariable)).call($) && !$.isVariableCall,
-          ALT: () => $.SUBRULE($.variableDeclaration, { ARGS: [true, semiColonSeparated] })
+          ALT: () => $.SUBRULE($.variableDeclaration, { ARGS: [true, !semiColonSeparated] })
         },
         { ALT: () => $.SUBRULE($.curlyBlock) },
         {

@@ -4,17 +4,15 @@ export default function(this: LessParser, $: LessParser) {
   $.atRule = $.OVERRIDE_RULE('atRule', () => {
     $.OR([
       { ALT: () => $.SUBRULE($.knownAtRule) },
-      // {
-      //   GATE: $.BACKTRACK($.testVariable),
-      //   ALT: () => $.variable
-      // },
+      {
+        GATE: $.BACKTRACK($.testVariable),
+        ALT: () => $.variable
+      },
       { ALT: () => $.SUBRULE($.unknownAtRule) }
     ])
   })
 
   $.testVariable = $.RULE('testVariable', () => {
-    $.isVariableCall = false
-
     $.CONSUME($.T.AtKeyword)
     $.OR([
       { ALT: () => {
@@ -36,6 +34,7 @@ export default function(this: LessParser, $: LessParser) {
     ])
   })
 
+  /** Root variable call or declaration */
   $.variable = $.RULE('variable', () => {
     const isCall = $.isVariableCall
     $.isVariableCall = false
@@ -61,7 +60,7 @@ export default function(this: LessParser, $: LessParser) {
   $.variableDeclaration = $.RULE(
     'variableDeclaration', (
       inArgs: boolean,
-      semiColonSeparated: boolean
+      inCommaSeparatedArgs: boolean
     ) => {
     $.CONSUME($.T.AtKeyword)
     $._()
@@ -72,10 +71,10 @@ export default function(this: LessParser, $: LessParser) {
       {
         ALT: () => $.OR2([
           {
-            GATE: () => !!semiColonSeparated,
-            ALT: () => $.SUBRULE($.expressionList)
+            GATE: () => !!inCommaSeparatedArgs,
+            ALT: () => $.SUBRULE($.expression)
           },
-          { ALT: () => $.SUBRULE($.expression) }
+          { ALT: () => $.SUBRULE($.expressionList) }
         ])
       }
     ])

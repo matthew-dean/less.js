@@ -87,6 +87,15 @@ describe('can parse any rule', () => {
     parser.input = lexedTokens
     parser.mixinCall()
     expect(parser.errors.length).to.equal(0)
+
+    lexerResult = 
+      lessParser.lexer.tokenize(
+        `.mixin-call({direct: works;}; @b: {named: works;});`
+      )
+    lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    parser.primary()
+    expect(parser.errors.length).to.equal(0)
   })
 
   it('variable declaration', () => {
@@ -113,12 +122,14 @@ describe('can parse all Less stylesheets', () => {
   const files = glob.sync(path.relative(process.cwd(), path.join(testData, 'less/**/*.less')))
   files.sort()
   files.forEach(file => {
-    it(`${file}`, () => {
-      const result = fs.readFileSync(file)
-      const { cst, lexerResult } = lessParser.parse(result.toString())
-      expect(lexerResult.errors.length).to.equal(0)
-      expect(parser.errors.length).to.equal(0)
-    })
+    if (file.indexOf('errors/parse') === -1) {
+      it(`${file}`, () => {
+        const result = fs.readFileSync(file)
+        const { cst, lexerResult } = lessParser.parse(result.toString())
+        expect(lexerResult.errors.length).to.equal(0)
+        expect(parser.errors.length).to.equal(0)
+      })
+    }
   })
 })
 
