@@ -71,27 +71,21 @@ describe('can parse any rule', () => {
   })
 
   it('mixin call', () => {
-    let lexerResult = 
-      lessParser.lexer.tokenize(`.mixin-with-guard-inside(0px);`)
+    let lexerResult = lessParser.lexer.tokenize(`.mixin-with-guard-inside(0px);`)
     let lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
     parser.mixinCall()
     expect(parser.errors.length).to.equal(0)
 
-    lexerResult = 
-      lessParser.lexer.tokenize(`.wrap-mixin(@ruleset: {
+    lexerResult = lessParser.lexer.tokenize(`.wrap-mixin(@ruleset: {
         color: red;
-      });`
-    )
+      });`)
     lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
     parser.mixinCall()
     expect(parser.errors.length).to.equal(0)
 
-    lexerResult = 
-      lessParser.lexer.tokenize(
-        `.mixin-call({direct: works;}; @b: {named: works;});`
-      )
+    lexerResult = lessParser.lexer.tokenize(`.mixin-call({direct: works;}; @b: {named: works;});`)
     lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
     parser.primary()
@@ -99,21 +93,19 @@ describe('can parse any rule', () => {
   })
 
   it('variable declaration', () => {
-    let lexerResult = 
-      lessParser.lexer.tokenize(`@ruleset:`)
+    // let lexerResult =
+    //   lessParser.lexer.tokenize(`@ruleset:`)
+    // let lexedTokens = lexerResult.tokens
+    // parser.input = lexedTokens
+    // parser.testVariable()
+    // expect(parser.errors.length).to.equal(0)
+
+    let lexerResult = lessParser.lexer.tokenize(`@ruleset: {
+        color: red;
+      }`)
     let lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
-    parser.testVariable()
-    expect(parser.errors.length).to.equal(0)
-
-    lexerResult = 
-      lessParser.lexer.tokenize(`@ruleset: {
-        color: red;
-      }`
-    )
-    lexedTokens = lexerResult.tokens
-    parser.input = lexedTokens
-    parser.variableDeclaration()
+    parser.unknownAtRule()
     expect(parser.errors.length).to.equal(0)
   })
 })
