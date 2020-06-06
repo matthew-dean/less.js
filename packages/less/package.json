@@ -1,84 +1,27 @@
 {
-  "name": "less",
+  "name": "@less/parser",
   "version": "4.0.0-dev.1",
-  "description": "Leaner CSS",
-  "homepage": "http://lesscss.org",
-  "author": {
-    "name": "Alexis Sellier",
-    "email": "self@cloudhead.net"
-  },
-  "contributors": [
-    "The Core Less Team"
-  ],
-  "bugs": {
-    "url": "https://github.com/less/less.js/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/less/less.js.git"
-  },
-  "master": {
-    "url": "https://github.com/less/less.js/blob/master/",
-    "raw": "https://raw.githubusercontent.com/less/less.js/master/"
-  },
-  "license": "Apache-2.0",
-  "bin": {
-    "lessc": "./bin/lessc"
-  },
+  "description": "",
   "main": "dist/index",
   "types": "dist/index",
   "files": [
     "dist"
   ],
-  "module": "./lib/less-node/index",
-  "directories": {
-    "test": "./test"
-  },
-  "browser": "./dist/less.js",
-  "engines": {
-    "node": ">=6"
-  },
   "scripts": {
-    "build": "npm run clean && npm run compile",
-    "clean": "rm -rf ./dist",
-    "compile": "tsc -p tsconfig.json",
-    "test": "ts-node test/index.ts",
-    "grunt": "grunt"
+    "ci": "echo \"FIX ME!!! npm-run-all build test\"",
+    "prepublishOnly": "npm run build",
+    "build": "npm-run-all clean compile",
+    "clean": "shx rm -rf ./dist tsconfig.tsbuildinfo",
+    "compile": "tsc -b tsconfig.json",
+    "test": "ts-mocha test/**/*.ts"
   },
-  "optionalDependencies": {},
+  "author": "Matthew Dean",
+  "license": "Apache-2.0",
   "dependencies": {
-    "@less/parser": "^4.0.0-dev.1",
-    "@less/core": "^4.0.0-dev.1"
+    "@less/core": "^4.0.0-dev.1",
+    "@less/parser": "^4.0.0-dev.1"
   },
   "devDependencies": {
-    "less-plugin-autoprefix": "^1.5.1",
-    "less-plugin-clean-css": "^1.5.1"
-  },
-  "keywords": [
-    "compile less",
-    "css nesting",
-    "css variable",
-    "css",
-    "gradients css",
-    "gradients css3",
-    "less compiler",
-    "less css",
-    "less mixins",
-    "less",
-    "less.js",
-    "lesscss",
-    "mixins",
-    "nested css",
-    "parser",
-    "preprocessor",
-    "bootstrap css",
-    "bootstrap less",
-    "style",
-    "styles",
-    "stylesheet",
-    "variables in css",
-    "css less"
-  ],
-  "rawcurrent": "https://raw.github.com/less/less.js/v",
-  "sourcearchive": "https://github.com/less/less.js/archive/v"
+    "@less/test-data": "^4.0.0-dev.1"
+  }
 }

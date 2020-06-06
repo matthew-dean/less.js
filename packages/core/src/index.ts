@@ -13,7 +13,7 @@ export type Less = {
   /** e.g. [4, 0, 0] */
   version: [number, number, number]
   /** Options are optional (will be defaulted) */
-  options: Partial<IOptions>
+  options: IOptions
   environment: Environment
   // functions
   parse?: ParseFunction
@@ -72,21 +72,16 @@ export default (environment: Environment, options?: IOptions): Less => {
    * isn't required. To distinguish from nodes, the interfaces are lowercase,
    * as in `less.dimension(...)`
    */
-  class NodeClass extends Node {}
-  const ctor = (t: typeof NodeClass) => (
-    props: IProps,
-    options?: INodeOptions,
-    location?: ILocationInfo
-  ) => new NodeClass(props, options, location)
+  type NodeType = typeof Node
+  interface NodeClass extends NodeType {}
 
-  let t: any
-  for (const n in tree) {
-    /* eslint guard-for-in: 0 */
-    t = tree[n]
-    if (t instanceof tree.Node) {
-      less[n.toLowerCase()] = ctor(t)
-    }
-  }
+  /** @todo - this isn't right. fix later */
+  const ctor = <T extends NodeClass = NodeClass>(t: T) => 
+    (...args: GetConstructorArgs<T>) => t.apply(null, [...args])
+
+  less.atrule = ctor(tree.AtRule)
+  less.block = ctor(tree.Block)
+  less.bool = ctor(tree.Bool)
 
   return Object.freeze(less)
 }

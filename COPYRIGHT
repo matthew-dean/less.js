@@ -1,6 +1,6 @@
 Short version for non-lawyers:
 
-The Less Monorepo (this git repository) is dual-licensed under Apache 2.0 and MIT
+The Less Monorepo (this git repository) is licensed under Apache 2.0
 terms.
 
 
@@ -13,10 +13,4 @@ Some packages / files include explicit copyright notices and/or license notices.
 For full authorship information, see the version control history.
 
 Except as otherwise noted (in individual files/packages or noted below), Less is
-licensed under the Apache License, Version 2.0 <LICENSE-APACHE> or
-<http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-<LICENSE-MIT> or <http://opensource.org/licenses/MIT>, at your option.
-
-Original code from Less.js, now located in /packages/core and /packages/test-data,
-is licensed under the Apache License, Version 2.0 <LICENSE-APACHE> or
-<http://www.apache.org/licenses/LICENSE-2.0> 
+licensed under the Apache License, Version 2.0 <LICENSE-APACHE>.
