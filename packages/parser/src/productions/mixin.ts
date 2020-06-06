@@ -151,21 +151,20 @@ export default function(this: LessParser, $: LessParser) {
    * subrule - $.expression or $.expressionList
    */
   $.mixinCallArg = $.RULE('mixinCallArg', (semiColonSeparated: boolean) => {
-    $.OR({
-      IGNORE_AMBIGUITIES: true,
-      DEF: [
-        {
-          GATE: () => ($.BACKTRACK($.testVariable)).call($) && !$.isVariableCall,
-          ALT: () => $.SUBRULE($.variableDeclaration, { ARGS: [true, !semiColonSeparated] })
-        },
-        { ALT: () => $.SUBRULE($.curlyBlock) },
-        {
-          GATE: () => !!semiColonSeparated,
-          ALT: () => $.SUBRULE($.expressionList)
-        },
-        { ALT: () => $.SUBRULE($.expression) }
-      ]
+    $.OPTION(() => {
+      $.CONSUME($.T.AtKeyword)
+      $._()
+      $.CONSUME($.T.Assign)
+      $._(1)
     })
+    $.OR([
+      { ALT: () => $.SUBRULE($.curlyBlock) },
+      {
+        GATE: () => !!semiColonSeparated,
+        ALT: () => $.SUBRULE($.expressionList)
+      },
+      { ALT: () => $.SUBRULE($.expression) }
+    ])
     $._(4)
   })
 
