@@ -58,7 +58,7 @@ export abstract class FileManager {
     options: IOptions & IImportOptions,
     environment: Environment
   ): Promise<FileObject> {
-    return environment.loadFileAsync(filePath)
+    return environment.loadFileAsync(filePath, currentDirectory, options)
   }
 
   /**
@@ -70,7 +70,7 @@ export abstract class FileManager {
     options: IOptions & IImportOptions,
     environment: Environment
   ): FileObject {
-    return environment.loadFileSync(filePath)
+    return environment.loadFileSync(filePath, currentDirectory, options)
   }
 
   /**

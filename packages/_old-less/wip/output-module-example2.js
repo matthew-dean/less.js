@@ -8,3 +8,15 @@ export default (parent) => (
         _colorsless()
     ], {parent, isRoot: true})
 )
+
+`
+@var: foo;
+
+.@{var} el { }
+`
+
+
+export default {
+    '@var': variable('foo'),
+    
+}

@@ -7,7 +7,7 @@ import Visitor from '../visitors/visitor'
 export type FileObject = {
   filename: string
   path: string
-  contents: string
+  contents: string | Buffer
 }
 
 /**
@@ -80,7 +80,11 @@ export abstract class Environment {
    * Given the full path to a file, return the path component
    */
   abstract getPath(filePath: string): string
-  abstract tryAppendExtension(path: string, ext: string): string
+  protected tryAppendExtension(path: string, ext: string): string {
+    if (!path.match(new RegExp(ext.replace('.', '\\.') + '$'))) {
+      return `${path}${ext}`
+    }
+  }
 
   /* Append a .less extension if appropriate. Only called if less thinks one could be added. */
   protected tryAppendLessExtension(path: string) {
@@ -89,15 +93,16 @@ export abstract class Environment {
 
   /**
    * @note The following methods were moved from the abstract file manager, because they
-   *       are more logically part of the environment (which is an abstraction between Less
-   *       and the underlying JavaScript runtime / OS) than part of a file manager (which is
-   *       responsible for managing behavior of imported files and returning AST nodes).
+   *       are more logically part of the environment (which is an abstraction between the
+   *       compiler and the underlying JavaScript runtime / OS) than part of a file manager
+   *       (which is responsible for managing behavior of imported files and returning
+   *       AST nodes).
    */
   /**
    * Whether the rootpath should be converted to be absolute.
    * The browser ovverides this to return true because urls must be absolute.
    */
-  abstract alwaysMakePathsAbsolute(): boolean
+  // abstract alwaysMakePathsAbsolute(): boolean
 
   /**
    * Returns whether a path is absolute
@@ -119,11 +124,15 @@ export abstract class Environment {
   /**
    * @note - The following were moved up from file managers to the environment, as this is
    *         again more logically part of the environment interface, but individual
-   *         file managers can decide to essentially override the
+   *         file managers can decide to override / extend the environment on a per-file basis.
    */
 
   /** A Promise-based abstraction between loadFileAsync / loadFileSync */
-  abstract loadFile(filePath: string): Promise<FileObject>
+  abstract loadFile(
+    importPath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions
+  ): Promise<FileObject>
 
   /**
    * Loads a file asynchronously. Expects a promise that either rejects with an error or fulfills with an
@@ -131,12 +140,20 @@ export abstract class Environment {
    *  { filePath: - full resolved path to file
    *    contents: - the contents of the file, as a string }
    */
-  abstract loadFileAsync(filePath: string): Promise<FileObject>
+  abstract loadFileAsync(
+    importPath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions
+  ): Promise<FileObject>
 
   /**
    * Loads a file synchronously.
    */
-  abstract loadFileSync(filePath: string): FileObject
+  abstract loadFileSync(
+    importPath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions
+  ): FileObject
 
   /**
    * Returns whether this environment supports this file for syncronous file retrieval

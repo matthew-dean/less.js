@@ -1,10 +1,12 @@
-import Environment from './environment/environment'
+import Environment, { FileObject } from './environment/environment'
+import FileManager from './environment/file-manager'
 import * as tree from './tree/nodes'
 import { render, RenderFunction } from './render'
 import { parse, ParseFunction } from './parse'
 import Default, { IOptions } from './options'
 import { IProps, INodeOptions, ILocationInfo } from './tree/node'
 
+export { Environment, FileManager, FileObject }
 const { Node } = tree
 
 type GetConstructorArgs<T> = T extends new (...args: infer U) => any ? U : never
