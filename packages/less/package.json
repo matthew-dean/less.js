@@ -1,7 +1,11 @@
 {
-  "name": "@less/parser",
+  "name": "less",
   "version": "4.0.0-dev.1",
-  "description": "",
+  "description": "Leaner CSS",
+  "homepage": "http://lesscss.org",
+  "contributors": [
+    "The Core Less Team"
+  ],
   "main": "dist/index",
   "types": "dist/index",
   "files": [
