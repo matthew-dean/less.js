@@ -1,9 +1,11 @@
-import { Environment, FileObject } from '@less/core'
+import { Environment, FileObject, IOptions, IImportOptions, IFileInfo } from '@less/core'
 import fs from './fs'
 import * as path from 'path'
 import mime from 'mime'
 import sourceMap from 'source-map'
+import resolve from 'resolve'
 
+const NPM_PREFIX = 'npm://'
 export class NodeEnvironment extends Environment {
   supports = () => true
   supportsSync = () => true
@@ -44,17 +46,39 @@ export class NodeEnvironment extends Environment {
   isPathAbsolute = path.isAbsolute
   normalizePath = path.normalize
 
-  loadFile(importPath: string) {
+  resolveFile(
+    filePath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions
+  ): string {
+    const isAbsoluteFilename = this.isPathAbsolute(filePath)
+    const paths = isAbsoluteFilename ? [] : [currentDirectory]
+    if (options.paths) { paths.push(...options.paths) }
+    if (!isAbsoluteFilename && paths.indexOf('.') === -1) { paths.push('.') }
+    
+    return resolve.sync(filePath, {
+      basedir: currentDirectory,
+      paths,
+      extensions: [options.ext]
+    })
+  }
+
+  loadFile(
+    filePath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions
+  ) {
     return new Promise<FileObject>((resolve, reject) => {
-      if (this.supportsSync()) {
-        try {
-          const file = this.loadFileSync(importPath)
-          resolve(file)
-        } catch (e) {
-          reject(e)
-        }
-      } else {
-        return this.loadFileAsync(importPath)
+      try {
+        const file = this.resolveFile(filePath, currentDirectory, options)
+        const fileManager = this.getFileManager(file, currentDirectory, options)
+        const loader = options.syncImport
+          ? fileManager.loadFileSync
+          : fileManager.loadFileAsync
+
+        resolve(loader(file, currentDirectory, options, this))
+      } catch (e) {
+        reject(e)
       }
     })
   }

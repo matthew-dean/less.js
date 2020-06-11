@@ -16,6 +16,8 @@ export type IImportOptions = {
   css?: boolean
   less?: boolean
   inline?: boolean
+  /** Extension to try to append */
+  ext?: string
   /** future feature */
   module?: boolean
   [key: string]: boolean | any

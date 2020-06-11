@@ -7,7 +7,8 @@ import Visitor from '../visitors/visitor'
 export type FileObject = {
   filename: string
   path: string
-  contents: string | Buffer
+  contents: string | Buffer,
+  fileManager: FileManager
 }
 
 /**
@@ -127,9 +128,13 @@ export abstract class Environment {
    *         file managers can decide to override / extend the environment on a per-file basis.
    */
 
-  /** A Promise-based abstraction between loadFileAsync / loadFileSync */
+  /**
+   * A Promise-based abstraction between loadFileAsync / loadFileSync
+   * 
+   * @param filePath - A path from `@import "[path]"` that we need to resolve. 
+   */
   abstract loadFile(
-    importPath: string,
+    filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions
   ): Promise<FileObject>
@@ -141,7 +146,7 @@ export abstract class Environment {
    *    contents: - the contents of the file, as a string }
    */
   abstract loadFileAsync(
-    importPath: string,
+    filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions
   ): Promise<FileObject>
@@ -150,7 +155,7 @@ export abstract class Environment {
    * Loads a file synchronously.
    */
   abstract loadFileSync(
-    importPath: string,
+    filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions
   ): FileObject
@@ -177,32 +182,6 @@ export abstract class Environment {
    * Collapse '.' and '..' in paths
    */
   abstract normalizePath(path: string): string
-
-  // normalizePath(path) {
-  //   const segments = path.split('/').reverse()
-  //   let segment;
-
-  //   path = [];
-  //   while (segments.length !== 0) {
-  //     segment = segments.pop();
-  //     switch ( segment ) {
-  //       case '.':
-  //         break;
-  //       case '..':
-  //         if ((path.length === 0) || (path[path.length - 1] === '..')) {
-  //             path.push( segment );
-  //         } else {
-  //             path.pop();
-  //         }
-  //         break;
-  //       default:
-  //         path.push(segment);
-  //         break;
-  //     }
-  //   }
-
-  //   return path.join('/')
-  // }
 }
 
 export default Environment

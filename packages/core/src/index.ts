@@ -6,7 +6,9 @@ import { parse, ParseFunction } from './parse'
 import Default, { IOptions } from './options'
 import { IProps, INodeOptions, ILocationInfo } from './tree/node'
 
-export { Environment, FileManager, FileObject }
+export { Environment, FileManager, FileObject, IOptions }
+export * from './tree/nodes'
+
 const { Node } = tree
 
 type GetConstructorArgs<T> = T extends new (...args: infer U) => any ? U : never
@@ -63,7 +65,6 @@ export default (environment: Environment, options?: IOptions): Less => {
     version: [4, 0, 0],
     environment,
     options: opts
-    // functions: functions,
   }
 
   less.parse = parse.bind(less)

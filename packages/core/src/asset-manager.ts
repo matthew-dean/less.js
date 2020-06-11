@@ -18,22 +18,19 @@ export class AssetManager {
   private environment: Environment
   private context: Context
   private rootFileInfo: IFileInfo
-  private pluginIterator: number = -1
-  private queue: Set<string>
+  private queueIterator: number = -1
+  private queue: Set<number>
 
   plugins: Plugin[] = []
   // A map of files to Abstract Syntax Trees
-  imports: { [filename: string]: Node }
+  imports: string[]
 
   constructor(less: Less, environment: Environment, context: Context, rootFileInfo: IFileInfo) {
     this.less = less
     this.environment = environment
     this.context = context
     this.rootFileInfo = rootFileInfo
-    // this.contents = {};             // map - filename to contents of all the files
-    // this.contentsIgnoredChars = {}; // map - filename to lines at the beginning of each file to ignore
-    // this.mime = context.mime
-    this.imports = {}
+    this.imports = []
     this.queue = new Set()
   }
 
@@ -54,34 +51,11 @@ export class AssetManager {
     const options = this.context.options
     const environment = this.environment
     const currentDirectory = currentFileInfo.path
+    const queueNum = ++this.queueIterator
 
-    this.queue.add(path)
+    this.queue.add(queueNum)
 
-    // const fileParsedFunc = (e, root, fullPath) => {
-    //     importManager.queue.splice(importManager.queue.indexOf(path), 1); // Remove the path from the queue
-
-    //     const importedEqualsRoot = fullPath === importManager.rootFilename;
-    //     if (importOptions.optional && e) {
-    //         callback(null, {rules:[]}, false, null);
-    //         logger.info(`The file ${fullPath} was skipped because it was not found and the import was marked optional.`);
-    //     }
-    //     else {
-    //         // Inline imports aren't cached here.
-    //         // If we start to cache them, please make sure they won't conflict with non-inline imports of the
-    //         // same name as they used to do before this comment and the condition below have been added.
-    //         if (!importManager.files[fullPath] && !importOptions.inline) {
-    //             importManager.files[fullPath] = { root, options: importOptions };
-    //         }
-    //         if (e && !importManager.error) { importManager.error = e; }
-    //         callback(e, root, importedEqualsRoot, fullPath);
-    //     }
-    // }
     const fileManagerOptions = { ...options, ...importOptions }
-    const fileManager = environment.getFileManager(path, currentFileInfo.path, fileManagerOptions)
-
-    if (!fileManager) {
-      return callback(new LessError({ message: `Could not find a file-manager for '${path}'` }))
-    }
 
     // const loadFileCallback = loadedFile => {
     //     let plugin;
@@ -149,25 +123,23 @@ export class AssetManager {
 
     let resolvedFile: FileObject
     /** @todo - guard against circular imports */
-    fileManager
-      .loadFile(path, currentDirectory, fileManagerOptions, environment)
+    environment
+      .loadFile(path, currentDirectory, fileManagerOptions)
       .then((file: FileObject) => {
-        resolvedFile = file
-        const ast = this.imports[file.filename]
-        this.queue.delete(path)
-        if (ast) {
-          return callback(null, ast.clone())
+        const filePath = file.path + file.filename
+        if (this.imports.indexOf(filePath) === -1) {
+          this.imports.push(filePath)
         }
-        return fileManager.parseFile(file, fileManagerOptions)
+        this.queue.delete(queueNum)
+        return file.fileManager.parseFile(file, fileManagerOptions)
       })
       .then((ast: Node) => {
         if (ast) {
-          this.imports[resolvedFile.filename] = ast
           callback(null, ast)
         }
       })
       .catch(err => {
-        this.queue.delete(path)
+        this.queue.delete(queueNum)
         callback(err)
       })
   }

@@ -25,12 +25,14 @@
     "@less/core": "^4.0.0-dev.1",
     "@less/parser": "^4.0.0-dev.1",
     "mime": "^1.6.0",
+    "resolve": "^1.17.0",
     "source-map": "^0.7.3"
   },
   "devDependencies": {
     "@less/test-data": "^4.0.0-dev.1",
     "@types/mime": "^1.3.1",
-    "@types/node": "^14.0.11"
+    "@types/node": "^14.0.11",
+    "@types/resolve": "^1.17.1"
   },
   "optionalDependencies": {
     "graceful-fs": "^4.2.4"

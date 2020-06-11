@@ -62,7 +62,7 @@ export const parse: ParseFunction = function (
      * We treat the entry Less content like any other import
      * This way, plugins can add managers for the root type 
      */
-    const fileManagerOpts: IOptions & IImportOptions = {...opts, less: true }
+    const fileManagerOpts: IOptions & IImportOptions = {...opts, ext: '.less' }
     const fileManager = environment.getFileManager(filename, path, fileManagerOpts)
     fileManager
       .parseFile(
