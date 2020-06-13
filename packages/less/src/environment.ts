@@ -83,19 +83,19 @@ export class NodeEnvironment extends Environment {
     })
   }
   
-  loadFileSync(importPath: string) {
-    const fileInfo = this.getFileInfo(importPath)
-    const contents = fs.readFileSync(importPath)
+  loadFileSync(filePath: string) {
+    const fileInfo = this.getFileInfo(filePath)
+    const contents = fs.readFileSync(filePath)
     return {
       contents,
       ...fileInfo
     }
   }
 
-  loadFileAsync(importPath: string) {
-    const fileInfo = this.getFileInfo(importPath)
+  loadFileAsync(filePath: string) {
+    const fileInfo = this.getFileInfo(filePath)
     return new Promise<FileObject>((resolve, reject) => {
-      fs.readFile(importPath, (err, contents) => {
+      fs.readFile(filePath, (err, contents) => {
         if (err) {
           return reject(err)
         }

@@ -1,24 +1,38 @@
 import path from 'path';
 import fs from './fs';
-import AbstractFileManager from '../less/environment/abstract-file-manager.js';
+import { FileManager, FileParser, IOptions, IImportOptions, Environment, FileObject, Node } from '@less/core'
 
-class FileManager extends AbstractFileManager {
-    supports() {
-        return true;
-    }
+class LessFileManager extends FileManager implements FileParser {
 
-    supportsSync() {
-        return true;
+  loadFileSync(
+    filePath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions,
+    environment: Environment
+  ): FileObject {
+    const file = environment.loadFileSync(filePath, currentDirectory, options)
+    return {
+      ...file,
+      contents: file.contents.toString('utf8')
     }
+  }
 
-    loadFile(filename, currentDirectory, options, environment, callback) {
-        
+  async loadFileAsync(
+    filePath: string,
+    currentDirectory: string,
+    options: IOptions & IImportOptions,
+    environment: Environment      
+  ): Promise<FileObject> {
+    const file = await environment.loadFileAsync(filePath, currentDirectory, options)
+    return {
+      ...file,
+      contents: file.contents.toString('utf8')
     }
+  }
 
-    loadFileSync(filename, currentDirectory, options, environment) {
-        options.syncImport = true;
-        return this.loadFile(filename, currentDirectory, options, environment);
-    }
+  parseFile(file: FileObject, options: IOptions & IImportOptions): Node {
+
+  }
 }
 
 export default FileManager;

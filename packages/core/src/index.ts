@@ -6,8 +6,10 @@ import { parse, ParseFunction } from './parse'
 import Default, { IOptions } from './options'
 import { IProps, INodeOptions, ILocationInfo } from './tree/node'
 
-export { Environment, FileManager, FileObject, IOptions }
+export { IOptions }
 export * from './tree/nodes'
+export * from './environment/environment'
+export * from './environment/file-manager'
 
 const { Node } = tree
 

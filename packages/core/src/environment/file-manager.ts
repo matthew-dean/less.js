@@ -2,6 +2,12 @@ import { IOptions } from '../options'
 import Environment, { FileObject } from './environment'
 import { Node, IImportOptions } from '../tree/nodes'
 
+export interface FileParser {
+  /**
+   * Given file object and options, returns a single Less AST node
+   */
+  parseFile(file: FileObject, options: IOptions & IImportOptions): Node
+}
 export abstract class FileManager {
   /**
    * Returns whether this file manager supports this file for syncronous file retrieval
@@ -47,11 +53,6 @@ export abstract class FileManager {
   ): FileObject {
     return environment.loadFileSync(filePath, currentDirectory, options)
   }
-
-  /**
-   * Given file object and options, returns a single Less AST node
-   */
-  abstract parseFile(file: FileObject, options: IOptions & IImportOptions): Promise<Node>
 }
 
 export default FileManager

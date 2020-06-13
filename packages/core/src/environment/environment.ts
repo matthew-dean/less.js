@@ -8,7 +8,7 @@ export type FileObject = {
   filename: string
   path: string
   contents: string | Buffer,
-  fileManager: FileManager
+  fileManager?: FileManager
 }
 
 /**
