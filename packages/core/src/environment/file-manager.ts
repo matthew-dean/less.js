@@ -10,36 +10,26 @@ export interface FileParser {
 }
 export abstract class FileManager {
   /**
-   * Returns whether this file manager supports this file for syncronous file retrieval
-   */
-  supportsSync(
-    filePath: string,
-    currentDirectory: string,
-    options: IOptions & IImportOptions,
-    environment: Environment
-  ): boolean {
-    return environment.supportsSync(filePath, currentDirectory, options)
-  }
-
-  /**
    * Returns whether this file manager supports this file
    */
-  supports(
+  abstract supports(
     filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,
     environment: Environment
-  ): boolean {
-    return environment.supports(filePath, currentDirectory, options)
-  }
+  ): boolean
 
-  loadFileAsync(
+  async loadFileAsync(
     filePath: string,
     currentDirectory: string,
     options: IOptions & IImportOptions,
     environment: Environment
   ): Promise<FileObject> {
-    return environment.loadFileAsync(filePath, currentDirectory, options)
+    const file = await environment.loadFileAsync(filePath, currentDirectory, options)
+    return {
+      ...file,
+      contents: file.contents.toString('utf8')
+    }
   }
 
   /**
@@ -51,7 +41,11 @@ export abstract class FileManager {
     options: IOptions & IImportOptions,
     environment: Environment
   ): FileObject {
-    return environment.loadFileSync(filePath, currentDirectory, options)
+    const file = environment.loadFileSync(filePath, currentDirectory, options)
+    return {
+      ...file,
+      contents: file.contents.toString('utf8')
+    }
   }
 }
 

@@ -5,12 +5,22 @@ export default function(this: CssParser, $: CssParser) {
   /**
    * A custom property's (or unknown at-rule's) outer value
    */
-  $.customValue = $.RULE('customValue', (inAtRule: boolean) => {
+  $.customValue = $.RULE('customValue', () => {
     $.MANY(
       () => $.OR([
         { ALT: () => $.SUBRULE($.anyToken, { LABEL: 'value' }) },
         { ALT: () => $.SUBRULE($.extraTokens, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.customBlock, { ARGS: [inAtRule], LABEL: 'value' }) }
+        { ALT: () => $.SUBRULE($.customBlock, { LABEL: 'value' }) }
+      ])
+    )
+  })
+
+  $.customPrelude = $.RULE('customPrelude', () => {
+    $.MANY(
+      () => $.OR([
+        { ALT: () => $.SUBRULE($.anyToken, { LABEL: 'value' }) },
+        { ALT: () => $.SUBRULE($.extraTokens, { LABEL: 'value' }) },
+        { ALT: () => $.SUBRULE($.customPreludeBlock, { LABEL: 'value' }) }
       ])
     )
   })
@@ -18,13 +28,13 @@ export default function(this: CssParser, $: CssParser) {
   /** 
    * A custom value within a block 
    */
-  $.customValueOrSemi = $.RULE('customValueOrSemi', (inAtRule: boolean) => {
+  $.customValueOrSemi = $.RULE('customValueOrSemi', () => {
     $.MANY(
       () => $.OR([
         { ALT: () => $.CONSUME($.T.SemiColon, { LABEL: 'value' }) },
         { ALT: () => $.SUBRULE($.anyToken, { LABEL: 'value' }) },
         { ALT: () => $.SUBRULE($.extraTokens, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.customBlock, { ARGS: [inAtRule], LABEL: 'value' }) }
+        { ALT: () => $.SUBRULE($.customBlock, { LABEL: 'value' }) }
       ])
     )
   })

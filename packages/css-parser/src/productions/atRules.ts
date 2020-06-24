@@ -21,13 +21,13 @@ export default function(this: CssParser, $: CssParser) {
 
   $.atNested = $.RULE('atNested', () => {
     $.CONSUME($.T.AtNested)
-    $.SUBRULE($.customValue, { ARGS: [true], LABEL: 'prelude' })
+    $.SUBRULE($.customPrelude, { LABEL: 'prelude' })
     $.SUBRULE($.curlyBlock)
   })
 
   $.atNonNested = $.RULE('atNonNested', () => {
     $.CONSUME($.T.AtNonNested)
-    $.SUBRULE($.customValue, { ARGS: [true], LABEL: 'prelude' })
+    $.SUBRULE($.customPrelude, { LABEL: 'prelude' })
     $.OPTION(() => $.CONSUME($.T.SemiColon))
   })
 
@@ -125,7 +125,7 @@ export default function(this: CssParser, $: CssParser) {
    */
   $.unknownAtRule = $.RULE('unknownAtRule', () => {
     $.CONSUME($.T.AtKeyword)
-    $.SUBRULE($.customValue, { ARGS: [true], LABEL: 'prelude' })
+    $.SUBRULE($.customPrelude, { LABEL: 'prelude' })
     $.OR2([
       { ALT: () => $.SUBRULE($.curlyBlock) },
       {

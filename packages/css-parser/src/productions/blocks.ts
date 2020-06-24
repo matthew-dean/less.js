@@ -90,7 +90,7 @@ export default function(this: CssParser, $: CssParser) {
   })
 
   /**
-   * Blocks assigned to custom properties or at-rules
+   * Blocks assigned to custom properties
    */
   $.customBlock = $.RULE('customBlock', (inAtRule) => {
     $.OR([
@@ -112,16 +112,37 @@ export default function(this: CssParser, $: CssParser) {
         }
       },
       {
-        GATE: () => !inAtRule,
         ALT: () => {
           $.CONSUME($.T.LCurly, { LABEL: 'L' })
           $.SUBRULE3($.customValueOrSemi, { LABEL: 'blockBody' })
           $.CONSUME($.T.RCurly, { LABEL: 'R' })
         }
+      }
+    ])
+  })
+
+  /**
+   * Blocks within at-rule preludes
+   * (no outer curly blocks)
+   */
+  $.customPreludeBlock = $.RULE('customPreludeBlock', () => {
+    $.OR([
+      {
+        ALT: () => {
+          $.OR2([
+            { ALT: () => $.CONSUME($.T.LParen, { LABEL: 'L' }) },
+            { ALT: () => $.CONSUME($.T.Function, { LABEL: 'Function' }) }
+          ])
+          $.SUBRULE($.customValueOrSemi, { LABEL: 'blockBody' })
+          $.CONSUME($.T.RParen, { LABEL: 'R' })
+        }
       },
       {
-        GATE: () => inAtRule,
-        ALT: () => EMPTY_ALT
+        ALT: () => {
+          $.CONSUME($.T.LSquare, { LABEL: 'L' })
+          $.SUBRULE2($.customValueOrSemi, { LABEL: 'blockBody' })
+          $.CONSUME($.T.RSquare, { LABEL: 'R' })
+        }
       }
     ])
   })
