@@ -22,6 +22,7 @@
     "xregexp": "^4.2.4"
   },
   "devDependencies": {
+    "@less/test-data": "^3.12.0",
     "@types/xregexp": "^4.3.0"
   }
 }

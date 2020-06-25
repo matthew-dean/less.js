@@ -21,6 +21,6 @@
     "@less/css-parser": "^4.0.0-dev.1"
   },
   "devDependencies": {
-    "@less/test-data": "^4.0.0-dev.1"
+    "@less/test-data": "^3.12.0"
   }
 }
