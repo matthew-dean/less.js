@@ -111,18 +111,22 @@ describe('can parse any rule', () => {
 })
 
 describe('can parse all Less stylesheets', () => {
-  const files = glob.sync(path.relative(process.cwd(), path.join(testData, 'less/**/*.less')))
-  files.sort()
-  files.forEach(file => {
-    if (file.indexOf('errors/parse') === -1) {
-      it(`${file}`, () => {
-        const result = fs.readFileSync(file)
-        const { cst, lexerResult } = lessParser.parse(result.toString())
-        expect(lexerResult.errors.length).to.equal(0)
-        expect(parser.errors.length).to.equal(0)
-      })
-    }
-  })
+  const files = glob.sync(path.join(testData, 'less/**/*.less'))
+  files
+    .map(value => path.relative(testData, value))
+    .filter(value => [
+      'less/errors/mixin-not-defined-2.less'
+    ].indexOf(value) === -1)
+    .forEach(file => {
+      if (file.indexOf('errors/parse') === -1) {
+        it(`${file}`, () => {
+          const result = fs.readFileSync(path.join(testData, file))
+          const { cst, lexerResult } = lessParser.parse(result.toString())
+          expect(lexerResult.errors.length).to.equal(0)
+          expect(parser.errors.length).to.equal(0)
+        })
+      }
+    })
 })
 
 // Skipped until we fix these flows

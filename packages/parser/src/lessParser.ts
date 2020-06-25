@@ -43,6 +43,7 @@ export class LessParser extends CssParser {
   mixinCall: Rule
   mixinCallArgs: Rule
   mixinCallArg: Rule
+  mixinArgAssignment: Rule
 
   /** guards */
   guard: Rule

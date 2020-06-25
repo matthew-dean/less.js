@@ -150,12 +150,17 @@ export default function(this: LessParser, $: LessParser) {
    *
    * subrule - $.expression or $.expressionList
    */
+  $.mixinArgAssignment = $.RULE('mixinArgAssignment', () => {
+    $.CONSUME($.T.AtKeyword)
+    $._()
+    $.CONSUME($.T.Assign)
+    $._(1)
+  })
+
   $.mixinCallArg = $.RULE('mixinCallArg', (semiColonSeparated: boolean) => {
-    $.OPTION(() => {
-      $.CONSUME($.T.AtKeyword)
-      $._()
-      $.CONSUME($.T.Assign)
-      $._(1)
+    $.OPTION({
+      GATE: $.BACKTRACK($.mixinArgAssignment),
+      DEF: () => $.SUBRULE($.mixinArgAssignment)
     })
     $.OR([
       { ALT: () => $.SUBRULE($.curlyBlock) },

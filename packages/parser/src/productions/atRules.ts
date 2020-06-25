@@ -4,7 +4,6 @@ export default function(this: LessParser, $: LessParser) {
   $.unknownAtRule = $.OVERRIDE_RULE('unknownAtRule', () => {
     $.CONSUME($.T.AtKeyword)
     const ws = $._()
-    let isAssignment = false
     $.OR({
       /**
        * A prelude could have a colon too, so the last two rules are
@@ -26,7 +25,6 @@ export default function(this: LessParser, $: LessParser) {
             /** Variable assignment */
             $.CONSUME($.T.Colon)
             $._(1)
-            isAssignment = true
             $.OR2([
               { ALT: () => $.SUBRULE($.curlyBlock) },
               { ALT: () => $.SUBRULE($.expressionList) }

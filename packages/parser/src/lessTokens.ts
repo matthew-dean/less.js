@@ -67,20 +67,26 @@ const merges: IMerges = {
       categories: ['VarOrProp']
     }
   ],
-  AtMedia: [
-    {
-      name: 'AtPlugin',
-      pattern: /@plugin/,
-      longer_alt: 'AtKeyword',
-      categories: ['BlockMarker', 'AtName']
-    }
-  ],
+  // AtMedia: [
+  //   {
+  //     name: 'AtPlugin',
+  //     pattern: /@plugin/,
+  //     longer_alt: 'AtKeyword',
+  //     categories: ['BlockMarker', 'AtName']
+  //   }
+  // ],
   Uri: [
     {
       name: 'LineComment',
       pattern: '{{lineComment}}',
       group: LexerType.SKIPPED,
       longer_alt: 'WS'
+    },
+    {
+      name: 'JavaScript',
+      pattern: /`[^`]*`/,
+      group: LexerType.SKIPPED,
+      line_breaks: true
     }
   ]
 }
