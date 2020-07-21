@@ -1,4 +1,5 @@
 import type { CssParser } from '../cssParser'
+import { MismatchedTokenException, IRecognitionException } from 'chevrotain'
 
 export default function(this: CssParser, $: CssParser) {
   /** A comma-separated list of selectors */
@@ -69,14 +70,17 @@ export default function(this: CssParser, $: CssParser) {
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
   $.compoundSelector = $.RULE('compoundSelector', () => {
-    $.OR([
-      { ALT: () => $.CONSUME($.T.Star) },
-      {
-        ALT: () => {
-          $.AT_LEAST_ONE(() => $.SUBRULE($.simpleSelector))
+    $.OR({
+      IGNORE_AMBIGUITIES: true,
+      DEF: [
+        { ALT: () => $.CONSUME($.T.Star) },
+        {
+          ALT: () => {
+            $.AT_LEAST_ONE(() => $.SUBRULE($.simpleSelector))
+          }
         }
-      }
-    ])
+      ]
+    })
   })
 
   /**
@@ -87,68 +91,78 @@ export default function(this: CssParser, $: CssParser) {
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
   $.simpleSelector = $.RULE('simpleSelector', () => {
-    $.OR([
-      {
-        /** e.g. :pseudo or ::pseudo */
-        ALT: () => {
-          $.CONSUME($.T.Colon, { LABEL: 'Selector' })
-          $.OPTION(() => $.CONSUME2($.T.Colon))
-          $.OR2([
-            { ALT: () => $.CONSUME($.T.Ident) },
-            /** e.g. :pseudo(...) */
-            {
-              ALT: () => {
-                $.CONSUME($.T.Function)
-                $.SUBRULE($.expressionListGroup)
-                $.CONSUME($.T.RParen)
-              }
-            }
-          ])
-        }
-      },
-      {
-        /** e.g. [id^="bar"] */
-        ALT: () => {
-          $.CONSUME($.T.LSquare)
-          $.CONSUME2($.T.Ident)
-          $.OPTION2(() => {
-            $.OR3([
-              { ALT: () => $.CONSUME($.T.Eq) },
-              { ALT: () => $.CONSUME($.T.AttrMatch) }
-            ])
-            $.OR4([
+    $.OR({
+      IGNORE_AMBIGUITIES: true,
+      DEF: [
+        {
+          /** e.g. :pseudo or ::pseudo */
+          ALT: () => {
+            $.CONSUME($.T.Colon, { LABEL: 'Selector' })
+            $.OPTION(() => $.CONSUME2($.T.Colon))
+            $.OR2([
+              { ALT: () => $.CONSUME($.T.Ident) },
+              /** e.g. :pseudo(...) */
               {
                 ALT: () => {
-                  $.CONSUME3($.T.Ident)
-                }
-              },
-              {
-                ALT: () => {
-                  $.CONSUME3($.T.Unit)
-                }
-              },
-              {
-                ALT: () => {
-                  $.CONSUME($.T.StringLiteral)
+                  $.CONSUME($.T.Function)
+                  $.SUBRULE($.expressionListGroup)
+                  $.CONSUME($.T.RParen)
                 }
               }
             ])
-          })
-          $.CONSUME($.T.RSquare)
+          }
+        },
+        {
+          /** e.g. [id^="bar"] */
+          ALT: () => {
+            $.CONSUME($.T.LSquare)
+            $.CONSUME2($.T.Ident)
+            $.OPTION2(() => {
+              $.OR3([
+                { ALT: () => $.CONSUME($.T.Eq) },
+                { ALT: () => $.CONSUME($.T.AttrMatch) }
+              ])
+              $.OR4([
+                {
+                  ALT: () => {
+                    $.CONSUME3($.T.Ident)
+                  }
+                },
+                {
+                  ALT: () => {
+                    $.CONSUME3($.T.Unit)
+                  }
+                },
+                {
+                  ALT: () => {
+                    $.CONSUME($.T.StringLiteral)
+                  }
+                }
+              ])
+            })
+            $.CONSUME($.T.RSquare)
+          }
+        },
+        {
+          ALT: () => {
+            $.SUBRULE($.nameSelector)
+          }
+        },
+        {
+          /** Used in keyframes as a selector */
+          ALT: () => {
+            $.CONSUME($.T.Unit)
+          }
+        },
+        {
+          /** Fallback value */
+          ALT: () => {
+            $.CONSUME($.T.Value)
+            $.saveError(MismatchedTokenException, 'Expected selector')
+          }
         }
-      },
-      {
-        ALT: () => {
-          $.SUBRULE($.nameSelector)
-        }
-      },
-      {
-        /** Used in keyframes as a selector */
-        ALT: () => {
-          $.CONSUME($.T.Unit)
-        }
-      }
-    ])
+      ]
+    })
   })
 
   $.nameSelector = $.RULE('nameSelector', () => $.CONSUME($.T.Selector))

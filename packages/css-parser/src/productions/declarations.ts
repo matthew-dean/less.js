@@ -1,4 +1,5 @@
 import type { CssParser } from '../cssParser'
+import { MismatchedTokenException } from 'chevrotain'
 
 export default function(this: CssParser, $: CssParser) {
   /**
@@ -26,6 +27,25 @@ export default function(this: CssParser, $: CssParser) {
   })
 
   /** "color" in "color: red" */
-  $.property = $.RULE('property', () => $.CONSUME($.T.Ident))
+  $.property = $.RULE('property', () => {
+    $.AT_LEAST_ONE(() => $.OR({
+      IGNORE_AMBIGUITIES: true,
+      DEF: [
+        {
+          ALT: () => $.CONSUME($.T.Ident)
+        },
+        /** Legacy: remove? */
+        {
+          ALT: () => $.CONSUME($.T.Star)
+        },
+        {
+          ALT: () => {
+            $.CONSUME($.T.Value)
+            $.saveError(MismatchedTokenException, 'Invalid property name')
+          }
+        }
+      ]
+    }))
+  })
   $.customProperty = $.RULE('customProperty', () => $.CONSUME($.T.CustomProperty))
 }

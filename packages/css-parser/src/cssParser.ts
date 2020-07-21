@@ -1,4 +1,4 @@
-import type { TokenType, IParserConfig, CstNode, BaseParser } from 'chevrotain'
+import { TokenType, IParserConfig, CstNode, BaseParser, IRecognitionException, MismatchedTokenException } from 'chevrotain'
 import { CstParser } from 'chevrotain'
 import { TokenMap } from './util'
 import root from './productions/root'
@@ -70,6 +70,23 @@ export type Rule = (idxInCallingRule?: number, ...args: any[]) => CstNode
 export class CssParser extends CstParser {
   T: TokenMap
   _: Function
+
+  SAVE_ERROR: (
+    error: Partial<IRecognitionException>
+  ) => IRecognitionException
+
+  /** https://github.com/SAP/chevrotain/blob/master/packages/chevrotain/src/parse/parser/traits/error_handler.ts#L34-L48 */
+  saveError(type: Function, message: string): void {
+    if (!this.RECORDING_PHASE) {
+      switch (type) {
+        case MismatchedTokenException:
+          throw this.SAVE_ERROR(
+            new MismatchedTokenException(message, this.LA(0), this.LA(-1))
+          )
+      }
+    }
+  }
+
   option: BaseParser['option']
   consume: BaseParser['consume']
 

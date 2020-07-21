@@ -1,6 +1,9 @@
 {
   "name": "@less/test-data",
-  "version": "3.12.0",
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "4.0.0-dev.1",
   "description": "Less files and CSS results",
   "author": {
     "name": "Alexis Sellier",

@@ -1,4 +1,5 @@
 import type { CssParser } from '../cssParser'
+import { MismatchedTokenException } from 'chevrotain'
 
 export default function(this: CssParser, $: CssParser) {
 
@@ -43,6 +44,7 @@ export default function(this: CssParser, $: CssParser) {
       SEP: $.T.Comma,
       DEF: () => $.SUBRULE($.mediaQuery)
     })
+    $.OPTION(() => $.CONSUME($.T.SemiColon))
   })
 
   /**
@@ -55,6 +57,8 @@ export default function(this: CssParser, $: CssParser) {
       SEP: $.T.Comma,
       DEF: () => $.SUBRULE($.mediaQuery)
     })
+    $._(1)
+    $.SUBRULE($.curlyBlock)
   })
 
   $.atSupports = $.RULE('atSupports', () => {
@@ -71,8 +75,6 @@ export default function(this: CssParser, $: CssParser) {
       $._()
     })
     $.SUBRULE($.mediaCondition)
-    $._(1)
-    $.SUBRULE($.curlyBlock)
   })
 
   $.mediaCondition = $.RULE('mediaCondition', () => {
@@ -89,21 +91,30 @@ export default function(this: CssParser, $: CssParser) {
   })
 
   $.mediaAnd = $.RULE('mediaAnd', () => {
-    $.SUBRULE2($.mediaFeature)
-    $._()
+    $.SUBRULE($.mediaFeature)
     $.MANY(() => {
       $.OR([
         { ALT: () => $.CONSUME($.T.And) },
         { ALT: () => $.CONSUME($.T.Or) }
       ])
       $._(1)
-      $.SUBRULE3($.mediaFeature)
+      $.SUBRULE2($.mediaFeature, { ARGS: [true] })
     })
   })
 
-  $.mediaFeature = $.RULE('mediaFeature', () => {
+  $.mediaFeature = $.RULE('mediaFeature', (afterAnd: boolean) => {
     $.OR([
-      { ALT: () => $.CONSUME($.T.PlainIdent) },
+      { ALT: () => {
+        $.CONSUME($.T.PlainIdent)
+        if (afterAnd) {
+          /**
+           * The spec, for some reason, disallows single keywords after
+           * an 'and', although I have no idea if browsers error-recover
+           * from this. It's an odd thing in CSS.
+           */
+          $.saveError(MismatchedTokenException, '\'(\' expected')
+        }
+      }},
       { 
         ALT: () => {
           $.CONSUME($.T.LParen)
@@ -118,6 +129,7 @@ export default function(this: CssParser, $: CssParser) {
         }
       }
     ])
+    $._()
   })
 
   /**

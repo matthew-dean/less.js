@@ -27,13 +27,48 @@ describe('can parse all CSS stylesheets', () => {
     })
 })
 
+/**
+ * These are Less output CSS test files that Less 3.x
+ * doesn't recognize as containing invalid CSS, or which
+ * are invalid when output.
+ */
+const invalidCSSOutput = [
+  /** Invalid IDs (color values) */
+  'css/_main/colors.css',
+  /** Contains a less unquoted string in root */
+  'css/_main/css-escapes.css',
+
+  /** Invalid CSS selectors */
+  'css/_main/css-3.css',
+  'css/_main/css-guards.css',
+  'css/_main/selectors.css', /* namespace attribute? */
+
+  /** Invalid media queries */
+  'css/_main/detached-rulesets.css',
+  'css/_main/extend-chaining.css',
+  'css/_main/extend-media.css',
+  'css/_main/media.css',
+  
+  /** Intentionally produces invalid CSS */
+  'css/_main/import-inline.css',
+  'css/_main/import-reference.css',
+]
+
+/**
+ * The CSS output is simply not parseable.
+ */
+const unrecoverableCSS = [
+  /** @todo - Fix saveError for invalid property name */
+  'css/_main/javascript.css',
+  'css/_main/mixins-guards-default-func.css',
+  'css/_main/property-name-interp.css'
+]
+
 describe('can parse Less CSS output', () => {
+  const filterOut = [...invalidCSSOutput, ...unrecoverableCSS]
   glob.sync(path.join(testData, 'css/_main/*.css'))
     .map(value => path.relative(testData, value))
-    .filter(value => [
-      /** Contains a less unquoted string in root */
-      'css/_main/css-escapes.css'
-    ].indexOf(value) === -1)
+    .filter(value => filterOut.indexOf(value) === -1)
     .sort()
     .forEach(file => {
       it(`${file}`, () => {
@@ -41,6 +76,22 @@ describe('can parse Less CSS output', () => {
         const { cst, lexerResult, parser } = cssParser.parse(result.toString())
         expect(lexerResult.errors.length).to.equal(0)
         expect(parser.errors.length).to.equal(0)
+      })
+  })
+})
+
+describe('can parse invalid Less CSS output', () => {
+  glob.sync(path.join(testData, 'css/_main/*.css'))
+    .map(value => path.relative(testData, value))
+    .filter(value => invalidCSSOutput.indexOf(value) !== -1)
+    .sort()
+    .forEach(file => {
+      it(`${file}`, () => {
+        const result = fs.readFileSync(path.join(testData, file))
+        const { cst, lexerResult, parser } = cssParser.parse(result.toString())
+        expect(lexerResult.errors.length).to.equal(0)
+        expect(parser.errors.length).to.be.gt(0)
+        expect(cst.recoveredNode).to.not.be.true
       })
   })
 })
