@@ -51,17 +51,19 @@ const invalidCSSOutput = [
   
   /** Intentionally produces invalid CSS */
   'css/_main/import-inline.css',
-  'css/_main/import-reference.css',
-]
+  ,
 
-/**
- * The CSS output is simply not parseable.
- */
-const unrecoverableCSS = [
   /** @todo - Fix saveError for invalid property name */
   'css/_main/javascript.css',
   'css/_main/mixins-guards-default-func.css',
   'css/_main/property-name-interp.css'
+]
+
+/**
+ * The CSS output is not re-parseable.
+ */
+const unrecoverableCSS = [
+  'css/_main/import-reference.css'
 ]
 
 describe('can parse Less CSS output', () => {

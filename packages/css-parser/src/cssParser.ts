@@ -71,16 +71,25 @@ export class CssParser extends CstParser {
   T: TokenMap
   _: Function
 
-  SAVE_ERROR: (
-    error: Partial<IRecognitionException>
-  ) => IRecognitionException
+  warnings: IRecognitionException[] = []
+
+  getHumanReadableRuleStack: () => string[]
 
   /** https://github.com/SAP/chevrotain/blob/master/packages/chevrotain/src/parse/parser/traits/error_handler.ts#L34-L48 */
-  saveError(type: Function, message: string): void {
+  saveWarning(type: Function, message: string): void {
+    const setContext: (warning: Omit<IRecognitionException, 'context'>) => IRecognitionException
+      = (warning) => {
+      warning.context = {
+        ruleStack: this.getHumanReadableRuleStack(),
+        ruleOccurrenceStack: cloneArr(this.RULE_OCCURRENCE_STACK)
+      }
+      return warning
+    }
+
     if (!this.RECORDING_PHASE) {
       switch (type) {
         case MismatchedTokenException:
-          throw this.SAVE_ERROR(
+          setContext(
             new MismatchedTokenException(message, this.LA(0), this.LA(-1))
           )
       }
