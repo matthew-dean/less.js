@@ -1,5 +1,4 @@
 import type { CssParser } from '../cssParser'
-import { MismatchedTokenException } from 'chevrotain'
 
 export default function(this: CssParser, $: CssParser) {
 
@@ -53,11 +52,14 @@ export default function(this: CssParser, $: CssParser) {
   $.atMedia = $.RULE('atMedia', () => {
     $.CONSUME($.T.AtMedia)
     $._()
-    $.AT_LEAST_ONE_SEP({
-      SEP: $.T.Comma,
-      DEF: () => $.SUBRULE($.mediaQuery)
-    })
+    $.SUBRULE($.mediaQuery)
     $._(1)
+    $.MANY(() => {
+      $.CONSUME($.T.Comma)
+      $._(2)
+      $.SUBRULE2($.mediaQuery)
+      $._(3)
+    })
     $.SUBRULE($.curlyBlock)
   })
 
@@ -104,16 +106,10 @@ export default function(this: CssParser, $: CssParser) {
 
   $.mediaFeature = $.RULE('mediaFeature', (afterAnd: boolean) => {
     $.OR([
-      { ALT: () => {
+      {
+        GATE: () => !afterAnd,
+        ALT: () => {
         $.CONSUME($.T.PlainIdent)
-        if (afterAnd) {
-          /**
-           * The spec, for some reason, disallows single keywords after
-           * an 'and', although I have no idea if browsers error-recover
-           * from this. It's an odd thing in CSS.
-           */
-          $.saveError(MismatchedTokenException, '\'(\' expected')
-        }
       }},
       { 
         ALT: () => {

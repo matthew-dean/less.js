@@ -80,7 +80,7 @@
   & when (@c = 3) {
     height: 1px;
   }
-  + & when (@c = 3) { // creates invalid css but tests that we don't fold it in
+  * & when (@c = 3) {
     sibling: true;
   }
 }
@@ -100,4 +100,4 @@
 .errors-if-called when (@c = never) {
   .mixin-doesnt-exist();
 }
-a:hover when (2 = true) {5:-}
+a:hover when (2 = true) {five:5}

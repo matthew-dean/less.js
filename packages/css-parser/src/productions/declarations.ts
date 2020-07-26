@@ -37,12 +37,6 @@ export default function(this: CssParser, $: CssParser) {
         /** Legacy: remove? */
         {
           ALT: () => $.CONSUME($.T.Star)
-        },
-        {
-          ALT: () => {
-            $.CONSUME($.T.Value)
-            $.saveError(MismatchedTokenException, 'Invalid property name')
-          }
         }
       ]
     }))

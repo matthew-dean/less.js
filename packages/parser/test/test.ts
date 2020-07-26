@@ -115,7 +115,7 @@ describe('can parse all Less stylesheets', () => {
   files
     .map(value => path.relative(testData, value))
     .filter(value => [
-      // 'errors/mixin-not-defined-2.less'
+
     ].indexOf(value) === -1)
     .sort()
     .forEach(file => {
