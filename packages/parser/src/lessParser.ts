@@ -14,8 +14,9 @@ export class LessParser extends CssParser {
   isMixinDefinition: boolean = false
   isSemiColonSeparated: boolean = false
   isVariableCall: boolean = false
+  hasExtend: boolean = false
 
-  interpolate: Rule
+  identOrInterpolated: Rule
 
   /** values */
   addition: Rule

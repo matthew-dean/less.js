@@ -14,7 +14,7 @@ export const Fragments = [...CSSFragments]
 export let Tokens = [...CSSTokens]
 
 Fragments.unshift(['lineComment', '\\/\\/[^\\n\\r]*'])
-// Fragments.push(['interpolated', '({{ident}}|[@$]\\{{{ident}}\\})+'])
+Fragments.push(['interpolated', '[@$]\\{({{ident}})\\}'])
 
 Fragments.forEach(fragment => {
   if (fragment[0].indexOf('wsorcomment') !== -1) {
@@ -24,27 +24,35 @@ Fragments.forEach(fragment => {
 
 /** Keyed by what to insert after */
 const merges: IMerges = {
-  PropertyName: [{ name: 'Interpolated', pattern: LexerType.NA }],
+  // PropertyName: [],
   Assign: [
     { name: 'Ampersand', pattern: /&/, categories: ['Selector'] },
     { name: 'Ellipsis', pattern: /\.\.\./ }
   ],
   PlainIdent: [
-    // {
-    //   name: 'InterpolatedIdent',
-    //   pattern: '{{interpolated}}',
-    //   categories: ['Interpolated']
-    // },
-    { name: 'InterpolatedStart', pattern: /[@$]\{/, categories: ['Interpolated'] },
+    { name: 'Interpolated', pattern: LexerType.NA },
+    {
+      name: 'InterpolatedIdent',
+      pattern: ['{{interpolated}}', groupCapture],
+      categories: ['Interpolated', 'Selector'],
+      start_chars_hint: ['@', '$']
+    },
+    {
+      name: 'InterpolatedSelector',
+      pattern: ['[\.#]{{interpolated}}', groupCapture],
+      categories: ['Interpolated', 'Selector'],
+      start_chars_hint: ['.', '#']
+    },
+    // { name: 'InterpolatedStart', pattern: /[@$]\{/, categories: ['Interpolated'] },
     /** Removed in v4 */
     // { name: 'InterpolatedSelectorStart', pattern: /[\.#][@$]\{/, categories: ['Interpolated'] },
     { name: 'PlusAssign', pattern: /\+:/, categories: ['BlockMarker', 'Assign'] },
     { name: 'UnderscoreAssign', pattern: /_:/, categories: ['BlockMarker', 'Assign'] },
-    // {
-    //   name: 'Extend',
-    //   pattern: /extend\(/,
-    //   categories: ['BlockMarker', 'Function']
-    // },
+    {
+      name: 'Extend',
+      pattern: /:extend\(/,
+      categories: ['BlockMarker']
+    },
     {
       name: 'When',
       pattern: /when/,

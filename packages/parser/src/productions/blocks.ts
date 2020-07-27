@@ -1,10 +1,44 @@
 import type { LessParser } from '../lessParser'
+import { EMPTY_ALT } from 'chevrotain'
 
 export default function(this: LessParser, $: LessParser) {
+  const resetState = () => {
+    $.hasExtend = false
+  }
+
   $.qualifiedRule = $.OVERRIDE_RULE('qualifiedRule', () => {
     $.SUBRULE($.selectorList)
-    $.SUBRULE($.guard)
-    $.SUBRULE($.curlyBlock)
+    const hasExtend = $.hasExtend
+    resetState()
+    $._()
+    $.OR([
+      {
+        GATE: () => hasExtend,
+        ALT: () => {
+          $.OR2([
+            { ALT: () => $.SUBRULE($.curlyBlock) },
+            { ALT: () => $.CONSUME($.T.SemiColon) }
+          ])
+        }
+      },
+      {
+        ALT: () => $.SUBRULE2($.curlyBlock)
+      }
+    ])
+  })
+
+  $.testQualifiedRule = $.OVERRIDE_RULE('testQualifiedRule', () => {
+    $.SUBRULE($.testQualifiedRuleExpression)
+    const hasExtend = $.hasExtend
+    resetState()
+
+    $.OR([
+      { ALT: () => $.CONSUME($.T.LCurly) },
+      {
+        GATE: () => hasExtend,
+        ALT: () => EMPTY_ALT
+      }
+    ])
   })
 
   $.testQualifiedRuleExpression = $.OVERRIDE_RULE('testQualifiedRuleExpression', () => {
@@ -17,6 +51,10 @@ export default function(this: LessParser, $: LessParser) {
         { ALT: () => $.CONSUME($.T.WS) },
         { ALT: () => {
           $.OR2([
+            { ALT: () => {
+              $.CONSUME($.T.Extend)
+              $.hasExtend = true
+            }},
             { ALT: () => $.CONSUME($.T.Function) },
             { ALT: () => $.CONSUME($.T.LParen) }
           ])

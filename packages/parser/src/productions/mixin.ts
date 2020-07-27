@@ -61,7 +61,8 @@ export default function(this: LessParser, $: LessParser) {
     $.OR([
       { ALT: () => $.CONSUME($.T.DotName) },
       { ALT: () => $.CONSUME($.T.HashName) },
-      { ALT: () => $.SUBRULE($.interpolate) }
+      { ALT: () => $.CONSUME($.T.ColorIdentStart) },
+      { ALT: () => $.CONSUME($.T.Interpolated) }
     ])
   })
 
@@ -83,7 +84,7 @@ export default function(this: LessParser, $: LessParser) {
     $.SUBRULE($.mixinDefArgs, { ARGS: [semiColonSeparated] })
     $.CONSUME($.T.RParen, { LABEL: 'R' })
     $._(1)
-    $.SUBRULE($.guard)
+    $.OPTION(() => $.SUBRULE($.guard))
     $.SUBRULE($.curlyBlock)
   })
 
@@ -220,11 +221,9 @@ export default function(this: LessParser, $: LessParser) {
   })
 
   $.guard = $.RULE('guard', () => {
-    $.OPTION(() => {
-      $.CONSUME($.T.When)
-      $._(2)
-      $.SUBRULE($.guardOr)
-    })
+    $.CONSUME($.T.When)
+    $._()
+    $.SUBRULE($.guardOr)
   })
 
   $.guardOr = $.RULE('guardOr', () => {

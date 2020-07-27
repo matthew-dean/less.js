@@ -20,14 +20,22 @@ describe('can parse any rule', () => {
   })
 
   it('qualified rule', () => {
-    const lexerResult = lessParser.lexer.tokenize(
+    let lexerResult = lessParser.lexer.tokenize(
+      `.light when (lightness(@a) > 50%) {`
+    )
+    let lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    let cst = parser.testQualifiedRule()
+    expect(parser.errors.length).to.equal(0)
+
+    lexerResult = lessParser.lexer.tokenize(
       `.light when (lightness(@a) > 50%) {
           color: green;
       }`
     )
-    const lexedTokens = lexerResult.tokens
+    lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
-    const cst = parser.qualifiedRule()
+    cst = parser.qualifiedRule()
     expect(parser.errors.length).to.equal(0)
   })
 

@@ -1,5 +1,4 @@
 import type { CssParser } from '../cssParser'
-import { MismatchedTokenException, IRecognitionException } from 'chevrotain'
 
 export default function(this: CssParser, $: CssParser) {
   /** A comma-separated list of selectors */
@@ -111,47 +110,8 @@ export default function(this: CssParser, $: CssParser) {
         }
       },
       {
-        /** e.g. [id^="bar"] [*|ns|="foo"] */
         ALT: () => {
-          $.CONSUME($.T.LSquare)
-          $.OR3([
-            { ALT: () => {
-              $.OPTION2(() => $.CONSUME($.T.Star))
-              $.CONSUME($.T.Pipe)
-              $.CONSUME2($.T.Ident)
-            }},
-            { ALT: () => {
-              $.CONSUME3($.T.Ident)
-              $.OPTION3(() => {
-                $.CONSUME2($.T.Pipe)
-                $.CONSUME4($.T.Ident)
-              })
-            }}
-          ])
-          $.OPTION4(() => {
-            $.OR5([
-              { ALT: () => $.CONSUME($.T.Eq) },
-              { ALT: () => $.CONSUME($.T.AttrMatch) }
-            ])
-            $.OR6([
-              {
-                ALT: () => {
-                  $.CONSUME5($.T.Ident)
-                }
-              },
-              {
-                ALT: () => {
-                  $.CONSUME3($.T.Unit)
-                }
-              },
-              {
-                ALT: () => {
-                  $.CONSUME($.T.StringLiteral)
-                }
-              }
-            ])
-          })
-          $.CONSUME($.T.RSquare)
+          $.SUBRULE($.attrSelector)
         }
       },
       {
@@ -168,5 +128,50 @@ export default function(this: CssParser, $: CssParser) {
     ])
   })
 
+  /** e.g. [id^="bar"] [*|ns|="foo"] */
+  $.attrSelector = $.RULE('attrSelector', () => {
+    $.CONSUME($.T.LSquare)
+    $.OR([
+      { ALT: () => {
+        $.OPTION(() => $.CONSUME($.T.Star))
+        $.CONSUME($.T.Pipe)
+        $.SUBRULE($.attrIdent)
+      }},
+      { ALT: () => {
+        $.SUBRULE2($.attrIdent)
+        $.OPTION2(() => {
+          $.CONSUME2($.T.Pipe)
+          $.SUBRULE3($.attrIdent)
+        })
+      }}
+    ])
+    $.OPTION4(() => {
+      $.OR2([
+        { ALT: () => $.CONSUME($.T.Eq) },
+        { ALT: () => $.CONSUME($.T.AttrMatch) }
+      ])
+      $.OR3([
+        {
+          ALT: () => {
+            $.SUBRULE4($.attrIdent)
+          }
+        },
+        {
+          ALT: () => {
+            $.CONSUME3($.T.Unit)
+          }
+        },
+        {
+          ALT: () => {
+            $.CONSUME($.T.StringLiteral)
+          }
+        }
+      ])
+    })
+    $.CONSUME($.T.RSquare)
+  })
+
+  /** Separated out for Less overriding */
+  $.attrIdent = $.RULE('attrIdent', () => $.CONSUME($.T.Ident))
   $.nameSelector = $.RULE('nameSelector', () => $.CONSUME($.T.Selector))
 }
