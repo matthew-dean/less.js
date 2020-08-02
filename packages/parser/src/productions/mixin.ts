@@ -6,30 +6,83 @@ export default function(this: LessParser, $: LessParser) {
     $.isSemiColonSeparated = false
     $.isMixinDefinition = false
   }
+
+  /**
+   * .mixin .foo la (@foo: bar, blah, ...;)
+   */
+
   /**
    * Test for mixin start
    */
   $.testMixin = $.RULE('testMixin', () => {
     $.SUBRULE($.mixinStart)
-    $.CONSUME($.T.LParen)
+    $._()
+    $.OR([
+      /** Will throw error in 4.x, but allows for better error */
+      { ALT: () => $.CONSUME($.T.SemiColon) },
+      { ALT: () => {
+        $.CONSUME($.T.LParen)
+        $.SUBRULE($.testMixinArgs)
+      }}
+    ])
+  })
+
+  $.testAnonMixin = $.RULE('testAnonMixin', () => {
+    $.CONSUME($.T.AnonMixinStart)
+    $.SUBRULE($.testMixinArgs)
+  })
+
+  $.testMixinArgs = $.RULE('testMixinArgs', () => {
     $.MANY(() => {
       $.OR([
         { ALT: () => $.SUBRULE($.curlyBlock) },
-        { ALT: () => $.SUBRULE($.expressionList) }
+        { ALT: () => $.SUBRULE($.testMixinExpression) }
       ])
       
       $.OPTION(() => {
-        $.CONSUME($.T.SemiColon)
+        $.CONSUME2($.T.SemiColon)
         $.isSemiColonSeparated = true
       })
     })
     $.CONSUME($.T.RParen)
     $._(1)
-    /** Allow when guard */
-    $.SUBRULE2($.expressionList)
     $.OPTION2(() => {
+      $.CONSUME($.T.Important)
+      $._(2)
+    })
+    /** 
+     * Allow when guard
+     * @todo - simplify test expression for performance? 
+     */
+    $.OPTION3(() => $.SUBRULE($.guard))
+    $.OPTION4(() => {
       $.CONSUME($.T.LCurly)
       $.isMixinDefinition = true
+    })
+  })
+
+  $.testMixinExpression = $.RULE('testMixinExpression', () => {
+    $.MANY(() => {
+      $.OR([
+        { ALT: () => $.CONSUME($.T.Value) },
+        { ALT: () => $.CONSUME($.T.VarOrProp) },
+        { ALT: () => $.CONSUME($.T.Comma) },
+        { ALT: () => $.CONSUME($.T.Colon) },
+        { ALT: () => $.CONSUME($.T.WS) },
+        { ALT: () => {
+          $.OR2([
+            { ALT: () => $.CONSUME($.T.Function) },
+            { ALT: () => $.CONSUME($.T.LParen) }
+          ])
+          $.SUBRULE($.testMixinExpression)
+          $.CONSUME($.T.RParen)
+        }},
+        { ALT: () => {
+          $.CONSUME($.T.LSquare)
+          $.SUBRULE2($.testMixinExpression)
+          $.CONSUME($.T.RSquare)
+        }}
+      ])
     })
   })
 
@@ -50,8 +103,10 @@ export default function(this: LessParser, $: LessParser) {
     $.SUBRULE($.mixinName)
     $._()
     $.MANY(() => {
-      $.OPTION(() => $.CONSUME($.T.Gt))
-      $._(1)
+      $.OPTION(() => {
+        $.CONSUME($.T.Gt)
+        $._(1)
+      })
       $.SUBRULE2($.mixinName)
       $._(2)
     })
@@ -67,14 +122,25 @@ export default function(this: LessParser, $: LessParser) {
   })
 
   $.mixinCall = $.RULE('mixinCall', (semiColonSeparated: boolean) => {
-    $.AT_LEAST_ONE(() => {
-      $.SUBRULE($.mixinName)
+    $.SUBRULE($.mixinName)
+    $.MANY(() => {
+      $._()
+      $.OPTION(() => {
+        $.CONSUME($.T.Gt)
+        $._(1)
+      })
+      $.SUBRULE2($.mixinName)
     })
+
     $.CONSUME($.T.LParen, { LABEL: 'L' })
     $.SUBRULE($.mixinCallArgs, { ARGS: [semiColonSeparated] })
     $.CONSUME($.T.RParen, { LABEL: 'R' })
-    $._()
-    $.OPTION(() => $.CONSUME($.T.SemiColon))
+    $._(2)
+    $.OPTION2(() => {
+      $.CONSUME($.T.Important)
+      $._(3)
+    })
+    $.OPTION3(() => $.CONSUME($.T.SemiColon))
   })
 
   $.mixinDefinition = $.RULE('mixinDefinition', (semiColonSeparated: boolean) => {
@@ -215,7 +281,9 @@ export default function(this: LessParser, $: LessParser) {
         }
       },
       { ALT: () => $.CONSUME2($.T.Ellipsis) },
-      { ALT: () => $.CONSUME($.T.Ident) }
+      /** Pattern matching mixin */
+      { ALT: () => $.CONSUME($.T.Ident) },
+      { ALT: () => $.CONSUME($.T.Unit) }
     ])
     $._(4)
   })
@@ -247,6 +315,10 @@ export default function(this: LessParser, $: LessParser) {
   })
 
   $.guardExpression = $.RULE('guardExpression', () => {
+    $.OPTION(() => {
+      $.CONSUME($.T.Not)
+      $._()
+    })
     $.CONSUME($.T.LParen)
     $.SUBRULE($.compare)
     $.CONSUME($.T.RParen)

@@ -76,6 +76,15 @@ describe('can parse any rule', () => {
     parser.input = lexedTokens
     parser.primary()
     expect(parser.errors.length).to.equal(0)
+
+
+    lexerResult = lessParser.lexer.tokenize(
+      `.b(@j: 1) when (@j < length(@cols)) {`
+    )
+    lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    parser.testMixin()
+    expect(parser.errors.length).to.equal(0)
   })
 
   it('mixin call', () => {
@@ -123,11 +132,11 @@ describe('can parse all Less stylesheets', () => {
   files
     .map(value => path.relative(testData, value))
     .filter(value => [
-
+      'less/_main/import/invalid-css.less'
     ].indexOf(value) === -1)
     .sort()
     .forEach(file => {
-      if (file.indexOf('errors/parse') === -1) {
+      if (file.indexOf('mixins-') > -1) {
         it(`${file}`, () => {
           const result = fs.readFileSync(path.join(testData, file))
           const { cst, lexerResult } = lessParser.parse(result.toString())

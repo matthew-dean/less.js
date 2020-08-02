@@ -3,6 +3,7 @@ import { TokenMap, CssParser, Rule } from '@less/css-parser'
 import root from './productions/root'
 import atRules from './productions/atRules'
 import blocks from './productions/blocks'
+import declarations from './productions/declarations'
 import mixin from './productions/mixin'
 import selectors from './productions/selectors'
 import interpolation from './productions/interpolation'
@@ -22,14 +23,21 @@ export class LessParser extends CssParser {
   addition: Rule
   multiplication: Rule
   compare: Rule
-  function: Rule
   testVariable: Rule
   variable: Rule
   variableCall: Rule
   variableDeclaration: Rule
 
+  /** functions */
+  function: Rule
+  functionArgs: Rule
+  functionArg: Rule
+
   /** mixins */
   testMixin: Rule
+  testAnonMixin: Rule
+  testMixinArgs: Rule
+  testMixinExpression: Rule
   mixin: Rule
   mixinName: Rule
   mixinStart: Rule
@@ -66,6 +74,7 @@ export class LessParser extends CssParser {
     root.call($, $)
     atRules.call($, $)
     blocks.call($, $)
+    declarations.call($, $)
     interpolation.call($, $)
     mixin.call($, $)
     selectors.call($, $)

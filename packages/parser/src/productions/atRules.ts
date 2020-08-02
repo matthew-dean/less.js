@@ -1,6 +1,56 @@
 import type { LessParser } from '../lessParser'
 
 export default function(this: LessParser, $: LessParser) {
+  $.atImport = $.OVERRIDE_RULE('atImport', () => {
+    $.CONSUME($.T.AtImport)
+    $._()
+    $.OPTION(() => {
+      $.CONSUME($.T.LParen)
+      $._(1)
+      $.CONSUME($.T.Ident)
+      $._(2)
+      $.MANY(() => {
+        $.CONSUME($.T.Comma)
+        $._(3)
+        $.CONSUME2($.T.Ident)
+        $._(4)
+      })
+      $.CONSUME($.T.RParen)
+      $._(5)
+    })
+    $.OR([
+      { ALT: () => $.CONSUME($.T.StringLiteral) },
+      { ALT: () => $.CONSUME($.T.Uri) }
+    ])
+    $._(6)
+    $.MANY_SEP({
+      SEP: $.T.Comma,
+      DEF: () => $.SUBRULE($.mediaQuery)
+    })
+    $.OPTION2(() => $.CONSUME($.T.SemiColon))
+  })
+
+  $.mediaFeature = $.OVERRIDE_RULE('mediaFeature', (afterAnd: boolean) => {
+    $.OR([
+      {
+        GATE: () => !afterAnd,
+        ALT: () => {
+        $.CONSUME($.T.PlainIdent)
+      }},
+      {
+        ALT: () => $.CONSUME($.T.VarOrProp)
+      },
+      { 
+        ALT: () => {
+          $.CONSUME($.T.LParen)
+          $.SUBRULE($.expression)
+          $.CONSUME($.T.RParen)
+        }
+      }
+    ])
+    $._()
+  })
+
   $.unknownAtRule = $.OVERRIDE_RULE('unknownAtRule', () => {
     $.CONSUME($.T.AtKeyword)
     const ws = $._()

@@ -24,7 +24,6 @@ Fragments.forEach(fragment => {
 
 /** Keyed by what to insert after */
 const merges: IMerges = {
-  // PropertyName: [],
   Assign: [
     { name: 'Ampersand', pattern: /&/, categories: ['Selector'] },
     { name: 'Ellipsis', pattern: /\.\.\./ }
@@ -43,11 +42,9 @@ const merges: IMerges = {
       categories: ['Interpolated', 'Selector'],
       start_chars_hint: ['.', '#']
     },
-    // { name: 'InterpolatedStart', pattern: /[@$]\{/, categories: ['Interpolated'] },
-    /** Removed in v4 */
-    // { name: 'InterpolatedSelectorStart', pattern: /[\.#][@$]\{/, categories: ['Interpolated'] },
     { name: 'PlusAssign', pattern: /\+:/, categories: ['BlockMarker', 'Assign'] },
-    { name: 'UnderscoreAssign', pattern: /_:/, categories: ['BlockMarker', 'Assign'] },
+    { name: 'UnderscoreAssign', pattern: /\+_:/, categories: ['BlockMarker', 'Assign'] },
+    { name: 'AnonMixinStart', pattern: /[\.#]\(/, categories: ['BlockMarker'] },
     {
       name: 'Extend',
       pattern: /:extend\(/,
@@ -83,6 +80,18 @@ const merges: IMerges = {
   //     categories: ['BlockMarker', 'AtName']
   //   }
   // ],
+  PlainFunction: [
+    /** Can be used in unit function */
+    {
+      name: 'Percent',
+      pattern: /%/
+    },
+    {
+      name: 'FormatFunction',
+      pattern: /%\(/,
+      categories: ['BlockMarker', 'Function']
+    },
+  ],
   Uri: [
     {
       name: 'LineComment',
@@ -110,7 +119,7 @@ for (let i = 0; i < tokenLength; i++) {
   let alterations = true
 
   switch (name) {
-    // Removed in Less v4
+    // Removed in Less v5
     // case 'Divide':
     //   copyToken()
     //   token.pattern = /\.?\//
@@ -119,31 +128,14 @@ for (let i = 0; i < tokenLength; i++) {
       copyToken()
       token.pattern = '~?{{string1}}|~?{{string2}}'
       break
+    case 'CustomProperty':
+      copyToken()
+      token.pattern = '--(?:{{nmstart}}{{nmchar}}*)?'
+      break
     case 'AtKeyword':
       copyToken()
       token.categories = categories.concat(['VarOrProp'])
       break
-    // case 'Interpolated':
-    //   copyToken()
-    //   token.pattern = LexerType.NA
-    //   break
-    // case 'DotName':
-    //   copyToken()
-    //   token.pattern = '\\.{{interpolated}}'
-    //   break
-    // case 'HashName':
-    //   copyToken()
-    //   token.pattern = '#{{interpolated}}'
-    //   break
-    // case 'PlainIdent':
-    // case 'AttrFlag':
-    // case 'And':
-    // case 'Or':
-    // case 'Not':
-    // case 'Only':
-    //   copyToken()
-    //   token.categories = categories.concat(['Ident', 'Interpolated'])
-    //   break
     default:
       alterations = false
   }

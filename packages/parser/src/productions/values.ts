@@ -1,5 +1,4 @@
 import { LessParser } from '../lessParser'
-import { Rule } from 'chevrotain'
 
 export default function (this: LessParser, $: LessParser) {
   const compareGate = () => $.inCompareBlock
@@ -15,11 +14,47 @@ export default function (this: LessParser, $: LessParser) {
     ])
   })
 
-  /** @todo - allow semi-colon separators? */
   $.function = $.RULE('function', () => {
     $.CONSUME($.T.Function)
-    $.SUBRULE($.expressionList)
+    $.SUBRULE($.functionArgs)
     $.CONSUME($.T.RParen)
+  })
+
+  $.functionArgs = $.RULE('functionArgs', () => {
+    $.SUBRULE($.functionArg)
+    $._()
+    $.MANY(() => {
+      $.OR([
+        { ALT: () => $.CONSUME($.T.Comma) },
+        { ALT: () => $.CONSUME($.T.SemiColon) }
+      ])
+      $._(1)
+      $.SUBRULE2($.functionArg)
+      $._(2)
+    })
+  })
+
+  $.functionArg = $.RULE('functionArg', () => {
+    $.OR([
+      {
+        GATE: $.BACKTRACK($.testAnonMixin),
+        ALT: () => {
+          const semiColonSeparated = $.isSemiColonSeparated
+          $.CONSUME($.T.AnonMixinStart)
+          $.SUBRULE($.mixinCallArgs, { ARGS: [semiColonSeparated] })
+          $.CONSUME($.T.RParen, { LABEL: 'R' })
+          $.isSemiColonSeparated = semiColonSeparated
+          $._()
+          $.SUBRULE($.curlyBlock)
+        }
+      },
+      { ALT: () => $.SUBRULE2($.curlyBlock) },
+      { ALT: () => {
+        $.inCompareBlock = true
+        $.SUBRULE($.expression)
+        $.inCompareBlock = false
+      }}
+    ])
   })
 
   /** This is more specific than the CSS parser */
@@ -29,14 +64,14 @@ export default function (this: LessParser, $: LessParser) {
       {
         ALT: () => {
           $.CONSUME($.T.LParen)
-          $.SUBRULE($.expression)
+          $.SUBRULE($.expressionList)
           $.CONSUME($.T.RParen)
         }
       },
       {
         ALT: () => {
           $.CONSUME($.T.LSquare)
-          $.SUBRULE2($.expression)
+          $.SUBRULE2($.expressionList)
           $.CONSUME($.T.RSquare)
         }
       },
@@ -45,6 +80,7 @@ export default function (this: LessParser, $: LessParser) {
       { ALT: () => $.CONSUME($.T.VarOrProp) },
       { ALT: () => $.CONSUME($.T.CustomProperty) },
       { ALT: () => $.CONSUME($.T.Unit) },
+      { ALT: () => $.CONSUME($.T.Percent) },
       { ALT: () => $.CONSUME($.T.StringLiteral) },
       { ALT: () => $.CONSUME($.T.Uri) },
       { ALT: () => $.CONSUME($.T.ColorIntStart) },
@@ -54,6 +90,7 @@ export default function (this: LessParser, $: LessParser) {
       { ALT: () => $.CONSUME($.T.AttrMatchOperator) },
       { ALT: () => $.CONSUME($.T.Colon) },
       { ALT: () => $.CONSUME($.T.Selector) },
+      { ALT: () => $.CONSUME($.T.Combinator) }
     ])
   })
 

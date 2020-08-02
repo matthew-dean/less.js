@@ -11,7 +11,11 @@ export default function(this: CssParser, $: CssParser) {
     $._()
     $.CONSUME($.T.Assign)
     $.SUBRULE($.expressionList)
-    $.OPTION(() => $.CONSUME($.T.SemiColon))
+    $.OPTION(() => {
+      $.CONSUME($.T.Important)
+      $._(1)
+    })
+    $.OPTION2(() => $.CONSUME($.T.SemiColon))
   })
 
   /**
@@ -28,18 +32,16 @@ export default function(this: CssParser, $: CssParser) {
 
   /** "color" in "color: red" */
   $.property = $.RULE('property', () => {
-    $.AT_LEAST_ONE(() => $.OR({
-      IGNORE_AMBIGUITIES: true,
-      DEF: [
-        {
-          ALT: () => $.CONSUME($.T.Ident)
-        },
-        /** Legacy: remove? */
-        {
-          ALT: () => $.CONSUME($.T.Star)
+    $.OR([
+      { ALT: () => $.CONSUME($.T.Ident) },
+      {
+        /** Legacy - remove? */
+        ALT: () => {
+          $.CONSUME($.T.Star)
+          $.CONSUME2($.T.Ident)
         }
-      ]
-    }))
+      }
+    ])
   })
   $.customProperty = $.RULE('customProperty', () => $.CONSUME($.T.CustomProperty))
 }

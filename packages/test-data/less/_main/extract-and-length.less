@@ -5,12 +5,12 @@
 .a(@i: length(@cols)) when (@i > 0) {
   @divider: e(extract(@cols, @i));
 }
-.a;
+.a();
 
 .b(@j: 1) when (@j < length(@cols)) {
   @divider: e(extract(@cols, @j));
 }
-.b;
+.b();
 
 // simple array/list:
 
@@ -123,9 +123,9 @@
 .md-3D {
     @a: a b c d, 1 2 3 4;
     @b: 5 6 7 8, e f g h;
-    .3D(@a, @b);
+    .threeD(@a, @b);
 
-    .3D(...) {
+    .threeD(...) {
 
         @v1:       @arguments;
         length-1:  length(@v1);

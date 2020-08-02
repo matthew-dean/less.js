@@ -22,7 +22,7 @@ export default function(this: CssParser, $: CssParser) {
         GATE: $.BACKTRACK($.testQualifiedRule),
         ALT: () => $.SUBRULE($.qualifiedRule)
       },
-      { ALT: () => $.SUBRULE2($.declaration) },
+      { ALT: () => $.SUBRULE($.declaration) },
 
       /** Capture any isolated / redundant semi-colons */
       { ALT: () => $.CONSUME($.T.SemiColon) },
