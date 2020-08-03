@@ -138,11 +138,11 @@ export const Tokens: rawTokenConfig[] = [
   /** Ignore BOM */
   { name: 'UnicodeBOM', pattern: /\uFFFE/, group: LexerType.SKIPPED },
   { name: 'AttrFlag', pattern: /[is]/, longer_alt: 'PlainIdent', categories: ['Ident'] },
+  { name: 'PlainFunction', pattern: '{{ident}}\\(', categories: ['BlockMarker', 'Function'] },
   { name: 'And', pattern: /and/, longer_alt: 'PlainIdent', categories: ['Ident'] },
   { name: 'Or', pattern: /or/, longer_alt: 'PlainIdent', categories: ['Ident'] },
   { name: 'Not', pattern: /not/, longer_alt: 'PlainIdent', categories: ['Ident'] },
   { name: 'Only', pattern: /only/, longer_alt: 'PlainIdent', categories: ['Ident'] },
-  { name: 'PlainFunction', pattern: '{{ident}}\\(', categories: ['BlockMarker', 'Function'] },
   { name: 'AtKeyword', pattern: '@{{ident}}', categories: ['BlockMarker', 'AtName'] },
   { name: 'Uri', pattern: LexerType.NA },
   {

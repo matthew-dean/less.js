@@ -3,6 +3,9 @@ import { LessParser } from '../lessParser'
 export default function (this: LessParser, $: LessParser) {
   const compareGate = () => $.inCompareBlock
 
+  /**
+   * @todo - rewrite to capture all guard expressions
+   */
   $.expression = $.OVERRIDE_RULE('expression', () => {
     $._()
     $.OR([

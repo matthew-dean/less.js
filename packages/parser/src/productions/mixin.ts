@@ -281,9 +281,14 @@ export default function(this: LessParser, $: LessParser) {
         }
       },
       { ALT: () => $.CONSUME2($.T.Ellipsis) },
-      /** Pattern matching mixin */
+      /** 
+       * Pattern matching mixin
+       *  - Documentation doesn't specify what can be a value for
+       *    pattern-matching, but tests have these types:
+       */
       { ALT: () => $.CONSUME($.T.Ident) },
-      { ALT: () => $.CONSUME($.T.Unit) }
+      { ALT: () => $.CONSUME($.T.Unit) },
+      { ALT: () => $.CONSUME($.T.StringLiteral) }
     ])
     $._(4)
   })
@@ -294,24 +299,36 @@ export default function(this: LessParser, $: LessParser) {
     $.SUBRULE($.guardOr)
   })
 
+  /** 'or' expression */
   $.guardOr = $.RULE('guardOr', () => {
     $.SUBRULE($.guardAnd, { LABEL: 'lhs' })
     $.MANY(() => {
-      $.CONSUME($.T.Comma)
+      $.OR([
+        { ALT: () => $.CONSUME($.T.Comma) },
+        { ALT: () => $.CONSUME($.T.Or) }
+      ])
       $._()
       $.SUBRULE2($.guardAnd, { LABEL: 'rhs' })
     })
-    $._(1)
   })
 
+  /** 
+   * 'and' and 'or' expressions
+   * 
+   *  In Media queries level 4, you cannot have
+   *  `([expr]) or ([expr]) and ([expr])` because
+   *  of evaluation order ambiguity.
+   *  However, Less allows it.
+   */
   $.guardAnd = $.RULE('guardAnd', () => {
     $.SUBRULE($.guardExpression, { LABEL: 'lhs' })
+    $._()
     $.MANY(() => {
       $.CONSUME($.T.And)
-      $._()
+      $._(1)
       $.SUBRULE2($.guardExpression, { LABEL: 'rhs' })
+      $._(2)
     })
-    $._(1)
   })
 
   $.guardExpression = $.RULE('guardExpression', () => {
@@ -319,8 +336,17 @@ export default function(this: LessParser, $: LessParser) {
       $.CONSUME($.T.Not)
       $._()
     })
+    
     $.CONSUME($.T.LParen)
-    $.SUBRULE($.compare)
+    $._(1)
+    $.OR({
+      IGNORE_AMBIGUITIES: true,
+      DEF: [
+        { ALT: () => $.SUBRULE2($.guardOr) },
+        { ALT: () => $.SUBRULE($.compare) }
+      ]
+    })
+    $._(2)
     $.CONSUME($.T.RParen)
   })
 }
