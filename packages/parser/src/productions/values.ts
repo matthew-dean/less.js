@@ -52,11 +52,7 @@ export default function (this: LessParser, $: LessParser) {
         }
       },
       { ALT: () => $.SUBRULE2($.curlyBlock) },
-      { ALT: () => {
-        $.inCompareBlock = true
-        $.SUBRULE($.expression)
-        $.inCompareBlock = false
-      }}
+      { ALT: () => $.SUBRULE($.expression) }
     ])
   })
 
@@ -67,7 +63,13 @@ export default function (this: LessParser, $: LessParser) {
       {
         ALT: () => {
           $.CONSUME($.T.LParen)
-          $.SUBRULE($.expressionList)
+          $.OR2([
+            {
+              GATE: compareGate,
+              ALT: () => $.SUBRULE($.guardOr)
+            },
+            { ALT: () => $.SUBRULE($.expressionList) }
+          ])
           $.CONSUME($.T.RParen)
         }
       },
@@ -98,12 +100,14 @@ export default function (this: LessParser, $: LessParser) {
   })
 
   $.compare = $.RULE('compare', () => {
+    $.inCompareBlock = true
     $.SUBRULE($.addition, { LABEL: 'lhs' })
     $.MANY(() => {
       $.CONSUME($.T.CompareOperator)
       $._()
       $.SUBRULE2($.addition, { LABEL: 'rhs' })
     })
+    $.inCompareBlock = false
     $._(1)
   })
 

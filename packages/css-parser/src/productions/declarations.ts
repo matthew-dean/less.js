@@ -1,5 +1,4 @@
 import type { CssParser } from '../cssParser'
-import { MismatchedTokenException } from 'chevrotain'
 
 export default function(this: CssParser, $: CssParser) {
   /**

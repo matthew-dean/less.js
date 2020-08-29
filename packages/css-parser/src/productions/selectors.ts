@@ -97,13 +97,23 @@ export default function(this: CssParser, $: CssParser) {
           $.CONSUME($.T.Colon, { LABEL: 'Selector' })
           $.OPTION(() => $.CONSUME2($.T.Colon))
           $.OR2([
-            { ALT: () => $.CONSUME($.T.Ident) },
+            {
+              ALT: () => {
+                $.CONSUME($.T.Ident)
+                /** Handle functions parsed as idents (like `not`) */
+                $.OPTION2(() => {
+                  $.CONSUME($.T.LParen)
+                  $.SUBRULE($.expressionListGroup)
+                  $.CONSUME($.T.RParen)
+                })
+              }
+            },
             /** e.g. :pseudo(...) */
             {
               ALT: () => {
                 $.CONSUME($.T.Function)
-                $.SUBRULE($.expressionListGroup)
-                $.CONSUME($.T.RParen)
+                $.SUBRULE2($.expressionListGroup)
+                $.CONSUME2($.T.RParen)
               }
             }
           ])

@@ -219,9 +219,13 @@ export default function(this: LessParser, $: LessParser) {
    */
   $.mixinArgAssignment = $.RULE('mixinArgAssignment', () => {
     $.CONSUME($.T.AtKeyword)
-    $._()
-    $.CONSUME($.T.Assign)
-    $._(1)
+    $.OR([
+      { ALT: () => $.CONSUME($.T.Ellipsis) },
+      { ALT: () => {
+        $._()
+        $.CONSUME($.T.Assign)
+      }}
+    ])
   })
 
   $.mixinCallArg = $.RULE('mixinCallArg', (semiColonSeparated: boolean) => {
@@ -229,15 +233,21 @@ export default function(this: LessParser, $: LessParser) {
       GATE: $.BACKTRACK($.mixinArgAssignment),
       DEF: () => $.SUBRULE($.mixinArgAssignment)
     })
-    $.OR([
-      { ALT: () => $.SUBRULE($.curlyBlock) },
-      {
-        GATE: () => !!semiColonSeparated,
-        ALT: () => $.SUBRULE($.expressionList)
-      },
-      { ALT: () => $.SUBRULE($.expression) }
-    ])
-    $._(4)
+    $.OPTION2({
+      GATE: () => $.LA(0).tokenType !== $.T.Ellipsis,
+      DEF: () => {
+        $._()
+        $.OR([
+          { ALT: () => $.SUBRULE($.curlyBlock) },
+          {
+            GATE: () => !!semiColonSeparated,
+            ALT: () => $.SUBRULE($.expressionList)
+          },
+          { ALT: () => $.SUBRULE($.expression) }
+        ])
+      }
+    })
+    $._(1)
   })
 
   /**
@@ -293,6 +303,12 @@ export default function(this: LessParser, $: LessParser) {
     $._(4)
   })
 
+  /**
+   * @note - Guards do not require parens during parsing,
+   *         in order to handle recursive nesting.
+   *         They should be evaluated during post-processing
+   *         (CST visitor?)
+   */
   $.guard = $.RULE('guard', () => {
     $.CONSUME($.T.When)
     $._()
@@ -336,17 +352,7 @@ export default function(this: LessParser, $: LessParser) {
       $.CONSUME($.T.Not)
       $._()
     })
-    
-    $.CONSUME($.T.LParen)
-    $._(1)
-    $.OR({
-      IGNORE_AMBIGUITIES: true,
-      DEF: [
-        { ALT: () => $.SUBRULE2($.guardOr) },
-        { ALT: () => $.SUBRULE($.compare) }
-      ]
-    })
-    $._(2)
-    $.CONSUME($.T.RParen)
+
+    $.SUBRULE($.compare)
   })
 }

@@ -115,6 +115,14 @@ describe('can parse any rule', () => {
     parser.input = lexedTokens
     parser.primary()
     expect(parser.errors.length).to.equal(0)
+
+    lexerResult = lessParser.lexer.tokenize(
+      `.parenthesisNot(@value) when (((not(@value)))) {`
+    )
+    lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    parser.testMixin()
+    expect(parser.errors.length).to.equal(0)
   })
 
   it('variable declaration', () => {
@@ -144,14 +152,14 @@ describe('can parse all Less stylesheets', () => {
     ].indexOf(value) === -1)
     .sort()
     .forEach(file => {
-      if (file.indexOf('mixins-') > -1) {
+      // if (file.indexOf('css-') > -1) {
         it(`${file}`, () => {
           const result = fs.readFileSync(path.join(testData, file))
           const { cst, lexerResult } = lessParser.parse(result.toString())
           expect(lexerResult.errors.length).to.equal(0)
           expect(parser.errors.length).to.equal(0)
         })
-      }
+      // }
     })
 })
 
