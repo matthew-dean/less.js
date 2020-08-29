@@ -18,9 +18,45 @@ export default function (this: LessParser, $: LessParser) {
   })
 
   $.function = $.RULE('function', () => {
-    $.CONSUME($.T.Function)
-    $.SUBRULE($.functionArgs)
-    $.CONSUME($.T.RParen)
+    $.OR([
+      {
+        ALT: () => {
+          $.OR2([
+            { ALT: () => $.CONSUME($.T.PlainFunction) },
+            { ALT: () => $.CONSUME($.T.FormatFunction) }
+          ])
+          $.SUBRULE($.functionArgs)
+          $.CONSUME($.T.RParen)
+        }
+      },
+      /**
+       * Special parsing of `if` and `boolean`
+       */
+      {
+        ALT: () => {
+          $.CONSUME($.T.BooleanFunction)
+          $.SUBRULE($.guardOr, { ARGS: [true] })
+          $.CONSUME2($.T.RParen)
+        }
+      },
+      {
+        ALT: () => {
+          $.CONSUME($.T.IfFunction)
+          $.SUBRULE2($.guardOr, { ARGS: [true] })
+          $._()
+          $.MANY(() => {
+            $.OR3([
+              { ALT: () => $.CONSUME($.T.Comma) },
+              { ALT: () => $.CONSUME($.T.SemiColon) }
+            ])
+            $._(1)
+            $.SUBRULE2($.functionArg)
+            $._(2)
+          })
+          $.CONSUME3($.T.RParen)
+        }
+      }
+    ])
   })
 
   $.functionArgs = $.RULE('functionArgs', () => {
@@ -58,6 +94,9 @@ export default function (this: LessParser, $: LessParser) {
 
   /** This is more specific than the CSS parser */
   $.value = $.OVERRIDE_RULE('value', () => {
+    $.OPTION(() => {
+      $.CONSUME($.T.AdditionOperator)
+    })
     $.OR([
       /** Blocks */
       {
@@ -100,6 +139,7 @@ export default function (this: LessParser, $: LessParser) {
   })
 
   $.compare = $.RULE('compare', () => {
+    const compareValue = $.inCompareBlock
     $.inCompareBlock = true
     $.SUBRULE($.addition, { LABEL: 'lhs' })
     $.MANY(() => {
@@ -107,7 +147,8 @@ export default function (this: LessParser, $: LessParser) {
       $._()
       $.SUBRULE2($.addition, { LABEL: 'rhs' })
     })
-    $.inCompareBlock = false
+    /** Restore to value on entry */
+    $.inCompareBlock = compareValue
     $._(1)
   })
 

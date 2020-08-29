@@ -77,9 +77,15 @@ export default function(this: LessParser, $: LessParser) {
             $._(1)
             $.OR2([
               { ALT: () => $.SUBRULE($.curlyBlock) },
-              { ALT: () => $.SUBRULE($.expressionList) }
+              { ALT: () => {
+                $.SUBRULE($.expressionList)
+                $.OPTION(() => {
+                  $.CONSUME($.T.Important)
+                  $._(2)
+                })
+              }}
             ])
-            $.OPTION(() => $.CONSUME($.T.SemiColon))
+            $.OPTION2(() => $.CONSUME($.T.SemiColon))
           }
         },
         {
@@ -88,7 +94,7 @@ export default function(this: LessParser, $: LessParser) {
             $.OR3([
               { ALT: () => $.SUBRULE2($.curlyBlock) },
               { ALT: () => {
-                $.OPTION2(() => $.CONSUME2($.T.SemiColon))
+                $.OPTION3(() => $.CONSUME2($.T.SemiColon))
               }}
             ])
           }

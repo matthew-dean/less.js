@@ -36,14 +36,17 @@ const merges: IMerges = {
       categories: ['Interpolated', 'Selector'],
       start_chars_hint: ['@', '$']
     },
+    /**
+     * @todo - remove in the future?
+     */
     {
       name: 'InterpolatedSelector',
-      pattern: ['[\.#]{{interpolated}}', groupCapture],
+      pattern: ['[\.#:]{{interpolated}}', groupCapture],
       categories: ['Interpolated', 'Selector'],
-      start_chars_hint: ['.', '#']
+      start_chars_hint: ['.', '#', ':']
     },
-    { name: 'PlusAssign', pattern: /\+:/, categories: ['BlockMarker', 'Assign'] },
-    { name: 'UnderscoreAssign', pattern: /\+_:/, categories: ['BlockMarker', 'Assign'] },
+    { name: 'PlusAssign', pattern: '\\+{{whitespace}}*:', categories: ['BlockMarker', 'Assign'] },
+    { name: 'UnderscoreAssign', pattern: '\\+{{whitespace}}*_{{whitespace}}*:', categories: ['BlockMarker', 'Assign'] },
     { name: 'AnonMixinStart', pattern: /[\.#]\(/, categories: ['BlockMarker'] },
     { name: 'GtEqAlias', pattern: /=>/, categories: ['CompareOperator'] },
     { name: 'LtEqAlias', pattern: /=</, categories: ['CompareOperator'] },
@@ -70,7 +73,7 @@ const merges: IMerges = {
     },
     {
       name: 'PropertyReference',
-      pattern: '\\${{ident}}',
+      pattern: '\\$-?{{ident}}',
       categories: ['VarOrProp']
     }
   ],
@@ -93,6 +96,16 @@ const merges: IMerges = {
       pattern: /%\(/,
       categories: ['BlockMarker', 'Function']
     },
+    {
+      name: 'IfFunction',
+      pattern: /if\(/,
+      categories: ['BlockMarker', 'Function']
+    },
+    {
+      name: 'BooleanFunction',
+      pattern: /boolean\(/,
+      categories: ['BlockMarker', 'Function']
+    }
   ],
   Uri: [
     {

@@ -18,7 +18,7 @@ export default function(this: LessParser, $: LessParser) {
     $.SUBRULE($.mixinStart)
     $._()
     $.OR([
-      /** Will throw error in 4.x, but allows for better error */
+      /** Will throw error in 5.x, but allows for better error */
       { ALT: () => $.CONSUME($.T.SemiColon) },
       { ALT: () => {
         $.CONSUME($.T.LParen)
@@ -316,15 +316,18 @@ export default function(this: LessParser, $: LessParser) {
   })
 
   /** 'or' expression */
-  $.guardOr = $.RULE('guardOr', () => {
+  $.guardOr = $.RULE('guardOr', (disallowComma: boolean) => {
     $.SUBRULE($.guardAnd, { LABEL: 'lhs' })
-    $.MANY(() => {
-      $.OR([
-        { ALT: () => $.CONSUME($.T.Comma) },
-        { ALT: () => $.CONSUME($.T.Or) }
-      ])
-      $._()
-      $.SUBRULE2($.guardAnd, { LABEL: 'rhs' })
+    $.MANY({
+      GATE: () => $.LA(1).tokenType !== $.T.Comma || !disallowComma,
+      DEF: () => {
+        $.OR([
+          { ALT: () => $.CONSUME($.T.Comma) },
+          { ALT: () => $.CONSUME($.T.Or) }
+        ])
+        $._()
+        $.SUBRULE2($.guardAnd, { LABEL: 'rhs' })
+      }
     })
   })
 

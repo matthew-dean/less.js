@@ -3,6 +3,9 @@ import type { LessParser } from '../lessParser'
 export default function(this: LessParser, $: LessParser) {
   /** "color" in "color: red" */
   $.property = $.OVERRIDE_RULE('property', () => {
+    /** Legacy - remove? */
+    $.OPTION(() => $.CONSUME($.T.Star))
+    
     $.OR([
       { ALT: () => {
         $.AT_LEAST_ONE(() => $.OR2([
@@ -11,14 +14,7 @@ export default function(this: LessParser, $: LessParser) {
           /** Isolated dashes */
           { ALT: () => $.CONSUME($.T.Minus) }
         ]))
-      }},
-      {
-        /** Legacy - remove? */
-        ALT: () => {
-          $.CONSUME($.T.Star)
-          $.CONSUME2($.T.Ident)
-        }
-      }
+      }}
     ])
     
   })

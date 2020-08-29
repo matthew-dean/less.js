@@ -152,7 +152,7 @@ describe('can parse all Less stylesheets', () => {
     ].indexOf(value) === -1)
     .sort()
     .forEach(file => {
-      // if (file.indexOf('css-') > -1) {
+      // if (file.indexOf('namespacing-7.less') > -1) {
         it(`${file}`, () => {
           const result = fs.readFileSync(path.join(testData, file))
           const { cst, lexerResult } = lessParser.parse(result.toString())
