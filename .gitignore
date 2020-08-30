@@ -7,7 +7,6 @@
 *.iml
 *.sublime-*
 
-dist/
 # the browser dist is pulled from git?
 !packages/less/dist
 
@@ -38,4 +37,4 @@ dist
 coverage
 
 # Using yarn
-package-lock.json
+!package-lock.json
