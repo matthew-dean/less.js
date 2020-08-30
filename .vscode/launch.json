@@ -7,10 +7,56 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Less test",
-      "program": "${workspaceFolder}/packages/less/test/index.js",
-      "cwd": "${workspaceFolder}/packages/less",
-      "console": "integratedTerminal"
+      "name": "CSS Parsing Tests",
+      "cwd": "${workspaceFolder}/packages/css-parser",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-r",
+        "ts-node/register",
+        "-u",
+        "bdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/packages/css-parser/test/**/*.ts"
+      ],
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Less Parsing Tests",
+      "cwd": "${workspaceFolder}/packages/parser",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-r",
+        "ts-node/register",
+        "-u",
+        "bdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/packages/parser/test/**/*.ts"
+      ],
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Core Less tests",
+      "cwd": "${workspaceFolder}/packages/core",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-r",
+        "ts-node/register",
+        "-u",
+        "bdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/packages/core/src/**/__tests__/*.ts"
+      ],
+      "internalConsoleOptions": "openOnSessionStart"
     }
   ]
 }

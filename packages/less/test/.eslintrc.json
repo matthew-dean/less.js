@@ -3,7 +3,7 @@
     "node": true,
     "browser": true
   },
-  "parserOptions": { 
+  "parserOptions": {
     "ecmaVersion": 6
   }
 }

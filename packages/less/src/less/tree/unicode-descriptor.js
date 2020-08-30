@@ -1,13 +1,13 @@
-import Node from './node';
+import Node from './node'
 
 class UnicodeDescriptor extends Node {
-    constructor(value) {
-        super();
+  constructor(value) {
+    super()
 
-        this.value = value;
-    }
+    this.value = value
+  }
 }
 
-UnicodeDescriptor.prototype.type = 'UnicodeDescriptor';
+UnicodeDescriptor.prototype.type = 'UnicodeDescriptor'
 
-export default UnicodeDescriptor;
+export default UnicodeDescriptor

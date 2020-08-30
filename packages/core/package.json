@@ -1,0 +1,29 @@
+{
+  "name": "@less/core",
+  "version": "4.0.0-dev.1",
+  "description": "",
+  "main": "dist/index",
+  "types": "dist/index",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "ci": "echo \"FIXME!!! npm-run-all build test\"",
+    "prepublishOnly": "npm run build",
+    "build": "npm-run-all clean compile",
+    "clean": "shx rm -rf ./dist tsconfig.tsbuildinfo",
+    "compile": "tsc -b tsconfig.json",
+    "dev": "tsc -b tsconfig.json -w",
+    "test": "ts-mocha --recursive \"src/**/__tests__/*.ts\""
+  },
+  "author": "Alexis Sellier",
+  "contributors": [
+    "Matthew Dean",
+    "Luke Page",
+    "Alexis Sellier",
+    "The Core Less Team"
+  ],
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {}
+}

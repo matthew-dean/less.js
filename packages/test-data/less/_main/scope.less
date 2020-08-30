@@ -9,7 +9,7 @@
 @mix: blue;
 .tiny-scope {
   color: @mix; // #989
-  .mixin;
+  .mixin();
 }
 
 .scope1 {
@@ -41,7 +41,7 @@
   }
 }
 
-#namespace > .scoped_mixin();
+#namespace.scoped_mixin();
 
 .setHeight(@h) { @height: 1024px; }
 .useHeightInMixinCall(@h) { .useHeightInMixinCall { mixin-height: @h; } }
@@ -57,7 +57,7 @@
 }
 .importRuleset();
 .testImported {
-  .imported;
+  .imported();
 }
 
 @parameterDefault: 'top level';

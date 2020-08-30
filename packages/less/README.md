@@ -4,10 +4,10 @@
 
 This is the JavaScript, official, stable version of Less.
 
-
 ## Getting Started
 
 Add Less.js to your project:
+
 ```sh
 npm install less
 ```
