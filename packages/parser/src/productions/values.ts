@@ -1,4 +1,5 @@
 import { LessParser } from '../lessParser'
+import { EMPTY_ALT } from 'chevrotain'
 
 export default function (this: LessParser, $: LessParser) {
   const compareGate = () => $.inCompareBlock
@@ -92,6 +93,40 @@ export default function (this: LessParser, $: LessParser) {
     ])
   })
 
+  $.variable = $.RULE('variable', () => {
+    $.OR([
+      { ALT: () => $.CONSUME($.T.VarOrProp) },
+      { ALT: () => {
+        $.AT_LEAST_ONE(() => $.CONSUME($.T.Selector))
+        /**
+         * @note - if there are no parens or accessors, then
+         *         it's a plain selector
+         */
+        $.OPTION(() => {
+          $.CONSUME($.T.LParen)
+          const isSemiColonSeparated = $.isSemiColonSeparated
+          $.OPTION2({
+            GATE: $.BACKTRACK($.testMixinArgs),
+            DEF: () => {
+              $.SUBRULE($.mixinCallArgs, { ARGS: [isSemiColonSeparated] })
+              $.CONSUME($.T.RParen)
+            }
+          })
+          $.isSemiColonSeparated = isSemiColonSeparated
+        })
+      }}
+    ])
+    $.MANY(() => {
+      $.CONSUME($.T.LSquare)
+      $.OR2([
+        { ALT: () => $.CONSUME2($.T.VarOrProp) },
+        { ALT: () => $.CONSUME($.T.Ident) },
+        { ALT: () => EMPTY_ALT }
+      ])
+      $.CONSUME($.T.RSquare)
+    })
+  })
+
   /** This is more specific than the CSS parser */
   $.value = $.OVERRIDE_RULE('value', () => {
     $.OPTION(() => {
@@ -121,7 +156,7 @@ export default function (this: LessParser, $: LessParser) {
       },
       { ALT: () => $.SUBRULE($.function) },
       { ALT: () => $.CONSUME($.T.Ident) },
-      { ALT: () => $.CONSUME($.T.VarOrProp) },
+      { ALT: () => $.SUBRULE($.variable) },
       { ALT: () => $.CONSUME($.T.CustomProperty) },
       { ALT: () => $.CONSUME($.T.Unit) },
       { ALT: () => $.CONSUME($.T.Percent) },
@@ -133,7 +168,6 @@ export default function (this: LessParser, $: LessParser) {
       /** Can be found in selector expressions */
       { ALT: () => $.CONSUME($.T.AttrMatchOperator) },
       { ALT: () => $.CONSUME($.T.Colon) },
-      { ALT: () => $.CONSUME($.T.Selector) },
       { ALT: () => $.CONSUME($.T.Combinator) }
     ])
   })

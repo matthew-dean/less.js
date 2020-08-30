@@ -23,10 +23,7 @@ export class LessParser extends CssParser {
   addition: Rule
   multiplication: Rule
   compare: Rule
-  testVariable: Rule
   variable: Rule
-  variableCall: Rule
-  variableDeclaration: Rule
 
   /** functions */
   function: Rule
@@ -38,6 +35,7 @@ export class LessParser extends CssParser {
   testAnonMixin: Rule
   testMixinArgs: Rule
   testMixinExpression: Rule
+  testMixinEnd: Rule
   mixin: Rule
   mixinName: Rule
   mixinStart: Rule

@@ -213,7 +213,7 @@
     }
 }
 
-#ns > .mixin-for-root-usage(1);
+#ns.mixin-for-root-usage(1);
 
 @namespaceGuard: 1;
 #guarded when (@namespaceGuard>0) {
@@ -252,7 +252,7 @@
   }
 }
 #guarded-caller {
-  #guarded > #deeper > .mixin();
+  #guarded#deeper.mixin();
 }
 #top {
   #deeper when (@namespaceGuard<0) {
@@ -267,7 +267,7 @@
   }
 }
 #guarded-deeper {
-  #top > #deeper > .mixin(1);
+  #top#deeper.mixin(1);
 }
 
 // namespaced & guarded mixin in root
@@ -277,7 +277,7 @@
 #ns {
     .guarded-mixin-for-root() when (@guarded-mixin-for-root) {}
 }
-#ns > .guarded-mixin-for-root();
+#ns.guarded-mixin-for-root();
 // various combinations of nested or, and, parenthesis and negation
 .parenthesisNot(@value) when ((((@value)))) {
   parenthesisNot: just-value;

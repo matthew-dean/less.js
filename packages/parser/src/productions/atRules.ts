@@ -37,9 +37,7 @@ export default function(this: LessParser, $: LessParser) {
         ALT: () => {
         $.CONSUME($.T.PlainIdent)
       }},
-      {
-        ALT: () => $.CONSUME($.T.VarOrProp)
-      },
+      { ALT: () => $.SUBRULE($.variable) },
       { 
         ALT: () => {
           $.CONSUME($.T.LParen)

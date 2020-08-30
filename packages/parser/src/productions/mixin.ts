@@ -22,14 +22,14 @@ export default function(this: LessParser, $: LessParser) {
       { ALT: () => $.CONSUME($.T.SemiColon) },
       { ALT: () => {
         $.CONSUME($.T.LParen)
-        $.SUBRULE($.testMixinArgs)
+        $.SUBRULE($.testMixinEnd)
       }}
     ])
   })
 
   $.testAnonMixin = $.RULE('testAnonMixin', () => {
     $.CONSUME($.T.AnonMixinStart)
-    $.SUBRULE($.testMixinArgs)
+    $.SUBRULE($.testMixinEnd)
   })
 
   $.testMixinArgs = $.RULE('testMixinArgs', () => {
@@ -45,6 +45,10 @@ export default function(this: LessParser, $: LessParser) {
       })
     })
     $.CONSUME($.T.RParen)
+  })
+
+  $.testMixinEnd = $.RULE('testMixinEnd', () => {
+    $.SUBRULE($.testMixinArgs)
     $._(1)
     $.OPTION2(() => {
       $.CONSUME($.T.Important)
@@ -122,16 +126,7 @@ export default function(this: LessParser, $: LessParser) {
   })
 
   $.mixinCall = $.RULE('mixinCall', (semiColonSeparated: boolean) => {
-    $.SUBRULE($.mixinName)
-    $.MANY(() => {
-      $._()
-      $.OPTION(() => {
-        $.CONSUME($.T.Gt)
-        $._(1)
-      })
-      $.SUBRULE2($.mixinName)
-    })
-
+    $.AT_LEAST_ONE(() => $.SUBRULE($.mixinName))
     $.CONSUME($.T.LParen, { LABEL: 'L' })
     $.SUBRULE($.mixinCallArgs, { ARGS: [semiColonSeparated] })
     $.CONSUME($.T.RParen, { LABEL: 'R' })
