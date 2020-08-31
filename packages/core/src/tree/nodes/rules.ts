@@ -15,10 +15,8 @@ import {
 } from '.'
 
 /**
- * @todo - rewrite
- * A Rules is a generic object in Less
- *
- * It can have selectors, arguments, a set of rule nodes (as rules), and a guard
+ * A Rules Node is a collection of nodes, usually between `{` `}`.
+ * This is also the root node of the AST.
  *
  * e.g.
  *      1. a plain qualified CSS rule [a {b: c}] will have selectors and rules

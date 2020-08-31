@@ -31,7 +31,7 @@ export class Rule extends Node {
   selectors: SelectorList
   condition: Bool | Condition | undefined
 
-  constructor(props: IRuleProps, options: INodeOptions, location: ILocationInfo) {
+  constructor(props: IRuleProps, options?: INodeOptions, location?: ILocationInfo) {
     const { selectors } = props
     if (
       selectors
