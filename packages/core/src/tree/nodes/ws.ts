@@ -5,7 +5,7 @@ import { Node, IProps, INodeOptions, ILocationInfo } from '.'
  * Used to normalize expressions and values for equality testing
  * and list indexing
  *
- *   e.g. { value: ' ', text: ' //foo' }
+ *   e.g. { value: ' ', text: ' \n  ' }
  */
 export class WS extends Node {
   constructor(text?: string | IProps, options?: INodeOptions, location?: ILocationInfo) {

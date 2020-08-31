@@ -8,11 +8,25 @@ let colorFunctions: {
   [key: string]: LessFunction
 }
 
+type Hsla = {
+  h: number
+  s: number
+  l: number
+  a: number
+}
+
+type Rgba = {
+  r: number
+  g: number
+  b: number
+  a: number
+}
+
 function clamp(val: number) {
   return Math.min(1, Math.max(0, val))
 }
 
-function hsla(origColor: Color, hsl) {
+function hsla(origColor: Color, hsl: Hsla) {
   const color = colorFunctions.hsla.call(this, hsl.h, hsl.s, hsl.l, hsl.a)
   const colorFormat = origColor.options.colorFormat
   color.options.colorFormat = colorFormat
@@ -178,11 +192,11 @@ colorFunctions = {
     return new Dimension([color.toHSV().v * 100, '%'])
   }, [Color]),
 
-  red: define(function (color) {
+  red: define(function (color: Color) {
     return new Num(color.value[0])
   }, [Color]),
 
-  green: define(function (color) {
+  green: define(function (color: Color) {
     return new Num(color.value[1])
   }, [Color]),
 

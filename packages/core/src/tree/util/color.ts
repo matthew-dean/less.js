@@ -3,7 +3,7 @@ import { Node, Color, Value, IProps } from '../nodes'
 /**
  * Integer values for CSS color keywords
  */
-const Colors = {
+const Colors: { [k: string]: number } = {
   aliceblue: 15792383,
   antiquewhite: 16444375,
   aqua: 65535,

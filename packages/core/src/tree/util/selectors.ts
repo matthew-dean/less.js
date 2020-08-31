@@ -32,7 +32,7 @@ export const mergeProperties = <T extends Node = Node>(rules: T[], clone?: boole
       const result = group[0]
 
       if (result.options.mergeType === MergeType.SPACED) {
-        let important = null
+        let important: Node | null = null
         const nodes = group.reduce((nodes, rule, i) => {
           if (i === 0) {
             return
@@ -49,7 +49,7 @@ export const mergeProperties = <T extends Node = Node>(rules: T[], clone?: boole
           result.nodes.push(important)
         }
       } else {
-        let important = null
+        let important: Node | null = null
         const nodes = group.reduce((nodes, rule, i) => {
           const ruleNodes = rule.nodes
           const imprt = ruleNodes[1]

@@ -1,12 +1,12 @@
 import { expect } from 'chai'
 import 'mocha'
-import { Declaration, Value } from '..'
+import { Declaration, Value, Name, Node } from '..'
 
 describe('Node cloning', () => {
   let val: Value
   let decl: Declaration
-  let name
-  let nodes
+  let name: Name
+  let nodes: Node[]
   let clone: Declaration
 
   beforeEach(() => {

@@ -60,7 +60,8 @@ export class RulesCall extends Node {
         return this.error(`Mixin reference '${varName}' does not accept args`, context)
       }
       if (result instanceof MixinDefinition) {
-        return this.matchMixins([result], context)
+        // return
+        this.matchMixins([result], context)
       }
     }
     super.eval(context)
@@ -77,7 +78,7 @@ export class RulesCall extends Node {
     const findValues = selector.getMixinCompareValue().split(/[#.]/)
 
     const walk = (start: Node[], findValues: string[], scope: MatchOption) => {
-      let results = []
+      let results: Node[] = []
       findValues.forEach((val, i) => {
         const mixinName = val.replace(/^[#.]/, '')
         start.forEach(ctx => {
@@ -116,7 +117,7 @@ export class RulesCall extends Node {
       return results
     }
 
-    let parentContext = [this]
+    let parentContext: Node[] = [this]
 
     findValues.forEach((val, i) => {
       if (!val) {

@@ -51,6 +51,6 @@ export class Url extends Node {
 
 Url.prototype.type = 'Url'
 
-function escapePath(path) {
+function escapePath(path: string) {
   return path.replace(/[\(\)'"\s]/g, match => `\\${match}`)
 }
