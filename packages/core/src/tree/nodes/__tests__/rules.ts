@@ -102,7 +102,7 @@ describe('Rules', () => {
     expect(val.valueOf()).to.eq('{merge:foo;merge:bar;prop:bar,foo}')
   })
 
-  it('should eval imports', () => {
-    const node = new Rules([new ImportRule()])
-  })
+  // it('should eval imports', () => {
+  //   const node = new Rules([new ImportRule({})])
+  // })
 })

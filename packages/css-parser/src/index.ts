@@ -7,10 +7,10 @@ export * from './cssTokens'
 export * from './util'
 export * from './cssParser'
 
-export interface IParseResult {
+export interface IParseResult<T extends CssParser = CssParser> {
   cst: CstNode
   lexerResult: ILexingResult
-  parser: CssParser
+  parser: T
 }
 
 export class Parser {

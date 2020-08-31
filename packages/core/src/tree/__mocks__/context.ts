@@ -109,6 +109,6 @@ export const environment = new MockEnvironment([], [], new MockLogger())
 const less: Less = {
   version: [4, 0, 0],
   environment,
-  options: {}
+  options: DefaultOptions()
 }
 export const context = new Context(less, environment, DefaultOptions())

@@ -1,5 +1,8 @@
 {
   "name": "@less/css-parser",
+  "publishConfig": {
+    "access": "public"
+  },
   "version": "5.0.0-dev.1",
   "description": "",
   "main": "dist/index",

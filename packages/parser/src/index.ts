@@ -3,6 +3,7 @@ import { Tokens, Fragments } from './lessTokens'
 import { createLexer, IParseResult } from '@less/css-parser'
 import { LessParser } from './lessParser'
 
+export { LessParser }
 export class Parser {
   lexer: Lexer
   parser: LessParser
@@ -13,7 +14,7 @@ export class Parser {
     this.parser = new LessParser(tokens, T)
   }
 
-  parse(text: string): IParseResult {
+  parse(text: string): IParseResult<LessParser> {
     const parser = this.parser
     const lexerResult = this.lexer.tokenize(text)
     const lexedTokens: IToken[] = lexerResult.tokens
