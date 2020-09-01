@@ -23,7 +23,7 @@ export class Context {
   mathOn: boolean
   importantScope: { important?: string }[]
   calcStack: boolean[]
-  blockStack: boolean[]
+  parenStack: boolean[]
   options: IOptions
 
   /** @todo - remove or explain */
@@ -57,7 +57,7 @@ export class Context {
     this.selectors = []
     this.frames = []
     this.importantScope = []
-    this.blockStack = []
+    this.parenStack = []
     this.inCalc = false
     this.mathOn = true
     this.errors = []
@@ -92,17 +92,17 @@ export class Context {
   }
 
   /**
-   * When entering a parens `(` or bracket block `[`,
-   * this will be true. However, when entering a function or mixin, we push
-   * `false` into the stack, to 'reset' for the purposes of figuring out
-   * if math should be applied.
+   * When entering a parens `(` this will be true. However,
+   * when entering a function or mixin, we push `false`
+   * into the stack, to 'reset' for the purposes of figuring
+   * out if math should be applied.
    */
-  enterBlock(blockValue: boolean = true) {
-    this.blockStack.unshift(blockValue)
+  enterParens(value: boolean = true) {
+    this.parenStack.unshift(value)
   }
 
-  exitBlock() {
-    this.blockStack.shift()
+  exitParens() {
+    this.parenStack.shift()
   }
 
   isMathOn(op?: string) {
@@ -110,11 +110,11 @@ export class Context {
       return false
     }
     const mathMode = this.options.math
-    if (op === '/' && this.blockStack[0] !== true) {
+    if (op === '/' && this.parenStack[0] !== true) {
       return false
     }
     if (mathMode > MathMode.NO_DIVISION) {
-      return this.blockStack[0]
+      return this.parenStack[0]
     }
     return true
   }

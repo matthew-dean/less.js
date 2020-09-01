@@ -15,14 +15,14 @@ export class Value extends Node {
   constructor(props: IValueProps, options?: INodeOptions, location?: ILocationInfo) {
     let returnProps: IProps
     if (props.constructor === String) {
-      returnProps = <IProps>{ text: <string>props, value: <string>props }
+      returnProps = <IProps>{ text: props, value: props.trim() }
     } else {
       returnProps = <IProps>props
       if (returnProps.value === undefined) {
         returnProps.value = returnProps.text
       }
     }
-    super(<IProps>returnProps, options, location)
+    super(returnProps, options, location)
   }
 }
 Value.prototype.type = 'Value'

@@ -5,15 +5,13 @@ export type IQuotedOptions = {
   quote: string
 }
 /**
- * There's nothing special about a quoted node, other than
- * the first and last member will contain quote marks
- *   e.g. <Quoted <Value ">, <Value foo>, <Value ">>
+ * This is a plain value wrapped in quote marks
+ *   e.g. "foo" = <Quoted {quote: '"" } <Value foo>>
  *
  * If interpolated vars are present, the middle value will be an expression, as in:
- *   e.g. <Quoted <Value ">, <Expression <Value foo>, <Variable @bar>>, <Value "> >
+ *   e.g. "foo@{bar}" = <Quoted {quote: '"" } <Expression <Value foo>, <Variable @bar>>>
  *
- *   1) it may contain interpolated vars
- *   2) we can do normalized equality checks with the "inner" nodes
+ *   This way, we can do normalized equality checks regardless of quote marks.
  */
 export class Quoted extends NodeArray {
   options: IQuotedOptions

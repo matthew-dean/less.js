@@ -44,7 +44,7 @@ describe('Selector', () => {
 
   it('should apply initial combinator to a nested expressions', () => {
     const rule = new Selector([
-      new Op({ value: '+', text: '+ ' }),
+      new Op('+ '),
       new List([
         new Expression([
           new WS(),

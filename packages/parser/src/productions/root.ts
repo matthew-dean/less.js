@@ -3,7 +3,7 @@ import type { LessParser } from '../lessParser'
 
 export default function(this: LessParser, $: LessParser) {
   $.rule = $.OVERRIDE_RULE('rule', () => {
-    $._()
+    $._(0, { LABEL: 'pre' })
     $.OR([
       { ALT: () => $.SUBRULE($.atRule) },
       { ALT: () => $.SUBRULE($.customDeclaration) },

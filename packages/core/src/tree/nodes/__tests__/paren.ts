@@ -1,15 +1,15 @@
 import { expect } from 'chai'
 import 'mocha'
-import { Block, Value, ILocationInfo } from '..'
+import { Paren, Value, ILocationInfo } from '..'
 
 const mockLocation: ILocationInfo = {
   startOffset: 0,
   startLine: 0
 }
 
-describe('Block', () => {
+describe('Paren', () => {
   it('toString()', () => {
-    const rule = new Block([new Value('('), new Value('foo'), new Value(')')])
+    const rule = new Paren([new Value('foo')])
     expect(String(rule)).to.eq('(foo)')
   })
 })

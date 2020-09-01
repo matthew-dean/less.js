@@ -45,6 +45,18 @@ export const CstVisitor = (parser: LessParser) => {
       })
     }
 
+    selectorList(ctx: any) {
+      const selectors = this.visit(ctx.complexSelector)
+      
+      return {}
+    }
+
+    complexSelector(ctx: any) {
+      const selectors = this.visit(ctx.selector)
+      
+      return {}
+    }
+
     declaration(ctx: any) {
       return {}
     }

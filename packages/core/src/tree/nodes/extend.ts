@@ -13,7 +13,18 @@ export type IExtendOptions = {
 }
 
 /**
- * @todo - the extend visitor should run after tree flattening
+ * @todo - Rework this...
+ * 
+ * Idea: make pseudo-selectors found during parsing, and matched
+ *       during evaluation, map to a function
+ * 
+ *       e.g. `.a:extend(.b) {}` is a JS function like
+ *            function extend(<Selector '.a'>, <Selector '.b'>) {
+ *              this.selectorRegistry('.a').add('.b')
+ *            }
+ * 
+ *       Then, when selectors are rendered, render according to the
+ *       registry, not their values?
  */
 export class Extend extends Node {
   options: IExtendOptions

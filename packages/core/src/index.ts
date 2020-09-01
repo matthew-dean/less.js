@@ -27,7 +27,6 @@ export type Less = {
 
   /** @todo - is there any way to generate these types or make a generic type? */
   atrule?(...args: GetConstructorArgs<typeof tree.AtRule>): tree.AtRule
-  block?(...args: GetConstructorArgs<typeof tree.Block>): tree.Block
   bool?(...args: GetConstructorArgs<typeof tree.Bool>): tree.Bool
   color?(...args: GetConstructorArgs<typeof tree.Color>): tree.Color
   comment?(...args: GetConstructorArgs<typeof tree.Comment>): tree.Comment
@@ -39,6 +38,7 @@ export type Less = {
   // functioncall?(...args: GetConstructorArgs<typeof tree.FunctionCall>): tree.Func
   list?(...args: GetConstructorArgs<typeof tree.List>): tree.List
   // mixin?(...args: GetConstructorArgs<typeof tree.Mixin>): tree.Mixin
+  paren?(...args: GetConstructorArgs<typeof tree.Paren>): tree.Paren
 }
 
 /**
@@ -85,8 +85,8 @@ export default (environment: Environment, options?: IOptions): Less => {
     (...args: GetConstructorArgs<T>) => t.apply(null, [...args])
 
   less.atrule = ctor(tree.AtRule)
-  less.block = ctor(tree.Block)
   less.bool = ctor(tree.Bool)
+  less.paren = ctor(tree.Paren)
 
   return Object.freeze(less)
 }

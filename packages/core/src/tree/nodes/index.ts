@@ -6,7 +6,7 @@ export * from '../node-array'
 export * from '../context'
 
 export * from './at-rule'
-export * from './block'
+export * from './paren'
 export * from './bool'
 export * from './color'
 export * from './comment'

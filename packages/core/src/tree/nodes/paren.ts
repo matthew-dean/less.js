@@ -1,31 +1,26 @@
 import { Context, EvalReturn, NodeArray, Value, Node, Condition, Operation } from '.'
 
 /**
- * A () [] or {} block that holds an expression
- * Previously named 'Paren'
- *
- * nodes will typically be [Value<'('>, Node, Value<')'>]
- *
- * @todo - define nodes interface for constructor
+ * A () block that holds a Node
  */
-export class Block extends NodeArray {
-  nodes: [Value, Node, Value]
+export class Paren extends NodeArray {
+  nodes: [Node]
 
   eval(context: Context): EvalReturn {
     if (!this.evaluated) {
-      let content = this.nodes[1]
+      let content = this.nodes[0]
       let escape = content instanceof Operation || content instanceof Condition
-      context.enterBlock()
+      context.enterParens()
       const block = super.eval(context)
-      context.exitBlock()
-      content = this.nodes[1]
+      context.exitParens()
+      content = this.nodes[0]
 
       /**
        * If the result of an operation or compare reduced to a single result,
        * then return the result (remove block marker)
        */
       if (escape && block instanceof Node) {
-        let content = block.nodes[1]
+        let content = block.nodes[0]
         if (!(content instanceof Operation) && !(content instanceof Condition)) {
           return content
         }
@@ -34,5 +29,9 @@ export class Block extends NodeArray {
     }
     return this
   }
+
+  toString() {
+    return '(' + this.nodes[0].toString() + ')'
+  }
 }
-Block.prototype.type = 'Block'
+Paren.prototype.type = 'Paren'

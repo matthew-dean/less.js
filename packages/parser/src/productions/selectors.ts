@@ -4,17 +4,17 @@ export default function(this: LessParser, $: LessParser) {
   $.selectorList = $.OVERRIDE_RULE('selectorList', () => {
     $.SUBRULE($.complexSelector)
     let allExtends = $.hasExtend
-    $._()
+    $._(0, { LABEL: 'post' })
     $.OR([
       { ALT: () => $.SUBRULE($.guard) },
       {
         ALT: () => {
           $.MANY(() => {
             $.CONSUME($.T.Comma)
-            $._(1)
+            $._(1, { LABEL: 'pre' })
             $.SUBRULE2($.complexSelector)
             allExtends = allExtends && $.hasExtend
-            $._(2)
+            $._(2, { LABEL: 'post' })
           })
         }
       }
@@ -26,10 +26,10 @@ export default function(this: LessParser, $: LessParser) {
   $.complexSelector = $.OVERRIDE_RULE('complexSelector', () => {
     $.OR([
       { ALT: () => {
-        $.SUBRULE($.compoundSelector, { LABEL: 'Selector' })
-        $.MANY(() => $.SUBRULE($.combinatorSelector))
+        $.SUBRULE($.compoundSelector, { LABEL: 'selector' })
+        $.MANY(() => $.SUBRULE($.combinatorSelector, { LABEL: 'selector' }))
       }},
-      { ALT: () => $.AT_LEAST_ONE(() => $.SUBRULE2($.combinatorSelector))}
+      { ALT: () => $.AT_LEAST_ONE(() => $.SUBRULE2($.combinatorSelector, { LABEL: 'selector' }))}
     ])
     $.OPTION(() => {
       $.CONSUME($.T.Extend)

@@ -1,10 +1,8 @@
 import { Context, Node, NodeArray, Null, Comment, List, WS } from '.'
 
 export type IExpressionOptions = {
-  inBlock?: boolean
-  blockInOp?: boolean
-  /** Insert spaces automatically when stringified */
-  spaced?: boolean
+  inParens?: boolean
+  parensInOp?: boolean
 }
 
 /**
@@ -14,12 +12,12 @@ export type IExpressionOptions = {
  *   2) When converted to an array, it discards whitespace and
  *      comments as members of the array.
  *
- * e.g. one + two: [<Value 'one'><Op { pre: ' ', value: '+', post: ' '}><Value 'two'>]
- *      one two [<Value 'one'><WS><Value 'two'>]
+ * e.g. one + two: [<Value 'one'><Op ' + '><Value 'two'>]
+ *      one two <Expression <Value 'one'><WS><Value 'two'>>
  *      prop: foo --> value part is <Expression { pre: ' ', nodes: [<Value 'foo'>] }>
  *
  * A selector expression is just:
- *      #foo ~ .bar [<Value '#foo'><Op { pre: ' ', value: '~', post: ' '}><Value '.bar'>]
+ *      #foo ~ .bar [<Value '#foo'><Op ' ~ '><Value '.bar'>]
  */
 export class Expression<T extends Node = Node> extends NodeArray {
   options: IExpressionOptions
@@ -27,13 +25,6 @@ export class Expression<T extends Node = Node> extends NodeArray {
 
   toArray() {
     return this.nodes.filter(node => !(node instanceof WS) && !(node instanceof Comment))
-  }
-
-  toString() {
-    if (this.options.spaced) {
-      return this.nodes.join(' ')
-    }
-    return this.nodes.join('')
   }
 
   /**
