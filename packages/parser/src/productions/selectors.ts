@@ -2,7 +2,7 @@ import type { LessParser } from '../lessParser'
 
 export default function(this: LessParser, $: LessParser) {
   $.selectorList = $.OVERRIDE_RULE('selectorList', () => {
-    $.SUBRULE($.complexSelector)
+    $.SUBRULE($.complexSelector, { LABEL: 'selector'})
     let allExtends = $.hasExtend
     $._(0, { LABEL: 'post' })
     $.OR([
@@ -12,7 +12,7 @@ export default function(this: LessParser, $: LessParser) {
           $.MANY(() => {
             $.CONSUME($.T.Comma)
             $._(1, { LABEL: 'pre' })
-            $.SUBRULE2($.complexSelector)
+            $.SUBRULE2($.complexSelector, { LABEL: 'selector'})
             allExtends = allExtends && $.hasExtend
             $._(2, { LABEL: 'post' })
           })
@@ -34,7 +34,7 @@ export default function(this: LessParser, $: LessParser) {
     $.OPTION(() => {
       $.CONSUME($.T.Extend)
       $.hasExtend = true
-      $.SUBRULE($.expressionListGroup, { LABEL: 'blockBody' })
+      $.SUBRULE($.selectorList, { LABEL: 'args' })
       $.CONSUME($.T.RParen, { LABEL: 'R' })
     })
     $._(1)

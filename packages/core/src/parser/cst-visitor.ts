@@ -57,6 +57,10 @@ export const CstVisitor = (parser: LessParser) => {
       return {}
     }
 
+    compoundSelector(ctx: any) {
+      return {}
+    }
+
     declaration(ctx: any) {
       return {}
     }

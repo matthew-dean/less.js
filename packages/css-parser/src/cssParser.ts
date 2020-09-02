@@ -107,6 +107,7 @@ export class CssParser extends CstParser {
   combinatorSelector: Rule
   compoundSelector: Rule
   simpleSelector: Rule
+  pseudoSelector: Rule
   attrSelector: Rule
   attrIdent: Rule
   nameSelector: Rule
