@@ -75,6 +75,7 @@ export class CssParser extends CstParser {
   consume: BaseParser['consume']
 
   /** Productions */
+  root: Rule
   primary: Rule
   rule: Rule
   atRule: Rule

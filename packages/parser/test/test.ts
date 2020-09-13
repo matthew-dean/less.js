@@ -82,7 +82,7 @@ describe('can parse any rule', () => {
     )
     lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
-    parser.primary()
+    parser.root()
     expect(parser.errors.length).to.equal(0)
 
 
@@ -113,7 +113,7 @@ describe('can parse any rule', () => {
     lexerResult = lessParser.lexer.tokenize(`.mixin-call({direct: works;}; @b: {named: works;});`)
     lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
-    parser.primary()
+    parser.root()
     expect(parser.errors.length).to.equal(0)
 
     lexerResult = lessParser.lexer.tokenize(

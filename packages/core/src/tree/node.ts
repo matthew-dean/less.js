@@ -238,6 +238,7 @@ export abstract class Node {
   }
 
   /** @todo - Visitor type */
+  /** @todo - Visit pre / post */
   accept(visitor: any) {
     this.processChildren(this, (node: Node) => visitor.visit(node))
   }

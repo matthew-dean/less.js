@@ -8,6 +8,8 @@ export default function(this: CssParser, $: CssParser) {
     return $.option(idx + 10, () => $.consume(idx + 10, $.T.WS, options))
   }
 
+  $.root = $.RULE('root', () => $.SUBRULE($.primary))
+
   $.primary = $.RULE('primary', () => {
     $.MANY(() => $.SUBRULE($.rule))
     $._()

@@ -6,15 +6,15 @@ export default function(this: CssParser, $: CssParser) {
    *   color: red
    */
   $.declaration = $.RULE('declaration', () => {
-    $.SUBRULE($.property)
-    $._()
-    $.CONSUME($.T.Assign)
-    $.SUBRULE($.expressionList)
+    $.SUBRULE($.property, { LABEL: 'name' })
+    $._(0, { LABEL: 'postName' })
+    $.CONSUME($.T.Assign, { LABEL: 'op' })
+    $.SUBRULE($.expressionList, { LABEL: 'value' })
     $.OPTION(() => {
-      $.CONSUME($.T.Important)
-      $._(1)
+      $.CONSUME($.T.Important, { LABEL: 'important' })
+      $._(1, { LABEL: 'postImportant' })
     })
-    $.OPTION2(() => $.CONSUME($.T.SemiColon))
+    $.OPTION2(() => $.CONSUME($.T.SemiColon, { LABEL: 'semi' }))
   })
 
   /**
@@ -22,25 +22,25 @@ export default function(this: CssParser, $: CssParser) {
    *   --color: { ;red }
    */
   $.customDeclaration = $.RULE('customDeclaration', () => {
-    $.SUBRULE($.customProperty)
-    $._()
-    $.CONSUME($.T.Assign)
-    $.SUBRULE($.customValue)
-    $.OPTION(() => $.CONSUME($.T.SemiColon))
+    $.SUBRULE($.customProperty, { LABEL: 'name' })
+    $._(0, { LABEL: 'postName' })
+    $.CONSUME($.T.Assign, { LABEL: 'op' })
+    $.SUBRULE($.customValue, { LABEL: 'value' })
+    $.OPTION(() => $.CONSUME($.T.SemiColon, { LABEL: 'semi' }))
   })
 
   /** "color" in "color: red" */
   $.property = $.RULE('property', () => {
     $.OR([
-      { ALT: () => $.CONSUME($.T.Ident) },
+      { ALT: () => $.CONSUME($.T.Ident, { LABEL: 'name' }) },
       {
         /** Legacy - remove? */
         ALT: () => {
-          $.CONSUME($.T.Star)
-          $.CONSUME2($.T.Ident)
+          $.CONSUME($.T.Star, { LABEL: 'name' })
+          $.CONSUME2($.T.Ident, { LABEL: 'name' })
         }
       }
     ])
   })
-  $.customProperty = $.RULE('customProperty', () => $.CONSUME($.T.CustomProperty))
+  $.customProperty = $.RULE('customProperty', () => $.CONSUME($.T.CustomProperty, { LABEL: 'name' }))
 }

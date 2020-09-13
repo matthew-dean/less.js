@@ -28,7 +28,7 @@ export class Parser {
     const lexerResult = this.lexer.tokenize(text)
     const lexedTokens: IToken[] = lexerResult.tokens
     parser.input = lexedTokens
-    const cst = parser.primary()
+    const cst = parser.root()
 
     return { cst, lexerResult, parser }
   }

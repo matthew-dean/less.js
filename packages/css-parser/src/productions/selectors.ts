@@ -170,6 +170,6 @@ export default function(this: CssParser, $: CssParser) {
   })
 
   /** Separated out for Less overriding */
-  $.attrIdent = $.RULE('attrIdent', () => $.CONSUME($.T.Ident))
-  $.nameSelector = $.RULE('nameSelector', () => $.CONSUME($.T.Selector))
+  $.attrIdent = $.RULE('attrIdent', () => $.CONSUME($.T.Ident, { LABEL: 'ident' }))
+  $.nameSelector = $.RULE('nameSelector', () => $.CONSUME($.T.Selector, { LABEL: 'selector' }))
 }
