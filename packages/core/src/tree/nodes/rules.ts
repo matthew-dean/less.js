@@ -35,7 +35,7 @@ export class Rules extends NodeArray implements ImportantNode {
     // this.context = new Context()
   }
   toString() {
-    let text = '{'
+    let text: string = ''
     const nodes = this.nodes.filter(node => node.isVisible !== false)
     nodes.forEach((node, i) => {
       const nextNode = nodes[i + 1]
@@ -51,8 +51,7 @@ export class Rules extends NodeArray implements ImportantNode {
         }
       }
     })
-    text += '}'
-    return text
+    return this.pre + text + this.post
   }
 
   /**

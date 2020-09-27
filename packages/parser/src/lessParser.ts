@@ -24,6 +24,7 @@ export class LessParser extends CssParser {
   multiplication: Rule
   compare: Rule
   variable: Rule
+  valueBlock: Rule
 
   /** functions */
   function: Rule

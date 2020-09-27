@@ -8,8 +8,10 @@ import {
   Expression,
   List,
   MergeType,
-  Declaration
+  Declaration,
+  Op
 } from '../tree/nodes'
+import { colorFromKeyword } from '../tree/util/color'
 import { IToken, CstNode } from 'chevrotain'
 
 /** crawl the CST and make an AST */
@@ -89,8 +91,29 @@ export const CstVisitor = (parser: LessParser) => {
     /**
      * Visits an array of productions, returning Less Nodes
      */
-    visitArray(nodes: (CstNode | IToken)[]): Node[] {
-      return nodes.map(node => this.visit(node))
+    visitArray(
+      nodes: (CstNode | IToken)[],
+      { pre, preOffset = 1 }: {
+        pre?: IToken[]
+        preOffset?: number
+      } = {}
+    ): Node[] {
+      let newNodes: Node[] = []
+      nodes.forEach((node, i) => {
+        const returnVal: Node | Node[] = this.visit(node)
+        if (returnVal) {
+          const returnNodes: Node[] = Array.isArray(returnVal) ? returnVal : [returnVal]
+          
+          if (pre) {
+            const preToken = pre[i - preOffset]
+            if (preToken) {
+              returnNodes[0].pre = preToken.image
+            }
+          }
+          newNodes.push.apply(newNodes, returnNodes)
+        }
+      })
+      return newNodes
     }
 
     /** Start building AST */
@@ -114,7 +137,7 @@ export const CstVisitor = (parser: LessParser) => {
       if (ctx.pre) {
         rule.pre = ctx.pre[0].image
       }
-      return {}
+      return rule
     }
 
     qualifiedRule(ctx: any) {
@@ -127,14 +150,14 @@ export const CstVisitor = (parser: LessParser) => {
     }
 
     selectorList(ctx: any) {
-      const selectors = this.visitArray(ctx.selector)
+      const selectors = this.visitArray(ctx.selector, { pre: ctx.pre })
       const { nodes, location } = this.SPAN_NODES(selectors)
       
       return new List(nodes, {}, location)
     }
 
     complexSelector(ctx: any) {
-      const selectors = this.visit(ctx.selector)
+      const selectors = this.visitArray(ctx.selector)
       const { nodes, location } = this.SPAN_NODES(selectors)
       
       return new Expression(nodes, {}, location)
@@ -143,6 +166,12 @@ export const CstVisitor = (parser: LessParser) => {
     /** Return an array of Value nodes */
     compoundSelector(ctx: any) {
       return this.visitArray(ctx.selector)
+    }
+
+    combinatorSelector(ctx: any) {
+      const combinator = ctx.combinator[0]
+      const op = new Op(combinator.image)
+      return [op]
     }
 
     simpleSelector(ctx: any) {
@@ -162,7 +191,7 @@ export const CstVisitor = (parser: LessParser) => {
       } else if (assignOp === 'UnderscoreAssign') {
         opts = { mergeType: MergeType.SPACED }
       }
-      const nodes = this.visit(ctx.value)
+      const nodes: [Node] = [this.visit(ctx.value)]
 
       return new Declaration({ name, nodes }, opts)
     }
@@ -172,14 +201,43 @@ export const CstVisitor = (parser: LessParser) => {
       return new Value(image, {}, location)
     }
 
+    expressionList(ctx: any) {
+      const expressions = this.visitArray(ctx.expression)
+      return new List(expressions)
+    }
+
+    expression(ctx: any) {
+      const value = this.visitArray(ctx.value)
+      return value
+    }
+
+    addition(ctx: any) {
+      if (!ctx.rhs) {
+        return this.visit(ctx.lhs)
+      }
+    }
+
+    multiplication(ctx: any) {
+      if (!ctx.rhs) {
+        return this.visit(ctx.lhs)
+      }
+    }
+
+    value(ctx: any) {
+      if (ctx.Ident) {
+        return colorFromKeyword(ctx.Ident[0].image)
+      }
+      return {}
+    }
+
     curlyBlock(ctx: any) {
       const L = ctx.L[0]
       const R = ctx.R[0]
       const { startLine, startColumn, startOffset } = L
       const { endLine, endColumn, endOffset } = R
-      const rules = this.visit(ctx.blockBody)
+      const nodes = this.visit(ctx.blockBody)
 
-      return new Rules({ nodes: [], pre: L.image, post: R.image }, {}, {
+      return new Rules({ nodes, pre: L.image, post: R.image }, {}, {
         startLine, startColumn, startOffset,
         endLine, endColumn, endOffset
       })

@@ -8,13 +8,13 @@ export default function (this: LessParser, $: LessParser) {
    * @todo - rewrite to capture all guard expressions
    */
   $.expression = $.OVERRIDE_RULE('expression', () => {
-    $._()
+    $._(0, { LABEL: 'pre' })
     $.OR([
       {
         GATE: compareGate,
-        ALT: () => $.MANY(() => $.SUBRULE($.compare))
+        ALT: () => $.MANY(() => $.SUBRULE($.compare, { LABEL: 'value' }))
       },
-      { ALT: () => $.MANY2(() => $.SUBRULE($.addition)) }
+      { ALT: () => $.MANY2(() => $.SUBRULE($.addition, { LABEL: 'value' })) }
     ])
   })
 
@@ -127,13 +127,8 @@ export default function (this: LessParser, $: LessParser) {
     })
   })
 
-  /** This is more specific than the CSS parser */
-  $.value = $.OVERRIDE_RULE('value', () => {
-    $.OPTION(() => {
-      $.CONSUME($.T.AdditionOperator)
-    })
+  $.valueBlock = $.RULE('valueBlock', () => {
     $.OR([
-      /** Blocks */
       {
         ALT: () => {
           $.CONSUME($.T.LParen)
@@ -153,7 +148,18 @@ export default function (this: LessParser, $: LessParser) {
           $.SUBRULE2($.expressionList)
           $.CONSUME($.T.RSquare)
         }
-      },
+      }
+    ])
+  })
+
+  /** This is more specific than the CSS parser */
+  $.value = $.OVERRIDE_RULE('value', () => {
+    $.OPTION(() => {
+      /** Applying negative or positive to a value */
+      $.CONSUME($.T.AdditionOperator, { LABEL: 'op' })
+    })
+    $.OR([
+      { ALT: () => $.SUBRULE($.valueBlock) },
       { ALT: () => $.SUBRULE($.function) },
       { ALT: () => $.CONSUME($.T.Ident) },
       { ALT: () => $.SUBRULE($.variable) },
@@ -177,33 +183,31 @@ export default function (this: LessParser, $: LessParser) {
     $.inCompareBlock = true
     $.SUBRULE($.addition, { LABEL: 'lhs' })
     $.MANY(() => {
-      $.CONSUME($.T.CompareOperator)
-      $._()
+      $.CONSUME($.T.CompareOperator, { LABEL: 'op' })
+      $._(0, { LABEL: 'post' })
       $.SUBRULE2($.addition, { LABEL: 'rhs' })
     })
     /** Restore to value on entry */
     $.inCompareBlock = compareValue
-    $._(1)
   })
 
   $.addition = $.RULE('addition', () => {
     $.SUBRULE($.multiplication, { LABEL: 'lhs' })
     $.MANY(() => {
-      $.CONSUME($.T.AdditionOperator)
-      $._()
+      $.CONSUME($.T.AdditionOperator, { LABEL: 'op' })
+      $._(0, { LABEL: 'postOp' })
       $.SUBRULE2($.multiplication, { LABEL: 'rhs' })
     })
-    $._(1)
   })
 
   $.multiplication = $.RULE('multiplication', () => {
     $.SUBRULE($.value, { LABEL: 'lhs' })
-    $._()
+    $._(0, { LABEL: 'preOp'})
     $.MANY(() => {
-      $.CONSUME($.T.MultiplicationOperator)
-      $._(1)
+      $.CONSUME($.T.MultiplicationOperator, { LABEL: 'op' })
+      $._(1, { LABEL: 'postOp'})
       $.SUBRULE2($.value, { LABEL: 'rhs' })
-      $._(2)
+      $._(2, { LABEL: 'preOp'})
     })
   })
 }
