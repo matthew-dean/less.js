@@ -265,7 +265,7 @@ export abstract class Node {
     if (omitPrePost) {
       return text
     }
-    return this.pre + text + this.post
+    return `${this.pre}${text}${this.post}`
   }
 
   /** Nodes may have individual compare strategies */

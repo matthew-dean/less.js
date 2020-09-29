@@ -11,7 +11,7 @@ describe('Rules', () => {
       new Declaration({ name: 'prop2', nodes: [new Value('foo')] })
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{prop1:foo;prop2:foo}')
+    expect(val.valueOf()).to.eq('prop1:foo;prop2:foo')
   })
 
   it('should add a semi-colon automatically', () => {
@@ -20,7 +20,7 @@ describe('Rules', () => {
       new Declaration({ name: 'prop2', nodes: [new Value('foo')] })
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{prop1:foo;prop2:foo}')
+    expect(val.valueOf()).to.eq('prop1:foo;prop2:foo')
   })
 
   /**
@@ -35,7 +35,7 @@ describe('Rules', () => {
       new Declaration({ name: 'prop', nodes: [new Variable('var')] })
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{prop:foo}')
+    expect(val.valueOf()).to.eq('prop:foo')
   })
 
   it('should resolve variables (2)', () => {
@@ -44,7 +44,7 @@ describe('Rules', () => {
       new Declaration({ name: 'var', nodes: [new Value('foo')] }, { isVariable: true })
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{prop:foo}')
+    expect(val.valueOf()).to.eq('prop:foo')
   })
 
   it('should resolve variables (3)', () => {
@@ -53,7 +53,7 @@ describe('Rules', () => {
       new Declaration({ name: 'var', nodes: [new Value('foo')] }, { isVariable: true })
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{prop:foo}')
+    expect(val.valueOf()).to.eq('prop:foo')
   })
 
   /**
@@ -73,7 +73,7 @@ describe('Rules', () => {
       )
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{prop:foo}')
+    expect(val.valueOf()).to.eq('prop:foo')
   })
 
   /**
@@ -99,7 +99,7 @@ describe('Rules', () => {
       new Declaration({ name: 'prop', nodes: [new Variable('merge', { propertyRef: true })] })
     ])
     const val = node.eval(context)
-    expect(val.valueOf()).to.eq('{merge:foo;merge:bar;prop:bar,foo}')
+    expect(val.valueOf()).to.eq('merge:foo;merge:bar;prop:bar,foo')
   })
 
   // it('should eval imports', () => {

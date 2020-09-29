@@ -41,12 +41,16 @@ const merges: IMerges = {
      */
     {
       name: 'InterpolatedSelector',
-      pattern: ['[\.#:]{{interpolated}}', groupCapture],
+      pattern: ['[.#:]{{interpolated}}', groupCapture],
       categories: ['Interpolated', 'Selector'],
       start_chars_hint: ['.', '#', ':']
     },
     { name: 'PlusAssign', pattern: '\\+{{whitespace}}*:', categories: ['BlockMarker', 'Assign'] },
-    { name: 'UnderscoreAssign', pattern: '\\+{{whitespace}}*_{{whitespace}}*:', categories: ['BlockMarker', 'Assign'] },
+    {
+      name: 'UnderscoreAssign',
+      pattern: '\\+{{whitespace}}*_{{whitespace}}*:',
+      categories: ['BlockMarker', 'Assign']
+    },
     { name: 'AnonMixinStart', pattern: /[\.#]\(/, categories: ['BlockMarker'] },
     { name: 'GtEqAlias', pattern: /=>/, categories: ['CompareOperator'] },
     { name: 'LtEqAlias', pattern: /=</, categories: ['CompareOperator'] },
@@ -108,12 +112,6 @@ const merges: IMerges = {
     }
   ],
   Uri: [
-    {
-      name: 'LineComment',
-      pattern: '{{lineComment}}',
-      group: LexerType.SKIPPED,
-      longer_alt: 'WS'
-    },
     {
       name: 'JavaScript',
       pattern: /`[^`]*`/,

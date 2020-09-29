@@ -1,11 +1,14 @@
 import { Node, IProps, INodeOptions, ILocationInfo } from '.'
 
+export type ICommentOptions = {
+  isLineComment: boolean
+}
+
 export class Comment extends Node {
   text: string
-  options: {
-    isLineComment: boolean
-  }
-  constructor(props: string | IProps, options: INodeOptions, location: ILocationInfo) {
+  options: ICommentOptions
+
+  constructor(props: string | IProps, options?: ICommentOptions, location?: ILocationInfo) {
     let newProps: IProps
     if (props.constructor === String) {
       newProps = { text: <string>props, value: '' }

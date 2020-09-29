@@ -1,10 +1,10 @@
+import { IToken, CstNode } from 'chevrotain'
 import { LessParser } from '@less/parser'
 import {
   Node,
   Rule,
   Rules,
   Value,
-  ILocationInfo,
   Expression,
   List,
   MergeType,
@@ -12,58 +12,16 @@ import {
   Op
 } from '../tree/nodes'
 import { colorFromKeyword } from '../tree/util/color'
-import { IToken, CstNode } from 'chevrotain'
+import { processWS, collapseTokens, spanNodes, isToken, flatten } from './util'
 
 /** crawl the CST and make an AST */
 export const CstVisitor = (parser: LessParser) => {
   const LessVisitor = parser.getBaseCstVisitorConstructorWithDefaults()
 
-  return new class extends LessVisitor {
+  return new (class extends LessVisitor {
     constructor() {
       super()
       this.validateVisitor()
-    }
-
-    COLLAPSE_TOKENS(tokens: IToken[]): ILocationInfo & { image: string } {
-      let image: string = ''
-      const { startLine, startColumn, startOffset } = tokens[0]
-      const { endLine, endColumn, endOffset } = tokens[tokens.length - 1]
-      
-      tokens.forEach(token => {
-        image += token.image
-      })
-
-      return {
-        image,
-        startLine,
-        startColumn,
-        startOffset,
-        endLine,
-        endColumn,
-        endOffset
-      }
-    }
-
-    SPAN_NODES(node: Node | Node[]): { nodes: Node[], location: ILocationInfo } {
-      const nodes = Array.isArray(node) ? node : [node]
-      const { startLine, startColumn, startOffset } = nodes[0]
-      const { endLine, endColumn, endOffset } = nodes[nodes.length - 1]
-
-      return {
-        nodes,
-        location: {
-          startLine,
-          startColumn,
-          startOffset,
-          endLine,
-          endColumn,
-          endOffset
-        }
-      }
-    }
-
-    isToken(value: any): value is IToken {
-      return 'image' in value
     }
 
     /**
@@ -73,16 +31,20 @@ export const CstVisitor = (parser: LessParser) => {
       if (Array.isArray(value)) {
         value = value[0]
       }
-      if (this.isToken(value)) {
-        const {
+      if (isToken(value)) {
+        const { image, startLine, startColumn, startOffset, endLine, endColumn, endOffset } = value
+        return new Value(
           image,
-          startLine, startColumn, startOffset,
-          endLine, endColumn, endOffset
-        } = value
-        return new Value(image, {}, {
-          startLine, startColumn, startOffset,
-          endLine, endColumn, endOffset
-        })
+          {},
+          {
+            startLine,
+            startColumn,
+            startOffset,
+            endLine,
+            endColumn,
+            endOffset
+          }
+        )
       } else {
         return super.visit(value)
       }
@@ -93,17 +55,20 @@ export const CstVisitor = (parser: LessParser) => {
      */
     visitArray(
       nodes: (CstNode | IToken)[],
-      { pre, preOffset = 1 }: {
+      {
+        pre,
+        preOffset = 1
+      }: {
         pre?: IToken[]
         preOffset?: number
       } = {}
-    ): Node[] {
+    ): any[] {
       let newNodes: Node[] = []
       nodes.forEach((node, i) => {
         const returnVal: Node | Node[] = this.visit(node)
         if (returnVal) {
           const returnNodes: Node[] = Array.isArray(returnVal) ? returnVal : [returnVal]
-          
+
           if (pre) {
             const preToken = pre[i - preOffset]
             if (preToken) {
@@ -123,7 +88,7 @@ export const CstVisitor = (parser: LessParser) => {
     }
 
     primary(ctx: any) {
-      return this.visitArray(ctx.rule) 
+      return this.visitArray(ctx.rule)
     }
 
     rule(ctx: any) {
@@ -133,9 +98,13 @@ export const CstVisitor = (parser: LessParser) => {
       } else if (ctx.declaration) {
         rule = this.visit(ctx.declaration)
       }
-      /** @todo - extract comments */
+
       if (ctx.pre) {
-        rule.pre = ctx.pre[0].image
+        const pre = <Node[]>processWS(ctx.pre, true)
+        if (!rule) {
+          return pre
+        }
+        rule.pre = new Expression({ nodes: pre })
       }
       return rule
     }
@@ -151,15 +120,15 @@ export const CstVisitor = (parser: LessParser) => {
 
     selectorList(ctx: any) {
       const selectors = this.visitArray(ctx.selector, { pre: ctx.pre })
-      const { nodes, location } = this.SPAN_NODES(selectors)
-      
+      const { nodes, location } = spanNodes(selectors)
+
       return new List(nodes, {}, location)
     }
 
     complexSelector(ctx: any) {
       const selectors = this.visitArray(ctx.selector)
-      const { nodes, location } = this.SPAN_NODES(selectors)
-      
+      const { nodes, location } = spanNodes(selectors)
+
       return new Expression(nodes, {}, location)
     }
 
@@ -197,18 +166,32 @@ export const CstVisitor = (parser: LessParser) => {
     }
 
     property(ctx: any) {
-      const { image, ...location } = this.COLLAPSE_TOKENS(ctx.name)
+      const { image, ...location } = collapseTokens(ctx.name)
       return new Value(image, {}, location)
     }
 
     expressionList(ctx: any) {
       const expressions = this.visitArray(ctx.expression)
+      if (expressions.length === 1) {
+        return expressions[0]
+      }
       return new List(expressions)
     }
 
     expression(ctx: any) {
-      const value = this.visitArray(ctx.value)
-      return value
+      const pre = ctx.pre ? <Node>processWS(ctx.pre) : ''
+      const values: any[] = this.visitArray(ctx.value)
+
+      let post = values[values.length - 1]
+      if (!Array.isArray(post)) {
+        values.pop()
+      } else {
+        post = ''
+      }
+
+      const nodes = flatten(values)
+
+      return new Expression({ pre, nodes, post })
     }
 
     addition(ctx: any) {
@@ -219,7 +202,11 @@ export const CstVisitor = (parser: LessParser) => {
 
     multiplication(ctx: any) {
       if (!ctx.rhs) {
-        return this.visit(ctx.lhs)
+        const node = this.visit(ctx.lhs)
+        if (ctx.preOp) {
+          return [node, <Node[]>processWS(ctx.preOp, true)]
+        }
+        return [node]
       }
     }
 
@@ -237,14 +224,22 @@ export const CstVisitor = (parser: LessParser) => {
       const { endLine, endColumn, endOffset } = R
       const nodes = this.visit(ctx.blockBody)
 
-      return new Rules({ nodes, pre: L.image, post: R.image }, {}, {
-        startLine, startColumn, startOffset,
-        endLine, endColumn, endOffset
-      })
+      return new Rules(
+        { nodes, pre: L.image, post: R.image },
+        {},
+        {
+          startLine,
+          startColumn,
+          startOffset,
+          endLine,
+          endColumn,
+          endOffset
+        }
+      )
     }
 
     blockBody(ctx: any) {
       return this.visit(ctx.primary)
     }
-  }
+  })()
 }
