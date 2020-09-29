@@ -95,7 +95,7 @@ export default function(this: CssParser, $: CssParser) {
       { ALT: () => $.SUBRULE($.attrSelector, { LABEL: 'selector' }) },
       { ALT: () => $.SUBRULE($.nameSelector, { LABEL: 'selector' }) },
       /** Used in keyframes as a selector */
-      { ALT: () => $.CONSUME($.T.Unit, { LABEL: 'selector' }) }
+      { ALT: () => $.CONSUME($.T.Dimension, { LABEL: 'selector' }) }
     ])
   })
 
@@ -156,7 +156,7 @@ export default function(this: CssParser, $: CssParser) {
         },
         {
           ALT: () => {
-            $.CONSUME3($.T.Unit, { LABEL: 'value' })
+            $.CONSUME3($.T.Dimension, { LABEL: 'value' })
           }
         },
         {

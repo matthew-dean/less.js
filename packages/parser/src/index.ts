@@ -3,7 +3,9 @@ import { Tokens, Fragments } from './lessTokens'
 import { createLexer, IParseResult } from '@less/css-parser'
 import { LessParser } from './lessParser'
 
-export { LessParser }
+export * from './lessParser'
+export * from './lessTokens'
+
 export class Parser {
   lexer: Lexer
   parser: LessParser

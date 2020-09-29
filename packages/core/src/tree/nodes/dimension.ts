@@ -23,8 +23,8 @@ export class Dimension extends NumericNode {
     if (Array.isArray(props)) {
       const val1 = props[0]
       const val2 = props[1]
-      nodes[0] = val1.constructor === Number ? new Num(<number>val1) : <Num>val1
-      nodes[1] = val2.constructor === String ? new Value(<string>val2) : <Value>val2
+      nodes[0] = val1.constructor === Number ? new Num(val1) : <Num>val1
+      nodes[1] = val2.constructor === String ? new Value(val2) : <Value>val2
       props = { nodes }
     }
     super(props, options, location)

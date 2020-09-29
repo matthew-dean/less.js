@@ -224,32 +224,37 @@ export const Tokens: rawTokenConfig[] = [
     longer_alt: 'HashName',
     categories: ['Color', 'Selector']
   },
-  { name: 'Unit', pattern: LexerType.NA },
-  { name: 'Dimension', pattern: LexerType.NA },
   /**
    * CSS syntax says we should identify integers as separate from numbers,
    * probably because there are parts of the syntax where one is allowed but not the other?
    */
+  { name: 'Number', pattern: LexerType.NA },
+  { name: 'Dimension', pattern: LexerType.NA },
   { name: 'Integer', pattern: LexerType.NA },
-  { name: 'DimensionNum', pattern: '{{number}}(?:{{ident}}|%)', categories: ['Unit', 'Dimension'] },
+  { name: 'DimensionNum', pattern: '{{number}}(?:{{ident}}|%)', categories: ['Dimension'] },
   {
     name: 'DimensionInt',
     pattern: '{{integer}}(?:{{ident}}|%)',
-    categories: ['Unit', 'Dimension', 'Integer']
+    categories: ['Dimension', 'Integer']
   },
   {
     name: 'SignedInt',
     pattern: /[+-]\d+/,
     longer_alt: 'DimensionInt',
-    categories: ['Unit', 'Integer']
+    categories: ['Integer', 'Number']
   },
   {
     name: 'UnsignedInt',
     pattern: /\d+/,
     longer_alt: 'DimensionInt',
-    categories: ['Unit', 'Integer']
+    categories: ['Integer', 'Number']
   },
-  { name: 'Number', pattern: '{{number}}', longer_alt: 'DimensionNum', categories: ['Unit'] },
+  {
+    name: 'UnitlessNum',
+    pattern: '{{number}}',
+    longer_alt: 'DimensionNum',
+    categories: ['Number']
+  },
   {
     name: 'WS',
     pattern: ['{{wsorcomment}}', groupCapture],

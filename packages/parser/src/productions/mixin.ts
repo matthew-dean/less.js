@@ -292,7 +292,8 @@ export default function(this: LessParser, $: LessParser) {
        *    pattern-matching, but tests have these types:
        */
       { ALT: () => $.CONSUME($.T.Ident) },
-      { ALT: () => $.CONSUME($.T.Unit) },
+      { ALT: () => $.CONSUME($.T.Dimension) },
+      { ALT: () => $.CONSUME($.T.Number) },
       { ALT: () => $.CONSUME($.T.StringLiteral) }
     ])
     $._(4)

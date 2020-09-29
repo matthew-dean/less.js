@@ -1,5 +1,5 @@
-import { IToken, CstNode } from 'chevrotain'
-import { LessParser } from '@less/parser'
+import { IToken, CstNode, CstChildrenDictionary } from 'chevrotain'
+import { LessParser, Tokens } from '@less/parser'
 import {
   Node,
   Rule,
@@ -9,7 +9,8 @@ import {
   List,
   MergeType,
   Declaration,
-  Op
+  Op,
+  Num
 } from '../tree/nodes'
 import { colorFromKeyword } from '../tree/util/color'
 import { processWS, collapseTokens, spanNodes, isToken, flatten } from './util'
@@ -195,9 +196,11 @@ export const CstVisitor = (parser: LessParser) => {
     }
 
     addition(ctx: any) {
+      const lhs = this.visit(ctx.lhs)
       if (!ctx.rhs) {
-        return this.visit(ctx.lhs)
+        return lhs
       }
+
     }
 
     multiplication(ctx: any) {
@@ -213,6 +216,9 @@ export const CstVisitor = (parser: LessParser) => {
     value(ctx: any) {
       if (ctx.Ident) {
         return colorFromKeyword(ctx.Ident[0].image)
+      } else if (ctx.Number) {
+        const text = ctx.Number[0].image
+        return new Num({ text, value: parseFloat(text) })
       }
       return {}
     }
