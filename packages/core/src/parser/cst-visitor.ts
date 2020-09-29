@@ -10,7 +10,7 @@ import {
   MergeType,
   Declaration,
   Op,
-  Num
+  Num, Operation
 } from '../tree/nodes'
 import { colorFromKeyword } from '../tree/util/color'
 import { processWS, collapseTokens, spanNodes, isToken, flatten } from './util'
@@ -182,32 +182,52 @@ export const CstVisitor = (parser: LessParser) => {
     expression(ctx: any) {
       const pre = ctx.pre ? <Node>processWS(ctx.pre) : ''
       const values: any[] = this.visitArray(ctx.value)
-
-      let post = values[values.length - 1]
-      if (!Array.isArray(post)) {
-        values.pop()
-      } else {
-        post = ''
-      }
-
       const nodes = flatten(values)
 
-      return new Expression({ pre, nodes, post })
+      return new Expression({ pre, nodes })
     }
 
-    addition(ctx: any) {
-      const lhs = this.visit(ctx.lhs)
-      if (!ctx.rhs) {
-        return lhs
+    addition(ctx: {
+      lhs?: CstNode[]
+      additionRhs?: CstNode[]
+    }) {
+      const mult = this.visit(ctx.lhs)
+      if (!ctx.additionRhs) {
+        return mult
       }
+      let [ lhs, pre ] = mult
+      let node: Node
+      let rhs: any
+      ctx.additionRhs.forEach((cstNode, i) => {
+        const [ op, post, mult ] = this.visit(cstNode)
 
+        if (pre) {
+          op.pre = pre
+        }
+        if (post) {
+          op.post = post
+        }
+        rhs = mult[0]
+        pre = mult[1]
+
+        lhs = new Operation([lhs, op, rhs])
+      })
+      return pre ? [ lhs, pre ] : [ lhs ]
+    }
+
+    additionRhs(ctx: any) {
+      return [
+        new Op(ctx.op[0].image),
+        processWS(ctx.post),
+        this.visit(ctx.rhs)
+      ]
     }
 
     multiplication(ctx: any) {
       if (!ctx.rhs) {
         const node = this.visit(ctx.lhs)
-        if (ctx.preOp) {
-          return [node, <Node[]>processWS(ctx.preOp, true)]
+        if (ctx.pre) {
+          return [node, processWS(ctx.pre)]
         }
         return [node]
       }

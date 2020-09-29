@@ -15,17 +15,17 @@ const serialize = (str: string) => {
 }
 
 describe('CST-to-AST -- reserializes', () => {
-  // it(`rule #1`, serialize(
-  //   `a, d.e {
-  //     b: c d e;
-  //   }`
-  // ))
+  it(`rule #1`, serialize(
+    `a, d.e {
+      b: c d e;
+    }`
+  ))
   
-  // it(`rule #2`, serialize(
-  //   `a, d.e {
-  //     b:/** comment *//** */ c/** d */e
-  //   }//bar`
-  // ))
+  it(`rule #2`, serialize(
+    `a, d.e {
+      b:/** comment *//** */ c/** d */e
+    }//bar`
+  ))
 
   it(`rule #3`, serialize(
     `a {

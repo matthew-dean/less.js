@@ -183,32 +183,38 @@ export default function (this: LessParser, $: LessParser) {
     const compareValue = $.inCompareBlock
     $.inCompareBlock = true
     $.SUBRULE($.addition, { LABEL: 'lhs' })
-    $.MANY(() => {
-      $.CONSUME($.T.CompareOperator, { LABEL: 'op' })
-      $._(0, { LABEL: 'post' })
-      $.SUBRULE2($.addition, { LABEL: 'rhs' })
-    })
+    $.MANY(() => $.SUBRULE($.compareRhs))
     /** Restore to value on entry */
     $.inCompareBlock = compareValue
   })
 
+  $.compareRhs = $.RULE('compareRhs', () => {
+    $.CONSUME($.T.CompareOperator, { LABEL: 'op' })
+    $._(0, { LABEL: 'post' })
+    $.SUBRULE($.addition, { LABEL: 'rhs' })
+  })
+
   $.addition = $.RULE('addition', () => {
     $.SUBRULE($.multiplication, { LABEL: 'lhs' })
-    $.MANY(() => {
-      $.CONSUME($.T.AdditionOperator, { LABEL: 'op' })
-      $._(0, { LABEL: 'postOp' })
-      $.SUBRULE2($.multiplication, { LABEL: 'rhs' })
-    })
+    $.MANY(() => $.SUBRULE($.additionRhs))
+  })
+
+  $.additionRhs = $.RULE('additionRhs', () => {
+    $.CONSUME($.T.AdditionOperator, { LABEL: 'op' })
+    $._(0, { LABEL: 'post' })
+    $.SUBRULE($.multiplication, { LABEL: 'rhs' })
   })
 
   $.multiplication = $.RULE('multiplication', () => {
     $.SUBRULE($.value, { LABEL: 'lhs' })
-    $._(0, { LABEL: 'preOp'})
-    $.MANY(() => {
-      $.CONSUME($.T.MultiplicationOperator, { LABEL: 'op' })
-      $._(1, { LABEL: 'postOp'})
-      $.SUBRULE2($.value, { LABEL: 'rhs' })
-      $._(2, { LABEL: 'preOp'})
-    })
+    $._(0, { LABEL: 'pre'})
+    $.MANY(() => $.SUBRULE($.multiplicationRhs))
+  })
+
+  $.multiplicationRhs = $.RULE('multiplicationRhs', () => {
+    $.CONSUME($.T.MultiplicationOperator, { LABEL: 'op' })
+    $._(1, { LABEL: 'post'})
+    $.SUBRULE2($.value, { LABEL: 'rhs' })
+    $._(2, { LABEL: 'pre'})
   })
 }
