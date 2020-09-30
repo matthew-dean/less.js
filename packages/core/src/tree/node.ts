@@ -496,33 +496,24 @@ export abstract class Node {
     node.childKeys.forEach(key => {
       let nodes = node[key]
       if (nodes) {
-        if (node !== this) {
-          /** This is during cloning */
-          if (Array.isArray(nodes)) {
+        let isArray = Array.isArray(nodes)
+        if (isArray) {
+          if (node !== this) {
             nodes = [...nodes]
-            node[key] = node.processNodes(nodes, processFunc)
-            nodes.forEach((n: Node) => {
-              n.parent = node
-              n.root = node.root
-            })
-          } else {
-            const result = node.processNodes([nodes], processFunc)
-            result.forEach((n: Node) => {
-              n.parent = node
-              n.root = node.root
-            })
-            if (result.length === 1) {
-              node[key] = result[0]
-            } else {
-              node[key] = result
-            }
           }
         } else {
-          if (Array.isArray(nodes)) {
-            this.processNodes(nodes, processFunc)
-          } else {
-            node[key] = this.processNodes([nodes], processFunc)
-          }
+          nodes = [nodes]
+        }
+        
+        const result = node.processNodes(nodes, processFunc)
+        result.forEach((n: Node) => {
+          n.parent = node
+          n.root = node.root
+        })
+        if (!isArray && result.length === 1) {
+          node[key] = result[0]
+        } else {
+          node[key] = result
         }
       }
     })
@@ -553,11 +544,7 @@ export abstract class Node {
     context.currentNode = this
     /** All nodes that override eval() should (usually) exit if they're evaluated */
     if (!this.evaluated) {
-      const node = this.clone(true)
-      context.currentNode = node
-      this.processChildren(node, (node: Node) => node.eval(context))
-      node.evaluated = true
-      return node
+      this.processChildren(this, (node: Node) => node.eval(context))
     }
     return this
   }

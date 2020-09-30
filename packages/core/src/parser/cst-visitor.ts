@@ -196,7 +196,6 @@ export const CstVisitor = (parser: LessParser) => {
         return mult
       }
       let [ lhs, pre ] = mult
-      let node: Node
       let rhs: any
       ctx.additionRhs.forEach((cstNode, i) => {
         const [ op, post, mult ] = this.visit(cstNode)
@@ -223,14 +222,43 @@ export const CstVisitor = (parser: LessParser) => {
       ]
     }
 
-    multiplication(ctx: any) {
-      if (!ctx.rhs) {
-        const node = this.visit(ctx.lhs)
-        if (ctx.pre) {
-          return [node, processWS(ctx.pre)]
+    multiplication(ctx: {
+      lhs: CstNode[]
+      pre?: IToken[]
+      multiplicationRhs?: CstNode[]
+    }) {
+      let lhs = this.visit(ctx.lhs)
+      let pre = ctx.pre && processWS(ctx.pre)
+      if (!ctx.multiplicationRhs) {
+        if (pre) {
+          return [lhs, pre]
         }
-        return [node]
+        return [lhs]
       }
+
+      ctx.multiplicationRhs.forEach((cstNode, i) => {
+        const [ op, post, rhs, nextPre ] = this.visit(cstNode)
+
+        if (pre) {
+          op.pre = pre
+        }
+        if (post) {
+          op.post = post
+        }
+        pre = nextPre
+        lhs = new Operation([lhs, op, rhs])
+      })
+
+      return pre ? [ lhs, pre ] : [ lhs ]
+    }
+
+    multiplicationRhs(ctx: any) {
+      return [
+        new Op(ctx.op[0].image),
+        processWS(ctx.post),
+        this.visit(ctx.rhs),
+        processWS(ctx.pre)
+      ]
     }
 
     value(ctx: any) {

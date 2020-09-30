@@ -85,7 +85,6 @@ export class RulesCall extends Node {
           const result = ctx.find(
             context,
             (node: Node) => {
-              console.log(node)
               let hasMatch = false
               if (node instanceof Rule) {
                 const selectors = node.selectors

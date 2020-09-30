@@ -2,6 +2,7 @@ import { expect } from 'chai'
 import 'mocha'
 
 import { AstParser } from '..'
+import { context } from '../../tree/__mocks__/context'
 
 const parser = new AstParser()
 
@@ -32,4 +33,21 @@ describe('CST-to-AST -- reserializes', () => {
       b: 1 + 2 + 3;
     }`
   ))
+
+  it(`rule #4`, serialize(
+    `a {
+      b: 1 + 2 * 3;
+    }`
+  ))
+
+  it(`rule #5`, done => {
+    const less = `a {
+      b: 1 + 2 * 3 * 4;
+    }`
+    parser.parse(less, (err, node) => {
+      expect(node.toString()).to.eq(less)
+      expect(node.eval(context).toString()).to.eq('a {\n      b: 25;\n    }')
+      done()
+    })
+  })
 })
