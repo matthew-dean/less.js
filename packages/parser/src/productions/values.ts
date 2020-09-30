@@ -46,10 +46,7 @@ export default function (this: LessParser, $: LessParser) {
           $.SUBRULE2($.guardOr, { ARGS: [true] })
           $._()
           $.MANY(() => {
-            $.OR3([
-              { ALT: () => $.CONSUME($.T.Comma) },
-              { ALT: () => $.CONSUME($.T.SemiColon) }
-            ])
+            $.OR3([{ ALT: () => $.CONSUME($.T.Comma) }, { ALT: () => $.CONSUME($.T.SemiColon) }])
             $._(1)
             $.SUBRULE2($.functionArg)
             $._(2)
@@ -64,10 +61,7 @@ export default function (this: LessParser, $: LessParser) {
     $.SUBRULE($.functionArg)
     $._()
     $.MANY(() => {
-      $.OR([
-        { ALT: () => $.CONSUME($.T.Comma) },
-        { ALT: () => $.CONSUME($.T.SemiColon) }
-      ])
+      $.OR([{ ALT: () => $.CONSUME($.T.Comma) }, { ALT: () => $.CONSUME($.T.SemiColon) }])
       $._(1)
       $.SUBRULE2($.functionArg)
       $._(2)
@@ -96,25 +90,27 @@ export default function (this: LessParser, $: LessParser) {
   $.variable = $.RULE('variable', () => {
     $.OR([
       { ALT: () => $.CONSUME($.T.VarOrProp) },
-      { ALT: () => {
-        $.AT_LEAST_ONE(() => $.CONSUME($.T.Selector))
-        /**
-         * @note - if there are no parens or accessors, then
-         *         it's a plain selector
-         */
-        $.OPTION(() => {
-          $.CONSUME($.T.LParen)
-          const isSemiColonSeparated = $.isSemiColonSeparated
-          $.OPTION2({
-            GATE: $.BACKTRACK($.testMixinArgs),
-            DEF: () => {
-              $.SUBRULE($.mixinCallArgs, { ARGS: [isSemiColonSeparated] })
-              $.CONSUME($.T.RParen)
-            }
+      {
+        ALT: () => {
+          $.AT_LEAST_ONE(() => $.CONSUME($.T.Selector))
+          /**
+           * @note - if there are no parens or accessors, then
+           *         it's a plain selector
+           */
+          $.OPTION(() => {
+            $.CONSUME($.T.LParen)
+            const isSemiColonSeparated = $.isSemiColonSeparated
+            $.OPTION2({
+              GATE: $.BACKTRACK($.testMixinArgs),
+              DEF: () => {
+                $.SUBRULE($.mixinCallArgs, { ARGS: [isSemiColonSeparated] })
+                $.CONSUME($.T.RParen)
+              }
+            })
+            $.isSemiColonSeparated = isSemiColonSeparated
           })
-          $.isSemiColonSeparated = isSemiColonSeparated
-        })
-      }}
+        }
+      }
     ])
     $.MANY(() => {
       $.CONSUME($.T.LSquare)
@@ -131,6 +127,10 @@ export default function (this: LessParser, $: LessParser) {
     $.OR([
       {
         ALT: () => {
+          $.OPTION(() => {
+            /** Applying negative or positive to a value */
+            $.CONSUME($.T.AdditionOperator, { LABEL: 'op' })
+          })
           $.CONSUME($.T.LParen)
           $.OR2([
             {
@@ -154,10 +154,6 @@ export default function (this: LessParser, $: LessParser) {
 
   /** This is more specific than the CSS parser */
   $.value = $.OVERRIDE_RULE('value', () => {
-    $.OPTION(() => {
-      /** Applying negative or positive to a value */
-      $.CONSUME($.T.AdditionOperator, { LABEL: 'op' })
-    })
     $.OR([
       { ALT: () => $.SUBRULE($.valueBlock) },
       { ALT: () => $.SUBRULE($.function) },
@@ -207,14 +203,14 @@ export default function (this: LessParser, $: LessParser) {
 
   $.multiplication = $.RULE('multiplication', () => {
     $.SUBRULE($.value, { LABEL: 'lhs' })
-    $._(0, { LABEL: 'pre'})
+    $._(0, { LABEL: 'pre' })
     $.MANY(() => $.SUBRULE($.multiplicationRhs))
   })
 
   $.multiplicationRhs = $.RULE('multiplicationRhs', () => {
     $.CONSUME($.T.MultiplicationOperator, { LABEL: 'op' })
-    $._(1, { LABEL: 'post'})
+    $._(1, { LABEL: 'post' })
     $.SUBRULE2($.value, { LABEL: 'rhs' })
-    $._(2, { LABEL: 'pre'})
+    $._(2, { LABEL: 'pre' })
   })
 }

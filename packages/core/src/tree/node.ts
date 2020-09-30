@@ -25,6 +25,9 @@ export type IBaseProps = {
    */
   text?: string
 
+  /** The children props */
+  childKeys?: string[]
+
   /**
    * Most nodes will have a single sub-node collection under this property
    */
@@ -150,10 +153,24 @@ export abstract class Node {
     if (props instanceof Node) {
       throw { message: 'Node props cannot be a Node' }
     }
-    const { pre, post, value, text, ...children } = props
+    const { pre, post, value, text, childKeys, ...children } = props
     /** nodes is always present as an array, even if empty */
 
-    const keys: string[] = []
+    const nodeRefProps = {
+      enumerable: false,
+      configurable: false,
+      writable: true
+    }
+
+    Object.defineProperties(this, {
+      childKeys: nodeRefProps,
+      parent: nodeRefProps,
+      root: nodeRefProps,
+      fileRoot: nodeRefProps,
+      visibilityBlocks: nodeRefProps
+    })
+
+    const keys: string[] = childKeys || []
     this.childKeys = keys
 
     /**
@@ -189,18 +206,6 @@ export abstract class Node {
     this.text = text
     this.pre = pre || ''
     this.post = post || ''
-
-    const nodeRefProps = {
-      enumerable: false,
-      configurable: false,
-      writable: true
-    }
-
-    Object.defineProperties(this, {
-      parent: nodeRefProps,
-      root: nodeRefProps,
-      fileRoot: nodeRefProps
-    })
 
     this.setParent()
     this.location = location
@@ -504,7 +509,7 @@ export abstract class Node {
         } else {
           nodes = [nodes]
         }
-        
+
         const result = node.processNodes(nodes, processFunc)
         result.forEach((n: Node) => {
           n.parent = node
@@ -572,6 +577,7 @@ export abstract class Node {
    * Output is a kind of string builder?
    * @todo - All genCSS and toCSS will get moved out of the AST and
    *         into visitor processing.
+   * @todo - build sourceMap as strings are generated
    */
   genCSS(output: any, context?: Context) {
     output.add(this.toString())

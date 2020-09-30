@@ -28,8 +28,18 @@ export class Name extends NodeArray {
 
   constructor(props: Node[] | IProps, options?: INameOptions, location?: ILocationInfo) {
     super(props, options, location)
-    /** Convenience assignment for mixin params, so that it can just check for .name */
-    this.name = this
+
+    /**
+     * Convenience assignment for mixin params, so that it can just check for .name
+     * for any given Node
+     */
+    Object.defineProperty(this, 'name', {
+      get() {
+        return this
+      },
+      configurable: false,
+      enumerable: false
+    })
   }
 
   eval(context: Context) {

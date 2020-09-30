@@ -1,5 +1,5 @@
-import { IToken, CstNode, CstChildrenDictionary } from 'chevrotain'
-import { LessParser, Tokens } from '@less/parser'
+import { IToken, CstNode } from 'chevrotain'
+import { LessParser } from '@less/parser'
 import {
   Node,
   Rule,
@@ -13,7 +13,10 @@ import {
   Op,
   Num,
   Operation,
-  Name
+  Name,
+  Paren,
+  WS,
+  Comment
 } from '../tree/nodes'
 import { colorFromKeyword } from '../tree/util/color'
 import { processWS, collapseTokens, spanNodes, isToken, flatten } from './util'
@@ -166,8 +169,7 @@ export const CstVisitor = (parser: LessParser) => {
       if (ctx.postName) {
         name.post = <Node>processWS(ctx.postName)
       }
-      const assign = ctx.op[0]
-      const assignOp = assign.tokenType.name
+      const assignOp = ctx.op[0].tokenType.name
       let opts
       if (assignOp === 'PlusAssign') {
         opts = { mergeType: MergeType.COMMA }
@@ -175,7 +177,7 @@ export const CstVisitor = (parser: LessParser) => {
         opts = { mergeType: MergeType.SPACED }
       }
       const nodes: [Node] = [this.visit(ctx.value)]
-      const props: IDeclarationProps = { name, nodes, assign: assign.image }
+      const props: IDeclarationProps = { name, nodes }
       if (ctx.semi) {
         props.post = ';'
       }
@@ -199,23 +201,42 @@ export const CstVisitor = (parser: LessParser) => {
     expression(ctx: any) {
       const pre = ctx.pre ? <Node>processWS(ctx.pre) : ''
       const values: any[] = this.visitArray(ctx.value)
-      const nodes = flatten(values)
+      const nodes: Node[] = flatten(values)
+      let post: Node | string = ''
 
-      return new Expression({ pre, nodes })
+      /** Attach white-space / comments to nodes */
+      for (let i = 1; i < nodes.length; i++) {
+        let node = nodes[i]
+        if (node instanceof WS || node instanceof Comment || node instanceof Expression) {
+          const nextNode = nodes[i + 1]
+          if (nextNode) {
+            nextNode.pre = node
+          } else {
+            post = node
+          }
+          nodes.splice(i--, 1)
+        }
+      }
+
+      if (nodes.length === 1) {
+        const node = nodes[0]
+        node.pre = pre
+        node.post = post
+        return node
+      }
+
+      return new Expression({ pre, nodes, post })
     }
 
-    addition(ctx: {
-      lhs?: CstNode[]
-      additionRhs?: CstNode[]
-    }) {
+    addition(ctx: { lhs?: CstNode[]; additionRhs?: CstNode[] }) {
       const mult = this.visit(ctx.lhs)
       if (!ctx.additionRhs) {
         return mult
       }
-      let [ lhs, pre ] = mult
+      let [lhs, pre] = mult
       let rhs: any
       ctx.additionRhs.forEach((cstNode, i) => {
-        const [ op, post, mult ] = this.visit(cstNode)
+        const [op, post, mult] = this.visit(cstNode)
 
         if (pre) {
           op.pre = pre
@@ -228,22 +249,14 @@ export const CstVisitor = (parser: LessParser) => {
 
         lhs = new Operation([lhs, op, rhs])
       })
-      return pre ? [ lhs, pre ] : [ lhs ]
+      return pre ? [lhs, pre] : [lhs]
     }
 
     additionRhs(ctx: any) {
-      return [
-        new Op(ctx.op[0].image),
-        processWS(ctx.post),
-        this.visit(ctx.rhs)
-      ]
+      return [new Op(ctx.op[0].image), processWS(ctx.post), this.visit(ctx.rhs)]
     }
 
-    multiplication(ctx: {
-      lhs: CstNode[]
-      pre?: IToken[]
-      multiplicationRhs?: CstNode[]
-    }) {
+    multiplication(ctx: { lhs: CstNode[]; pre?: IToken[]; multiplicationRhs?: CstNode[] }) {
       let lhs = this.visit(ctx.lhs)
       let pre = ctx.pre && processWS(ctx.pre)
       if (!ctx.multiplicationRhs) {
@@ -254,7 +267,7 @@ export const CstVisitor = (parser: LessParser) => {
       }
 
       ctx.multiplicationRhs.forEach((cstNode, i) => {
-        const [ op, post, rhs, nextPre ] = this.visit(cstNode)
+        const [op, post, rhs, nextPre] = this.visit(cstNode)
 
         if (pre) {
           op.pre = pre
@@ -266,26 +279,39 @@ export const CstVisitor = (parser: LessParser) => {
         lhs = new Operation([lhs, op, rhs])
       })
 
-      return pre ? [ lhs, pre ] : [ lhs ]
+      return pre ? [lhs, pre] : [lhs]
     }
 
     multiplicationRhs(ctx: any) {
-      return [
-        new Op(ctx.op[0].image),
-        processWS(ctx.post),
-        this.visit(ctx.rhs),
-        processWS(ctx.pre)
-      ]
+      return [new Op(ctx.op[0].image), processWS(ctx.post), this.visit(ctx.rhs), processWS(ctx.pre)]
     }
 
-    value(ctx: any) {
-      if (ctx.Ident) {
+    value(ctx: { Ident?: IToken[]; Number?: IToken[]; valueBlock?: CstNode[] }) {
+      if (ctx.valueBlock) {
+        return this.visit(ctx.valueBlock)
+      } else if (ctx.Ident) {
         return colorFromKeyword(ctx.Ident[0].image)
       } else if (ctx.Number) {
         const text = ctx.Number[0].image
         return new Num({ text, value: parseFloat(text) })
       }
       return {}
+    }
+
+    valueBlock(ctx: {
+      op?: IToken[]
+      LParen?: IToken[]
+      RParen?: IToken[]
+      expressionList?: CstNode[]
+      guardOr?: CstNode[]
+    }) {
+      if (ctx.LParen) {
+        let opts = ctx.op && ctx.op[0].image === '-' && { negate: true }
+        const nodes = ctx.expressionList
+          ? [this.visit(ctx.expressionList)]
+          : [this.visit(ctx.guardOr)]
+        return new Paren({ nodes }, opts)
+      }
     }
 
     curlyBlock(ctx: any) {

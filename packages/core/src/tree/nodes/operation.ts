@@ -43,14 +43,13 @@ export class Operation extends Node {
       if (Operation.operators.indexOf(op) === -1) {
         return this.error('Operation using invalid operator.', context)
       }
-      return a.operate(<Operator>op, b, context)
+      return a.operate(<Operator>op, b, context).inherit(this)
     } else {
       /**
        * We'll output as-is, and warn about it, in case we want to use the text of the
        * expression somewhere else.
        */
-      this.warn('Operation on an invalid type', context)
-      return new Expression(this.nodes).inherit(this)
+      return this.warn('Operation on an invalid type', context)
     }
   }
 }

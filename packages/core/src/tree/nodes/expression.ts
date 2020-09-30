@@ -13,7 +13,7 @@ export type IExpressionOptions = {
  *      comments as members of the array.
  *
  * e.g. one + two: [<Value 'one'><Op ' + '><Value 'two'>]
- *      one two <Expression <Value 'one'><WS><Value 'two'>>
+ *      one two <Expression <Value 'one'><Value {pre: ' ', text: 'two'}>>
  *      prop: foo --> value part is <Expression { pre: ' ', nodes: [<Value 'foo'>] }>
  *
  * A selector expression is just:
