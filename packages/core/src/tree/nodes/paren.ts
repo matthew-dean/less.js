@@ -2,6 +2,7 @@ import { Context, EvalReturn, NodeArray, Value, Node, Condition, Operation } fro
 
 /**
  * A () block that holds a Node
+ * @todo Can be assigned a negative operator
  */
 export class Paren extends NodeArray {
   nodes: [Node]

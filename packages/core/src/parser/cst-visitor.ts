@@ -9,8 +9,11 @@ import {
   List,
   MergeType,
   Declaration,
+  IDeclarationProps,
   Op,
-  Num, Operation
+  Num,
+  Operation,
+  Name
 } from '../tree/nodes'
 import { colorFromKeyword } from '../tree/util/color'
 import { processWS, collapseTokens, spanNodes, isToken, flatten } from './util'
@@ -152,9 +155,19 @@ export const CstVisitor = (parser: LessParser) => {
       return this.visit(ctx.selector)
     }
 
-    declaration(ctx: any) {
-      const name = this.visit(ctx.name)
-      const assignOp = (<IToken>ctx.op[0]).tokenType.name
+    declaration(ctx: {
+      name: CstNode[]
+      postName?: IToken[]
+      op: IToken[]
+      value: CstNode[]
+      semi?: IToken[]
+    }) {
+      const name = new Name([this.visit(ctx.name)])
+      if (ctx.postName) {
+        name.post = <Node>processWS(ctx.postName)
+      }
+      const assign = ctx.op[0]
+      const assignOp = assign.tokenType.name
       let opts
       if (assignOp === 'PlusAssign') {
         opts = { mergeType: MergeType.COMMA }
@@ -162,8 +175,12 @@ export const CstVisitor = (parser: LessParser) => {
         opts = { mergeType: MergeType.SPACED }
       }
       const nodes: [Node] = [this.visit(ctx.value)]
+      const props: IDeclarationProps = { name, nodes, assign: assign.image }
+      if (ctx.semi) {
+        props.post = ';'
+      }
 
-      return new Declaration({ name, nodes }, opts)
+      return new Declaration(props, opts)
     }
 
     property(ctx: any) {

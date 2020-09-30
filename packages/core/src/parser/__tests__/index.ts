@@ -17,9 +17,7 @@ const serialize = (str: string) => {
 
 describe('CST-to-AST -- reserializes', () => {
   it(`rule #1`, serialize(
-    `a, d.e {
-      b: c d e;
-    }`
+    `a, d.e {b: c d e }`
   ))
   
   it(`rule #2`, serialize(
@@ -29,18 +27,18 @@ describe('CST-to-AST -- reserializes', () => {
   ))
 
   it(`rule #3`, serialize(
-    `a {
-      b: 1 + 2 + 3;
-    }`
+    `a { b : 1 + 2 + 3;}`
   ))
 
   it(`rule #4`, serialize(
-    `a {
-      b: 1 + 2 * 3;
-    }`
+    `a {b: 1 + 2 * 3;}`
   ))
 
-  it(`rule #5`, done => {
+  it(`rule #5`, serialize(
+    `a {b +: 1 + 2 * 3;}`
+  ))
+
+  it(`rule #6`, done => {
     const less = `a {
       b: 1 + 2 * 3 * 4;
     }`
@@ -50,4 +48,8 @@ describe('CST-to-AST -- reserializes', () => {
       done()
     })
   })
+
+  // it(`rule #7`, serialize(
+  //   `a { b: -(1 + 2);}`
+  // ))
 })
