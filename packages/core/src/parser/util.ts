@@ -11,11 +11,11 @@ export function processWS(token: IToken | IToken[], asArray: boolean = false): N
   }
   const ws = Array.isArray(token) ? token[0] : token
   const payload = ws.payload
-  const nodeColl: { node: Node; index: number }[] = []
+  const nodeColl: { node: Node | string; index: number }[] = []
   payload.forEach((match: { value: string; index: number }[], i: number) => {
     if (i === 0) {
       match.forEach(({ value, index }) => {
-        nodeColl.push({ node: new WS(value), index })
+        nodeColl.push({ node: value, index })
       })
     } else if (i === 1) {
       match.forEach(({ value, index }) => {
@@ -32,15 +32,30 @@ export function processWS(token: IToken | IToken[], asArray: boolean = false): N
   })
 
   const nodes = nodeColl.map(node => node.node)
+
+  /** Attach white-space to comments */
+  for (let i = 0; i < nodes.length; i++) {
+    let node = nodes[i]
+    if (node.constructor === String) {
+      const nextNode = <Node>nodes[i + 1]
+      if (nextNode) {
+        nextNode.pre = node
+        nodes.splice(i--, 1)
+      } else {
+        nodes[i] = new WS(node)
+      }
+    }
+  }
+
   if (asArray) {
-    return nodes
+    return <Node[]>nodes
   }
 
   if (nodes.length === 1) {
-    return nodes[0]
+    return (<Node[]>nodes)[0]
   }
 
-  return new Expression({ nodes })
+  return new Expression({ nodes: <Node[]>nodes })
 }
 
 export function collapseTokens(tokens: IToken[]): ILocationInfo & { image: string } {

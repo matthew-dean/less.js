@@ -32,7 +32,6 @@ export class Rules extends NodeArray implements ImportantNode {
   // context: Context
   constructor(props: IProps, options?: INodeOptions, location?: ILocationInfo) {
     super(props, options, location)
-    // this.context = new Context()
   }
   toString() {
     let text: string = ''
@@ -192,7 +191,7 @@ export class Rules extends NodeArray implements ImportantNode {
   makeImportant(): this {
     this.nodes.forEach(node => {
       if (node.hasOwnProperty('makeImportant')) {
-        (<ImportantNode>node).makeImportant()
+        ;(<ImportantNode>node).makeImportant()
       }
     })
 

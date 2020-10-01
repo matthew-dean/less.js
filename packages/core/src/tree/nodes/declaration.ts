@@ -39,7 +39,6 @@ export class Declaration extends Node implements ImportantNode {
    */
   nodes: [List<Node> | Node] | [List<Node> | Node, Value]
   name: Name
-  assign: string
   important: Value | undefined
   options: IDeclarationOptions
 
@@ -49,7 +48,7 @@ export class Declaration extends Node implements ImportantNode {
     location?: ILocationInfo
   ) {
     let { name } = props
-    const { important, assign, semi, ...rest } = props
+    const { important, semi, ...rest } = props
     if (important) {
       rest.nodes[1] = important
     }

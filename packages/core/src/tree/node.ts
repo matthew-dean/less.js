@@ -153,6 +153,8 @@ export abstract class Node {
     if (props instanceof Node) {
       throw { message: 'Node props cannot be a Node' }
     }
+    /** Make 'type' serializable */
+    this.type = Object.getPrototypeOf(this).type
     const { pre, post, value, text, childKeys, ...children } = props
     /** nodes is always present as an array, even if empty */
 

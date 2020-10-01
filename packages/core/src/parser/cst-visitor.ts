@@ -98,9 +98,16 @@ export const CstVisitor = (parser: LessParser) => {
       return this.visitArray(ctx.rule)
     }
 
-    rule(ctx: any) {
+    rule(ctx: {
+      pre?: IToken[]
+      atRule?: CstNode[]
+      qualifiedRule?: CstNode[]
+      declaration?: CstNode[]
+    }) {
       let rule: any // Node
-      if (ctx.qualifiedRule) {
+      if (ctx.atRule) {
+        rule = this.visit(ctx.atRule)
+      } else if (ctx.qualifiedRule) {
         rule = this.visit(ctx.qualifiedRule)
       } else if (ctx.declaration) {
         rule = this.visit(ctx.declaration)
@@ -114,6 +121,30 @@ export const CstVisitor = (parser: LessParser) => {
         rule.pre = new Expression({ nodes: pre })
       }
       return rule
+    }
+
+    atRule(ctx: { unknownAtRule?: CstNode[] }) {
+      if (ctx.unknownAtRule) {
+        return this.visit(ctx.unknownAtRule)
+      }
+    }
+
+    unknownAtRule(ctx: {
+      AtKeyword: IToken[]
+      Colon?: IToken[]
+      preExpr?: IToken[]
+      expressionList?: CstNode[]
+    }) {
+      if (ctx.Colon) {
+        /** This is a variable declaration */
+        const expr: Node = this.visit(ctx.expressionList)
+        expr.pre = <Node>processWS(ctx.preExpr)
+        /** @todo - !important */
+        return new Declaration({
+          name: ctx.AtKeyword[0].image,
+          nodes: [expr]
+        })
+      }
     }
 
     qualifiedRule(ctx: any) {

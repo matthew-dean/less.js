@@ -9,48 +9,39 @@ const parser = new AstParser()
 const serialize = (str: string) => {
   return (done: Mocha.Done) => {
     parser.parse(str, (err, node) => {
-      /** @todo - finalize object stringification */
-      // console.log(JSON.stringify(node, null, '  '))
       expect(node.toString()).to.eq(str)
       done()
     })
   }
 }
 
-// describe('CST-to-AST', () => {
-//   it(`rule #1`, done => {
-//     parser.parse(`a { b: foo }`, (err, node) => {
+describe('CST-to-AST', () => {
+  it(`rule #1`, done => {
+    parser.parse(`@foo: bar`, (err, node) => {
+      expect(node).to.be.true
+    })
+  })
+})
 
-//     })
-//   })
-// })
+describe.skip('CST-to-AST -- reserializes', () => {
+  it(`rule #1`, serialize(`a, d.e {b: c d e }`))
 
-describe('CST-to-AST -- reserializes', () => {
-  // it(`rule #1`, serialize(
-  //   `a, d.e {b: c d e }`
-  // ))
+  it(
+    `rule #2`,
+    serialize(
+      `a, d.e {
+      b:/** comment *//** */ c/** d */e
+    }//bar`
+    )
+  )
 
-  // it(`rule #2`, serialize(
-  //   `a, d.e {
-  //     b:/** comment *//** */ c/** d */e
-  //   }//bar`
-  // ))
+  it(`rule #3`, serialize(`a { b : 1 + 2 + 3;}`))
 
-  // it(`rule #3`, serialize(
-  //   `a { b : 1 + 2 + 3;}`
-  // ))
+  it(`rule #4`, serialize(`a {b: 1 + 2 * 3;}`))
 
-  // it(`rule #4`, serialize(
-  //   `a {b: 1 + 2 * 3;}`
-  // ))
+  it(`rule #5`, serialize(`a {b: foo}`))
 
-  // it(`rule #5`, serialize(
-  //   `a {b: foo}`
-  // ))
-
-  // it(`rule #6`, serialize(
-  //   `a {b: one two /* comment */ three}`
-  // ))
+  it(`rule #6`, serialize(`a {b: one two /* comment */ three}`))
 
   it(`rule #7`, serialize(`a {b: one two /* comment1 */ three /* comment2 */}`))
 

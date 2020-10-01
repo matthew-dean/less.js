@@ -51,7 +51,7 @@ export default function(this: LessParser, $: LessParser) {
 
   $.unknownAtRule = $.OVERRIDE_RULE('unknownAtRule', () => {
     $.CONSUME($.T.AtKeyword)
-    const ws = $._()
+    const ws = $._(0, { LABEL: 'postName' })
     $.OR({
       /**
        * A prelude could have a colon too, so the last two rules are
@@ -72,18 +72,18 @@ export default function(this: LessParser, $: LessParser) {
           ALT: () => {
             /** Variable assignment */
             $.CONSUME($.T.Colon)
-            $._(1)
+            $._(1, { LABEL: 'preExpr' })
             $.OR2([
               { ALT: () => $.SUBRULE($.curlyBlock) },
               { ALT: () => {
                 $.SUBRULE($.expressionList)
                 $.OPTION(() => {
                   $.CONSUME($.T.Important)
-                  $._(2)
+                  $._(2, { LABEL: 'postImportant' })
                 })
               }}
             ])
-            $.OPTION2(() => $.CONSUME($.T.SemiColon))
+            $.OPTION2(() => $.CONSUME($.T.SemiColon, { LABEL: 'semi' }))
           }
         },
         {
