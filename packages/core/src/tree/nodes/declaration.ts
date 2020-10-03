@@ -16,6 +16,7 @@ export type IDeclarationOptions = {
 export type IDeclarationProps = IProps & {
   nodes: [List<Node> | Node] | [List<Node> | Node, Value]
   name: string | Name
+  assign?: string
   important?: Value
 }
 
@@ -39,6 +40,7 @@ export class Declaration extends Node implements ImportantNode {
    */
   nodes: [List<Node> | Node] | [List<Node> | Node, Value]
   name: Name
+  assign: string
   important: Value | undefined
   options: IDeclarationOptions
 
@@ -48,7 +50,7 @@ export class Declaration extends Node implements ImportantNode {
     location?: ILocationInfo
   ) {
     let { name } = props
-    const { important, semi, ...rest } = props
+    const { important, semi, assign, ...rest } = props
     if (important) {
       rest.nodes[1] = important
     }
@@ -60,6 +62,7 @@ export class Declaration extends Node implements ImportantNode {
       rest.name = new Name([new Value(name)], { isVariable: !!options.isVariable })
     }
     super(rest, options, location)
+    this.assign = assign || ':'
     if (options.isVariable) {
       this.isVisible = false
     }
@@ -85,7 +88,7 @@ export class Declaration extends Node implements ImportantNode {
 
   toString(omitPrePost?: boolean) {
     const text =
-      (this.options.isVariable ? '@' : '') + this.name.toString() + ':' + this.nodes.join('')
+      (this.options.isVariable ? '@' : '') + this.name.toString() + this.assign + this.nodes.join('')
 
     if (omitPrePost) {
       return text

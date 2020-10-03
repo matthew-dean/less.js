@@ -28,8 +28,20 @@ export class Dimension extends NumericNode {
       props = { nodes }
     }
     super(props, options, location)
-    /** Sets the value to the value of the Num */
-    this.value = this.nodes[0].value
+
+    Object.defineProperty(this, 'value', {
+      get() {
+        return this.nodes[0].value
+      }
+    })
+  }
+
+  toString(omitPrePost: boolean = false) {
+    let text = this.nodes.join('')
+    if (omitPrePost) {
+      return text
+    }
+    return `${this.pre}${text}${this.post}`
   }
 
   operate(op: Operator, other: Node, context: Context): Node {

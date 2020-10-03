@@ -16,7 +16,7 @@ import {
   Name,
   Paren,
   WS,
-  Comment
+  Comment, Dimension
 } from '../tree/nodes'
 import { colorFromKeyword } from '../tree/util/color'
 import { processWS, collapseTokens, spanNodes, isToken, flatten } from './util'
@@ -200,15 +200,15 @@ export const CstVisitor = (parser: LessParser) => {
       if (ctx.postName) {
         name.post = <Node>processWS(ctx.postName)
       }
-      const assignOp = ctx.op[0].tokenType.name
+      const assignOp = ctx.op[0]
       let opts
-      if (assignOp === 'PlusAssign') {
+      if (assignOp.tokenType.name === 'PlusAssign') {
         opts = { mergeType: MergeType.COMMA }
-      } else if (assignOp === 'UnderscoreAssign') {
+      } else if (assignOp.tokenType.name === 'UnderscoreAssign') {
         opts = { mergeType: MergeType.SPACED }
       }
       const nodes: [Node] = [this.visit(ctx.value)]
-      const props: IDeclarationProps = { name, nodes }
+      const props: IDeclarationProps = { name, nodes, assign: assignOp.image }
       if (ctx.semi) {
         props.post = ';'
       }
@@ -317,7 +317,13 @@ export const CstVisitor = (parser: LessParser) => {
       return [new Op(ctx.op[0].image), processWS(ctx.post), this.visit(ctx.rhs), processWS(ctx.pre)]
     }
 
-    value(ctx: { Ident?: IToken[]; Number?: IToken[]; valueBlock?: CstNode[] }) {
+    value(ctx: {
+      Ident?: IToken[]
+      Dimension?: IToken[]
+      Number?: IToken[]
+      valueBlock?: CstNode[]
+      variable?: CstNode[]
+    }) {
       if (ctx.valueBlock) {
         return this.visit(ctx.valueBlock)
       } else if (ctx.Ident) {
@@ -325,6 +331,16 @@ export const CstVisitor = (parser: LessParser) => {
       } else if (ctx.Number) {
         const text = ctx.Number[0].image
         return new Num({ text, value: parseFloat(text) })
+      } else if (ctx.Dimension) {
+        const dimension = ctx.Dimension[0].payload
+        const text = dimension[0][0].value
+        const unit = dimension[1][0].value
+        return new Dimension([
+          new Num({ text, value: parseFloat(text)}),
+          new Value(unit)
+        ])
+      } else if (ctx.variable) {
+        return this.visit(ctx.variable)
       }
       return {}
     }
@@ -333,6 +349,8 @@ export const CstVisitor = (parser: LessParser) => {
       op?: IToken[]
       LParen?: IToken[]
       RParen?: IToken[]
+      LSquare?: IToken[]
+      RSquare?: IToken[]
       expressionList?: CstNode[]
       guardOr?: CstNode[]
     }) {
@@ -342,7 +360,16 @@ export const CstVisitor = (parser: LessParser) => {
           ? [this.visit(ctx.expressionList)]
           : [this.visit(ctx.guardOr)]
         return new Paren({ nodes }, opts)
+      } else {
+        return new Expression([new Value('['), this.visit(ctx.expressionList), new Value(']')])
       }
+    }
+
+    /** 
+     * @todo - distinguish colors from selectors
+     */
+    variable(ctx: any) {
+      return {}
     }
 
     curlyBlock(ctx: any) {

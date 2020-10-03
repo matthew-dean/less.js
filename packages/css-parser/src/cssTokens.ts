@@ -1,3 +1,4 @@
+import { group } from 'console'
 import { rawTokenConfig, LexerType } from './util'
 
 /**
@@ -231,10 +232,16 @@ export const Tokens: rawTokenConfig[] = [
   { name: 'Number', pattern: LexerType.NA },
   { name: 'Dimension', pattern: LexerType.NA },
   { name: 'Integer', pattern: LexerType.NA },
-  { name: 'DimensionNum', pattern: '{{number}}(?:{{ident}}|%)', categories: ['Dimension'] },
+  {
+    name: 'DimensionNum',
+    pattern: ['({{number}})({{ident}}|%)', groupCapture],
+    start_chars_hint: ['\d', '-', '+'],
+    categories: ['Dimension']
+  },
   {
     name: 'DimensionInt',
-    pattern: '{{integer}}(?:{{ident}}|%)',
+    pattern: ['({{integer}})({{ident}}|%)', groupCapture],
+    start_chars_hint: ['\d', '-', '+'],
     categories: ['Dimension', 'Integer']
   },
   {

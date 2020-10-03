@@ -18,12 +18,15 @@ const serialize = (str: string) => {
 describe('CST-to-AST', () => {
   it(`rule #1`, done => {
     parser.parse(`@foo: bar`, (err, node) => {
-      expect(node).to.be.true
+      const val = node.nodes[0].nodes[0]
+      expect(val.type).to.eq('Value')
+      expect(val.value).to.eq('bar')
+      done()
     })
   })
 })
 
-describe.skip('CST-to-AST -- reserializes', () => {
+describe('CST-to-AST -- reserializes', () => {
   it(`rule #1`, serialize(`a, d.e {b: c d e }`))
 
   it(
@@ -57,4 +60,14 @@ describe.skip('CST-to-AST -- reserializes', () => {
   })
 
   it(`rule #9`, serialize(`a { b: -(1 + 2);}`))
+
+  it(`rule #10`, serialize(`a { b +: c }`))
+
+  it(`rule #11`, serialize(`a { b : 2px }`))
+
+  it(`rule #12`, serialize(`a { b: [foo] }`))
+
+  it(`rule #13`, serialize(`a { b: [foo] [bar] }`))
+
+  // it(`rule #14`, serialize(`a { b: #ccc }`))
 })
