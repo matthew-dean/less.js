@@ -23,6 +23,8 @@ export class Value extends Node {
       }
     }
     super(returnProps, options, location)
+    /** This never needs to be evaluated as it contains no nodes */
+    this.evaluated = true
   }
 }
 Value.prototype.type = 'Value'

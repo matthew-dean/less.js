@@ -198,15 +198,30 @@ export class Rules extends NodeArray implements ImportantNode {
     return this
   }
 
-  lastDeclaration() {
+  private _find(name: string = '', filterType: boolean | null = null) {
     const nodes = this.nodes
     const nodeLength = this.nodes.length
     for (let i = nodeLength; i > 0; i--) {
       const node = nodes[i - 1]
-      if (node instanceof Declaration) {
+      if (node instanceof Declaration &&
+        (name === '' || node.name.toString() === name) &&
+        (filterType === null || node.options.isVariable === filterType)
+      ) {
         return node
       }
     }
+  }
+
+  lastDeclaration() {
+    return this._find()
+  }
+
+  variable(name: string) {
+    return this._find(name, true)
+  }
+
+  property(name: string) {
+    return this._find(name, false)
   }
 
   getRules() {

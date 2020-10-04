@@ -1,4 +1,4 @@
-import { IToken, CstNode } from 'chevrotain'
+import { IToken, CstNode, tokenMatcher } from 'chevrotain'
 import { LessParser } from '@less/parser'
 import {
   Node,
@@ -16,7 +16,7 @@ import {
   Name,
   Paren,
   WS,
-  Comment, Dimension
+  Comment, Dimension, Color, Selector, RulesCall
 } from '../tree/nodes'
 import { colorFromKeyword } from '../tree/util/color'
 import { processWS, collapseTokens, spanNodes, isToken, flatten } from './util'
@@ -200,15 +200,15 @@ export const CstVisitor = (parser: LessParser) => {
       if (ctx.postName) {
         name.post = <Node>processWS(ctx.postName)
       }
-      const assignOp = ctx.op[0]
+      const assignOp = ctx.op[0].tokenType.name
       let opts
-      if (assignOp.tokenType.name === 'PlusAssign') {
+      if (assignOp === 'PlusAssign') {
         opts = { mergeType: MergeType.COMMA }
-      } else if (assignOp.tokenType.name === 'UnderscoreAssign') {
+      } else if (assignOp === 'UnderscoreAssign') {
         opts = { mergeType: MergeType.SPACED }
       }
       const nodes: [Node] = [this.visit(ctx.value)]
-      const props: IDeclarationProps = { name, nodes, assign: assignOp.image }
+      const props: IDeclarationProps = { name, nodes }
       if (ctx.semi) {
         props.post = ';'
       }
@@ -368,7 +368,28 @@ export const CstVisitor = (parser: LessParser) => {
     /** 
      * @todo - distinguish colors from selectors
      */
-    variable(ctx: any) {
+    variable(ctx: {
+      Selector?: IToken[]
+      LParen?: IToken[]
+      RParen?: IToken[]
+      mixinCallArgs?: CstNode[]
+    }) {
+      if (ctx.Selector) {
+        if (!ctx.LParen) {
+          /** Might be selector or color */
+          if (ctx.Selector.length === 1 && tokenMatcher(ctx.Selector[0], parser.T.Color)) {
+            return new Color(ctx.Selector[0].image)
+          }
+        }
+        const nodes = ctx.Selector.map(token => new Value(token))
+        const sel = nodes.length === 1 ? nodes[0] : new Expression(nodes)
+        if (!ctx.LParen) {
+          return sel
+        }
+        const args = this.visit(ctx.mixinCallArgs)
+        const call = new RulesCall({ name: sel, args })
+
+      }
       return {}
     }
 
