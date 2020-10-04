@@ -17,7 +17,7 @@ export class MapRef extends Node {
    */
   nodes: [Node, Node]
 
-  eval(context: Context): Node {
+  eval(context: Context): Node | Node[] {
     super.eval(context)
 
     const rules = this.nodes[0]
@@ -44,7 +44,7 @@ export class MapRef extends Node {
       }
     }
 
-    return decl.eval(context).nodes[0]
+    return decl.eval(context).nodes
   }
 }
 
