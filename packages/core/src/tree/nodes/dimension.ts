@@ -36,14 +36,6 @@ export class Dimension extends NumericNode {
     })
   }
 
-  toString(omitPrePost: boolean = false) {
-    let text = this.nodes.join('')
-    if (omitPrePost) {
-      return text
-    }
-    return `${this.pre}${text}${this.post}`
-  }
-
   operate(op: Operator, other: Node, context: Context): Node {
     const strictUnits = context.options.strictUnits
     if (other instanceof Dimension) {

@@ -69,5 +69,6 @@ describe('CST-to-AST -- reserializes', () => {
 
   // it(`rule #13`, serialize(`a { b: [foo] [bar] }`))
 
-  it(`rule #14`, serialize(`a { b: #ccc }`))
+  // it(`rule #14`, serialize(`a { b: #ccc }`))
+  it(`rule #15`, serialize(`a { b: #ccc[] }`))
 })

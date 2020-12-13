@@ -16,7 +16,11 @@ import {
   Name,
   Paren,
   WS,
-  Comment, Dimension, Color, Selector, RulesCall
+  Comment,
+  Dimension,
+  Color,
+  Selector,
+  RulesCall
 } from '../tree/nodes'
 import { colorFromKeyword } from '../tree/util/color'
 import { processWS, collapseTokens, spanNodes, isToken, flatten } from './util'
@@ -335,10 +339,7 @@ export const CstVisitor = (parser: LessParser) => {
         const dimension = ctx.Dimension[0].payload
         const text = dimension[0][0].value
         const unit = dimension[1][0].value
-        return new Dimension([
-          new Num({ text, value: parseFloat(text)}),
-          new Value(unit)
-        ])
+        return new Dimension([new Num({ text, value: parseFloat(text) }), new Value(unit)])
       } else if (ctx.variable) {
         return this.visit(ctx.variable)
       }
@@ -365,30 +366,31 @@ export const CstVisitor = (parser: LessParser) => {
       }
     }
 
-    /** 
+    /**
      * @todo - distinguish colors from selectors
      */
     variable(ctx: {
       Selector?: IToken[]
       LParen?: IToken[]
       RParen?: IToken[]
+      LSquare?: IToken[]
+      RSquare?: IToken[]
       mixinCallArgs?: CstNode[]
     }) {
       if (ctx.Selector) {
-        if (!ctx.LParen) {
+        if (!ctx.LParen && !ctx.LSquare) {
           /** Might be selector or color */
           if (ctx.Selector.length === 1 && tokenMatcher(ctx.Selector[0], parser.T.Color)) {
             return new Color(ctx.Selector[0].image)
           }
         }
-        const nodes = ctx.Selector.map(token => new Value(token))
+        const nodes = ctx.Selector.map(token => new Value(token.image))
         const sel = nodes.length === 1 ? nodes[0] : new Expression(nodes)
         if (!ctx.LParen) {
           return sel
         }
         const args = this.visit(ctx.mixinCallArgs)
         const call = new RulesCall({ name: sel, args })
-
       }
       return {}
     }

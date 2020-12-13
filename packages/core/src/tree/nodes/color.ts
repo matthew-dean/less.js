@@ -84,7 +84,15 @@ export class Color extends NumericNode {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
   }
 
-  toString() {
+  toString(omitPrePost: boolean = false) {
+    let text = this.colorString()
+    if (omitPrePost) {
+      return text
+    }
+    return `${this.pre}${text}${this.post}`
+  }
+
+  colorString() {
     let color: any
     let args: (string | number)[] = []
 
