@@ -1,16 +1,32 @@
-import type { CssParser } from '../cssParser'
+import { IToken } from 'chevrotain'
+import type { CssParser, CstNode } from '../cssParser'
 
 export default function(this: CssParser, $: CssParser) {
 
+  const makeAtRule = (
+    atName: IToken,
+    prelude: CstNode,
+    blockOrTerminator?: (CstNode | IToken)
+  ) => {
+    const children = [atName, prelude]
+    if (blockOrTerminator) {
+      children.push(blockOrTerminator)
+    }
+    return {
+      name: 'AtRule',
+      children
+    }
+  }
+
   $.atRule = $.RULE('atRule', () => {
-    $.OR([
+    return $.OR([
       { ALT: () => $.SUBRULE($.knownAtRule) },
       { ALT: () => $.SUBRULE($.unknownAtRule) }
     ])
   })
 
   $.knownAtRule = $.RULE('knownAtRule', () => {
-    $.OR([
+    return $.OR([
       { ALT: () => $.SUBRULE($.atImport) },
       { ALT: () => $.SUBRULE($.atMedia) },
       { ALT: () => $.SUBRULE($.atSupports) },
@@ -20,15 +36,19 @@ export default function(this: CssParser, $: CssParser) {
   })
 
   $.atNested = $.RULE('atNested', () => {
-    $.CONSUME($.T.AtNested)
-    $.SUBRULE($.customPrelude, { LABEL: 'prelude' })
-    $.SUBRULE($.curlyBlock)
+    return makeAtRule(
+      $.CONSUME($.T.AtNested),
+      $.SUBRULE($.customPrelude),
+      $.SUBRULE($.curlyBlock)
+    )
   })
 
   $.atNonNested = $.RULE('atNonNested', () => {
-    $.CONSUME($.T.AtNonNested)
-    $.SUBRULE($.customPrelude, { LABEL: 'prelude' })
-    $.OPTION(() => $.CONSUME($.T.SemiColon))
+    return makeAtRule(
+      $.CONSUME($.T.AtNonNested),
+      $.SUBRULE($.customPrelude),
+      $.OPTION(() => $.CONSUME($.T.SemiColon))
+    )
   })
 
   $.atImport = $.RULE('atImport', () => {

@@ -1,5 +1,5 @@
-import { EMPTY_ALT, ConsumeMethodOpts } from 'chevrotain'
-import type { CssParser } from '../cssParser'
+import { EMPTY_ALT, ConsumeMethodOpts, IToken } from 'chevrotain'
+import type { CssParser, CstNode } from '../cssParser'
 
 export default function(this: CssParser, $: CssParser) {
    /** Optional whitespace */
@@ -8,16 +8,30 @@ export default function(this: CssParser, $: CssParser) {
     return $.option(idx + 10, () => $.consume(idx + 10, $.T.WS, options))
   }
 
-  $.root = $.RULE('root', () => $.SUBRULE($.primary))
-
-  $.primary = $.RULE('primary', () => {
-    $.MANY(() => $.SUBRULE($.rule))
-    $._()
+  /** Stylesheet */
+  $.root = $.RULE<CstNode>('root', () => {
+    return {
+      name: 'root',
+      nodes: $.SUBRULE($.primary)
+    }
   })
 
-  $.rule = $.RULE('rule', () => {
-    $._()
-    $.OR([
+  /** List of rules */
+  $.primary = $.RULE<(IToken | CstNode)[]>('primary', () => {
+    const rules = []
+    $.MANY(() => rules.push($.SUBRULE($.rule)))
+    
+    const ws = $._()
+    if (ws) {
+      rules.push(ws)
+    }
+    
+    return rules
+  })
+
+  $.rule = $.RULE<CstNode>('rule', () => {
+    const pre = $._()
+    const rule = $.OR([
       { ALT: () => $.SUBRULE($.atRule) },
       { ALT: () => $.SUBRULE($.customDeclaration) },
       {
@@ -30,5 +44,13 @@ export default function(this: CssParser, $: CssParser) {
       { ALT: () => $.CONSUME($.T.SemiColon) },
       { ALT: () => EMPTY_ALT }
     ])
+    if (pre) {
+      if (rule !== EMPTY_ALT) {
+        // rule.pre = pre
+      } else {
+        return pre
+      }
+    }
+    return rule
   })
 }
