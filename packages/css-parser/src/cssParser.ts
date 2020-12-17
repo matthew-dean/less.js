@@ -17,10 +17,10 @@ export type Rule = (idxInCallingRule?: number, ...args: any[]) => any
  * ```
  * {
  *   name: 'root'
- *   nodes: [
+ *   children: [
  *     {
  *       name: 'AtRule',
- *       nodes: [...]
+ *       children: [...]
  *       location: {...}
  *     },
  *     {
@@ -50,7 +50,7 @@ export type CstToken = {
 
 export type CstNode = {
   name: string
-  nodes: (CstNode | CstToken)[]
+  children: (CstNode | CstToken)[]
   location?: CstLocation
 }
 
@@ -120,7 +120,6 @@ export class CssParser extends EmbeddedActionsParser {
   anyToken: Rule
   extraTokens: Rule
 
-  protected CAPTURE_INDEX: number[] = []
   protected currIdx: number
 
   constructor(
@@ -148,13 +147,36 @@ export class CssParser extends EmbeddedActionsParser {
     }
   }
 
+  /** Capture location information for CST nodes */
+  public CAPTURE(func: () => any) {
+    if (!this.RECORDING_PHASE) {
+      const startIndex = this.currIdx + 1
+      const result = func()
+      const endIndex = this.currIdx
+      
+      if (result && result.name) {
+        const startToken = this.input[startIndex]
+        const endToken = this.input[endIndex]
+        
+        if (startToken && endToken) {
+          const { startOffset, startColumn, startLine } = startToken
+          const { endOffset, endColumn, endLine } = endToken
+
+          result.location = {
+            startOffset, startColumn, startLine,
+            endOffset, endColumn, endLine
+          }
+        }
+      }
+      return result
+    }
+    return func()
+  }
+
   protected RULE<T>(name: string, impl: (...implArgs: any[]) => T, config?: IRuleConfig<T>) {
     return super.RULE(
       name,
-      (...args: any[]) => {
-        const result = impl(args)
-        return result
-      },
+      (...args: any[]) => this.CAPTURE(() => impl(args)),
       config
     )
   }
@@ -166,10 +188,7 @@ export class CssParser extends EmbeddedActionsParser {
   ) {
     return super.OVERRIDE_RULE(
       name,
-      (...args: any[]) => {
-        const result = impl(args)
-        return result
-      },
+      (...args: any[]) => this.CAPTURE(() => impl(args)),
       config
     )
   }

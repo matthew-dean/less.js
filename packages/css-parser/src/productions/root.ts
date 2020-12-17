@@ -12,7 +12,7 @@ export default function(this: CssParser, $: CssParser) {
   $.root = $.RULE<CstNode>('root', () => {
     return {
       name: 'root',
-      nodes: $.SUBRULE($.primary)
+      children: $.SUBRULE($.primary)
     }
   })
 
