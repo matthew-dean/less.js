@@ -9,12 +9,12 @@ export default function(this: CssParser, $: CssParser) {
   }
 
   /** Stylesheet */
-  $.root = $.RULE<CstNode>('root', () => {
-    return {
+  $.root = $.RULE<CstNode>('root',
+    () => ({
       name: 'root',
       children: $.SUBRULE($.primary)
-    }
-  })
+    })
+  )
 
   /** List of rules */
   $.primary = $.RULE<(IToken | CstNode)[]>('primary', () => {

@@ -1,13 +1,17 @@
 import type { CssParser } from '../cssParser'
-import { EMPTY_ALT } from 'chevrotain'
 
 export default function(this: CssParser, $: CssParser) {
   /**
    * a rule like `.a { b: c; }`
    */
   $.qualifiedRule = $.RULE('qualifiedRule', () => {
-    $.SUBRULE($.selectorList)
-    $.SUBRULE($.curlyBlock)
+    return {
+      name: 'qualifiedRule',
+      children: [
+        $.SUBRULE($.selectorList),
+        $.SUBRULE($.curlyBlock)
+      ]
+    }
   })
 
   /**
@@ -62,63 +66,74 @@ export default function(this: CssParser, $: CssParser) {
    * this seems safe.
    */
   $.block = $.RULE('block', () => {
-    $.OR([
-      {
-        ALT: () => {
-          $.OR2([
-            { ALT: () => $.CONSUME($.T.LParen, { LABEL: 'L' }) },
-            { ALT: () => $.CONSUME($.T.Function, { LABEL: 'Function' }) }
-          ])
-          $.SUBRULE($.expressionListGroup, { LABEL: 'blockBody' })
-          $.CONSUME($.T.RParen, { LABEL: 'R' })
+    return {
+      name: 'block',
+      children: $.OR([
+        {
+          ALT: () => [
+            $.OR2([
+              { ALT: () => $.CONSUME($.T.LParen) },
+              { ALT: () => $.CONSUME($.T.Function) }
+            ]),
+            $.SUBRULE($.expressionList),
+            $.CONSUME($.T.RParen)
+          ]
+        },
+        {
+          ALT: () => [
+            $.CONSUME($.T.LSquare),
+            $.SUBRULE2($.expressionList),
+            $.CONSUME($.T.RSquare)
+          ]
         }
-      },
-      {
-        ALT: () => {
-          $.CONSUME($.T.LSquare, { LABEL: 'L' })
-          $.SUBRULE2($.expressionListGroup, { LABEL: 'blockBody' })
-          $.CONSUME($.T.RSquare, { LABEL: 'R' })
-        }
-      }
-    ])
+      ])
+    }
   })
 
   $.curlyBlock = $.RULE('curlyBlock', () => {
-    $.CONSUME($.T.LCurly, { LABEL: 'L' })
-    $.SUBRULE($.primary, { LABEL: 'blockBody' })
-    $.CONSUME($.T.RCurly, { LABEL: 'R' })
+    return {
+      name: 'curlyBlock',
+      children: [
+        $.CONSUME($.T.LCurly, { LABEL: 'L' }),
+        $.SUBRULE($.primary, { LABEL: 'blockBody' }),
+        $.CONSUME($.T.RCurly, { LABEL: 'R' })
+      ]
+    }
   })
 
   /**
    * Blocks assigned to custom properties
    */
-  $.customBlock = $.RULE('customBlock', (inAtRule) => {
-    $.OR([
-      {
-        ALT: () => {
-          $.OR2([
-            { ALT: () => $.CONSUME($.T.LParen, { LABEL: 'L' }) },
-            { ALT: () => $.CONSUME($.T.Function, { LABEL: 'Function' }) }
-          ])
-          $.SUBRULE($.customValueOrSemi, { LABEL: 'blockBody' })
-          $.CONSUME($.T.RParen, { LABEL: 'R' })
+  $.customBlock = $.RULE('customBlock', () => {
+    return {
+      name: 'block',
+      children: $.OR([
+        {
+          ALT: () => [
+            $.OR2([
+              { ALT: () => $.CONSUME($.T.LParen) },
+              { ALT: () => $.CONSUME($.T.Function) }
+            ]),
+            $.SUBRULE($.customValueOrSemi),
+            $.CONSUME($.T.RParen)
+          ]
+        },
+        {
+          ALT: () => [
+            $.CONSUME($.T.LSquare),
+            $.SUBRULE2($.customValueOrSemi),
+            $.CONSUME($.T.RSquare)
+          ]
+        },
+        {
+          ALT: () => [
+            $.CONSUME($.T.LCurly),
+            $.SUBRULE3($.customValueOrSemi),
+            $.CONSUME($.T.RCurly)
+          ]
         }
-      },
-      {
-        ALT: () => {
-          $.CONSUME($.T.LSquare, { LABEL: 'L' })
-          $.SUBRULE2($.customValueOrSemi, { LABEL: 'blockBody' })
-          $.CONSUME($.T.RSquare, { LABEL: 'R' })
-        }
-      },
-      {
-        ALT: () => {
-          $.CONSUME($.T.LCurly, { LABEL: 'L' })
-          $.SUBRULE3($.customValueOrSemi, { LABEL: 'blockBody' })
-          $.CONSUME($.T.RCurly, { LABEL: 'R' })
-        }
-      }
-    ])
+      ])
+    }
   })
 
   /**
@@ -126,24 +141,27 @@ export default function(this: CssParser, $: CssParser) {
    * (no outer curly blocks)
    */
   $.customPreludeBlock = $.RULE('customPreludeBlock', () => {
-    $.OR([
-      {
-        ALT: () => {
-          $.OR2([
-            { ALT: () => $.CONSUME($.T.LParen, { LABEL: 'L' }) },
-            { ALT: () => $.CONSUME($.T.Function, { LABEL: 'Function' }) }
-          ])
-          $.SUBRULE($.customValueOrSemi, { LABEL: 'blockBody' })
-          $.CONSUME($.T.RParen, { LABEL: 'R' })
+    return {
+      name: 'block',
+      children: $.OR([
+        {
+          ALT: () => [
+            $.OR2([
+              { ALT: () => $.CONSUME($.T.LParen) },
+              { ALT: () => $.CONSUME($.T.Function) }
+            ]),
+            $.SUBRULE($.customValueOrSemi),
+            $.CONSUME($.T.RParen)
+          ]
+        },
+        {
+          ALT: () => [
+            $.CONSUME($.T.LSquare),
+            $.SUBRULE2($.customValueOrSemi),
+            $.CONSUME($.T.RSquare)
+          ]
         }
-      },
-      {
-        ALT: () => {
-          $.CONSUME($.T.LSquare, { LABEL: 'L' })
-          $.SUBRULE2($.customValueOrSemi, { LABEL: 'blockBody' })
-          $.CONSUME($.T.RSquare, { LABEL: 'R' })
-        }
-      }
-    ])
+      ])
+    }
   })
 }

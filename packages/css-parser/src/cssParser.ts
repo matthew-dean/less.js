@@ -1,4 +1,4 @@
-import { TokenType, IParserConfig, BaseParser, IRuleConfig } from 'chevrotain'
+import { TokenType, IParserConfig, BaseParser, IRuleConfig, IToken } from 'chevrotain'
 import { EmbeddedActionsParser } from 'chevrotain'
 import { TokenMap } from './util'
 import root from './productions/root'
@@ -7,6 +7,8 @@ import blocks from './productions/blocks'
 import selectors from './productions/selectors'
 import declarations from './productions/declarations'
 import values from './productions/values'
+
+export type { IToken }
 
 export type Rule = (idxInCallingRule?: number, ...args: any[]) => any
 
@@ -42,15 +44,11 @@ export type CstLocation = {
   endColumn?: number
 }
 
-export type CstToken = {
-  name: string
-  value: string
-  location?: CstLocation
-}
+export type CstChild = CstNode | IToken
 
 export type CstNode = {
   name: string
-  children: (CstNode | CstToken)[]
+  children: CstChild[]
   location?: CstLocation
 }
 

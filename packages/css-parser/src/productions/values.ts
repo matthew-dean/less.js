@@ -1,42 +1,56 @@
-import type { CssParser } from '../cssParser'
-import { EMPTY_ALT } from 'chevrotain'
+import type { CssParser, CstChild } from '../cssParser'
 
 export default function(this: CssParser, $: CssParser) {
   /**
    * A custom property's (or unknown at-rule's) outer value
    */
   $.customValue = $.RULE('customValue', () => {
+    const children: CstChild[] = []
     $.MANY(
-      () => $.OR([
-        { ALT: () => $.SUBRULE($.anyToken, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.extraTokens, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.customBlock, { LABEL: 'value' }) }
-      ])
+      () => children.push($.OR([
+        { ALT: () => $.SUBRULE($.anyToken) },
+        { ALT: () => $.SUBRULE($.extraTokens) },
+        { ALT: () => $.SUBRULE($.customBlock) }
+      ]))
     )
+    return {
+      name: 'customValue',
+      children
+    }
   })
 
   $.customPrelude = $.RULE('customPrelude', () => {
+    const children: CstChild[] = []
     $.MANY(
-      () => $.OR([
-        { ALT: () => $.SUBRULE($.anyToken, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.extraTokens, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.customPreludeBlock, { LABEL: 'value' }) }
-      ])
+      () => children.push($.OR([
+        { ALT: () => $.SUBRULE($.anyToken) },
+        { ALT: () => $.SUBRULE($.extraTokens) },
+        { ALT: () => $.SUBRULE($.customPreludeBlock) }
+      ]))
     )
+    return {
+      name: 'customPrelude',
+      children
+    }
   })
 
   /** 
    * A custom value within a block 
    */
   $.customValueOrSemi = $.RULE('customValueOrSemi', () => {
+    const children: CstChild[] = []
     $.MANY(
-      () => $.OR([
-        { ALT: () => $.CONSUME($.T.SemiColon, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.anyToken, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.extraTokens, { LABEL: 'value' }) },
-        { ALT: () => $.SUBRULE($.customBlock, { LABEL: 'value' }) }
-      ])
+      () => children.push($.OR([
+        { ALT: () => $.CONSUME($.T.SemiColon,) },
+        { ALT: () => $.SUBRULE($.anyToken) },
+        { ALT: () => $.SUBRULE($.extraTokens) },
+        { ALT: () => $.SUBRULE($.customBlock) }
+      ]))
     )
+    return {
+      name: 'customValue',
+      children
+    }
   })
 
   /**
@@ -46,8 +60,11 @@ export default function(this: CssParser, $: CssParser) {
    * within parentheses or brackets.
    */
   $.expressionListGroup = $.RULE('expressionListGroup', () => {
+    // const lists = [
+    //   $.SUBRULE($.expressionList)
+    // ]
     $.AT_LEAST_ONE(() => {
-      $.SUBRULE($.expressionList)
+      $.SUBRULE2($.expressionList)
       $.OPTION(() => $.CONSUME($.T.SemiColon))
     })
   })

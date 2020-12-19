@@ -1,16 +1,25 @@
-import type { CssParser } from '../cssParser'
+import type { CssParser, CstNode, CstChild } from '../cssParser'
 
 export default function(this: CssParser, $: CssParser) {
   /** A comma-separated list of selectors */
   $.selectorList = $.RULE('selectorList', () => {
-    $.SUBRULE($.complexSelector, { LABEL: 'selector' })
-    $._(0, { LABEL: 'post' })
+    const children = [
+      $.SUBRULE($.complexSelector),
+      $._(0)
+    ]
+    
     $.MANY(() => {
-      $.CONSUME($.T.Comma)
-      $._(1, { LABEL: 'pre' })
-      $.SUBRULE2($.complexSelector, { LABEL: 'selector' })
-      $._(2, { LABEL: 'post' })
+      children.push(
+        $.CONSUME($.T.Comma),
+        $._(1),
+        $.SUBRULE2($.complexSelector),
+        $._(2)
+      )
     })
+    return {
+      name: 'selectorList',
+      children
+    }
   })
 
   /**
@@ -25,25 +34,33 @@ export default function(this: CssParser, $: CssParser) {
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
   $.complexSelector = $.RULE('complexSelector', () => {
-    $.SUBRULE($.compoundSelector, { LABEL: 'selector' })
-    $.MANY(() => $.SUBRULE($.combinatorSelector, { LABEL: 'selector' }))
+    const children: CstNode[] = []
+    $.AT_LEAST_ONE(
+      () => children.push($.SUBRULE($.combinatorSelector))
+    )
+    return {
+      name: 'complexSelector',
+      children
+    }
   })
 
   /**
    * A combinator, then a compound selector
    *  e.g. `> div.class`
    */
-  $.combinatorSelector = $.RULE('combinatorSelector', () => {
-    $.OR([
+  $.combinatorSelector = $.RULE('combinatorSelector',
+    () => $.OR([
       {
-        ALT: () => {
+        ALT: () => [
           /**
            * Combinator with optional whitespace
            */
-          $.CONSUME($.T.Combinator, { LABEL: 'combinator' })
-          $.OPTION(() => $.CONSUME($.T.WS, { LABEL: 'combinator' }))
-          $.SUBRULE2($.compoundSelector, { LABEL: 'selector' })
-        }
+          [
+            $.CONSUME($.T.Combinator),
+            $.OPTION(() => $.CONSUME($.T.WS))
+          ],
+          $.SUBRULE2($.compoundSelector)
+        ]
       },
       {
         /**
@@ -51,18 +68,24 @@ export default function(this: CssParser, $: CssParser) {
          * (or we treat as trailing ws)
          */
         ALT: () => {
-          $.CONSUME2($.T.WS, { LABEL: 'combinator' })
+          const children = [
+            $.CONSUME2($.T.WS)
+          ]
           $.OPTION2(() => {
             $.OPTION3(() => {
-              $.CONSUME2($.T.Combinator, { LABEL: 'combinator' })
-              $.OPTION4(() => $.CONSUME3($.T.WS, { LABEL: 'combinator' }))
+              children.push($.CONSUME2($.T.Combinator))
+              $.OPTION4(() => children.push($.CONSUME3($.T.WS)))
             })
-            $.SUBRULE3($.compoundSelector, { LABEL: 'selector' })
+            return [
+              children,
+              $.SUBRULE3($.compoundSelector)
+            ]
           })
+          return children[0]
         }
       }
     ])
-  })
+  )
 
   /**
    * "A compound selector is a sequence of simple selectors that are not separated by a combinator,
@@ -71,16 +94,18 @@ export default function(this: CssParser, $: CssParser) {
    *
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
-  $.compoundSelector = $.RULE('compoundSelector', () => {
-    $.OR([
-      { ALT: () => $.CONSUME($.T.Star, { LABEL: 'selector' }) },
+  $.compoundSelector = $.RULE('compoundSelector',
+    () => $.OR([
+      { ALT: () => [$.CONSUME($.T.Star)] },
       {
         ALT: () => {
-          $.AT_LEAST_ONE(() => $.SUBRULE($.simpleSelector, { LABEL: 'selector' }))
+          const children: CstNode[] = []
+          $.AT_LEAST_ONE(() => children.push($.SUBRULE($.simpleSelector)))
+          return children
         }
       }
     ])
-  })
+  )
 
   /**
    * "A simple selector is a single condition on an element. A type selector,
@@ -89,38 +114,58 @@ export default function(this: CssParser, $: CssParser) {
    *
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
-  $.simpleSelector = $.RULE('simpleSelector', () => {
-    $.OR([
-      { ALT: () => $.SUBRULE($.pseudoSelector, { LABEL: 'selector' }) },
-      { ALT: () => $.SUBRULE($.attrSelector, { LABEL: 'selector' }) },
-      { ALT: () => $.SUBRULE($.nameSelector, { LABEL: 'selector' }) },
+  $.simpleSelector = $.RULE('simpleSelector',
+    () => $.OR([
+      { ALT: () => $.SUBRULE($.pseudoSelector) },
+      { ALT: () => $.SUBRULE($.attrSelector) },
+      { ALT: () => $.SUBRULE($.nameSelector) },
       /** Used in keyframes as a selector */
-      { ALT: () => $.CONSUME($.T.Dimension, { LABEL: 'selector' }) }
+      { ALT: () => $.CONSUME($.T.Dimension) }
     ])
-  })
+  )
 
   /** e.g. :pseudo or ::pseudo */
   $.pseudoSelector = $.RULE('pseudoSelector', () => {
-    $.CONSUME($.T.Colon, { LABEL: 'name' })
-    $.OPTION(() => $.CONSUME2($.T.Colon, { LABEL: 'name' }))
-    /** e.g. :pseudo(...) */
+    const pseudoName = [$.CONSUME($.T.Colon)]
+    $.OPTION(() => pseudoName.push($.CONSUME2($.T.Colon)))
+    const getName = () => ({
+      name: 'pseudoName',
+      children: pseudoName
+    })
     $.OR2([
       {
         ALT: () => {
-          $.CONSUME($.T.Ident, { LABEL: 'name' })
+          pseudoName.push($.CONSUME($.T.Ident))
           /** Handle functions parsed as idents (like `not`) */
           $.OPTION2(() => {
-            $.CONSUME($.T.LParen, { LABEL: 'name' })
-            $.SUBRULE($.expressionListGroup, { LABEL: 'expression' })
-            $.CONSUME($.T.RParen, { LABEL: 'R' })
+            pseudoName.push($.CONSUME($.T.LParen))
+            return {
+              name: 'pseudoSelector',
+              children: [
+                getName(),
+                $.SUBRULE($.expressionList),
+                $.CONSUME($.T.RParen)
+              ]
+            }
           })
+          return {
+            name: 'pseudoSelector',
+            children: [getName()]
+          }
         }
       },
       {
+        /** e.g. :pseudo(...) */
         ALT: () => {
-          $.CONSUME($.T.Function, { LABEL: 'name' })
-          $.SUBRULE2($.expressionListGroup, { LABEL: 'expression' })
-          $.CONSUME2($.T.RParen, { LABEL: 'R' })
+          pseudoName.push($.CONSUME($.T.Function))
+          return {
+            name: 'pseudoSelector',
+            children: [
+              getName(),
+              $.SUBRULE2($.expressionList),
+              $.CONSUME2($.T.RParen)
+            ]
+          }
         }
       }
     ])
@@ -128,48 +173,57 @@ export default function(this: CssParser, $: CssParser) {
 
   /** e.g. [id^="bar"] [*|ns|="foo"] */
   $.attrSelector = $.RULE('attrSelector', () => {
-    $.CONSUME($.T.LSquare, { LABEL: 'L' })
+    const attr: CstChild[] = []
+    const L = $.CONSUME($.T.LSquare)
+    let eq, value
+
     $.OR([
       { ALT: () => {
-        $.OPTION(() => $.CONSUME($.T.Star, { LABEL: 'attr' }))
-        $.CONSUME($.T.Pipe, { LABEL: 'attr' })
-        $.SUBRULE($.attrIdent, { LABEL: 'attr' })
+        $.OPTION(() => attr.push($.CONSUME($.T.Star)))
+        attr.push(
+          $.CONSUME($.T.Pipe),
+          $.SUBRULE($.attrIdent)
+        )
       }},
       { ALT: () => {
-        $.SUBRULE2($.attrIdent, { LABEL: 'attr' })
+        attr.push($.SUBRULE2($.attrIdent))
         $.OPTION2(() => {
-          $.CONSUME2($.T.Pipe, { LABEL: 'attr' })
-          $.SUBRULE3($.attrIdent, { LABEL: 'attr' })
+          attr.push(
+            $.CONSUME2($.T.Pipe),
+            $.SUBRULE3($.attrIdent)
+          )
         })
       }}
     ])
     $.OPTION4(() => {
-      $.OR2([
-        { ALT: () => $.CONSUME($.T.Eq, { LABEL: 'eq' }) },
-        { ALT: () => $.CONSUME($.T.AttrMatch, { LABEL: 'eq' }) }
+      eq = $.OR2([
+        { ALT: () => $.CONSUME($.T.Eq) },
+        { ALT: () => $.CONSUME($.T.AttrMatch) }
       ])
-      $.OR3([
-        {
-          ALT: () => {
-            $.SUBRULE4($.attrIdent, { LABEL: 'value' })
-          }
-        },
-        {
-          ALT: () => {
-            $.CONSUME3($.T.Dimension, { LABEL: 'value' })
-          }
-        },
-        {
-          ALT: () => {
-            $.CONSUME($.T.StringLiteral, { LABEL: 'value' })
-          }
-        }
+      value = $.OR3([
+        { ALT: () => $.SUBRULE4($.attrIdent) },
+        { ALT: () => $.CONSUME3($.T.Dimension) },
+        { ALT: () => $.CONSUME($.T.StringLiteral) }
       ])
     })
-    $.CONSUME($.T.RSquare, { LABEL: 'R' })
+    const R = $.CONSUME($.T.RSquare)
+
+    return {
+      name: 'attrSelector',
+      children: [
+        L,
+        {
+          name: 'attr',
+          children: attr
+        },
+        eq,
+        value,
+        R
+      ]
+    }
   })
 
   /** Separated out for Less overriding */
-  $.attrIdent = $.RULE('attrIdent', () => $.CONSUME($.T.Ident, { LABEL: 'ident' }))
-  $.nameSelector = $.RULE('nameSelector', () => $.CONSUME($.T.Selector, { LABEL: 'selector' }))
+  $.attrIdent = $.RULE('attrIdent', () => $.CONSUME($.T.Ident))
+  $.nameSelector = $.RULE('nameSelector', () => $.CONSUME($.T.Selector))
 }

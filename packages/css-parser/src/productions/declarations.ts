@@ -1,46 +1,74 @@
-import type { CssParser } from '../cssParser'
+import type { CssParser, CstNode, IToken } from '../cssParser'
+
+export interface Declaration extends CstNode {
+  name: 'declaration'
+  children: [
+    name: IToken,
+    ws: IToken,
+    assign: IToken,
+    value: CstNode,
+    important: CstNode,
+    semi: IToken
+  ]
+}
 
 export default function(this: CssParser, $: CssParser) {
   /**
    * e.g.
    *   color: red
    */
-  $.declaration = $.RULE('declaration', () => {
-    $.SUBRULE($.property, { LABEL: 'name' })
-    $._(0, { LABEL: 'postName' })
-    $.CONSUME($.T.Assign, { LABEL: 'op' })
-    $.SUBRULE($.expressionList, { LABEL: 'value' })
-    $.OPTION(() => {
-      $.CONSUME($.T.Important, { LABEL: 'important' })
-      $._(1, { LABEL: 'postImportant' })
+  $.declaration = $.RULE('declaration',
+    (): Declaration => ({
+      name: 'declaration',
+      children: [
+        $.SUBRULE($.property),
+        $._(0),
+        $.CONSUME($.T.Assign),
+        $.SUBRULE($.expressionList),
+        $.OPTION(() => ({
+          name: 'important',
+          children: [
+            $.CONSUME($.T.Important),
+            $._(1)
+          ]
+        })),
+        $.OPTION2(() => $.CONSUME($.T.SemiColon))
+      ]
     })
-    $.OPTION2(() => $.CONSUME($.T.SemiColon, { LABEL: 'semi' }))
-  })
+  )
 
   /**
    * e.g.
    *   --color: { ;red }
    */
-  $.customDeclaration = $.RULE('customDeclaration', () => {
-    $.SUBRULE($.customProperty, { LABEL: 'name' })
-    $._(0, { LABEL: 'postName' })
-    $.CONSUME($.T.Assign, { LABEL: 'op' })
-    $.SUBRULE($.customValue, { LABEL: 'value' })
-    $.OPTION(() => $.CONSUME($.T.SemiColon, { LABEL: 'semi' }))
-  })
+  $.customDeclaration = $.RULE('customDeclaration',
+    (): Declaration => ({
+      name: 'declaration',
+      children: [
+        $.SUBRULE($.customProperty),
+        $._(0),
+        $.CONSUME($.T.Assign),
+        $.SUBRULE($.customValue),
+        /** !important can be part of customValue */
+        undefined,
+        $.OPTION(() => $.CONSUME($.T.SemiColon))
+      ]
+    })
+  )
 
   /** "color" in "color: red" */
-  $.property = $.RULE('property', () => {
-    $.OR([
-      { ALT: () => $.CONSUME($.T.Ident, { LABEL: 'name' }) },
+  $.property = $.RULE('property',
+    () => $.OR([
+      { ALT: () => $.CONSUME($.T.Ident) },
       {
         /** Legacy - remove? */
-        ALT: () => {
-          $.CONSUME($.T.Star, { LABEL: 'name' })
-          $.CONSUME2($.T.Ident, { LABEL: 'name' })
-        }
+        ALT: () => [
+          $.CONSUME($.T.Star),
+          $.CONSUME2($.T.Ident)
+        ]
       }
     ])
-  })
-  $.customProperty = $.RULE('customProperty', () => $.CONSUME($.T.CustomProperty, { LABEL: 'name' }))
+  )
+
+  $.customProperty = $.RULE('customProperty', () => $.CONSUME($.T.CustomProperty))
 }
