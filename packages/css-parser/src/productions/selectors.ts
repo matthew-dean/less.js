@@ -34,10 +34,10 @@ export default function(this: CssParser, $: CssParser) {
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
   $.complexSelector = $.RULE('complexSelector', () => {
-    const children: CstNode[] = []
-    $.AT_LEAST_ONE(
-      () => children.push($.SUBRULE($.combinatorSelector))
-    )
+    const children: CstNode[] = [
+      $.SUBRULE($.compoundSelector)
+    ]
+    $.MANY(() => children.push($.SUBRULE($.combinatorSelector)))
     return {
       name: 'complexSelector',
       children

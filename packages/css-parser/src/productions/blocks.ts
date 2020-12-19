@@ -4,15 +4,15 @@ export default function(this: CssParser, $: CssParser) {
   /**
    * a rule like `.a { b: c; }`
    */
-  $.qualifiedRule = $.RULE('qualifiedRule', () => {
-    return {
+  $.qualifiedRule = $.RULE('qualifiedRule',
+    () => ({
       name: 'qualifiedRule',
       children: [
         $.SUBRULE($.selectorList),
         $.SUBRULE($.curlyBlock)
       ]
-    }
-  })
+    })
+  )
 
   /**
    * Test for qualified rule start.
