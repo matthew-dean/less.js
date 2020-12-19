@@ -132,14 +132,14 @@ p a span {
   color: #ff0000;
 }
 [prop],
-[prop=10%],
+[prop=ident],
 [prop|="value3"],
 [prop*="val3"],
 [|prop~="val3"],
 [*|prop$="val3"],
 [ns|prop^="val3"],
 [p^="val3"],
-[p=3],
+[p=p],
 [p] {
   attributes: yes;
 }

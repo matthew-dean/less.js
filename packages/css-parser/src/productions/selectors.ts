@@ -49,42 +49,51 @@ export default function(this: CssParser, $: CssParser) {
    *  e.g. `> div.class`
    */
   $.combinatorSelector = $.RULE('combinatorSelector',
-    () => $.OR([
-      {
-        ALT: () => [
-          /**
-           * Combinator with optional whitespace
-           */
-          [
-            $.CONSUME($.T.Combinator),
-            $.OPTION(() => $.CONSUME($.T.WS))
-          ],
-          $.SUBRULE2($.compoundSelector)
-        ]
-      },
-      {
-        /**
-         * Whitespace with optional combinator,
-         * (or we treat as trailing ws)
-         */
-        ALT: () => {
-          const children = [
-            $.CONSUME2($.T.WS)
+    () => ({
+      name: 'combinatorSelector',
+      children: $.OR([
+        {
+          ALT: () => [
+            /**
+             * Combinator with optional whitespace
+             */
+            {
+              name: 'combinator',
+              children: [
+                $.CONSUME($.T.Combinator),
+                $.OPTION(() => $.CONSUME($.T.WS))
+              ]
+            },
+            $.SUBRULE2($.compoundSelector)
           ]
-          $.OPTION2(() => {
-            $.OPTION3(() => {
-              children.push($.CONSUME2($.T.Combinator))
-              $.OPTION4(() => children.push($.CONSUME3($.T.WS)))
-            })
-            return [
-              children,
-              $.SUBRULE3($.compoundSelector)
+        },
+        {
+          /**
+           * Whitespace with optional combinator,
+           * (or we treat as trailing ws)
+           */
+          ALT: () => {
+            const children = [
+              $.CONSUME2($.T.WS)
             ]
-          })
-          return children[0]
+            $.OPTION2(() => {
+              $.OPTION3(() => {
+                children.push($.CONSUME2($.T.Combinator))
+                $.OPTION4(() => children.push($.CONSUME3($.T.WS)))
+              })
+              return [
+                {
+                  name: 'combinator',
+                  children
+                },
+                $.SUBRULE3($.compoundSelector)
+              ]
+            })
+            return children[0]
+          }
         }
-      }
-    ])
+      ])
+    })
   )
 
   /**
@@ -95,16 +104,19 @@ export default function(this: CssParser, $: CssParser) {
    * @see https://www.w3.org/TR/selectors-4/#structure
    */
   $.compoundSelector = $.RULE('compoundSelector',
-    () => $.OR([
-      { ALT: () => [$.CONSUME($.T.Star)] },
-      {
-        ALT: () => {
-          const children: CstNode[] = []
-          $.AT_LEAST_ONE(() => children.push($.SUBRULE($.simpleSelector)))
-          return children
+    () => ({
+      name: 'compoundSelector',
+      children: $.OR([
+        { ALT: () => [$.CONSUME($.T.Star)] },
+        {
+          ALT: () => {
+            const children: CstNode[] = []
+            $.AT_LEAST_ONE(() => children.push($.SUBRULE($.simpleSelector)))
+            return children
+          }
         }
-      }
-    ])
+      ])
+    })
   )
 
   /**

@@ -3,7 +3,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "5.0.0-dev.1",
+  "version": "5.0.0",
   "description": "",
   "main": "dist/index",
   "types": "dist/index",
@@ -21,9 +21,9 @@
   "author": "Matthew Dean",
   "license": "Apache-2.0",
   "dependencies": {
-    "@less/css-parser": "^5.0.0-dev.1"
+    "@less/css-parser": "^5.0.0"
   },
   "devDependencies": {
-    "@less/test-data": "^5.0.0-dev.1"
+    "@less/test-data": "^5.0.0"
   }
 }

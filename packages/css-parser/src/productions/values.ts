@@ -41,7 +41,7 @@ export default function(this: CssParser, $: CssParser) {
     const children: CstChild[] = []
     $.MANY(
       () => children.push($.OR([
-        { ALT: () => $.CONSUME($.T.SemiColon,) },
+        { ALT: () => $.CONSUME($.T.SemiColon) },
         { ALT: () => $.SUBRULE($.anyToken) },
         { ALT: () => $.SUBRULE($.extraTokens) },
         { ALT: () => $.SUBRULE($.customBlock) }
@@ -54,33 +54,39 @@ export default function(this: CssParser, $: CssParser) {
   })
 
   /**
-   * List of expression lists (or expression list if only 1),
-   * separated by semi-colon. This handles / formats arbitrary
-   * semi-colons or separating semi-colons in declaration lists
-   * within parentheses or brackets.
+   * Expressions separated by commas
+   * e.g. `one, two, three`
    */
-  $.expressionListGroup = $.RULE('expressionListGroup', () => {
-    // const lists = [
-    //   $.SUBRULE($.expressionList)
-    // ]
-    $.AT_LEAST_ONE(() => {
-      $.SUBRULE2($.expressionList)
-      $.OPTION(() => $.CONSUME($.T.SemiColon))
-    })
-  })
-
   $.expressionList = $.RULE('expressionList', () => {
-    $.MANY_SEP({
-      SEP: $.T.Comma,
-      DEF: () => $.SUBRULE($.expression)
+    const children = [$.SUBRULE($.expression)]
+    $.MANY(() => {
+      children.push(
+        $.CONSUME($.T.Comma),
+        $.SUBRULE2($.expression)
+      )
     })
+    if (children.length === 1) {
+      return children[0]
+    }
+    return {
+      name: 'expressionList',
+      children
+    }
   })
 
   /**
    *  An expression contains values and spaces
    */
   $.expression = $.RULE('expression', () => {
-    $.MANY(() => $.SUBRULE($.value))
+    const children: CstChild[] = []
+    $.MANY(() => children.push($.SUBRULE($.value)))
+    if (children.length === 1) {
+      return children[0]
+    }
+    return {
+      name: 'expression',
+      children
+    }
   })
 
   /**
@@ -98,8 +104,11 @@ export default function(this: CssParser, $: CssParser) {
    * following a ':' and ends at ';' (or until automatically closed by
    * '}', ']', ')' or the end of a file).
    */
-  $.value = $.RULE('value', () =>
-    $.OR([{ ALT: () => $.SUBRULE($.block) }, { ALT: () => $.SUBRULE($.anyToken) }])
+  $.value = $.RULE('value',
+    () => $.OR([
+      { ALT: () => $.SUBRULE($.block) },
+      { ALT: () => $.SUBRULE($.anyToken) }
+    ])
   )
 
   $.anyToken = $.RULE('anyToken', () =>

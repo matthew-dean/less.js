@@ -174,7 +174,7 @@ export class CssParser extends EmbeddedActionsParser {
   protected RULE<T>(name: string, impl: (...implArgs: any[]) => T, config?: IRuleConfig<T>) {
     return super.RULE(
       name,
-      (...args: any[]) => this.CAPTURE(() => impl(args)),
+      (...args: any[]) => this.CAPTURE(() => impl(...args)),
       config
     )
   }
@@ -186,7 +186,7 @@ export class CssParser extends EmbeddedActionsParser {
   ) {
     return super.OVERRIDE_RULE(
       name,
-      (...args: any[]) => this.CAPTURE(() => impl(args)),
+      (...args: any[]) => this.CAPTURE(() => impl(...args)),
       config
     )
   }

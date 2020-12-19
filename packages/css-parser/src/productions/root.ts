@@ -29,8 +29,9 @@ export default function(this: CssParser, $: CssParser) {
     return rules
   })
 
+  /** Rule with leading ws / comments */
   $.rule = $.RULE<CstNode>('rule', () => {
-    const pre = $._()
+    const children = [$._()]
     const rule = $.OR([
       { ALT: () => $.SUBRULE($.atRule) },
       { ALT: () => $.SUBRULE($.customDeclaration) },
@@ -44,13 +45,13 @@ export default function(this: CssParser, $: CssParser) {
       { ALT: () => $.CONSUME($.T.SemiColon) },
       { ALT: () => EMPTY_ALT }
     ])
-    if (pre) {
-      if (rule !== EMPTY_ALT) {
-        // rule.pre = pre
-      } else {
-        return pre
-      }
+    if (rule !== EMPTY_ALT) {
+      children.push(rule)
     }
-    return rule
+    
+    return {
+      name: 'rule',
+      children
+    }
   })
 }
