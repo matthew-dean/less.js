@@ -34,7 +34,7 @@ export class BaseParserClass extends EmbeddedActionsParser {
     return found
   }
 
- /**
+  /**
    * Find the next token outside of any blocks
    */
   // public PEEK2(searchTokenTypes: TokenType[]): boolean {

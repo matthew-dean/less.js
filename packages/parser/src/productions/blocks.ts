@@ -1,4 +1,3 @@
-import { EMPTY_ALT } from 'chevrotain'
 import type { LessParser } from '../lessParser'
 
 export default function(this: LessParser, $: LessParser) {

@@ -26,8 +26,8 @@
   },
   "scripts": {
     "ci": "lerna run ci && yarn run lint",
-    "lint:fix": "eslint --fix '**/*.{ts,js}'",
-    "lint": "eslint '**/*.{ts,js}'",
+    "lint:fix": "eslint --fix '**/*.{ts,json}'",
+    "lint": "eslint '**/*.{ts,json}'",
     "bootstrap": "lerna bootstrap",
     "compile": "lerna run compile"
   },

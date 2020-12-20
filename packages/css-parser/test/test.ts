@@ -56,7 +56,7 @@ describe('can parse Less CSS output', () => {
         expect(lexerResult.errors.length).to.equal(0)
         expect(parser.errors.length).to.equal(0)
       })
-  })
+    })
 })
 
 describe('returns errors on invalid Less CSS output', () => {
@@ -71,5 +71,5 @@ describe('returns errors on invalid Less CSS output', () => {
         expect(lexerResult.errors.length).to.equal(0)
         expect(parser.errors.length).to.be.gt(0)
       })
-  })
+    })
 })

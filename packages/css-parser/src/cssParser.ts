@@ -3,9 +3,7 @@ import {
   IParserConfig,
   BaseParser,
   IRuleConfig,
-  IToken,
-  tokenMatcher,
-  EOF
+  IToken
 } from 'chevrotain'
 import { EmbeddedActionsParser } from 'chevrotain'
 import { TokenMap } from './util'

@@ -1,4 +1,4 @@
-import { group } from 'console'
+/* eslint no-control-regex: "off" */
 import { rawTokenConfig, LexerType } from './util'
 
 /**
@@ -199,7 +199,7 @@ export const Tokens: rawTokenConfig[] = [
   },
   {
     name: 'UnicodeRange',
-    pattern: /[uU]\+[0-9a-fA-F?]+(\-[0-9a-fA-F?]+)?/
+    pattern: /[uU]\+[0-9a-fA-F?]+(-[0-9a-fA-F?]+)?/
   },
   {
     name: 'DotName',
@@ -235,14 +235,20 @@ export const Tokens: rawTokenConfig[] = [
   {
     name: 'DimensionNum',
     pattern: ['({{number}})({{ident}}|%)', groupCapture],
-    start_chars_hint: ['\d', '-', '+'],
+    start_chars_hint: [
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+      '-', '+'
+    ],
     line_breaks: false,
     categories: ['Dimension']
   },
   {
     name: 'DimensionInt',
     pattern: ['({{integer}})({{ident}}|%)', groupCapture],
-    start_chars_hint: ['\d', '-', '+'],
+    start_chars_hint: [
+      '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+      '-', '+'
+    ],
     line_breaks: false,
     categories: ['Dimension', 'Integer']
   },

@@ -154,15 +154,15 @@ describe('can parse all Less stylesheets', () => {
     .sort()
     .forEach(file => {
       // if (file.indexOf('namespacing-') > -1) {
-        it(`${file}`, () => {
-          const result = fs.readFileSync(path.join(testData, file))
-          const { cst, lexerResult } = lessParser.parse(result.toString())
-          expect(lexerResult.errors.length).to.equal(0)
-          if (parser.errors.length > 0) {
-            console.log(parser.errors)
-          }
-          expect(parser.errors.length).to.equal(0)
-        })
+      it(`${file}`, () => {
+        const result = fs.readFileSync(path.join(testData, file))
+        const { cst, lexerResult } = lessParser.parse(result.toString())
+        expect(lexerResult.errors.length).to.equal(0)
+        if (parser.errors.length > 0) {
+          console.log(parser.errors)
+        }
+        expect(parser.errors.length).to.equal(0)
+      })
       // }
     })
 })

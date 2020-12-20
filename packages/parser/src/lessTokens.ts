@@ -51,7 +51,7 @@ const merges: IMerges = {
       pattern: '\\+{{whitespace}}*_{{whitespace}}*:',
       categories: ['BlockMarker', 'Assign']
     },
-    { name: 'AnonMixinStart', pattern: /[\.#]\(/, categories: ['BlockMarker'] },
+    { name: 'AnonMixinStart', pattern: /[.#]\(/, categories: ['BlockMarker'] },
     { name: 'GtEqAlias', pattern: /=>/, categories: ['CompareOperator'] },
     { name: 'LtEqAlias', pattern: /=</, categories: ['CompareOperator'] },
     {

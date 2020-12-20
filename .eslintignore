@@ -1,3 +1,8 @@
 packages/_old-less
+parser.old.js
+packages/core
+packages/less
+packages/test-data/plugin
+packages/test-data/errors
 node_modules
 dist
