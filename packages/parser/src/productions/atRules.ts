@@ -1,57 +1,102 @@
+import { CstChild, CstNode } from '@less/css-parser'
 import type { LessParser } from '../lessParser'
 
-export default function(this: LessParser, $: LessParser) {
+export default function (this: LessParser, $: LessParser) {
   $.atImport = $.OVERRIDE_RULE('atImport', () => {
-    $.CONSUME($.T.AtImport)
-    $._()
+    const atRuleChildren: CstChild[] = [
+      $.CONSUME($.T.AtImport)
+    ]
+
+    const preludeChildren = [$._()]
     $.OPTION(() => {
-      $.CONSUME($.T.LParen)
-      $._(1)
-      $.CONSUME($.T.Ident)
-      $._(2)
+      const L = $.CONSUME($.T.LParen)
+      const listChildren: CstChild[] = [{
+        name: 'expression',
+        children: [
+          $._(1),
+          $.CONSUME($.T.Ident),
+          $._(2)
+        ]
+      }]
+
       $.MANY(() => {
-        $.CONSUME($.T.Comma)
-        $._(3)
-        $.CONSUME2($.T.Ident)
-        $._(4)
-      })
-      $.CONSUME($.T.RParen)
-      $._(5)
+        listChildren.push(
+          $.CONSUME($.T.Comma),
+          {
+            name: 'expression',
+            children: [
+              $._(3),
+              $.CONSUME2($.T.Ident),
+              $._(4)
+            ]
+          }
+        )
+      }),
+      preludeChildren.push(
+        {
+          name: 'block',
+          children: [
+            L,
+            {
+              name: 'expressionList',
+              children: listChildren
+            },
+            $.CONSUME($.T.RParen)
+          ]
+        },
+        $._(5)
+      )
     })
-    $.OR([
-      { ALT: () => $.CONSUME($.T.StringLiteral) },
-      { ALT: () => $.CONSUME($.T.Uri) }
-    ])
-    $._(6)
-    $.MANY_SEP({
-      SEP: $.T.Comma,
-      DEF: () => $.SUBRULE($.mediaQuery)
-    })
-    $.OPTION2(() => $.CONSUME($.T.SemiColon))
+
+    preludeChildren.push(
+      $.OR([
+        { ALT: () => $.CONSUME($.T.StringLiteral) },
+        { ALT: () => $.CONSUME($.T.Uri) }
+      ]),
+      $._(6)
+    )
+    preludeChildren.push(
+      $.OPTION2(() => $.SUBRULE($.mediaQueryList))
+    )
+    atRuleChildren.push(
+      {
+        name: 'prelude',
+        children: preludeChildren
+      },
+      $.OPTION3(() => $.CONSUME($.T.SemiColon))
+    )
+    return {
+      name: 'atRule',
+      children: atRuleChildren
+    }
   })
 
-  $.mediaFeature = $.OVERRIDE_RULE('mediaFeature', (afterAnd: boolean) => {
-    $.OR([
-      {
-        GATE: () => !afterAnd,
-        ALT: () => {
-        $.CONSUME($.T.PlainIdent)
-      }},
-      { ALT: () => $.SUBRULE($.variable) },
-      { 
-        ALT: () => {
-          $.CONSUME($.T.LParen)
-          $.SUBRULE($.expression)
-          $.CONSUME($.T.RParen)
-        }
-      }
-    ])
-    $._()
-  })
+  $.mediaFeature = $.OVERRIDE_RULE('mediaFeature',
+    (afterAnd: boolean) => ({
+      name: 'mediaFeature',
+      children: [
+        $.OR([
+          {
+            GATE: () => !afterAnd,
+            ALT: () => $.CONSUME($.T.PlainIdent)
+          },
+          { ALT: () => $.SUBRULE($.variable) },
+          {
+            ALT: () => {
+              $.CONSUME($.T.LParen)
+              $.SUBRULE($.expression)
+              $.CONSUME($.T.RParen)
+            }
+          }
+        ]),
+        $._()
+      ]
+    })
+  )
 
   $.unknownAtRule = $.OVERRIDE_RULE('unknownAtRule', () => {
-    $.CONSUME($.T.AtKeyword)
-    const ws = $._(0, { LABEL: 'postName' })
+    const name = $.CONSUME($.T.AtKeyword)
+    const ws = $._(0)
     $.OR({
       /**
        * A prelude could have a colon too, so the last two rules are
@@ -62,39 +107,62 @@ export default function(this: LessParser, $: LessParser) {
       DEF: [
         {
           GATE: () => !ws,
+          /** Variable call */
           ALT: () => {
-            /** Variable call */
-            $.CONSUME($.T.LParen)
-            $.CONSUME($.T.RParen)
+            return {
+              name: 'variableCall',
+              children: [
+                name,
+                $.CONSUME($.T.LParen),
+                $.CONSUME($.T.RParen)
+              ]
+            }
           }
         },
         {
-          ALT: () => {
-            /** Variable assignment */
-            $.CONSUME($.T.Colon)
-            $._(1, { LABEL: 'preExpr' })
-            $.OR2([
-              { ALT: () => $.SUBRULE($.curlyBlock) },
-              { ALT: () => {
-                $.SUBRULE($.expressionList)
-                $.OPTION(() => {
-                  $.CONSUME($.T.Important)
-                  $._(2, { LABEL: 'postImportant' })
-                })
-              }}
-            ])
-            $.OPTION2(() => $.CONSUME($.T.SemiColon, { LABEL: 'semi' }))
-          }
+          /** Variable assignment */
+          ALT: () => ({
+            name: 'declaration',
+            children: [
+              name,
+              ws,
+              $.CONSUME($.T.Colon),
+              $._(1),
+              ...$.OR2([
+                { ALT: () => [$.SUBRULE($.curlyBlock), undefined] },
+                { ALT: () => [
+                  $.SUBRULE($.expressionList),
+                  $.OPTION(() => ({
+                    name: 'important',
+                    children: [
+                      $.CONSUME($.T.Important),
+                      $._(2)
+                    ]
+                  }))
+                ]}
+              ]),
+              $.OPTION2(() => $.CONSUME($.T.SemiColon))
+            ]
+          })
         },
         {
           ALT: () => {
-            $.SUBRULE($.customPrelude, { LABEL: 'prelude' })
-            $.OR3([
-              { ALT: () => $.SUBRULE2($.curlyBlock) },
-              { ALT: () => {
-                $.OPTION3(() => $.CONSUME2($.T.SemiColon))
-              }}
-            ])
+            const prelude: CstNode = $.SUBRULE($.customPrelude)
+            prelude.children.unshift(ws)
+
+            return {
+              name: 'atRule',
+              children: [
+                name,
+                prelude,
+                $.OR3([
+                  { ALT: () => $.SUBRULE2($.curlyBlock) },
+                  { ALT: () =>
+                    $.OPTION3(() => $.CONSUME2($.T.SemiColon))
+                  }
+                ])
+              ]
+            }
           }
         }
       ]

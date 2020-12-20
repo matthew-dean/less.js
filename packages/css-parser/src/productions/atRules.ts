@@ -1,7 +1,7 @@
 import { IToken } from 'chevrotain'
-import type { CssParser, CstNode } from '../cssParser'
+import type { CssParser, CstChild, CstNode } from '../cssParser'
 
-export default function(this: CssParser, $: CssParser) {
+export default function (this: CssParser, $: CssParser) {
   $.atRule = $.RULE('atRule',
     () => $.OR([
       { ALT: () => $.SUBRULE($.knownAtRule) },
@@ -78,14 +78,7 @@ export default function(this: CssParser, $: CssParser) {
           name: 'prelude',
           children: [
             $._(),
-            $.SUBRULE($.mediaQuery),
-            $._(1),
-            $.MANY(() => {
-              $.CONSUME($.T.Comma)
-              $._(2)
-              $.SUBRULE2($.mediaQuery)
-              $._(3)
-            })
+            $.SUBRULE($.mediaQueryList)
           ]
         },
         $.SUBRULE($.curlyBlock)
@@ -103,13 +96,33 @@ export default function(this: CssParser, $: CssParser) {
           children: [
             $._(),
             $.SUBRULE($.mediaCondition),
-            $._(1),
+            $._(1)
           ]
         },
         $.SUBRULE($.curlyBlock)
       ]
     })
   )
+
+  $.mediaQueryList = $.RULE('mediaQueryList', () => {
+    const children: CstChild[] = [
+      $.SUBRULE($.mediaQuery),
+      $._(1)
+    ]
+
+    $.MANY(() => {
+      children.push(
+        $.CONSUME($.T.Comma),
+        $._(2),
+        $.SUBRULE2($.mediaQuery),
+        $._(3)
+      )
+    })
+    return {
+      name: 'mediaQueryList',
+      children
+    }
+  })
 
   $.mediaQuery = $.RULE('mediaQuery', () => {
     return {
@@ -134,7 +147,7 @@ export default function(this: CssParser, $: CssParser) {
               $.CONSUME($.T.Not)
               $._()
               $.SUBRULE($.mediaFeature)
-            }  
+            }
           },
           { ALT: () => $.SUBRULE2($.mediaAnd) }
         ])
@@ -169,7 +182,7 @@ export default function(this: CssParser, $: CssParser) {
             GATE: () => !afterAnd,
             ALT: () => $.CONSUME($.T.PlainIdent)
           },
-          { 
+          {
             ALT: () => {
               return {
                 name: 'block',

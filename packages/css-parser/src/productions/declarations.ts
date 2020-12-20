@@ -4,15 +4,16 @@ export interface Declaration extends CstNode {
   name: 'declaration'
   children: [
     name: IToken,
-    ws: IToken,
+    postNameWs: IToken,
     assign: IToken,
+    preValueWs: IToken,
     value: CstNode,
     important: CstNode,
     semi: IToken
   ]
 }
 
-export default function(this: CssParser, $: CssParser) {
+export default function (this: CssParser, $: CssParser) {
   /**
    * e.g.
    *   color: red
@@ -24,12 +25,13 @@ export default function(this: CssParser, $: CssParser) {
         $.SUBRULE($.property),
         $._(0),
         $.CONSUME($.T.Assign),
+        $._(1),
         $.SUBRULE($.expressionList),
         $.OPTION(() => ({
           name: 'important',
           children: [
             $.CONSUME($.T.Important),
-            $._(1)
+            $._(2)
           ]
         })),
         $.OPTION2(() => $.CONSUME($.T.SemiColon))
@@ -48,6 +50,7 @@ export default function(this: CssParser, $: CssParser) {
         $.SUBRULE($.customProperty),
         $._(0),
         $.CONSUME($.T.Assign),
+        $._(1),
         $.SUBRULE($.customValue),
         /** !important can be part of customValue */
         undefined,

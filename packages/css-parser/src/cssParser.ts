@@ -73,6 +73,7 @@ export class CssParser extends EmbeddedActionsParser {
   atNonNested: Rule
 
   /** @media */
+  mediaQueryList: Rule
   mediaQuery: Rule
   mediaCondition: Rule
   mediaFeature: Rule
@@ -105,7 +106,6 @@ export class CssParser extends EmbeddedActionsParser {
   customProperty: Rule
 
   /** expressions */
-  expressionListGroup: Rule
   expressionList: Rule
   expression: Rule
 
@@ -151,11 +151,11 @@ export class CssParser extends EmbeddedActionsParser {
       const startIndex = this.currIdx + 1
       const result = func()
       const endIndex = this.currIdx
-      
+
       if (result && result.name) {
         const startToken = this.input[startIndex]
         const endToken = this.input[endIndex]
-        
+
         if (startToken && endToken) {
           const { startOffset, startColumn, startLine } = startToken
           const { endOffset, endColumn, endLine } = endToken
