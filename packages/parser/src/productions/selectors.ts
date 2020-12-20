@@ -40,5 +40,17 @@ export default function(this: LessParser, $: LessParser) {
     $._(1)
   })
 
+  $.simpleSelector = $.OVERRIDE_RULE('simpleSelector',
+    () => $.OR([
+      { ALT: () => $.SUBRULE($.pseudoSelector) },
+      { ALT: () => $.SUBRULE($.attrSelector) },
+      { ALT: () => $.SUBRULE($.nameSelector) },
+      /** Used in keyframes as a selector */
+      { ALT: () => $.CONSUME($.T.Dimension) },
+      /** Can be a partial class, as in `&-1` */
+      { ALT: () => $.CONSUME($.T.Number) }
+    ])
+  )
+
   $.attrIdent = $.OVERRIDE_RULE('attrIdent', () => $.SUBRULE($.identOrInterpolated))
 }

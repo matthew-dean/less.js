@@ -21,7 +21,7 @@ describe('can parse any rule', () => {
 
   it('qualified rule', () => {
     let lexerResult = lessParser.lexer.tokenize(
-      `.light when (lightness(@a) > 50%) {`
+      `light when (`
     )
     let lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
@@ -52,7 +52,7 @@ describe('can parse any rule', () => {
     )
     let lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
-    parser.mixinDefinition()
+    parser.mixin()
     expect(parser.errors.length).to.equal(0)
 
     lexerResult = lessParser.lexer.tokenize(
@@ -63,7 +63,7 @@ describe('can parse any rule', () => {
     )
     lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
-    parser.mixinDefinition()
+    parser.mixin()
     expect(parser.errors.length).to.equal(0)
 
     lexerResult = lessParser.lexer.tokenize(
@@ -71,7 +71,7 @@ describe('can parse any rule', () => {
     )
     lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
-    parser.mixinDefinition()
+    parser.mixin()
     expect(parser.errors.length).to.equal(0)
 
     lexerResult = lessParser.lexer.tokenize(
@@ -87,7 +87,7 @@ describe('can parse any rule', () => {
 
 
     lexerResult = lessParser.lexer.tokenize(
-      `.b(@j: 1) when (@j < length(@cols)) {`
+      `.b(`
     )
     lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
@@ -99,7 +99,7 @@ describe('can parse any rule', () => {
     let lexerResult = lessParser.lexer.tokenize(`.mixin-with-guard-inside(0px);`)
     let lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
-    parser.mixinCall()
+    parser.mixin()
     expect(parser.errors.length).to.equal(0)
 
     lexerResult = lessParser.lexer.tokenize(`.wrap-mixin(@ruleset: {
@@ -107,7 +107,8 @@ describe('can parse any rule', () => {
       });`)
     lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
-    parser.mixinCall()
+    parser.mixin()
+
     expect(parser.errors.length).to.equal(0)
 
     lexerResult = lessParser.lexer.tokenize(`.mixin-call({direct: works;}; @b: {named: works;});`)
@@ -117,7 +118,7 @@ describe('can parse any rule', () => {
     expect(parser.errors.length).to.equal(0)
 
     lexerResult = lessParser.lexer.tokenize(
-      `.parenthesisNot(@value) when (((not(@value)))) {`
+      `.parenthesisNot(`
     )
     lexedTokens = lexerResult.tokens
     parser.input = lexedTokens
@@ -157,6 +158,9 @@ describe('can parse all Less stylesheets', () => {
           const result = fs.readFileSync(path.join(testData, file))
           const { cst, lexerResult } = lessParser.parse(result.toString())
           expect(lexerResult.errors.length).to.equal(0)
+          if (parser.errors.length > 0) {
+            console.log(parser.errors)
+          }
           expect(parser.errors.length).to.equal(0)
         })
       // }

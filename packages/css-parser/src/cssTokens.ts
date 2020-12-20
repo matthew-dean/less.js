@@ -236,12 +236,14 @@ export const Tokens: rawTokenConfig[] = [
     name: 'DimensionNum',
     pattern: ['({{number}})({{ident}}|%)', groupCapture],
     start_chars_hint: ['\d', '-', '+'],
+    line_breaks: false,
     categories: ['Dimension']
   },
   {
     name: 'DimensionInt',
     pattern: ['({{integer}})({{ident}}|%)', groupCapture],
     start_chars_hint: ['\d', '-', '+'],
+    line_breaks: false,
     categories: ['Dimension', 'Integer']
   },
   {

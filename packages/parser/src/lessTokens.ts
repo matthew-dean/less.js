@@ -63,7 +63,7 @@ const merges: IMerges = {
       name: 'When',
       pattern: /when/,
       longer_alt: 'PlainIdent',
-      categories: ['Ident']
+      categories: ['BlockMarker']
     },
     {
       name: 'VarOrProp',

@@ -1,4 +1,12 @@
-import { TokenType, IParserConfig, BaseParser, IRuleConfig, IToken } from 'chevrotain'
+import {
+  TokenType,
+  IParserConfig,
+  BaseParser,
+  IRuleConfig,
+  IToken,
+  tokenMatcher,
+  EOF
+} from 'chevrotain'
 import { EmbeddedActionsParser } from 'chevrotain'
 import { TokenMap } from './util'
 import root from './productions/root'

@@ -1,4 +1,5 @@
 import { CstChild, CstNode } from '@less/css-parser'
+import { Declaration } from 'css-parser/src/productions/declarations'
 import type { LessParser } from '../lessParser'
 
 export default function (this: LessParser, $: LessParser) {
@@ -121,34 +122,48 @@ export default function (this: LessParser, $: LessParser) {
         },
         {
           /** Variable assignment */
-          ALT: () => ({
-            name: 'declaration',
-            children: [
+          ALT: () => {
+            const children: CstChild[] = [
               name,
               ws,
               $.CONSUME($.T.Colon),
-              $._(1),
-              ...$.OR2([
-                { ALT: () => [$.SUBRULE($.curlyBlock), undefined] },
-                { ALT: () => [
-                  $.SUBRULE($.expressionList),
-                  $.OPTION(() => ({
-                    name: 'important',
-                    children: [
-                      $.CONSUME($.T.Important),
-                      $._(2)
-                    ]
-                  }))
-                ]}
-              ]),
-              $.OPTION2(() => $.CONSUME($.T.SemiColon))
+              $._(1)
             ]
-          })
+            $.OR2([
+              {
+                ALT: () => {
+                  children.push(
+                    $.SUBRULE($.curlyBlock),
+                    undefined
+                  )
+                }
+              },
+              {
+                ALT: () => {
+                  children.push(
+                    $.SUBRULE($.expressionList),
+                    $.OPTION(() => ({
+                      name: 'important',
+                      children: [
+                        $.CONSUME($.T.Important),
+                        $._(2)
+                      ]
+                    }))
+                  )
+                }
+              }
+            ])
+            children.push($.OPTION2(() => $.CONSUME($.T.SemiColon)))
+            return {
+              name: 'declaration',
+              children
+            }
+          }
         },
         {
           ALT: () => {
             const prelude: CstNode = $.SUBRULE($.customPrelude)
-            prelude.children.unshift(ws)
+            prelude.children?.unshift(ws)
 
             return {
               name: 'atRule',

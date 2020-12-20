@@ -71,13 +71,10 @@ export default function (this: LessParser, $: LessParser) {
   $.functionArg = $.RULE('functionArg', () => {
     $.OR([
       {
-        GATE: $.BACKTRACK($.testAnonMixin),
         ALT: () => {
-          const semiColonSeparated = $.isSemiColonSeparated
           $.CONSUME($.T.AnonMixinStart)
-          $.SUBRULE($.mixinCallArgs, { ARGS: [semiColonSeparated] })
-          $.CONSUME($.T.RParen, { LABEL: 'R' })
-          $.isSemiColonSeparated = semiColonSeparated
+          $.SUBRULE($.mixinArgs)
+          $.CONSUME($.T.RParen)
           $._()
           $.SUBRULE($.curlyBlock)
         }
@@ -99,15 +96,8 @@ export default function (this: LessParser, $: LessParser) {
            */
           $.OPTION(() => {
             $.CONSUME($.T.LParen)
-            const isSemiColonSeparated = $.isSemiColonSeparated
-            $.OPTION2({
-              GATE: $.BACKTRACK($.testMixinArgs),
-              DEF: () => {
-                $.SUBRULE($.mixinCallArgs, { ARGS: [isSemiColonSeparated] })
-                $.CONSUME($.T.RParen)
-              }
-            })
-            $.isSemiColonSeparated = isSemiColonSeparated
+            $.SUBRULE($.mixinArgs)
+            $.CONSUME($.T.RParen)
           })
         }
       }
@@ -154,6 +144,10 @@ export default function (this: LessParser, $: LessParser) {
 
   /** This is more specific than the CSS parser */
   $.value = $.OVERRIDE_RULE('value', () => {
+    $.OPTION(() => {
+      /** Applying negative or positive to a value */
+      $.CONSUME($.T.AdditionOperator)
+    })
     $.OR([
       { ALT: () => $.SUBRULE($.valueBlock) },
       { ALT: () => $.SUBRULE($.function) },
@@ -167,6 +161,7 @@ export default function (this: LessParser, $: LessParser) {
       { ALT: () => $.CONSUME($.T.Uri) },
       { ALT: () => $.CONSUME($.T.ColorIntStart) },
       { ALT: () => $.CONSUME($.T.UnicodeRange) },
+      { ALT: () => $.CONSUME($.T.When) },
 
       /** Can be found in selector expressions */
       { ALT: () => $.CONSUME($.T.AttrMatchOperator) },
