@@ -61,16 +61,19 @@ export default function (this: CssParser, $: CssParser) {
 
   /** "color" in "color: red" */
   $.property = $.RULE('property',
-    () => $.OR([
-      { ALT: () => $.CONSUME($.T.Ident) },
-      {
-        /** Legacy - remove? */
-        ALT: () => [
-          $.CONSUME($.T.Star),
-          $.CONSUME2($.T.Ident)
-        ]
-      }
-    ])
+    () => ({
+      name: 'property',
+      children: $.OR([
+        { ALT: () => [$.CONSUME($.T.Ident)] },
+        {
+          /** Legacy - remove? */
+          ALT: () => [
+            $.CONSUME($.T.Star),
+            $.CONSUME2($.T.Ident)
+          ]
+        }
+      ])
+    })
   )
 
   $.customProperty = $.RULE('customProperty', () => $.CONSUME($.T.CustomProperty))

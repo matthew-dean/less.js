@@ -4,6 +4,7 @@ import * as path from 'path'
 import { expect } from 'chai'
 import 'mocha'
 import { Parser } from '../src'
+import { stringify } from '../src/util/cst'
 
 const testData = path.dirname(require.resolve('@less/test-data'))
 
@@ -19,9 +20,15 @@ describe('can parse all CSS stylesheets', () => {
       if (file.indexOf('errors') === -1) {
         it(`${file}`, () => {
           const result = fs.readFileSync(file)
-          const { cst, lexerResult, parser } = cssParser.parse(result.toString())
+          const contents = result.toString()
+          const { cst, lexerResult, parser } = cssParser.parse(contents)
           expect(lexerResult.errors.length).to.equal(0)
           expect(parser.errors.length).to.equal(0)
+          
+          if (!(['test/css/custom-properties.css'].includes(file))) {
+            const output = stringify(cst)
+            expect(output).to.equal(contents)
+          }
         })
       }
     })

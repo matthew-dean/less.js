@@ -1,5 +1,5 @@
-import { EMPTY_ALT, ConsumeMethodOpts, IToken } from 'chevrotain'
-import type { CssParser, CstNode } from '../cssParser'
+import { EMPTY_ALT, ConsumeMethodOpts } from 'chevrotain'
+import type { CssParser, CstChild, CstNode } from '../cssParser'
 
 export default function(this: CssParser, $: CssParser) {
   /** Optional whitespace */
@@ -9,7 +9,7 @@ export default function(this: CssParser, $: CssParser) {
   }
 
   /** Stylesheet */
-  $.root = $.RULE<CstNode>('root',
+  $.root = $.RULE('root',
     () => ({
       name: 'root',
       children: $.SUBRULE($.primary)
@@ -17,7 +17,7 @@ export default function(this: CssParser, $: CssParser) {
   )
 
   /** List of rules */
-  $.primary = $.RULE<(IToken | CstNode)[]>('primary', () => {
+  $.primary = $.RULE<CstChild[]>('primary', () => {
     const rules = []
     $.MANY(() => rules.push($.SUBRULE($.rule)))
     

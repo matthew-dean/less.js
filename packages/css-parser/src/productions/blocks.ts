@@ -90,16 +90,19 @@ export default function(this: CssParser, $: CssParser) {
     }
   })
 
-  $.curlyBlock = $.RULE('curlyBlock', () => {
-    return {
+  $.curlyBlock = $.RULE('curlyBlock',
+    () => ({
       name: 'curlyBlock',
       children: [
-        $.CONSUME($.T.LCurly, { LABEL: 'L' }),
-        $.SUBRULE($.primary, { LABEL: 'blockBody' }),
-        $.CONSUME($.T.RCurly, { LABEL: 'R' })
+        $.CONSUME($.T.LCurly),
+        {
+          name: 'rules',
+          children: $.SUBRULE($.primary)
+        },
+        $.CONSUME($.T.RCurly)
       ]
-    }
-  })
+    })
+  )
 
   /**
    * Blocks assigned to custom properties

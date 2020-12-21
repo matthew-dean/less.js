@@ -16,7 +16,7 @@ import values from './productions/values'
 
 export type { IToken }
 
-export type Rule = (idxInCallingRule?: number, ...args: any[]) => any
+export type Rule<T extends any = any> = (idxInCallingRule?: number, ...args: any[]) => T
 
 /**
  * CST structure as follows
@@ -66,7 +66,7 @@ export class CssParser extends EmbeddedActionsParser {
   consume: BaseParser['consume']
 
   /** Productions */
-  root: Rule
+  root: Rule<CstNode>
   primary: Rule
   rule: Rule
   atRule: Rule

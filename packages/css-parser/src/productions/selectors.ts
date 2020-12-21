@@ -76,20 +76,25 @@ export default function(this: CssParser, $: CssParser) {
             const children = [
               $.CONSUME2($.T.WS)
             ]
+            let sel
             $.OPTION2(() => {
               $.OPTION3(() => {
                 children.push($.CONSUME2($.T.Combinator))
                 $.OPTION4(() => children.push($.CONSUME3($.T.WS)))
               })
+              
+              sel = $.SUBRULE3($.compoundSelector)
+            })
+            if (sel) {
               return [
                 {
                   name: 'combinator',
                   children
                 },
-                $.SUBRULE3($.compoundSelector)
+                sel
               ]
-            })
-            return children[0]
+            }
+            return children
           }
         }
       ])
@@ -136,7 +141,7 @@ export default function(this: CssParser, $: CssParser) {
     ])
   )
 
-  /** e.g. :pseudo or ::pseudo */
+  /** e.g. `:pseudo` | `::pseudo` | `:pseudo()` */
   $.pseudoSelector = $.RULE('pseudoSelector', () => {
     const pseudoName = [$.CONSUME($.T.Colon)]
     $.OPTION(() => pseudoName.push($.CONSUME2($.T.Colon)))
@@ -144,6 +149,8 @@ export default function(this: CssParser, $: CssParser) {
       name: 'pseudoName',
       children: pseudoName
     })
+    let args
+    let R
     $.OR2([
       {
         ALT: () => {
@@ -151,36 +158,29 @@ export default function(this: CssParser, $: CssParser) {
           /** Handle functions parsed as idents (like `not`) */
           $.OPTION2(() => {
             pseudoName.push($.CONSUME($.T.LParen))
-            return {
-              name: 'pseudoSelector',
-              children: [
-                getName(),
-                $.SUBRULE($.expressionList),
-                $.CONSUME($.T.RParen)
-              ]
-            }
+            args = $.SUBRULE($.expressionList),
+            R = $.CONSUME($.T.RParen)
           })
-          return {
-            name: 'pseudoSelector',
-            children: [getName()]
-          }
         }
       },
       {
         /** e.g. :pseudo(...) */
         ALT: () => {
           pseudoName.push($.CONSUME($.T.Function))
-          return {
-            name: 'pseudoSelector',
-            children: [
-              getName(),
-              $.SUBRULE2($.expressionList),
-              $.CONSUME2($.T.RParen)
-            ]
-          }
+          args = $.SUBRULE2($.expressionList),
+          R = $.CONSUME2($.T.RParen)
         }
       }
     ])
+
+    return {
+      name: 'pseudoSelector',
+      children: [
+        getName(),
+        args,
+        R
+      ]
+    }
   })
 
   /** e.g. [id^="bar"] [*|ns|="foo"] */

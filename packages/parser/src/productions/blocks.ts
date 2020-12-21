@@ -17,12 +17,10 @@ export default function(this: LessParser, $: LessParser) {
         $.OR([
           {
             GATE: () => hasExtend,
-            ALT: () => {
-              $.OR2([
-                { ALT: () => $.SUBRULE($.curlyBlock) },
-                { ALT: () => $.CONSUME($.T.SemiColon) }
-              ])
-            }
+            ALT: () => $.OR2([
+              { ALT: () => $.SUBRULE($.curlyBlock) },
+              { ALT: () => $.CONSUME($.T.SemiColon) }
+            ])
           },
           {
             ALT: () => $.SUBRULE2($.curlyBlock)

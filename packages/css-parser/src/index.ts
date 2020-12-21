@@ -1,6 +1,6 @@
-import type { IToken, Lexer, CstNode, ILexingResult } from 'chevrotain'
+import type { IToken, Lexer, ILexingResult } from 'chevrotain'
 import { Tokens, Fragments } from './cssTokens'
-import { CssParser } from './cssParser'
+import { CssParser, CstNode } from './cssParser'
 import { createLexer } from './util'
 
 export * from './cssTokens'

@@ -71,8 +71,9 @@ export const createLexer = (rawFragments: string[][], rawTokens: rawTokenConfig[
     }
 
     const longerAlt = longer_alt ? { longer_alt: T[longer_alt] } : {}
-    const groupValue
-      = group === LexerType.SKIPPED ? { group: Lexer.SKIPPED } : group ? { group: <string>group } : {}
+    const groupValue = group === LexerType.SKIPPED
+      ? { group: Lexer.SKIPPED }
+      : group ? { group: <string>group } : {}
     const tokenCategories = categories
       ? {
         categories: categories.map(category => {
@@ -93,7 +94,7 @@ export const createLexer = (rawFragments: string[][], rawTokens: rawTokenConfig[
     tokens.unshift(token)
   })
 
-  // Lexer initialization time can be reduced (~30%) by explicitly providing the link_break option for all Tokens
+  // Lexer initialization time can be reduced (~30%) by explicitly providing the line_break option for all Tokens
   // https://sap.github.io/chevrotain/documentation/6_5_0/interfaces/itokenconfig.html#line_breaks
   const lexer = new Lexer(tokens, {
     ensureOptimizations: true,
