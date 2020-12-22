@@ -25,6 +25,7 @@ describe('can parse all CSS stylesheets', () => {
           expect(lexerResult.errors.length).to.equal(0)
           expect(parser.errors.length).to.equal(0)
           
+          /** This contains CDO tokens, which are skipped */
           if (!(['test/css/custom-properties.css'].includes(file))) {
             const output = stringify(cst)
             expect(output).to.equal(contents)

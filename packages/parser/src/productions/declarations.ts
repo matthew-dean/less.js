@@ -1,32 +1,43 @@
+import { CstChild } from '@less/css-parser'
 import type { LessParser } from '../lessParser'
 
 export default function(this: LessParser, $: LessParser) {
   /** "color" in "color: red" */
   $.property = $.OVERRIDE_RULE('property', () => {
+    const children: CstChild[] = []
     /** Legacy - remove? */
-    $.OPTION(() => $.CONSUME($.T.Star, { LABEL: 'name' }))
-    
-    $.OR([
-      { ALT: () => {
-        $.AT_LEAST_ONE(() => $.OR2([
-          { ALT: () => $.CONSUME($.T.Ident, { LABEL: 'name' }) },
-          { ALT: () => $.CONSUME($.T.InterpolatedIdent, { LABEL: 'name' }) },
-          /** Isolated dashes */
-          { ALT: () => $.CONSUME($.T.Minus, { LABEL: 'name' }) }
-        ]))
-      }}
-    ])
-    
+    $.OPTION(() => children.push($.CONSUME($.T.Star)))
+
+    $.AT_LEAST_ONE(
+      () => children.push($.OR2([
+        { ALT: () => $.CONSUME($.T.Ident) },
+        { ALT: () => $.CONSUME($.T.InterpolatedIdent) },
+        /** Isolated dashes */
+        { ALT: () => $.CONSUME($.T.Minus) }
+      ]))
+    )
+    return {
+      name: 'property',
+      children
+    }
   })
   
   $.customProperty = $.OVERRIDE_RULE('customProperty', () => {
-    $.CONSUME($.T.CustomProperty, { LABEL: 'name' })
-    $.MANY(() => $.OR([
-      { ALT: () => $.CONSUME($.T.Ident, { LABEL: 'name' }) },
-      { ALT: () => $.CONSUME($.T.InterpolatedIdent, { LABEL: 'name' }) },
-      /** Isolated dashes */
-      { ALT: () => $.CONSUME($.T.Minus, { LABEL: 'name' }) }
-    ]))
+    const children: CstChild[] = [
+      $.CONSUME($.T.CustomProperty)
+    ]
+    $.MANY(
+      () => children.push($.OR([
+        { ALT: () => $.CONSUME($.T.Ident) },
+        { ALT: () => $.CONSUME($.T.InterpolatedIdent) },
+        /** Isolated dashes */
+        { ALT: () => $.CONSUME($.T.Minus) }
+      ]))
+    )
+    return {
+      name: 'property',
+      children
+    }
   })
 
 }

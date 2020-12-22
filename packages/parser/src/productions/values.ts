@@ -1,5 +1,6 @@
 import { LessParser } from '../lessParser'
 import { EMPTY_ALT } from 'chevrotain'
+import { CstChild } from '@less/css-parser'
 
 export default function (this: LessParser, $: LessParser) {
   const compareGate = () => $.inCompareBlock
@@ -8,14 +9,21 @@ export default function (this: LessParser, $: LessParser) {
    * @todo - rewrite to capture all guard expressions
    */
   $.expression = $.OVERRIDE_RULE('expression', () => {
-    $._(0, { LABEL: 'pre' })
+    const children: CstChild[] = [
+      $._(0)
+    ]
     $.OR([
       {
         GATE: compareGate,
-        ALT: () => $.MANY(() => $.SUBRULE($.compare, { LABEL: 'value' }))
+        ALT: () => $.MANY(() => children.push($.SUBRULE($.compare)))
       },
-      { ALT: () => $.MANY2(() => $.SUBRULE($.addition, { LABEL: 'value' })) }
+      { ALT: () => $.MANY2(() => children.push($.SUBRULE($.addition))) }
     ])
+  
+    return {
+      name: 'expression',
+      children
+    }
   })
 
   $.function = $.RULE('function', () => {
@@ -46,7 +54,10 @@ export default function (this: LessParser, $: LessParser) {
           $.SUBRULE2($.guardOr, { ARGS: [true] })
           $._()
           $.MANY(() => {
-            $.OR3([{ ALT: () => $.CONSUME($.T.Comma) }, { ALT: () => $.CONSUME($.T.SemiColon) }])
+            $.OR3([{
+              ALT: () => $.CONSUME($.T.Comma) },
+              { ALT: () => $.CONSUME($.T.SemiColon)
+            }])
             $._(1)
             $.SUBRULE2($.functionArg)
             $._(2)
@@ -61,7 +72,10 @@ export default function (this: LessParser, $: LessParser) {
     $.SUBRULE($.functionArg)
     $._()
     $.MANY(() => {
-      $.OR([{ ALT: () => $.CONSUME($.T.Comma) }, { ALT: () => $.CONSUME($.T.SemiColon) }])
+      $.OR([
+        { ALT: () => $.CONSUME($.T.Comma) },
+        { ALT: () => $.CONSUME($.T.SemiColon)
+      }])
       $._(1)
       $.SUBRULE2($.functionArg)
       $._(2)

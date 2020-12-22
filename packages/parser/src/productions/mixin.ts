@@ -1,4 +1,6 @@
-import { EMPTY_ALT } from 'chevrotain'
+import { CstChild, CstNode } from '@less/css-parser'
+import { EMPTY_ALT, IToken } from 'chevrotain'
+import { Declaration } from 'css-parser/src/productions/declarations'
 import type { LessParser } from '../lessParser'
 
 export default function(this: LessParser, $: LessParser) {
@@ -82,104 +84,195 @@ export default function(this: LessParser, $: LessParser) {
   //   })
   // })
 
-  $.mixin = $.RULE('mixin', (inValue: boolean) => {
-    $.SUBRULE($.mixinStart)
-    $._(1)
-    $.CONSUME($.T.LParen)
-    $.SUBRULE($.mixinArgs)
-    $.CONSUME($.T.RParen)
-    $._(2)
-    $.OPTION(() => {
-      $.CONSUME($.T.Important)
-      $._(3)
-    })
+  $.mixin = $.RULE<CstNode>('mixin', (inValue: boolean) => {
+    const children: CstChild[] = [
+      $.SUBRULE($.mixinStart),
+      $.CONSUME($.T.LParen),
+      $.SUBRULE($.mixinArgs),
+      $.CONSUME($.T.RParen),
+      $._(1),
+      $.OPTION(() => ({
+        name: 'important',
+        children: [
+          $.CONSUME($.T.Important),
+          $._(2)
+        ]
+      }))
+    ]
     
     $.OR([
       {
         GATE: () => !inValue,
-        ALT: () => $.CONSUME($.T.SemiColon)
+        ALT: () => children.push(undefined, $.CONSUME($.T.SemiColon))
       },
       {
         ALT: () => {
-          $.OPTION2(() => $.SUBRULE($.guard))
-          $.SUBRULE($.curlyBlock)
+          children.push(
+            $.OPTION2(() => $.SUBRULE($.guard)),
+            $.SUBRULE($.curlyBlock)
+          )
         }
       },
       { ALT: () => EMPTY_ALT }
     ])
+  
+    return {
+      name: 'mixin',
+      children
+    }
   })
 
   $.mixinStart = $.RULE('mixinStart', () => {
-    $.SUBRULE($.mixinName)
-    $._()
+    const children: CstChild[] = [
+      $.SUBRULE($.mixinName),
+      $._()
+    ]
     $.MANY(() => {
-      $.OPTION(() => {
-        $.CONSUME($.T.Gt)
-        $._(1)
-      })
-      $.SUBRULE2($.mixinName)
-      $._(2)
+      children.push(
+        $.OPTION(() => ({
+          name: 'combinator',
+          children: [
+            $.CONSUME($.T.Gt),
+            $._(1)
+          ]
+        })),
+        $.SUBRULE2($.mixinName),
+        $._(2)
+      )
     })
+    return {
+      name: 'mixinStart',
+      children
+    }
   })
 
-  $.mixinName = $.RULE('mixinName', () => {
-    $.OR([
+  $.mixinName = $.RULE('mixinName',
+    () => $.OR([
       { ALT: () => $.CONSUME($.T.DotName) },
       { ALT: () => $.CONSUME($.T.HashName) },
       { ALT: () => $.CONSUME($.T.ColorIdentStart) },
       { ALT: () => $.CONSUME($.T.Interpolated) }
     ])
-  })
+  )
 
   $.mixinArgs = $.RULE('mixinArgs', () => {
     let hasSemi = false
-    $._(0)
-    $.SUBRULE($.mixinArg)
-    $._(1)
+    const children: CstChild[] = [
+      $.SUBRULE($.mixinArg),
+    ]
     $.MANY(() => {
-      $.OR([
-        { ALT: () => $.CONSUME($.T.Comma) },
-        { ALT: () => {
-          hasSemi = true
-          return $.CONSUME($.T.SemiColon)
-        }}
-      ])
-      $._(2)
-      $.SUBRULE2($.mixinArg)
-      $._(3)
+      children.push(
+        $.OR([
+          { ALT: () => $.CONSUME($.T.Comma) },
+          { ALT: () => {
+            hasSemi = true
+            return $.CONSUME($.T.SemiColon)
+          }}
+        ]),
+        $.SUBRULE2($.mixinArg)
+      )
     })
+
+    return {
+      name: 'mixinArgs',
+      children
+    }
   })
 
   $.mixinArg = $.RULE('mixinArg', () => {
+    const pre = $._(0)
+    let varName: IToken
+    let ws: IToken
+    let assign: IToken
+    let postAssign: IToken
+    let rest: IToken
+    let isDeclaration = false
+    let value: CstChild
+
     $.OPTION(() => {
       /** 
        * In a mixin definition, this is the variable declaration.
        * In a mixin call, this is either assignment to a variable, OR
        * could be part of the expression value.
        */
-      const varName = $.CONSUME($.T.AtKeyword)
-      const ws = $._()
+      varName = $.CONSUME($.T.AtKeyword)
+      ws = $._(1)
 
       $.OR([
         {
           GATE: () => !ws,
-          ALT: () => $.CONSUME($.T.Ellipsis)
+          ALT: () => rest = $.CONSUME($.T.Ellipsis)
         },
         {
           ALT: () => {
-            $.CONSUME($.T.Assign)
-            $._(1)
+            isDeclaration = true
+            assign = $.CONSUME($.T.Assign)
+            postAssign = $._(2)
           }
         },
         { ALT: () => EMPTY_ALT }
       ])
     })
 
-    $.OR2([
-      { ALT: () => $.CONSUME2($.T.Ellipsis) },
-      { ALT: () => $.SUBRULE($.curlyBlock) },
-      { ALT: () => $.SUBRULE($.expression) }
-    ])
+
+    $.OPTION2({
+      GATE: () => !rest,
+      DEF: () => {
+        value = $.OR2([
+          {
+            GATE: () => !isDeclaration,
+            ALT: () => $.CONSUME2($.T.Ellipsis)
+          },
+          {
+            GATE: () => !varName || isDeclaration,
+            ALT: () => $.SUBRULE($.curlyBlock)
+          },
+          {
+            ALT: () => {
+              const expr: CstNode = $.SUBRULE($.expression)
+              if (!isDeclaration && varName) {
+                expr.children.unshift(varName, ws)
+              }
+              return expr
+            }
+          }
+        ])
+      }
+    })
+    const post = $._(3)
+    let chunk = value
+
+    if (isDeclaration) {
+      chunk = <Declaration>{
+        name: 'declaration',
+        children: [
+          varName,
+          ws,
+          assign,
+          postAssign,
+          value,
+          undefined,
+          undefined
+        ]
+      }
+    } else if (rest) {
+      chunk = {
+        name: 'rest',
+        children: [
+          varName,
+          rest
+        ]
+      }
+    }
+
+    return {
+      name: 'mixinArg',
+      children: [
+        pre,
+        chunk,
+        post
+      ]
+    }
   })
 
   // $.mixinCall = $.RULE('mixinCall', (semiColonSeparated: boolean) => {

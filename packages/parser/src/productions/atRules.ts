@@ -83,11 +83,14 @@ export default function (this: LessParser, $: LessParser) {
           },
           { ALT: () => $.SUBRULE($.variable) },
           {
-            ALT: () => {
-              $.CONSUME($.T.LParen)
-              $.SUBRULE($.expression)
-              $.CONSUME($.T.RParen)
-            }
+            ALT: () => ({
+              name: 'block',
+              children: [
+                $.CONSUME($.T.LParen),
+                $.SUBRULE($.expression),
+                $.CONSUME($.T.RParen)
+              ]
+            })
           }
         ]),
         $._()
