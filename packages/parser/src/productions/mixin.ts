@@ -84,6 +84,16 @@ export default function(this: LessParser, $: LessParser) {
   //   })
   // })
 
+  /**
+   * To avoid a lot of back-tracking, we parse the mixin start
+   * and mixin arguments equally for mixin calls, as it's only
+   * the final curlyBlock that determines if this is a definition
+   * or a call.
+   * 
+   * During CST-to-AST, we can throw an error if a mixin definition
+   * doesn't have valid selectors or arguments, or if, say, a mixin
+   * call has a guard and shouldn't.
+   */
   $.mixin = $.RULE<CstNode>('mixin', (inValue: boolean) => {
     const children: CstChild[] = [
       $.SUBRULE($.mixinStart),
@@ -100,21 +110,25 @@ export default function(this: LessParser, $: LessParser) {
       }))
     ]
     
-    $.OR([
-      {
-        GATE: () => !inValue,
-        ALT: () => children.push(undefined, $.CONSUME($.T.SemiColon))
-      },
-      {
-        ALT: () => {
-          children.push(
-            $.OPTION2(() => $.SUBRULE($.guard)),
-            $.SUBRULE($.curlyBlock)
-          )
+    $.OPTION2({
+      GATE: () => !inValue,
+      DEF: () => $.OR([
+        /**
+         * Within a declaration value, the semi-colon is part of the declaration
+         */
+        {
+          ALT: () => children.push(undefined, $.CONSUME($.T.SemiColon))
+        },
+        {
+          ALT: () => {
+            children.push(
+              $.OPTION3(() => $.SUBRULE($.guard)),
+              $.SUBRULE($.curlyBlock)
+            )
+          }
         }
-      },
-      { ALT: () => EMPTY_ALT }
-    ])
+      ])
+    })
   
     return {
       name: 'mixin',
@@ -155,23 +169,87 @@ export default function(this: LessParser, $: LessParser) {
     ])
   )
 
+  /**
+   * This code gets a bit complicated. Less 2.x-4.x uses
+   * lookaheads to find semi-colons, and if found, parses
+   * arguments differently.
+   * 
+   * Instead, here we just allow for semi-colon or comma
+   * separators, and if BOTH, then we MERGE comma-separated
+   * arguments into the initial expression as an expression
+   * list.
+   * 
+   * This allows us to have one parsing "pass" on arguments
+   * without any back-tracking.
+   */
   $.mixinArgs = $.RULE('mixinArgs', () => {
-    let hasSemi = false
-    const children: CstChild[] = [
-      $.SUBRULE($.mixinArg),
-    ]
+    let childrenGroups: any[][] = [[
+      $.SUBRULE($.mixinArg)
+    ]]
+    let children: CstChild[] = childrenGroups[0]
+    let groupIndex = 0
+
     $.MANY(() => {
-      children.push(
-        $.OR([
-          { ALT: () => $.CONSUME($.T.Comma) },
-          { ALT: () => {
-            hasSemi = true
-            return $.CONSUME($.T.SemiColon)
-          }}
-        ]),
-        $.SUBRULE2($.mixinArg)
-      )
+      $.OR([
+        { ALT: () => {
+          children.push(
+            $.CONSUME($.T.Comma),
+            $.SUBRULE2($.mixinArg)
+          )
+        }},
+        { ALT: () => {
+          children.push(
+            $.CONSUME($.T.SemiColon)
+          )
+
+          childrenGroups.push([
+            $.SUBRULE3($.mixinArg)
+          ])
+          groupIndex++
+          children = childrenGroups[groupIndex]
+        }}
+      ])
     })
+
+    if (!this.RECORDING_PHASE && childrenGroups.length !== 1) {
+      children = []
+      childrenGroups.forEach(group => {
+        const length = group.length
+        const value: CstNode = group[0].children[1]
+        let expr: CstNode
+        let exprList: CstNode[] = []
+
+        if (value.name === 'declaration') {
+          expr = (<Declaration>value).children[4]
+        } else {
+          expr = value
+        }
+
+        exprList.push(expr)
+
+        for(let i = 1; i < length - 1; i += 2) {
+          /** Comma separator */
+          exprList.push(group[i])
+          expr = group[i + 1].children[1]
+          exprList.push(expr)
+        }
+
+        const exprListNode = {
+          name: 'expressionList',
+          children: exprList
+        }
+        if (value.name === 'Declaration') {
+          value.children[4] = exprListNode
+        } else {
+          group[0].children[1] = exprListNode
+        }
+        children.push(group[0])
+        const semi = group[group.length - 1]
+        if (semi?.image === ';') {
+          children.push(semi)
+        }
+      })
+    }
 
     return {
       name: 'mixinArgs',
@@ -179,15 +257,19 @@ export default function(this: LessParser, $: LessParser) {
     }
   })
 
+
+  /**
+   * This will return either a declaration,
+   * an expression, or a rest (e.g. `@var...`)
+   */
   $.mixinArg = $.RULE('mixinArg', () => {
-    const pre = $._(0)
+    let pre = $._(0)
+
     let varName: IToken
     let ws: IToken
     let assign: IToken
     let postAssign: IToken
-    let rest: IToken
     let isDeclaration = false
-    let value: CstChild
 
     $.OPTION(() => {
       /** 
@@ -198,47 +280,51 @@ export default function(this: LessParser, $: LessParser) {
       varName = $.CONSUME($.T.AtKeyword)
       ws = $._(1)
 
-      $.OR([
-        {
-          GATE: () => !ws,
-          ALT: () => rest = $.CONSUME($.T.Ellipsis)
-        },
-        {
-          ALT: () => {
-            isDeclaration = true
-            assign = $.CONSUME($.T.Assign)
-            postAssign = $._(2)
-          }
-        },
-        { ALT: () => EMPTY_ALT }
-      ])
+      $.OPTION2(() => {
+        isDeclaration = true
+        assign = $.CONSUME($.T.Assign)
+        postAssign = $._(2)
+      })
     })
 
-
-    $.OPTION2({
-      GATE: () => !rest,
-      DEF: () => {
-        value = $.OR2([
-          {
-            GATE: () => !isDeclaration,
-            ALT: () => $.CONSUME2($.T.Ellipsis)
-          },
-          {
-            GATE: () => !varName || isDeclaration,
-            ALT: () => $.SUBRULE($.curlyBlock)
-          },
-          {
-            ALT: () => {
-              const expr: CstNode = $.SUBRULE($.expression)
-              if (!isDeclaration && varName) {
-                expr.children.unshift(varName, ws)
+    let value: CstChild = $.OR2([
+      {
+        GATE: () => !isDeclaration && !ws,
+        ALT: () => ({
+          name: 'rest',
+          children: [
+            varName,
+            $.CONSUME2($.T.Ellipsis)
+          ]
+        })
+      },
+      {
+        GATE: () => !varName || isDeclaration,
+        ALT: () => ({
+          name: 'expression',
+          children: [$.SUBRULE($.curlyBlock)]
+        })
+      },
+      {
+        ALT: () => {
+          const expr: CstNode = $.SUBRULE($.expression)
+          if (!isDeclaration) {
+            if (varName) {
+              if (ws) {
+                expr.children.unshift(ws)
               }
-              return expr
+              expr.children.unshift(varName)
+            }
+            if (pre) {
+              expr.children.unshift(pre)
+              pre = undefined
             }
           }
-        ])
+          return expr
+        }
       }
-    })
+    ])
+
     const post = $._(3)
     let chunk = value
 
@@ -255,14 +341,8 @@ export default function(this: LessParser, $: LessParser) {
           undefined
         ]
       }
-    } else if (rest) {
-      chunk = {
-        name: 'rest',
-        children: [
-          varName,
-          rest
-        ]
-      }
+    } else {
+      chunk = value
     }
 
     return {

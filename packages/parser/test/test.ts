@@ -75,6 +75,14 @@ describe('can parse any rule', () => {
     expect(parser.errors.length).to.equal(0)
 
     lexerResult = lessParser.lexer.tokenize(
+      `.mixin-args(@a: 1, 2, 3; @b: 3);`
+    )
+    lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    parser.root()
+    expect(parser.errors.length).to.equal(0)
+
+    lexerResult = lessParser.lexer.tokenize(
       `.mixin-definition(@a: {}; @b: {default: works;};) {
         @a();
         @b();
