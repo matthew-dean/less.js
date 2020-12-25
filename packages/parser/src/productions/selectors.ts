@@ -1,43 +1,97 @@
+import { CstChild, CstNode } from '@less/css-parser'
 import type { LessParser } from '../lessParser'
 
 export default function(this: LessParser, $: LessParser) {
   $.selectorList = $.OVERRIDE_RULE('selectorList', () => {
-    $.SUBRULE($.complexSelector, { LABEL: 'selector'})
+    const children: CstChild[] = [
+      $.SUBRULE($.complexSelector)
+    ]
+    
     let allExtends = $.hasExtend
-    $._(0, { LABEL: 'post' })
+    let guard: CstNode
+  
     $.OR([
-      { ALT: () => $.SUBRULE($.guard) },
+      { ALT: () => guard = $.SUBRULE($.guard) },
       {
         ALT: () => {
           $.MANY(() => {
-            $.CONSUME($.T.Comma)
-            $._(1, { LABEL: 'pre' })
-            $.SUBRULE2($.complexSelector, { LABEL: 'selector'})
+            children.push(
+              {
+                name: 'combinator',
+                children: [
+                  $.CONSUME($.T.Comma),
+                  $._(1)
+                ]
+              },
+              $.SUBRULE2($.complexSelector)
+            )
+           
             allExtends = allExtends && $.hasExtend
-            $._(2, { LABEL: 'post' })
           })
         }
       }
     ])
+    if (guard) {
+      return {
+        name: 'selectorGuard',
+        children: [
+          guard,
+          children[0]
+        ]
+      }
+    } else if (children.length === 1) {
+      return children[0]
+    }
+    
     /** Determines here if can omit a curly block */
     $.hasExtend = allExtends
+
+    return {
+      name: 'selectorList',
+      children
+    }
   })
   
   $.complexSelector = $.OVERRIDE_RULE('complexSelector', () => {
+    const selectors: CstChild[] = []
+
     $.OR([
       { ALT: () => {
-        $.SUBRULE($.compoundSelector, { LABEL: 'selector' })
-        $.MANY(() => $.SUBRULE($.combinatorSelector, { LABEL: 'selector' }))
+        selectors.push(
+          $.SUBRULE($.compoundSelector)
+        )
+        $.MANY(() => selectors.push($.SUBRULE($.combinatorSelector)))
       }},
-      { ALT: () => $.AT_LEAST_ONE(() => $.SUBRULE2($.combinatorSelector, { LABEL: 'selector' }))}
+      {
+        ALT: () => $.AT_LEAST_ONE(
+          () => selectors.push($.SUBRULE2($.combinatorSelector))
+        )
+      }
     ])
-    $.OPTION(() => {
-      $.CONSUME($.T.Extend)
+
+    let extend: CstNode = $.OPTION(() => {
       $.hasExtend = true
-      $.SUBRULE($.selectorList, { LABEL: 'args' })
-      $.CONSUME($.T.RParen, { LABEL: 'R' })
+      return {
+        name: 'extend',
+        children: [
+          $.CONSUME($.T.Extend),
+          $.SUBRULE($.selectorList),
+          $.CONSUME($.T.RParen)
+        ]
+      }
     })
-    $._(1)
+
+    return {
+      name: 'complexSelector',
+      children: [
+        {
+          name: 'selectors',
+          children: selectors
+        },
+        extend,
+        $._(1)
+      ]
+    }
   })
 
   $.simpleSelector = $.OVERRIDE_RULE('simpleSelector',

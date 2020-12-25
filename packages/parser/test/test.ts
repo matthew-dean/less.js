@@ -101,6 +101,14 @@ describe('can parse any rule', () => {
     parser.input = lexedTokens
     parser.testMixin()
     expect(parser.errors.length).to.equal(0)
+
+    lexerResult = lessParser.lexer.tokenize(
+      `#mixin > .mixin (`
+    )
+    lexedTokens = lexerResult.tokens
+    parser.input = lexedTokens
+    parser.testMixin()
+    expect(parser.errors.length).to.equal(0)
   })
 
   it('mixin call', () => {

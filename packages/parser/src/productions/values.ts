@@ -26,78 +26,114 @@ export default function (this: LessParser, $: LessParser) {
     }
   })
 
-  $.function = $.RULE('function', () => {
-    $.OR([
-      {
-        ALT: () => {
-          $.OR2([
-            { ALT: () => $.CONSUME($.T.PlainFunction) },
-            { ALT: () => $.CONSUME($.T.FormatFunction) }
-          ])
-          $.SUBRULE($.functionArgs)
-          $.CONSUME($.T.RParen)
+  $.function = $.RULE('function',
+    () => ({
+      name: 'function',
+      children: $.OR([
+        {
+          ALT: () => [
+            $.OR2([
+              { ALT: () => $.CONSUME($.T.PlainFunction) },
+              { ALT: () => $.CONSUME($.T.FormatFunction) }
+            ]),
+            $.SUBRULE($.functionArgs),
+            $.CONSUME($.T.RParen)
+          ]
+        },
+        /**
+         * Special parsing of `if` and `boolean`
+         */
+        {
+          ALT: () => [
+            $.CONSUME($.T.BooleanFunction),
+            $.SUBRULE($.guardOr, { ARGS: [true] }),
+            $.CONSUME2($.T.RParen)
+          ]
+        },
+        {
+          ALT: () => {
+            const functionArgs: CstChild[] = []
+            const func: CstChild = $.CONSUME($.T.IfFunction)
+            
+            functionArgs.push(
+              $.SUBRULE2($.guardOr, { ARGS: [true] }),
+              $._()
+            )
+            $.MANY(() => {
+              functionArgs.push(
+                {
+                  name: 'combinator',
+                  children: [
+                    $.OR3([{
+                      ALT: () => $.CONSUME($.T.Comma) },
+                      { ALT: () => $.CONSUME($.T.SemiColon)
+                    }]),
+                    $._(1)
+                  ]
+                },
+                $.SUBRULE2($.functionArg),
+                $._(2)
+              )
+            })
+            return [
+              func,
+              {
+                name: 'functionArgs',
+                children: functionArgs
+              },
+              $.CONSUME3($.T.RParen)
+            ]
+          }
         }
-      },
-      /**
-       * Special parsing of `if` and `boolean`
-       */
-      {
-        ALT: () => {
-          $.CONSUME($.T.BooleanFunction)
-          $.SUBRULE($.guardOr, { ARGS: [true] })
-          $.CONSUME2($.T.RParen)
-        }
-      },
-      {
-        ALT: () => {
-          $.CONSUME($.T.IfFunction)
-          $.SUBRULE2($.guardOr, { ARGS: [true] })
-          $._()
-          $.MANY(() => {
-            $.OR3([{
-              ALT: () => $.CONSUME($.T.Comma) },
-              { ALT: () => $.CONSUME($.T.SemiColon)
-            }])
-            $._(1)
-            $.SUBRULE2($.functionArg)
-            $._(2)
-          })
-          $.CONSUME3($.T.RParen)
-        }
-      }
-    ])
-  })
+      ])
+    })
+  )
 
   $.functionArgs = $.RULE('functionArgs', () => {
-    $.SUBRULE($.functionArg)
-    $._()
+    const children: CstChild[] = [
+      $.SUBRULE($.functionArg),
+      $._()
+    ]
     $.MANY(() => {
-      $.OR([
-        { ALT: () => $.CONSUME($.T.Comma) },
-        { ALT: () => $.CONSUME($.T.SemiColon)
-      }])
-      $._(1)
-      $.SUBRULE2($.functionArg)
-      $._(2)
+      children.push(
+        {
+          name: 'combinator',
+          children: [
+            $.OR([
+              { ALT: () => $.CONSUME($.T.Comma) },
+              { ALT: () => $.CONSUME($.T.SemiColon)
+            }]),
+            $._(1)
+          ]
+        },
+
+        $.SUBRULE2($.functionArg),
+        $._(2)
+      )
     })
+
+    return {
+      name: 'functionArgs',
+      children
+    }
   })
 
-  $.functionArg = $.RULE('functionArg', () => {
-    $.OR([
-      {
-        ALT: () => {
-          $.CONSUME($.T.AnonMixinStart)
-          $.SUBRULE($.mixinArgs)
-          $.CONSUME($.T.RParen)
-          $._()
-          $.SUBRULE($.curlyBlock)
-        }
-      },
-      { ALT: () => $.SUBRULE2($.curlyBlock) },
+  $.functionArg = $.RULE('functionArg',
+    () => $.OR([
+      { ALT: () => $.SUBRULE($.anonMixin) },
+      { ALT: () => $.SUBRULE($.curlyBlock) },
       { ALT: () => $.SUBRULE($.expression) }
     ])
-  })
+  )
 
+  /**
+   * Can be in the form of:
+   *   @var
+   *   #selector()[lookup]
+   *   #selector(args)[lookup]
+   *   @var[lookup]
+   *   @var[lookup][lookup2]
+   */
   $.variable = $.RULE('variable', () => {
     $.OR([
       { ALT: () => $.CONSUME($.T.VarOrProp) },
@@ -131,10 +167,6 @@ export default function (this: LessParser, $: LessParser) {
     $.OR([
       {
         ALT: () => {
-          $.OPTION(() => {
-            /** Applying negative or positive to a value */
-            $.CONSUME($.T.AdditionOperator, { LABEL: 'op' })
-          })
           $.CONSUME($.T.LParen)
           $.OR2([
             {

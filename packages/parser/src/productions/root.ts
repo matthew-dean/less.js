@@ -3,8 +3,8 @@ import type { LessParser } from '../lessParser'
 
 export default function(this: LessParser, $: LessParser) {
   $.rule = $.OVERRIDE_RULE('rule', () => {
-    $._(0, { LABEL: 'pre' })
-    $.OR([
+    const children = [$._(0)]
+    const rule = $.OR([
       { ALT: () => $.SUBRULE($.atRule) },
       { ALT: () => $.SUBRULE($.customDeclaration) },
       {
@@ -22,5 +22,13 @@ export default function(this: LessParser, $: LessParser) {
       { ALT: () => $.CONSUME($.T.SemiColon) },
       { ALT: () => EMPTY_ALT }
     ])
+    if (rule !== EMPTY_ALT) {
+      children.push(rule)
+    }
+
+    return {
+      name: 'rule',
+      children
+    }
   })
 }

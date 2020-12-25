@@ -259,8 +259,9 @@ export default function(this: LessParser, $: LessParser) {
 
 
   /**
-   * This will return either a declaration,
-   * an expression, or a rest (e.g. `@var...`)
+   * This will return a mixin arg containing
+   * a declaration, an expression, or a rest
+   *   (e.g. `@var...`)
    */
   $.mixinArg = $.RULE('mixinArg', () => {
     let pre = $._(0)
@@ -355,179 +356,18 @@ export default function(this: LessParser, $: LessParser) {
     }
   })
 
-  // $.mixinCall = $.RULE('mixinCall', (semiColonSeparated: boolean) => {
-  //   $.AT_LEAST_ONE(() => $.SUBRULE($.mixinName))
-  //   $.CONSUME($.T.LParen, { LABEL: 'L' })
-  //   $.SUBRULE($.mixinCallArgs, { ARGS: [semiColonSeparated] })
-  //   $.CONSUME($.T.RParen, { LABEL: 'R' })
-  //   $._(2)
-  //   $.OPTION2(() => {
-  //     $.CONSUME($.T.Important)
-  //     $._(3)
-  //   })
-  //   $.OPTION3(() => $.CONSUME($.T.SemiColon))
-  // })
-
-  // $.mixinDefinition = $.RULE('mixinDefinition', (semiColonSeparated: boolean) => {
-  //   $.SUBRULE($.mixinName)
-  //   $._()
-  //   $.CONSUME($.T.LParen, { LABEL: 'L' })
-  //   $.SUBRULE($.mixinDefArgs, { ARGS: [semiColonSeparated] })
-  //   $.CONSUME($.T.RParen, { LABEL: 'R' })
-  //   $._(1)
-  //   $.OPTION(() => $.SUBRULE($.guard))
-  //   $.SUBRULE($.curlyBlock)
-  // })
-
-  $.mixinCallArgs = $.RULE('mixinCallArgs', (semiColonSeparated: boolean) => {
-    $.SUBRULE($.mixinCallArg, { ARGS: [semiColonSeparated] })
-    $.MANY(() => {
-      $.OR([
-        {
-          GATE: () => !!semiColonSeparated,
-          ALT: () => {
-            $.CONSUME($.T.SemiColon)
-            $._()
-            $.OPTION({
-              GATE: () => $.LA(1).tokenType !== $.T.RParen,
-              DEF: () => $.SUBRULE2($.mixinCallArg, { ARGS: [true] })
-            })
-          }
-        },
-        { ALT: () => {
-          $.CONSUME($.T.Comma)
-          $._(1)
-          $.SUBRULE3($.mixinCallArg, { ARGS: [false] })
-        }}
-      ])
+  $.anonMixin = $.RULE('anonMixin',
+    () => ({
+      name: 'anonMixin',
+      children: [
+        $.CONSUME($.T.AnonMixinStart),
+        $.SUBRULE($.mixinArgs),
+        $.CONSUME($.T.RParen),
+        $._(),
+        $.SUBRULE($.curlyBlock)
+      ]
     })
-  })
-
-  $.mixinDefArgs = $.RULE('mixinDefArgs', (semiColonSeparated: boolean) => {
-    $._()
-    $.OPTION({
-      GATE: () => $.LA(1).tokenType !== $.T.RParen,
-      DEF: () => {
-        $.SUBRULE($.mixinDefArg, { ARGS: [semiColonSeparated] })
-        $.MANY(() => {
-          $.OR([
-            {
-              GATE: () => !!semiColonSeparated,
-              ALT: () => {
-                $.CONSUME($.T.SemiColon)
-                $._(1)
-                $.OPTION2({
-                  GATE: () => $.LA(1).tokenType !== $.T.RParen,
-                  DEF: () => $.SUBRULE2($.mixinDefArg, { ARGS: [true] })
-                })
-              }
-            },
-            { ALT: () => {
-              $.CONSUME($.T.Comma)
-              $._(2)
-              $.SUBRULE3($.mixinDefArg, { ARGS: [false] })
-            }}
-          ])
-        })
-      }
-    })
-  })
-
-  /**
-   * e.g. `@var1`
-   *      `@var2: value`
-   *      `@rest...`
-   *      `...`
-   *      `keyword`
-   *
-   * subrule - $.expression or $.expressionList
-   */
-  $.mixinArgAssignment = $.RULE('mixinArgAssignment', () => {
-    $.CONSUME($.T.AtKeyword)
-    $.OR([
-      { ALT: () => $.CONSUME($.T.Ellipsis) },
-      { ALT: () => {
-        $._()
-        $.CONSUME($.T.Assign)
-      }}
-    ])
-  })
-
-  $.mixinCallArg = $.RULE('mixinCallArg', (semiColonSeparated: boolean) => {
-    $.OPTION({
-      GATE: $.BACKTRACK($.mixinArgAssignment),
-      DEF: () => $.SUBRULE($.mixinArgAssignment)
-    })
-    $.OPTION2({
-      GATE: () => $.LA(0).tokenType !== $.T.Ellipsis,
-      DEF: () => {
-        $._()
-        $.OR([
-          { ALT: () => $.SUBRULE($.curlyBlock) },
-          {
-            GATE: () => !!semiColonSeparated,
-            ALT: () => $.SUBRULE($.expressionList)
-          },
-          { ALT: () => $.SUBRULE($.expression) }
-        ])
-      }
-    })
-    $._(1)
-  })
-
-  /**
-   * e.g. `@var1`
-   *      `@var2: value`
-   *      `@rest...`
-   *      `...`
-   *      `keyword`
-   *
-   * subrule - $.expression or $.expressionList
-   */
-  $.mixinDefArg = $.RULE('mixinDefArg', (semiColonSeparated: boolean) => {
-    $.OR([
-      {
-        ALT: () => {
-          $.CONSUME($.T.AtName)
-          $._(2)
-          $.OR2([
-            {
-              ALT: () => {
-                $.CONSUME($.T.Colon)
-                $._(3)
-                $.OR3([
-                  { ALT: () => $.SUBRULE($.curlyBlock) },
-                  {
-                    GATE: () => !!semiColonSeparated,
-                    ALT: () =>  $.SUBRULE($.expressionList)
-                  },
-                  { ALT: () => $.SUBRULE($.expression) }
-                ])
-                
-              }
-            },
-            {
-              ALT: () => {
-                $.CONSUME($.T.Ellipsis)
-              }
-            },
-            { ALT: () => EMPTY_ALT }
-          ])
-        }
-      },
-      { ALT: () => $.CONSUME2($.T.Ellipsis) },
-      /** 
-       * Pattern matching mixin
-       *  - Documentation doesn't specify what can be a value for
-       *    pattern-matching, but tests have these types:
-       */
-      { ALT: () => $.CONSUME($.T.Ident) },
-      { ALT: () => $.CONSUME($.T.Dimension) },
-      { ALT: () => $.CONSUME($.T.Number) },
-      { ALT: () => $.CONSUME($.T.StringLiteral) }
-    ])
-    $._(4)
-  })
+  )
 
   /**
    * @note - Guards do not require parens during parsing,
@@ -535,26 +375,48 @@ export default function(this: LessParser, $: LessParser) {
    *         They should be evaluated during post-processing
    *         (CST visitor?)
    */
-  $.guard = $.RULE('guard', () => {
-    $.CONSUME($.T.When)
-    $._()
-    $.SUBRULE($.guardOr)
-  })
+  $.guard = $.RULE('guard',
+    () => ({
+      name: 'guard',
+      children: [
+        $.CONSUME($.T.When),
+        $._(),
+        $.SUBRULE($.guardOr)
+      ]
+    })
+  )
 
   /** 'or' expression */
   $.guardOr = $.RULE('guardOr', (disallowComma: boolean) => {
-    $.SUBRULE($.guardAnd, { LABEL: 'lhs' })
-    $.MANY({
-      GATE: () => $.LA(1).tokenType !== $.T.Comma || !disallowComma,
-      DEF: () => {
-        $.OR([
-          { ALT: () => $.CONSUME($.T.Comma) },
-          { ALT: () => $.CONSUME($.T.Or) }
-        ])
-        $._()
-        $.SUBRULE2($.guardAnd, { LABEL: 'rhs' })
+    let expr = $.SUBRULE($.guardAnd)
+    $.MANY(() => {
+      /**
+       * Nest expressions within expressions for correct
+       * order of operations.
+       */
+      expr = {
+        name: 'or',
+        children: [
+          expr,
+          {
+            name: 'combinator',
+            children: [
+              $.OR([
+                {
+                  GATE: () => !disallowComma,
+                  ALT: () => $.CONSUME($.T.Comma)
+                },
+                { ALT: () => $.CONSUME($.T.Or) }
+              ]),
+              $._()
+            ]
+          },
+          $.SUBRULE2($.guardAnd)
+        ]
       }
     })
+
+    return expr
   })
 
   /** 
@@ -566,22 +428,51 @@ export default function(this: LessParser, $: LessParser) {
    *  However, Less allows it.
    */
   $.guardAnd = $.RULE('guardAnd', () => {
-    $.SUBRULE($.guardExpression, { LABEL: 'lhs' })
-    $._()
+    let expr = $.SUBRULE($.guardExpression)
     $.MANY(() => {
-      $.CONSUME($.T.And)
-      $._(1)
-      $.SUBRULE2($.guardExpression, { LABEL: 'rhs' })
-      $._(2)
+      expr = {
+        name: 'and',
+        children: [
+          expr,
+          {
+            name: 'combinator',
+            children: [
+              $.CONSUME($.T.And),
+              $._(1)
+            ]
+          },
+          $.SUBRULE2($.guardExpression)
+        ]
+      }
     })
+    return expr
   })
 
   $.guardExpression = $.RULE('guardExpression', () => {
-    $.OPTION(() => {
-      $.CONSUME($.T.Not)
+    let expr = $.OPTION(() => [
+      $.CONSUME($.T.Not),
       $._()
-    })
+    ])
 
-    $.SUBRULE($.compare)
+    const guard = {
+      name: 'guardExpression',
+      children: [
+        $.SUBRULE($.compare),
+        $._(1)
+      ]
+    }
+    if (expr) {
+      return {
+        name: 'not',
+        children: [
+          {
+            name: 'combinator',
+            expr
+          },
+          guard
+        ]
+      }
+    }
+    return guard
   })
 }
