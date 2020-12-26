@@ -8,6 +8,9 @@ export const stringify = (cst: CstNode): string => {
       return
     }
     if ('name' in node) {
+      if (!node.children) {
+        console.log(node)
+      }
       node.children.forEach(child => recurseCst(child))
       return
     }

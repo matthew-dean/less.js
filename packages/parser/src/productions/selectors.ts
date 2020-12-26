@@ -35,8 +35,8 @@ export default function(this: LessParser, $: LessParser) {
       return {
         name: 'selectorGuard',
         children: [
-          guard,
-          children[0]
+          children[0],
+          guard
         ]
       }
     } else if (children.length === 1) {

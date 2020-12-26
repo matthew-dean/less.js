@@ -10,6 +10,8 @@ import {
 // TODO: get rid of xRegExp dep
 import * as XRegExp from 'xregexp'
 
+export * from './cst'
+
 export enum LexerType {
   NA,
   SKIPPED

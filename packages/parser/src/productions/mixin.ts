@@ -21,69 +21,6 @@ export default function(this: LessParser, $: LessParser) {
     ])
   })
 
-  // $.testAnonMixin = $.RULE('testAnonMixin', () => {
-  //   $.CONSUME($.T.AnonMixinStart)
-  //   $.SUBRULE($.testMixinEnd)
-  // })
-
-  // $.testMixinArgs = $.RULE('testMixinArgs', () => {
-  //   $.MANY(() => {
-  //     $.OR([
-  //       { ALT: () => $.SUBRULE($.curlyBlock) },
-  //       { ALT: () => $.SUBRULE($.testMixinExpression) }
-  //     ])
-      
-  //     $.OPTION(() => {
-  //       $.CONSUME2($.T.SemiColon)
-  //       $.isSemiColonSeparated = true
-  //     })
-  //   })
-  //   $.CONSUME($.T.RParen)
-  // })
-
-  // $.testMixinEnd = $.RULE('testMixinEnd', () => {
-  //   $.SUBRULE($.testMixinArgs)
-  //   $._(1)
-  //   $.OPTION2(() => {
-  //     $.CONSUME($.T.Important)
-  //     $._(2)
-  //   })
-  //   /** 
-  //    * Allow when guard
-  //    * @todo - simplify test expression for performance? 
-  //    */
-  //   $.OPTION3(() => $.SUBRULE($.guard))
-  //   $.OPTION4(() => {
-  //     $.CONSUME($.T.LCurly)
-  //     $.isMixinDefinition = true
-  //   })
-  // })
-
-  // $.testMixinExpression = $.RULE('testMixinExpression', () => {
-  //   $.MANY(() => {
-  //     $.OR([
-  //       { ALT: () => $.CONSUME($.T.Value) },
-  //       { ALT: () => $.CONSUME($.T.VarOrProp) },
-  //       { ALT: () => $.CONSUME($.T.Comma) },
-  //       { ALT: () => $.CONSUME($.T.Colon) },
-  //       { ALT: () => $.CONSUME($.T.WS) },
-  //       { ALT: () => {
-  //         $.OR2([
-  //           { ALT: () => $.CONSUME($.T.Function) },
-  //           { ALT: () => $.CONSUME($.T.LParen) }
-  //         ])
-  //         $.SUBRULE($.testMixinExpression)
-  //         $.CONSUME($.T.RParen)
-  //       }},
-  //       { ALT: () => {
-  //         $.CONSUME($.T.LSquare)
-  //         $.SUBRULE2($.testMixinExpression)
-  //         $.CONSUME($.T.RSquare)
-  //       }}
-  //     ])
-  //   })
-  // })
-
   /**
    * To avoid a lot of back-tracking, we parse the mixin start
    * and mixin arguments equally for mixin calls, as it's only
@@ -177,6 +114,10 @@ export default function(this: LessParser, $: LessParser) {
    * 
    * This allows us to have one parsing "pass" on arguments
    * without any back-tracking.
+   * 
+   * Is this premature optimization? Possibly. It would depend
+   * on the performance of backtracking and the potential
+   * length of mixin args.
    */
   $.mixinArgs = $.RULE('mixinArgs', () => {
     let childrenGroups: any[][] = [[
@@ -234,7 +175,7 @@ export default function(this: LessParser, $: LessParser) {
           name: 'expressionList',
           children: exprList
         }
-        if (value.name === 'Declaration') {
+        if (value.name === 'declaration') {
           value.children[4] = exprListNode
         } else {
           group[0].children[1] = exprListNode
@@ -463,7 +404,7 @@ export default function(this: LessParser, $: LessParser) {
         children: [
           {
             name: 'combinator',
-            expr
+            children: expr
           },
           guard
         ]

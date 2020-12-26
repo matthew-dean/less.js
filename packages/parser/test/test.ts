@@ -4,6 +4,7 @@ import * as path from 'path'
 import { expect } from 'chai'
 import 'mocha'
 import { Parser } from '../src'
+import { stringify } from '@less/css-parser'
 
 const testData = path.dirname(require.resolve('@less/test-data'))
 
@@ -172,12 +173,22 @@ describe('can parse all Less stylesheets', () => {
       // if (file.indexOf('namespacing-') > -1) {
       it(`${file}`, () => {
         const result = fs.readFileSync(path.join(testData, file))
-        const { cst, lexerResult } = lessParser.parse(result.toString())
+        const contents = result.toString()
+        const { cst, lexerResult } = lessParser.parse(contents)
         expect(lexerResult.errors.length).to.equal(0)
         if (parser.errors.length > 0) {
           console.log(parser.errors)
         }
         expect(parser.errors.length).to.equal(0)
+        
+        /** JavaScript tokens are skipped */
+        if (!([
+          'less/_main/javascript.less',
+          'less/no-js-errors/no-js-errors.less'
+        ].includes(file))) {
+          const output = stringify(cst)
+          expect(output).to.equal(contents)
+        }
       })
       // }
     })

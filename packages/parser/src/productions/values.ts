@@ -334,5 +334,6 @@ export default function (this: LessParser, $: LessParser) {
         ]
       }
     })
+    return expr
   })
 }

@@ -143,11 +143,14 @@ export default function (this: CssParser, $: CssParser) {
       children: [
         $.OR([
           {
-            ALT: () => {
-              $.CONSUME($.T.Not)
-              $._()
-              $.SUBRULE($.mediaFeature)
-            }
+            ALT: () => ({
+              name: 'mediaNot',
+              children: [
+                $.CONSUME($.T.Not),
+                $._(),
+                $.SUBRULE($.mediaFeature)
+              ]
+            })
           },
           { ALT: () => $.SUBRULE2($.mediaAnd) }
         ])
@@ -155,23 +158,31 @@ export default function (this: CssParser, $: CssParser) {
     })
   )
 
-  $.mediaAnd = $.RULE('mediaAnd', () => {
-    return {
-      name: 'mediaAnd',
-      /** @todo flatten */
-      children: [
-        $.SUBRULE($.mediaFeature),
-        $.MANY(() => {
-          $.OR([
-            { ALT: () => $.CONSUME($.T.And) },
-            { ALT: () => $.CONSUME($.T.Or) }
-          ])
-          $._(1)
-          $.SUBRULE2($.mediaFeature, { ARGS: [true] })
-        })
-      ]
+  $.mediaAnd = $.RULE('mediaAnd',
+    () => {
+      let expr = $.SUBRULE($.mediaFeature)
+      $.MANY(() => {
+        expr = {
+          name: 'mediaAnd',
+          children: [
+            expr,
+            {
+              name: 'combinator',
+              children: [
+                $.OR([
+                  { ALT: () => $.CONSUME($.T.And) },
+                  { ALT: () => $.CONSUME($.T.Or) }
+                ]),
+                $._(1)
+              ]
+            },
+            $.SUBRULE2($.mediaFeature, { ARGS: [true] })
+          ]
+        }
+      })
+      return expr
     }
-  })
+  )
 
   $.mediaFeature = $.RULE('mediaFeature',
     (afterAnd: boolean) => ({

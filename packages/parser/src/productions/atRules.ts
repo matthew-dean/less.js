@@ -101,7 +101,7 @@ export default function (this: LessParser, $: LessParser) {
   $.unknownAtRule = $.OVERRIDE_RULE('unknownAtRule', () => {
     const name = $.CONSUME($.T.AtKeyword)
     const ws = $._(0)
-    $.OR({
+    return $.OR({
       /**
        * A prelude could have a colon too, so the last two rules are
        * ambiguous, but any unknown at-rule in the form of `@rule:`
