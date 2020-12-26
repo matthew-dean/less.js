@@ -25,7 +25,10 @@ import {
 export class CstVisitor {
   [k: string]: any
 
-  visit(ctx: CstChild) {
+  visit(ctx: CstChild | CstChild[]): any {
+    if (Array.isArray(ctx)) {
+      return ctx.map(node => this.visit(node))
+    }
     if (isToken(ctx)) {
       const {
         image,
@@ -50,7 +53,7 @@ export class CstVisitor {
       )
     }
     const visit = this[ctx.name]
-    return visit ? visit() : null
+    return visit ? visit(ctx) : null
   }
 
   /** Start building AST */

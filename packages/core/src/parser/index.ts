@@ -4,7 +4,7 @@ import AssetManager from '../asset-manager'
 import { Parser as CstParser } from '@less/parser'
 import { IOptions } from '../options'
 import { ICstVisitor } from 'chevrotain'
-import { CstVisitor } from './cst-visitor'
+import CstVisitor from './cst-visitor'
 
 /**
  * This is an abstraction between the Less CST parser
@@ -28,7 +28,6 @@ export class AstParser {
     if (!AstParser.cstParser) {
       const parser = new CstParser()
       AstParser.cstParser = parser
-      AstParser.cstVisitor = CstVisitor(parser.parser)
     }
   }
 
@@ -41,6 +40,8 @@ export class AstParser {
       return callback(parser.errors)
     }
 
-    callback(null, AstParser.cstVisitor.visit(cst))
+    const node = CstVisitor.visit(cst)
+
+    callback(null, node)
   }
 }
