@@ -94,7 +94,7 @@ export default function(this: LessParser, $: LessParser) {
    * doesn't have valid selectors or arguments, or if, say, a mixin
    * call has a guard and shouldn't.
    */
-  $.mixin = $.RULE<CstNode>('mixin', (inValue: boolean) => {
+  $.mixin = $.RULE<CstNode>('mixin', () => {
     const children: CstChild[] = [
       $.SUBRULE($.mixinStart),
       $.CONSUME($.T.LParen),
@@ -109,26 +109,22 @@ export default function(this: LessParser, $: LessParser) {
         ]
       }))
     ]
+
+    children.push($.OPTION4(() => $.SUBRULE($.guard)))
     
-    $.OPTION2({
-      GATE: () => !inValue,
-      DEF: () => $.OR([
-        /**
-         * Within a declaration value, the semi-colon is part of the declaration
-         */
-        {
-          ALT: () => children.push(undefined, $.CONSUME($.T.SemiColon))
-        },
-        {
-          ALT: () => {
-            children.push(
-              $.OPTION3(() => $.SUBRULE($.guard)),
-              $.SUBRULE($.curlyBlock)
-            )
-          }
+    $.OR([
+      {
+        ALT: () => {
+          children.push($.CONSUME($.T.SemiColon))
         }
-      ])
-    })
+      },
+      {
+        ALT: () => {
+          children.push($.SUBRULE($.curlyBlock))
+        }
+      },
+      { ALT: () => EMPTY_ALT }
+    ])
   
     return {
       name: 'mixin',
@@ -389,30 +385,30 @@ export default function(this: LessParser, $: LessParser) {
   /** 'or' expression */
   $.guardOr = $.RULE('guardOr', (disallowComma: boolean) => {
     let expr = $.SUBRULE($.guardAnd)
-    $.MANY(() => {
-      /**
-       * Nest expressions within expressions for correct
-       * order of operations.
-       */
-      expr = {
-        name: 'or',
-        children: [
-          expr,
-          {
-            name: 'combinator',
-            children: [
-              $.OR([
-                {
-                  GATE: () => !disallowComma,
-                  ALT: () => $.CONSUME($.T.Comma)
-                },
-                { ALT: () => $.CONSUME($.T.Or) }
-              ]),
-              $._()
-            ]
-          },
-          $.SUBRULE2($.guardAnd)
-        ]
+    $.MANY({
+      GATE: () => $.LA(1).tokenType !== $.T.Comma || !disallowComma,
+      DEF: () => {
+        /**
+         * Nest expressions within expressions for correct
+         * order of operations.
+         */
+        expr = {
+          name: 'or',
+          children: [
+            expr,
+            {
+              name: 'combinator',
+              children: [
+                $.OR([
+                  { ALT: () => $.CONSUME($.T.Comma) },
+                  { ALT: () => $.CONSUME($.T.Or) }
+                ]),
+                $._()
+              ]
+            },
+            $.SUBRULE2($.guardAnd)
+          ]
+        }
       }
     })
 

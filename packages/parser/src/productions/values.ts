@@ -1,6 +1,6 @@
 import { LessParser } from '../lessParser'
 import { EMPTY_ALT } from 'chevrotain'
-import { CstChild } from '@less/css-parser'
+import { CstChild, IToken, CstNode } from '@less/css-parser'
 
 export default function (this: LessParser, $: LessParser) {
   const compareGate = () => $.inCompareBlock
@@ -135,123 +135,204 @@ export default function (this: LessParser, $: LessParser) {
    *   @var[lookup][lookup2]
    */
   $.variable = $.RULE('variable', () => {
-    $.OR([
-      { ALT: () => $.CONSUME($.T.VarOrProp) },
+    let selectors: IToken[]
+    
+    let node: CstNode = $.OR([
+      { ALT: () => ({
+          name: 'variable',
+          children: [$.CONSUME($.T.VarOrProp)]
+        })
+      },
       {
         ALT: () => {
-          $.AT_LEAST_ONE(() => $.CONSUME($.T.Selector))
+          selectors = []
+          $.AT_LEAST_ONE(() => selectors.push($.CONSUME($.T.Selector)))
+          const expr = {
+            name: 'expression',
+            children: selectors
+          }
           /**
            * @note - if there are no parens or accessors, then
            *         it's a plain selector
            */
-          $.OPTION(() => {
-            $.CONSUME($.T.LParen)
-            $.SUBRULE($.mixinArgs)
+          const children = $.OPTION(() => [
+            $.CONSUME($.T.LParen),
+            $.SUBRULE($.mixinArgs),
             $.CONSUME($.T.RParen)
-          })
+          ])
+          if (!this.RECORDING_PHASE && children) {
+            return {
+              name: 'mixinCall',
+              children: [
+                expr,
+                ...children
+              ]
+            }
+          }
+          return expr
         }
       }
     ])
     $.MANY(() => {
-      $.CONSUME($.T.LSquare)
-      $.OR2([
+      const L = $.CONSUME($.T.LSquare)
+      let lookup = $.OR2([
         { ALT: () => $.CONSUME2($.T.VarOrProp) },
         { ALT: () => $.CONSUME($.T.Ident) },
         { ALT: () => EMPTY_ALT }
       ])
-      $.CONSUME($.T.RSquare)
+      const R = $.CONSUME($.T.RSquare)
+
+      if (lookup === EMPTY_ALT) {
+        lookup = undefined
+      }
+      /**
+       * Nest accessors so we can evaluate inner-most first,
+       * and then successive accessors.
+       */
+      node = {
+        name: 'accessor',
+        children: [node, L, lookup, R]
+      }
     })
+
+    return node
   })
 
-  $.valueBlock = $.RULE('valueBlock', () => {
-    $.OR([
-      {
-        ALT: () => {
-          $.CONSUME($.T.LParen)
-          $.OR2([
-            {
-              GATE: compareGate,
-              ALT: () => $.SUBRULE($.guardOr)
-            },
-            { ALT: () => $.SUBRULE($.expressionList) }
-          ])
-          $.CONSUME($.T.RParen)
+  $.valueBlock = $.RULE('valueBlock',
+    () => ({
+      name: 'block',
+      children: $.OR([
+        {
+          ALT: () => [
+            $.CONSUME($.T.LParen),
+            $.OR2([
+              {
+                GATE: compareGate,
+                ALT: () => $.SUBRULE($.guardOr)
+              },
+              { ALT: () => $.SUBRULE($.expressionList) }
+            ]),
+            $.CONSUME($.T.RParen)
+          ]
+        },
+        {
+          ALT: () => [
+            $.CONSUME($.T.LSquare),
+            $.SUBRULE2($.expressionList),
+            $.CONSUME($.T.RSquare)
+          ]
         }
-      },
-      {
-        ALT: () => {
-          $.CONSUME($.T.LSquare)
-          $.SUBRULE2($.expressionList)
-          $.CONSUME($.T.RSquare)
-        }
-      }
-    ])
-  })
+      ])
+    })
+  )
 
   /** This is more specific than the CSS parser */
   $.value = $.OVERRIDE_RULE('value', () => {
-    $.OPTION(() => {
+    let op = $.OPTION(() => 
       /** Applying negative or positive to a value */
       $.CONSUME($.T.AdditionOperator)
-    })
-    $.OR([
-      { ALT: () => $.SUBRULE($.valueBlock) },
-      { ALT: () => $.SUBRULE($.function) },
-      { ALT: () => $.CONSUME($.T.Ident) },
-      { ALT: () => $.SUBRULE($.variable) },
-      { ALT: () => $.CONSUME($.T.CustomProperty) },
-      { ALT: () => $.CONSUME($.T.Dimension) },
-      { ALT: () => $.CONSUME($.T.Number) },
-      { ALT: () => $.CONSUME($.T.Percent) },
-      { ALT: () => $.CONSUME($.T.StringLiteral) },
-      { ALT: () => $.CONSUME($.T.Uri) },
-      { ALT: () => $.CONSUME($.T.ColorIntStart) },
-      { ALT: () => $.CONSUME($.T.UnicodeRange) },
-      { ALT: () => $.CONSUME($.T.When) },
+    )
+    let value = {
+      name: 'value',
+      children: [
+        $.OR([
+          { ALT: () => $.SUBRULE($.valueBlock) },
+          { ALT: () => $.SUBRULE($.function) },
+          { ALT: () => $.CONSUME($.T.Ident) },
+          { ALT: () => $.SUBRULE($.variable) },
+          { ALT: () => $.CONSUME($.T.CustomProperty) },
+          { ALT: () => $.CONSUME($.T.Dimension) },
+          { ALT: () => $.CONSUME($.T.Number) },
+          { ALT: () => $.CONSUME($.T.Percent) },
+          { ALT: () => $.CONSUME($.T.StringLiteral) },
+          { ALT: () => $.CONSUME($.T.Uri) },
+          { ALT: () => $.CONSUME($.T.ColorIntStart) },
+          { ALT: () => $.CONSUME($.T.UnicodeRange) },
+          { ALT: () => $.CONSUME($.T.When) },
 
-      /** Can be found in selector expressions */
-      { ALT: () => $.CONSUME($.T.AttrMatchOperator) },
-      { ALT: () => $.CONSUME($.T.Colon) },
-      { ALT: () => $.CONSUME($.T.Combinator) }
-    ])
+          /** Can be found in selector expressions */
+          { ALT: () => $.CONSUME($.T.AttrMatchOperator) },
+          { ALT: () => $.CONSUME($.T.Colon) },
+          { ALT: () => $.CONSUME($.T.Combinator) }
+        ]),
+        $._()
+      ]
+    }
+    if (op) {
+      return {
+        name: 'sign',
+        children: [
+          op,
+          value
+        ]
+      }
+    }
+    return value
   })
 
   $.compare = $.RULE('compare', () => {
     const compareValue = $.inCompareBlock
     $.inCompareBlock = true
-    $.SUBRULE($.addition, { LABEL: 'lhs' })
-    $.MANY(() => $.SUBRULE($.compareRhs))
+    let expr = $.SUBRULE($.addition)
+    $.MANY(() => {
+      expr = {
+        name: 'compare',
+        children: [
+          expr,
+          {
+            name: 'op',
+            children: [
+              $.CONSUME($.T.CompareOperator),
+              $._(0)
+            ]
+          },
+          $.SUBRULE2($.addition)
+        ]
+      }
+    })
     /** Restore to value on entry */
     $.inCompareBlock = compareValue
-  })
-
-  $.compareRhs = $.RULE('compareRhs', () => {
-    $.CONSUME($.T.CompareOperator, { LABEL: 'op' })
-    $._(0, { LABEL: 'post' })
-    $.SUBRULE($.addition, { LABEL: 'rhs' })
+    return expr
   })
 
   $.addition = $.RULE('addition', () => {
-    $.SUBRULE($.multiplication, { LABEL: 'lhs' })
-    $.MANY(() => $.SUBRULE($.additionRhs))
-  })
-
-  $.additionRhs = $.RULE('additionRhs', () => {
-    $.CONSUME($.T.AdditionOperator, { LABEL: 'op' })
-    $._(0, { LABEL: 'post' })
-    $.SUBRULE($.multiplication, { LABEL: 'rhs' })
+    let expr = $.SUBRULE($.multiplication)
+    $.MANY(() => {
+      expr = {
+        name: 'addition',
+        children: [
+          expr,
+          {
+            name: 'op',
+            children: [
+              $.CONSUME($.T.AdditionOperator),
+              $._(0)
+            ]
+          },
+          $.SUBRULE2($.multiplication)
+        ]
+      }
+    })
+    return expr
   })
 
   $.multiplication = $.RULE('multiplication', () => {
-    $.SUBRULE($.value, { LABEL: 'lhs' })
-    $._(0, { LABEL: 'pre' })
-    $.MANY(() => $.SUBRULE($.multiplicationRhs))
-  })
-
-  $.multiplicationRhs = $.RULE('multiplicationRhs', () => {
-    $.CONSUME($.T.MultiplicationOperator, { LABEL: 'op' })
-    $._(1, { LABEL: 'post' })
-    $.SUBRULE2($.value, { LABEL: 'rhs' })
-    $._(2, { LABEL: 'pre' })
+    let expr = $.SUBRULE($.value)
+    $.MANY(() => {
+      expr = {
+        name: 'multiplication',
+        children: [
+          expr,
+          {
+            name: 'op',
+            children: [
+              $.CONSUME($.T.MultiplicationOperator),
+              $._(0)
+            ]
+          },
+          $.SUBRULE2($.value)
+        ]
+      }
+    })
   })
 }
