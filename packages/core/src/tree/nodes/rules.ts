@@ -7,7 +7,7 @@ import {
   EvalReturn,
   ImportantNode,
   Null,
-  Rule,
+  Ruleset,
   AtRule,
   IProps,
   INodeOptions,
@@ -98,7 +98,7 @@ export class Rules extends NodeArray implements ImportantNode {
           if (imprt instanceof ImportRule) {
             context.importQueue.push(imprt)
           }
-        } else if (rule instanceof Rule || rule instanceof AtRule) {
+        } else if (rule instanceof Ruleset || rule instanceof AtRule) {
           if (rule.rules) {
             rule.rules.eval(context, evalImports)
           }

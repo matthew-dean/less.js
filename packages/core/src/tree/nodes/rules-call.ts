@@ -5,7 +5,7 @@ import {
   INodeOptions,
   ILocationInfo,
   Rules,
-  Rule,
+  Ruleset,
   Selector,
   MatchOption,
   Variable,
@@ -86,7 +86,7 @@ export class RulesCall extends Node {
             context,
             (node: Node) => {
               let hasMatch = false
-              if (node instanceof Rule) {
+              if (node instanceof Ruleset) {
                 const selectors = node.selectors
                 const selLength = selectors.nodes.length
                 for (let i = 0; i < selLength; i++) {

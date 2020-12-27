@@ -2,7 +2,7 @@ import { CstChild, CstNode, IToken } from '@less/css-parser'
 import { isToken, processWS } from './util'
 import {
   Node,
-  Rule,
+  Ruleset,
   Rules,
   Value,
   Expression,
@@ -75,7 +75,22 @@ export class CstVisitor {
   }
 
   qualifiedRule({ children, location }: CstNode) {
+    const [ selectorList, curlyBlock ] = children
+    const selectors = this.visit(selectorList)
+    const rules = this.visit(curlyBlock)
+    return new Ruleset({ selectors, rules }, {}, location)
+  }
 
+  selectorList({ children, location}: CstNode) {
+    const list = children.filter((val, i) => {
+      return i % 2 === 0
+    }).map(node => this.visit(node))
+    return {}
+  }
+
+  complexSelector({ children, location }: CstNode) {
+    const [ selectors, extend ] = children
+    return {}
   }
 
   compoundSelector({ children, location }: any) {

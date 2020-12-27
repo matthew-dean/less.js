@@ -4,16 +4,19 @@ export default function(this: CssParser, $: CssParser) {
   /** A comma-separated list of selectors */
   $.selectorList = $.RULE('selectorList', () => {
     const children = [
-      $.SUBRULE($.complexSelector),
-      $._(0)
+      $.SUBRULE($.complexSelector)
     ]
     
     $.MANY(() => {
       children.push(
-        $.CONSUME($.T.Comma),
-        $._(1),
-        $.SUBRULE2($.complexSelector),
-        $._(2)
+        {
+          name: 'delimiter',
+          children: [
+            $.CONSUME($.T.Comma),
+            $._(1)
+          ]
+        },
+        $.SUBRULE2($.complexSelector)
       )
     })
     return {
@@ -38,6 +41,7 @@ export default function(this: CssParser, $: CssParser) {
       $.SUBRULE($.compoundSelector)
     ]
     $.MANY(() => children.push($.SUBRULE($.combinatorSelector)))
+    children.push($._())
     return {
       name: 'complexSelector',
       children

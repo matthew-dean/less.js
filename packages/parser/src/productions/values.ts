@@ -62,7 +62,7 @@ export default function (this: LessParser, $: LessParser) {
             $.MANY(() => {
               functionArgs.push(
                 {
-                  name: 'combinator',
+                  name: 'delimiter',
                   children: [
                     $.OR3([{
                       ALT: () => $.CONSUME($.T.Comma) },
@@ -97,7 +97,7 @@ export default function (this: LessParser, $: LessParser) {
     $.MANY(() => {
       children.push(
         {
-          name: 'combinator',
+          name: 'delimiter',
           children: [
             $.OR([
               { ALT: () => $.CONSUME($.T.Comma) },

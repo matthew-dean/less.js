@@ -17,7 +17,7 @@ export default function(this: LessParser, $: LessParser) {
           $.MANY(() => {
             children.push(
               {
-                name: 'combinator',
+                name: 'delimiter',
                 children: [
                   $.CONSUME($.T.Comma),
                   $._(1)
@@ -76,7 +76,8 @@ export default function(this: LessParser, $: LessParser) {
         children: [
           $.CONSUME($.T.Extend),
           $.SUBRULE($.selectorList),
-          $.CONSUME($.T.RParen)
+          $.CONSUME($.T.RParen),
+          $._(1)
         ]
       }
     })
@@ -88,8 +89,7 @@ export default function(this: LessParser, $: LessParser) {
           name: 'selectors',
           children: selectors
         },
-        extend,
-        $._(1)
+        extend
       ]
     }
   })
