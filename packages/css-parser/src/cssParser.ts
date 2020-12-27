@@ -41,13 +41,13 @@ export type Rule<T extends any = any> = (idxInCallingRule?: number, ...args: any
  * }
  * ```
  */
-export type CstLocation = {
+export type ILocationInfo = {
   startOffset: number
-  startLine?: number
-  startColumn?: number
-  endOffset?: number
-  endLine?: number
-  endColumn?: number
+  startLine: number
+  startColumn: number
+  endOffset: number
+  endLine: number
+  endColumn: number
 }
 
 export type CstChild = CstNode | IToken
@@ -55,7 +55,7 @@ export type CstChild = CstNode | IToken
 export type CstNode = {
   name: string
   children: CstChild[]
-  location?: CstLocation
+  location?: ILocationInfo
 }
 
 export class CssParser extends EmbeddedActionsParser {

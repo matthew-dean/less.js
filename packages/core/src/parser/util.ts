@@ -42,7 +42,13 @@ export function processWS(token: IToken | IToken[], asArray: boolean = false): N
         nextNode.pre = node
         nodes.splice(i--, 1)
       } else {
-        nodes[i] = new WS(node)
+        const prevNode = <Node>nodes[i - 1]
+        if (prevNode) {
+          prevNode.post = node
+          nodes.splice(i--, 1)
+        } else {
+          nodes[i] = new WS(node)
+        }
       }
     }
   }

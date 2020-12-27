@@ -37,7 +37,9 @@ const merges: IMerges = {
       start_chars_hint: ['@', '$']
     },
     /**
-     * @todo - remove in the future?
+     * Unfortunately, there's grammatical ambiguity between
+     * interpolated props and a naked interpolated selector name,
+     * making this awkward token necessary.
      */
     {
       name: 'InterpolatedSelector',
