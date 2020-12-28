@@ -1,6 +1,13 @@
 import Node from './node';
 
-const Anonymous = function(value, index, currentFileInfo, mapLines, rulesetLike, visibilityInfo) {
+const Anonymous = function(
+    value,
+    index?,
+    currentFileInfo?,
+    mapLines?,
+    rulesetLike?,
+    visibilityInfo?
+) {
     this.value = value;
     this._index = index;
     this._fileInfo = currentFileInfo;

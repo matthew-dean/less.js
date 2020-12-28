@@ -4,21 +4,29 @@
  * 
  * https://github.com/less/less.js/issues/3434
  */
+type Primitive = Node | string | number
+
 class Node {
+    value: Primitive | Primitive[]
+    parent: Node
+    nodeVisible: boolean
+    rootNode: Node
+
+    /** Increments as we enter / exit rules that block visibility? */
+    visibilityBlocks: number
+
     constructor() {
         this.parent = null;
         this.visibilityBlocks = undefined;
         this.nodeVisible = undefined;
         this.rootNode = null;
-        this.parsed = null;
 
-        const self = this;
-        Object.defineProperty(this, 'currentFileInfo', {
-            get: function() { return self.fileInfo(); }
-        });
-        Object.defineProperty(this, 'index', {
-            get: function() { return self.getIndex(); }
-        });
+        // Object.defineProperty(this, 'currentFileInfo', {
+        //     get: function() { return self.fileInfo(); }
+        // });
+        // Object.defineProperty(this, 'index', {
+        //     get: function() { return self.getIndex(); }
+        // });
 
     }
 
