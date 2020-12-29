@@ -25,7 +25,6 @@ const Import = function(path, features, options, index, currentFileInfo, visibil
     this._fileInfo = currentFileInfo;
     this.path = path;
     this.features = features;
-    this.allowRoot = true;
 
     if (this.options.less !== undefined || this.options.inline) {
         this.css = !this.options.less || this.options.inline;
@@ -182,4 +181,5 @@ Import.prototype = Object.assign(new Node(), {
     }
 });
 
+Import.prototype.allowRoot = true;
 export default Import;

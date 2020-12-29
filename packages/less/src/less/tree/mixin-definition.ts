@@ -29,7 +29,6 @@ const Definition = function(name, params, rules, condition, variadic, frames, vi
     this.optionalParameters = optionalParameters;
     this.frames = frames;
     this.copyVisibilityInfo(visibilityInfo);
-    this.allowRoot = true;
 }
 
 Definition.prototype = Object.assign(new Ruleset(), {
@@ -224,5 +223,7 @@ Definition.prototype = Object.assign(new Ruleset(), {
         return true;
     }
 });
+
+Definition.prototype.allowRoot = true;
 
 export default Definition;

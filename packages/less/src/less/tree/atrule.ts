@@ -32,7 +32,6 @@ const AtRule = function(
     this.debugInfo = debugInfo;
     this.isRooted = isRooted || false;
     this.copyVisibilityInfo(visibilityInfo);
-    this.allowRoot = true;
 }
 
 AtRule.prototype = Object.assign(new Node(), {
@@ -152,4 +151,5 @@ AtRule.prototype = Object.assign(new Node(), {
     }
 });
 
+AtRule.prototype.allowRoot = true;
 export default AtRule;

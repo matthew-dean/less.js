@@ -1,5 +1,5 @@
-import Node from './node';
-import Value from './value';
+import Node, { IFileInfo, ILocationInfo, INodeOptions, NodeArgs } from './node';
+import Value from './list';
 import Keyword from './keyword';
 import Anonymous from './anonymous';
 import * as Constants from '../constants';
@@ -16,57 +16,105 @@ function evalName(context, name) {
     return value;
 }
 
-const Declaration = function(name, value, important, merge, index, currentFileInfo, inline, variable) {
-    this.name = name;
-    this.value = (value instanceof Node) ? value : new Value([value ? new Anonymous(value) : null]);
-    this.important = important ? ` ${important.trim()}` : '';
-    this.merge = merge;
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-    this.inline = inline || false;
-    this.variable = (variable !== undefined) ? variable
-        : (name.charAt && (name.charAt(0) === '@'));
-    this.allowRoot = true;
-    this.setParent(this.value, this);
-};
+type V1Args = [
+    name: string | Node[],
+    val: string | Node,
+    important: string,
+    merge: any,
+    index: number,
+    currentFileInfo: IFileInfo,
+    inline: boolean,
+    variable: boolean
+]
 
-Declaration.prototype = Object.assign(new Node(), {
-    type: 'Declaration',
+class Declaration extends Node {
+    type: 'Declaration'
+    value: [Node[] | string, Node | null, string]
+
+    constructor(...args: V1Args | NodeArgs) {
+        /** v5 args */
+        let [
+            value,
+            options,
+            location,
+            fileInfo
+        ] = args
+        
+        /** v1 args */
+        if (args[1] instanceof Node || typeof args[1] === 'string') {
+            const [
+                name,
+                val,
+                important,
+                merge,
+                index,
+                currentFileInfo,
+                inline,
+                variable
+            ] = <V1Args>args
+
+            value = [
+                name,
+                (val instanceof Node)
+                    ? val
+                    : new Value([val ? new Anonymous(val) : null]),
+                important ? ` ${important.trim()}` : ''
+            ]
+            options = {
+                merge,
+                inline: inline || false,
+                variable: (variable !== undefined) ? variable
+                    : (!Array.isArray(name) && (name.charAt(0) === '@'))
+            }
+            location = index
+            fileInfo = currentFileInfo
+        }
+        
+        super(value, <INodeOptions>options, <ILocationInfo | number>location, fileInfo);
+    }
+
+    get name() {
+        return this.value[0]
+    }
+
+    get important() {
+        return this.value[2]
+    }
 
     genCSS(context, output) {
         output.add(this.name + (context.compress ? ':' : ': '), this.fileInfo(), this.getIndex());
         try {
-            this.value.genCSS(context, output);
+            this.value[1].genCSS(context, output);
         }
         catch (e) {
             e.index = this._index;
             e.filename = this._fileInfo.filename;
             throw e;
         }
-        output.add(this.important + ((this.inline || (context.lastRule && context.compress)) ? '' : ';'), this._fileInfo, this._index);
-    },
+        output.add(this.important + ((this.options.inline || (context.lastRule && context.compress)) ? '' : ';'), this._fileInfo, this._index);
+    }
 
     eval(context) {
-        let mathBypass = false, prevMath, name = this.name, evaldValue, variable = this.variable;
+        let name = this.value[0],
+            evaldValue,
+            variable = this.options.variable;
+
         if (typeof name !== 'string') {
             // expand 'primitive' name directly to get
             // things faster (~10% for benchmark.less):
-            name = (name.length === 1) && (name[0] instanceof Keyword) ?
-                name[0].value : evalName(context, name);
+            if (name.length === 1 && name[0] instanceof Keyword) {
+                name = (<Keyword>name[0]).value;
+            } else {
+                name = evalName(context, name);
+            }
             variable = false; // never treat expanded interpolation as new variable name
         }
 
-        // @todo remove when parens-division is default
-        if (name === 'font' && context.math === MATH.ALWAYS) {
-            mathBypass = true;
-            prevMath = context.math;
-            context.math = MATH.PARENS_DIVISION;
-        }
         try {
             context.importantScope.push({});
-            evaldValue = this.value.eval(context);
+            evaldValue = this.value[1].eval(context);
 
-            if (!this.variable && evaldValue.type === 'DetachedRuleset') {
+            if (!this.options.variable && evaldValue.type === 'DetachedRuleset') {
                 throw { message: 'Rulesets cannot be evaluated on a property.',
                     index: this.getIndex(), filename: this.fileInfo().filename };
             }
@@ -76,12 +124,12 @@ Declaration.prototype = Object.assign(new Node(), {
                 important = importantResult.important;
             }
 
-            return new Declaration(name,
-                evaldValue,
-                important,
-                this.merge,
-                this.getIndex(), this.fileInfo(), this.inline,
-                variable);
+            return new Declaration(
+                [name, evaldValue, important],
+                {...this.options, variable },
+                this._location,
+                this._fileInfo
+            );
         }
         catch (e) {
             if (typeof e.index !== 'number') {
@@ -90,20 +138,14 @@ Declaration.prototype = Object.assign(new Node(), {
             }
             throw e;
         }
-        finally {
-            if (mathBypass) {
-                context.math = prevMath;
-            }
-        }
-    },
+    }
 
     makeImportant() {
-        return new Declaration(this.name,
-            this.value,
-            '!important',
-            this.merge,
-            this.getIndex(), this.fileInfo(), this.inline);
+        this.value[2] = ' !important';
     }
-});
+}
+
+Declaration.prototype.type = 'Declaration';
+Declaration.prototype.allowRoot = true;
 
 export default Declaration;

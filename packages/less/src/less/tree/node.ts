@@ -1,8 +1,9 @@
 import type { IFileInfo } from '../types'
 
-type Primitive = Node | string | number
-type NodeValue = Primitive | Primitive[]
-type ILocationInfo = {
+type Primitive = Node | any
+export type NodeValue = Primitive | Primitive[]
+
+export type ILocationInfo = {
     startOffset: number
     startLine?: number
     startColumn?: number
@@ -10,47 +11,57 @@ type ILocationInfo = {
     endLine?: number
     endColumn?: number
 }
-type IOptions = {
+export type INodeOptions = {
     rulesetLike?: boolean
-    allowRoot?: boolean
-    [k: string]: any
+    /** Allow arbitrary options */
+    [k: string]: boolean | string | number
 }
 
-/**
- * The reason why Node is a class and other nodes simply do not extend
- * from Node (since we're transpiling) is due to this issue:
- * 
- * https://github.com/less/less.js/issues/3434
- */
+export type NodeArgs = [
+    value: NodeValue,
+    options?: INodeOptions,
+    location?: ILocationInfo | number,
+    fileInfo?: IFileInfo
+]
+
+export { IFileInfo }
+
 class Node {
     value: NodeValue
     parent: Node
     nodeVisible: boolean
     rootNode: Node
+    allowRoot: boolean
 
     /** Specific node options */
-    options: IOptions
+    options: INodeOptions
 
     _location: ILocationInfo
     _fileInfo: IFileInfo
 
     /** Increments as we enter / exit rules that block visibility? */
     visibilityBlocks: number
+    evaluated: boolean
 
     constructor(
         value: NodeValue,
-        location?: ILocationInfo,
-        fileInfo?: IFileInfo,
-        options?: IOptions
+        options?: INodeOptions,
+        location?: ILocationInfo | number,
+        fileInfo?: IFileInfo
     ) {
         this.value = value;
-        this._location = location;
+        if (typeof location === 'number') {
+            this._location = { startOffset: location }
+        } else {
+            this._location = location
+        }
         this._fileInfo = fileInfo;
         this.options = options || {};
 
         this.visibilityBlocks = 0;
         this.nodeVisible = undefined;
         this.rootNode = null;
+        this.evaluated = false;
 
         this.processValue(n => this.setParent(n))
     }
@@ -97,7 +108,7 @@ class Node {
 
     isRulesetLike() { return false; }
 
-    toCSS(context) {
+    toCSS(context?: any) {
         const strs = [];
         this.genCSS(context, {
             add: function(chunk, fileInfo, index) {
@@ -110,15 +121,36 @@ class Node {
         return strs.join('');
     }
 
+    addToOutput(val: Primitive, context, output) {
+        if (val instanceof Node) {
+            output.add(val.genCSS(context, output))
+        } else if (val) {
+            output.add(val)
+        }
+    }
+
     genCSS(context, output) {
-        output.add(this.value);
+        const value = this.value;
+        if (Array.isArray(value)) {
+            value.forEach(val => {
+                this.addToOutput(val, context, output)
+            });
+        } else {
+            this.addToOutput(value, context, output);
+        }
     }
 
     accept(visitor) {
         this.processValue(n => visitor.visit(n));
     }
 
-    eval() { return this; }
+    eval(context?: any): Node {
+        if (!this.evaluated) {
+            this.processValue(n => n.eval(context))
+            this.evaluated = true;
+        }
+        return this;
+    }
 
     _operate(context, op, a, b) {
         switch (op) {

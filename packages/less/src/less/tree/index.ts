@@ -21,7 +21,7 @@ import URL from './url';
 import Import from './import';
 import Comment from './comment';
 import Anonymous from './anonymous';
-import Value from './value';
+import List from './list';
 import JavaScript from './javascript';
 import Assignment from './assignment';
 import Condition from './condition';
@@ -38,11 +38,11 @@ import MixinCall from './mixin-call';
 import MixinDefinition from './mixin-definition';
 
 export default {
-    Node, Color, AtRule, DetachedRuleset, Operation,
+    Node, Color, AtRule, Directive: AtRule, DetachedRuleset, Operation,
     Dimension, Unit, Keyword, Variable, Property,
     Ruleset, Element, Attribute, Combinator, Selector,
-    Quoted, Expression, Declaration, Call, URL, Import,
-    Comment, Anonymous, Value, JavaScript, Assignment,
+    Quoted, Expression, Declaration, Rule: Declaration, Call, URL, Import,
+    Comment, Anonymous, List, Value: List, JavaScript, Assignment,
     Condition, Paren, Media, UnicodeDescriptor, Negative,
     Extend, VariableCall, NamespaceValue,
     mixin: {

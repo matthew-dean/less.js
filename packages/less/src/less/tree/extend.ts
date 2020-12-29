@@ -9,7 +9,6 @@ const Extend = function(selector, option, index, currentFileInfo, visibilityInfo
     this._index = index;
     this._fileInfo = currentFileInfo;
     this.copyVisibilityInfo(visibilityInfo);
-    this.allowRoot = true;
 
     switch (option) {
         case 'all':
@@ -59,4 +58,5 @@ Extend.prototype = Object.assign(new Node(), {
 });
 
 Extend.next_id = 0;
+Extend.prototype.allowRoot = true;
 export default Extend;

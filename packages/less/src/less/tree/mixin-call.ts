@@ -9,7 +9,6 @@ const MixinCall = function(elements, args, index, currentFileInfo, important) {
     this._index = index;
     this._fileInfo = currentFileInfo;
     this.important = important;
-    this.allowRoot = true;
     this.setParent(this.selector, this);
 };
 
@@ -207,5 +206,7 @@ MixinCall.prototype = Object.assign(new Node(), {
         }).join(', ') : ''})`;
     }
 });
+
+MixinCall.prototype.allowRoot = true;
 
 export default MixinCall;

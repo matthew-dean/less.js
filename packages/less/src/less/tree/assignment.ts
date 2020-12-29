@@ -1,31 +1,34 @@
-import Node from './node';
+import Node, { NodeArgs } from './node';
 
-const Assignment = function(key, val) {
-    Node.call(this, [key, val]);
-}
+type V1Args = [
+    key: string,
+    val: Node | string
+]
 
-Assignment.prototype = Object.assign(Object.create(Node.prototype), {
-    type: 'Assignment',
+class Assignment extends Node {
+    value: [string, Node | string]
+    type: 'Assignment'
 
-    accept(visitor) {
-        this.value = visitor.visit(this.value);
-    },
-
-    eval(context) {
-        if (this.value.eval) {
-            return new Assignment(this.key, this.value.eval(context));
+    constructor(...args: V1Args | NodeArgs) {
+        const val = args[1]
+        if (val instanceof Node || typeof val === 'string') {
+            super([args[0], args[1]]);
+            return
         }
-        return this;
-    },
+        super(...(<NodeArgs>args));
+    }
 
     genCSS(context, output) {
-        output.add(`${this.key}=`);
-        if (this.value.genCSS) {
-            this.value.genCSS(context, output);
+        const [key, val] = this.value;
+        output.add(`${key}=`);
+        if (val instanceof Node) {
+            val.genCSS(context, output);
         } else {
-            output.add(this.value);
+            output.add(val);
         }
     }
-});
+}
+
+Assignment.prototype.type = 'Assignment';
 
 export default Assignment;

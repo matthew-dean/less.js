@@ -1,33 +1,48 @@
-import Node from './node';
+import Node, { NodeArgs } from './node';
 
-const Attribute = function(key, op, value) {
-    this.key = key;
-    this.op = op;
-    this.value = value;
-}
+type V1Args = [
+    key: string | Node,
+    op: string,
+    value: string | Node
+]
+class Attribute extends Node {
+    type: 'Attribute'
+    value: [string | Node, string, string | Node]
+    
+    constructor(...args: V1Args | NodeArgs) {
+        const val = args[1]
+        if (typeof val === 'string') {
+            super([args[0], val, args[2]]);
+            return
+        }
+        super(...(<NodeArgs>args));
+    }
 
-Attribute.prototype = Object.assign(new Node(), {
-    type: 'Attribute',
+    get key() {
+        return this.value[0]
+    }
 
-    eval(context) {
-        return new Attribute(this.key.eval ? this.key.eval(context) : this.key,
-            this.op, (this.value && this.value.eval) ? this.value.eval(context) : this.value);
-    },
+    get op() {
+        return this.value[1]
+    }
 
     genCSS(context, output) {
         output.add(this.toCSS(context));
-    },
+    }
 
     toCSS(context) {
-        let value = this.key.toCSS ? this.key.toCSS(context) : this.key;
+        const [key, op, value] = this.value
+        let output = key instanceof Node ? key.toCSS(context) : key;
 
-        if (this.op) {
-            value += this.op;
-            value += (this.value.toCSS ? this.value.toCSS(context) : this.value);
+        if (op) {
+            output += op;
+            output += value instanceof Node ? value.toCSS(context) : value;
         }
 
         return `[${value}]`;
     }
-});
+}
+
+Attribute.prototype.type = 'Attribute';
 
 export default Attribute;

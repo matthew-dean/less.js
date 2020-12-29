@@ -21,7 +21,6 @@ const Ruleset = function(selectors, rules, strictImports, visibilityInfo) {
     this._properties = null;
     this.strictImports = strictImports;
     this.copyVisibilityInfo(visibilityInfo);
-    this.allowRoot = true;
 }
 
 Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
@@ -843,5 +842,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
 
     }
 });
+
+Ruleset.prototype.allowRoot = true;
 
 export default Ruleset;

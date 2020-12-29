@@ -1,31 +1,59 @@
-import Node from './node';
+import Node, { IFileInfo, INodeOptions, NodeArgs } from './node';
+import List from './list'
 import Anonymous from './anonymous';
 import FunctionCaller from '../functions/function-caller';
+
+type V1Args = [
+    name: string,
+    funcArgs: Node[],
+    index?: number,
+    currentFileInfo?: IFileInfo
+]
 
 //
 // A function call node.
 //
-const Call = function(name, args, index, currentFileInfo) {
-    this.name = name;
-    this.args = args;
-    this.calc = name === 'calc';
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-}
+class Call extends Node {
+    type: 'Call'
+    options: INodeOptions & {
+        calc: boolean
+    }
+    value: [string, List]
 
-Call.prototype = Object.assign(new Node(), {
-    type: 'Call',
-
-    accept(visitor) {
-        if (this.args) {
-            this.args = visitor.visitArray(this.args);
+    constructor(...args: V1Args | NodeArgs) {
+        if (Array.isArray(args)) {
+            const [
+                name,
+                funcArgs,
+                index,
+                currentFileInfo
+            ] = args
+            super(
+                [name, new List(funcArgs)],
+                {
+                    calc: name === 'calc'
+                },
+                index,
+                currentFileInfo
+            );
+            return;
         }
-    },
+        super(...(<NodeArgs>args));
+    }
+
+    /** Backwards compatability */
+    get name() {
+        return this.value[0]
+    }
+
+    get args() {
+        return this.value[1].value
+    }
 
     //
     // When evaluating a function call,
     // we either find the function in the functionRegistry,
-    // in which case we call it, passing the  evaluated arguments,
+    // in which case we call it, passing the evaluated arguments,
     // if this returns null or we cannot find the function, we
     // simply print it out as it appeared originally [2].
     //
@@ -34,17 +62,18 @@ Call.prototype = Object.assign(new Node(), {
     // The function should receive the value, not the variable.
     //
     eval(context) {
+        const isCalc = this.options.calc
         /**
          * Turn off math for calc(), and switch back on for evaluating nested functions
          */
         const currentMathContext = context.mathOn;
-        context.mathOn = !this.calc;
-        if (this.calc || context.inCalc) {
+        context.mathOn = !isCalc;
+        if (isCalc || context.inCalc) {
             context.enterCalc();
         }
 
         const exitCalc = () => {
-            if (this.calc || context.inCalc) {
+            if (isCalc || context.inCalc) {
                 context.exitCalc();
             }
             context.mathOn = currentMathContext;
@@ -89,24 +118,20 @@ Call.prototype = Object.assign(new Node(), {
             return result;
         }
 
-        const args = this.args.map(a => a.eval(context));
+        const args = this.value[1].eval(context);
         exitCalc();
 
-        return new Call(this.name, args, this.getIndex(), this.fileInfo());
-    },
+        return new Call([this.name, args], this.options, this._location, this._fileInfo);
+    }
 
     genCSS(context, output) {
-        output.add(`${this.name}(`, this.fileInfo(), this.getIndex());
-
-        for (let i = 0; i < this.args.length; i++) {
-            this.args[i].genCSS(context, output);
-            if (i + 1 < this.args.length) {
-                output.add(', ');
-            }
-        }
-
+        const [name, args] = this.value
+        output.add(`${name}(`, this.fileInfo(), this.getIndex());
+        args.genCSS(context, output);
         output.add(')');
     }
-});
+}
+
+Call.prototype.type = 'Call';
 
 export default Call;

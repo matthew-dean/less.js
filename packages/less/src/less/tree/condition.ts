@@ -1,22 +1,37 @@
 import Node from './node';
 
-const Condition = function(op, l, r, i, negate) {
-    this.op = op.trim();
-    this.lvalue = l;
-    this.rvalue = r;
-    this._index = i;
-    this.negate = negate;
-};
+class Condition extends Node {
+    type: 'Condition'
 
-Condition.prototype = Object.assign(new Node(), {
-    type: 'Condition',
-
-    accept(visitor) {
-        this.lvalue = visitor.visit(this.lvalue);
-        this.rvalue = visitor.visit(this.rvalue);
-    },
+    value: [string, Node, Node]
+    constructor(
+        op: string,
+        l: Node,
+        r: Node,
+        i: number,
+        negate: boolean
+    ) {
+        super(
+            [op.trim(), l, r],
+            { negate },
+            i
+        )
+    }
+    get op() {
+        return this.value[0]
+    }
+    get lvalue() {
+        return this.value[1]
+    }
+    get rvalue() {
+        return this.value[2]
+    }
 
     eval(context) {
+        const [op, l, r] = this.value;
+        const a = l.eval(context);
+        const b = r.eval(context);
+
         const result = (function (op, a, b) {
             switch (op) {
                 case 'and': return a && b;
@@ -33,10 +48,12 @@ Condition.prototype = Object.assign(new Node(), {
                             return false;
                     }
             }
-        })(this.op, this.lvalue.eval(context), this.rvalue.eval(context));
+        })(op, a, b);
 
-        return this.negate ? !result : result;
+        return this.options.negate ? !result : result;
     }
-});
+}
+
+Condition.prototype.type = 'Condition';
 
 export default Condition;
