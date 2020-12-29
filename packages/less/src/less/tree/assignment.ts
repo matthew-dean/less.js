@@ -1,11 +1,10 @@
 import Node from './node';
 
 const Assignment = function(key, val) {
-    this.key = key;
-    this.value = val;
+    Node.call(this, [key, val]);
 }
 
-Assignment.prototype = Object.assign(new Node(), {
+Assignment.prototype = Object.assign(Object.create(Node.prototype), {
     type: 'Assignment',
 
     accept(visitor) {

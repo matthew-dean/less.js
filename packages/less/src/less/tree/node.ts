@@ -1,55 +1,98 @@
+import type { IFileInfo } from '../types'
+
+type Primitive = Node | string | number
+type NodeValue = Primitive | Primitive[]
+type ILocationInfo = {
+    startOffset: number
+    startLine?: number
+    startColumn?: number
+    endOffset?: number
+    endLine?: number
+    endColumn?: number
+}
+type IOptions = {
+    rulesetLike?: boolean
+    allowRoot?: boolean
+    [k: string]: any
+}
+
 /**
  * The reason why Node is a class and other nodes simply do not extend
  * from Node (since we're transpiling) is due to this issue:
  * 
  * https://github.com/less/less.js/issues/3434
  */
-type Primitive = Node | string | number
-
 class Node {
-    value: Primitive | Primitive[]
+    value: NodeValue
     parent: Node
     nodeVisible: boolean
     rootNode: Node
 
+    /** Specific node options */
+    options: IOptions
+
+    _location: ILocationInfo
+    _fileInfo: IFileInfo
+
     /** Increments as we enter / exit rules that block visibility? */
     visibilityBlocks: number
 
-    constructor() {
-        this.parent = null;
-        this.visibilityBlocks = undefined;
+    constructor(
+        value: NodeValue,
+        location?: ILocationInfo,
+        fileInfo?: IFileInfo,
+        options?: IOptions
+    ) {
+        this.value = value;
+        this._location = location;
+        this._fileInfo = fileInfo;
+        this.options = options || {};
+
+        this.visibilityBlocks = 0;
         this.nodeVisible = undefined;
         this.rootNode = null;
 
-        // Object.defineProperty(this, 'currentFileInfo', {
-        //     get: function() { return self.fileInfo(); }
-        // });
-        // Object.defineProperty(this, 'index', {
-        //     get: function() { return self.getIndex(); }
-        // });
-
+        this.processValue(n => this.setParent(n))
     }
 
-    setParent(nodes, parent) {
-        function set(node) {
-            if (node && node instanceof Node) {
-                node.parent = parent;
-            }
+    /**
+     * Processes all Node values in `value`
+     */
+    processValue(func: (n: Node) => Node) {
+        const node = this.value
+        if (Array.isArray(node)) {
+            return node.forEach((n, i) => {
+                if (n instanceof Node) {
+                    this.value[i] = func(n)
+                }
+            })
         }
-        if (Array.isArray(nodes)) {
-            nodes.forEach(set);
+        if (node instanceof Node) {
+            this.value = func(node)
         }
-        else {
-            set(nodes);
+    }
+
+    setParent(node: Node) {
+        node.parent = this
+        if (!node._fileInfo) {
+            node._fileInfo = this._fileInfo
         }
+        if (!node._location) {
+            node._location = this._location
+        }
+        return node
+    }
+
+    get _index(): number {
+        return this._location.startOffset
     }
 
     getIndex() {
-        return this._index || (this.parent && this.parent.getIndex()) || 0;
+        return this._index;
     }
 
     fileInfo() {
-        return this._fileInfo || (this.parent && this.parent.fileInfo()) || {};
+        return this._fileInfo;
     }
 
     isRulesetLike() { return false; }
@@ -72,7 +115,7 @@ class Node {
     }
 
     accept(visitor) {
-        this.value = visitor.visit(this.value);
+        this.processValue(n => visitor.visit(n));
     }
 
     eval() { return this; }
@@ -134,24 +177,15 @@ class Node {
 
     // Returns true if this node represents root of ast imported by reference
     blocksVisibility() {
-        if (this.visibilityBlocks == null) {
-            this.visibilityBlocks = 0;
-        }
         return this.visibilityBlocks !== 0;
     }
 
     addVisibilityBlock() {
-        if (this.visibilityBlocks == null) {
-            this.visibilityBlocks = 0;
-        }
-        this.visibilityBlocks = this.visibilityBlocks + 1;
+        this.visibilityBlocks += 1;
     }
 
     removeVisibilityBlock() {
-        if (this.visibilityBlocks == null) {
-            this.visibilityBlocks = 0;
-        }
-        this.visibilityBlocks = this.visibilityBlocks - 1;
+        this.visibilityBlocks -= 1;
     }
 
     // Turns on node visibility - if called node will be shown in output regardless
@@ -170,7 +204,7 @@ class Node {
     // false - the node must not be visible
     // true - the node must be visible
     // undefined or null - the node has the same visibility as its parent
-    isVisible() {
+    isVisible(): boolean | undefined {
         return this.nodeVisible;
     }
 

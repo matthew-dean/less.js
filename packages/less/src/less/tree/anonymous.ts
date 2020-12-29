@@ -8,16 +8,20 @@ const Anonymous = function(
     rulesetLike?,
     visibilityInfo?
 ) {
-    this.value = value;
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-    this.mapLines = mapLines;
-    this.rulesetLike = (typeof rulesetLike === 'undefined') ? false : rulesetLike;
-    this.allowRoot = true;
-    this.copyVisibilityInfo(visibilityInfo);
+    Node.call(
+        this,
+        value,
+        { startOffset: index },
+        currentFileInfo,
+        {
+            rulesetLike: !!rulesetLike,
+            allowRoot: true,
+            mapLines
+        }
+    )
 }
 
-Anonymous.prototype = Object.assign(new Node(), {
+Anonymous.prototype = Object.assign(Object.create(Node.prototype), {
     type: 'Anonymous',
     eval() {
         return new Anonymous(this.value, this._index, this._fileInfo, this.mapLines, this.rulesetLike, this.visibilityInfo());

@@ -12,6 +12,7 @@ import defaultFunc from '../functions/default';
 import getDebugInfo from './debug-info';
 import * as utils from '../utils';
 
+/** class */
 const Ruleset = function(selectors, rules, strictImports, visibilityInfo) {
     this.selectors = selectors;
     this.rules = rules;
@@ -21,12 +22,9 @@ const Ruleset = function(selectors, rules, strictImports, visibilityInfo) {
     this.strictImports = strictImports;
     this.copyVisibilityInfo(visibilityInfo);
     this.allowRoot = true;
-
-    this.setParent(this.selectors, this);
-    this.setParent(this.rules, this);
 }
 
-Ruleset.prototype = Object.assign(new Node(), {
+Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
     type: 'Ruleset',
     isRuleset: true,
 

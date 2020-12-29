@@ -4,19 +4,18 @@ import Ruleset from './ruleset';
 import Anonymous from './anonymous';
 
 const AtRule = function(
-    name,
-    value,
-    rules,
+    name: string,
+    prelude: Node | string,
+    rules: Node | Node[],
     index,
     currentFileInfo,
     debugInfo,
     isRooted,
     visibilityInfo
 ) {
-    let i;
-
     this.name  = name;
-    this.value = (value instanceof Node) ? value : (value ? new Anonymous(value) : value);
+    this.value = (prelude instanceof Node) ? prelude : (prelude ? new Anonymous(prelude) : prelude);
+    
     if (rules) {
         if (Array.isArray(rules)) {
             this.rules = rules;
@@ -24,10 +23,9 @@ const AtRule = function(
             this.rules = [rules];
             this.rules[0].selectors = (new Selector([], null, null, index, currentFileInfo)).createEmptySelectors();
         }
-        for (i = 0; i < this.rules.length; i++) {
+        for (let i = 0; i < this.rules.length; i++) {
             this.rules[i].allowImports = true;
         }
-        this.setParent(this.rules, this);
     }
     this._index = index;
     this._fileInfo = currentFileInfo;
@@ -136,7 +134,8 @@ AtRule.prototype = Object.assign(new Node(), {
         }
 
         // Non-compressed
-        const tabSetStr = `\n${Array(context.tabLevel).join('  ')}`, tabRuleStr = `${tabSetStr}  `;
+        const tabSetStr = `\n${Array(context.tabLevel).join('  ')}`,
+            tabRuleStr = `${tabSetStr}  `;
         if (!ruleCnt) {
             output.add(` {${tabSetStr}}`);
         } else {
