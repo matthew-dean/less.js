@@ -1,7 +1,7 @@
 import Node, { INodeOptions, isNodeArgs, NodeArgs } from './node';
-import Paren from './paren';
+import List from './list';
 import Comment from './comment';
-import Dimension from './dimension';
+import type { Context } from '../contexts'
 import * as Constants from '../constants';
 const MATH = Constants.Math;
 
@@ -29,38 +29,68 @@ class Expression extends Node {
         super(value, { noSpacing });
     }
 
-    eval(context) {
-        let returnValue;
-        const mathOn = context.isMathOn();
-        const inParenthesis = this.parens;
+    /**
+     * If an evaluated Node in an expression returns a list (such as Element),
+     * then we need to merge the list with the surrounding nodes.
+     *
+     * We also flatten expressions within expressions to be a flat node list.
+     */
+    eval(context: Context): Expression | List | Node {
+        if (!this.evaluated) {
+            super.eval(context)
 
-        let doubleParen = false;
-        if (inParenthesis) {
-            context.inParenthesis();
-        }
-        if (this.nodes.length > 1) {
-            returnValue = new Expression(this.nodes.map(function (e) {
-                if (!e.eval) {
-                    return e;
+            const expressions: Expression[] = []
+
+            const processNodes = (expr: Node) => {
+                let nodes = expr.nodes
+                let nodesLength = nodes.length
+                for (let i = 0; i < nodesLength; i++) {
+                    const node = nodes[i]
+                    if (node instanceof List) {
+                        node.nodes.forEach((listItem: Node) => {
+                            const newNodes: Node[] = nodes.map((n: Node, x) => {
+                                if (x === i) {
+                                    return
+                                }
+                                return n.clone()
+                            })
+                            newNodes[i] = listItem.clone()
+                            expressions.push(new Expression(newNodes))
+                        })
+                        expressions.forEach(expr => {
+                            processNodes(expr)
+                        })
+                        break
+                    } else if (node instanceof Expression) {
+                        /** Flatten sub-expressions */
+                        const exprNodes = node.nodes
+                        const exprNodesLength = exprNodes.length
+                        nodes = nodes
+                            .splice(0, i)
+                            .concat(exprNodes)
+                            .concat(nodes.splice(i + 1))
+                        expr.nodes = nodes
+                        nodesLength += exprNodesLength
+                        i += exprNodesLength
+                        processNodes(node)
+                    }
                 }
-                return e.eval(context);
-            }), this.options.noSpacing);
-        } else if (this.nodes.length === 1) {
-            if (this.nodes[0].parens && !this.nodes[0].parensInOp && !context.inCalc) {
-                doubleParen = true;
             }
-            returnValue = this.nodes[0].eval(context);
-        } else {
-            returnValue = this;
+
+            processNodes(this)
+
+            const numExpressions = expressions.length
+
+            this.evaluated = true
+            if (numExpressions === 0) {
+                return this
+            } else if (numExpressions === 1) {
+                return expressions[0].inherit(this)
+            } else {
+                return new List(expressions).inherit(this)
+            }
         }
-        if (inParenthesis) {
-            context.outOfParenthesis();
-        }
-        if (this.parens && this.parensInOp && !mathOn && !doubleParen 
-            && (!(returnValue instanceof Dimension))) {
-            returnValue = new Paren(returnValue);
-        }
-        return returnValue;
+        return this
     }
 
     genCSS(context, output) {

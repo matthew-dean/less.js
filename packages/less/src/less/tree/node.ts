@@ -1,4 +1,5 @@
 import type { IFileInfo } from '../types'
+import type { Context } from '../contexts'
 
 type Primitive = Node | any
 export type NodeValue = Primitive | Primitive[]
@@ -30,7 +31,6 @@ export const isNodeArgs = (args: any[] | NodeArgs): args is NodeArgs => {
 }
 
 export { IFileInfo }
-
 class Node {
     /**
      * This can contain a primitive value or a Node,
@@ -138,7 +138,7 @@ class Node {
 
     isRulesetLike() { return false; }
 
-    toCSS(context?: any) {
+    toCSS(context?: Context) {
         const strs = [];
         this.genCSS(context, {
             add: function(chunk, fileInfo, index) {
@@ -151,15 +151,17 @@ class Node {
         return strs.join('');
     }
 
-    addToOutput(val: Primitive, context, output) {
+    addToOutput(val: Primitive, context: Context, output) {
         if (val instanceof Node) {
             output.add(val.genCSS(context, output))
         } else if (val) {
-            output.add(val)
+            /** Serialize a primitive value into a string */
+            output.add(`${val}`)
         }
     }
 
-    genCSS(context, output) {
+    /** Will be over-ridden by most nodes */
+    genCSS(context: Context, output) {
         const value = this.nodes;
         if (Array.isArray(value)) {
             value.forEach(val => {
@@ -187,10 +189,50 @@ class Node {
         this._location = node._location
         this._fileInfo = node._fileInfo
         this.rootNode = node.rootNode
+        this.evaluated = node.evaluated
         return this
     }
 
-    _operate(context, op, a, b) {
+    /**
+     * Creates a copy of the current node.
+     *
+     * @param shallow - doesn't deeply clone nodes (retains references)
+     */
+    clone(shallow: boolean = false): this {
+        const Clazz = Object.getPrototypeOf(this).constructor
+        const newNode = new Clazz(
+            this.nodes,
+            {...this.options},
+            /** For now, there's no reason to mutate location,
+             * so its reference is just copied */
+            this._location,
+            this._fileInfo
+        )
+
+        /**
+         * First copy over Node-derived-specific props. We eliminate any props specific
+         * to the base Node class.
+         */
+        for (let prop in this) {
+            if (this.hasOwnProperty(prop)) {
+                newNode[prop] = this[prop]
+            }
+        }
+
+        /** Copy inheritance props */
+        newNode.inherit(this)
+
+        if (!shallow) {
+            /**
+             * Perform a deep clone
+             * This will overwrite the parent / root props of children nodes.
+             */
+            newNode.processNodes((node: Node) => node.clone())
+        }
+        return newNode
+    }
+
+    _operate(context, op: string, a: number, b: number) {
         switch (op) {
             case '+': return a + b;
             case '-': return a - b;

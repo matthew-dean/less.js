@@ -5,4 +5,5 @@ export type IFileInfo = {
   currentDirectory: string
   entryPath: string
   rootFilename: string
+  reference?: boolean
 }

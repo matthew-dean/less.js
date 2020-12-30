@@ -1,42 +1,65 @@
-import Node from './node';
+import Node, { IFileInfo, NodeArgs } from './node';
 import Selector from './selector';
 
-const Extend = function(selector, option, index, currentFileInfo, visibilityInfo) {
-    this.selector = selector;
-    this.option = option;
-    this.object_id = Extend.next_id++;
-    this.parent_ids = [this.object_id];
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-    this.copyVisibilityInfo(visibilityInfo);
+type V1Args = [
+    selector: Node,
+    option: string,
+    index: number,
+    fileInfo: IFileInfo
+]
 
-    switch (option) {
-        case 'all':
-            this.allowBefore = true;
-            this.allowAfter = true;
-            break;
-        default:
-            this.allowBefore = false;
-            this.allowAfter = false;
-            break;
+class Extend extends Node {
+    type: 'Extend'
+    nodes: Node
+
+    /** @todo - I believe this can be simplified without the use of tracking ids */
+    static next_id = 0
+    object_id: number
+    parent_ids: number[]
+
+    /** @todo - Document what these mean */
+    allowBefore: boolean
+    allowAfter: boolean
+
+    /** @todo - Document this usage in the extend visitor */
+    selfSelectors: Node[]
+
+    constructor(...args: NodeArgs | V1Args) {
+        let [
+            selector,
+            options,
+            index,
+            fileInfo
+        ] = args
+
+        options = typeof options === 'string'
+            ? { extend: options }
+            : options || {}
+
+        super(selector, options, index, fileInfo)
+        
+        this.object_id = Extend.next_id++;
+        this.parent_ids = [this.object_id];
+
+        switch (options.extend) {
+            case 'all':
+                this.allowBefore = true;
+                this.allowAfter = true;
+                break;
+            default:
+                this.allowBefore = false;
+                this.allowAfter = false;
+                break;
+        }
     }
-    this.setParent(this.selector, this);
-};
 
-Extend.prototype = Object.assign(new Node(), {
-    type: 'Extend',
+    get option() {
+        return this.options.extend
+    }
 
-    accept(visitor) {
-        this.selector = visitor.visit(this.selector);
-    },
-
-    eval(context) {
-        return new Extend(this.selector.eval(context), this.option, this.getIndex(), this.fileInfo(), this.visibilityInfo());
-    },
-
-    clone(context) {
-        return new Extend(this.selector, this.option, this.getIndex(), this.fileInfo(), this.visibilityInfo());
-    },
+    get selector() {
+        return this.nodes
+    }
 
     // it concatenates (joins) all selectors in selector array
     findSelfSelectors(selectors) {
@@ -55,8 +78,8 @@ Extend.prototype = Object.assign(new Node(), {
         this.selfSelectors = [new Selector(selfElements)];
         this.selfSelectors[0].copyVisibilityInfo(this.visibilityInfo());
     }
-});
+}
 
-Extend.next_id = 0;
+Extend.prototype.type = 'Extend';
 Extend.prototype.allowRoot = true;
 export default Extend;
