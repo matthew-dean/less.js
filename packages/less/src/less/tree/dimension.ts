@@ -1,6 +1,6 @@
 import Node, { NodeArgs } from './node';
 import { convertDimension } from './util/convert';
-import { operate } from './util/math';
+import { operate, fround } from './util/math';
 
 import Unit from './unit';
 import Color from './color';
@@ -46,11 +46,7 @@ class Dimension extends Node {
 
     genCSS(context, output) {
         let [value, unit] = this.value;
-        if ((context && context.strictUnits) && !unit.isSingular()) {
-            throw new Error(`Multiple units in dimension. Correct the units or use the unit function. Bad unit: ${this.unit.toString()}`);
-        }
-
-        value = this.fround(context, value);
+        value = fround(context, value);
 
         let strValue = String(value);
 
@@ -59,27 +55,20 @@ class Dimension extends Node {
             strValue = value.toFixed(20).replace(/0+$/, '');
         }
 
-        if (context && context.compress) {
-            // Zero values doesn't need a unit
-            if (value === 0 && unit.isLength()) {
-                output.add(strValue);
-                return;
-            }
-
-            // Float values doesn't need a leading zero
-            if (value > 0 && value < 1) {
-                strValue = (strValue).substr(1);
-            }
-        }
-
         output.add(strValue);
-        unit.genCSS(context, output);
+        output.add(unit);
     }
 
     operate(context, op: string, other: Node): Node {
         const strictUnits = context.options.strictUnits
 
-        if (other instanceof Dimension) {
+        if (!(other instanceof Dimension)) {
+            return this;
+        }
+
+        const hasUnit = !!other.value[1]
+
+        if (hasUnit) {
           const aUnit = this.value[1]
           const bNode = this.unify(other, aUnit)
           const bUnit = bNode.value[1]
@@ -106,19 +95,18 @@ class Dimension extends Node {
             const result = operate(op, this.value[0], bNode.value[0])
             /** Dividing 8px / 1px will yield 8 */
             if (op === '/') {
-              return new Num(result).inherit(this)
+              return new Dimension([result, undefined]).inherit(this)
             } else if (op === '*') {
               throw new Error(`Can't multiply a unit by a unit.`)
             }
-            return new Dimension([result, aUnit.clone()]).inherit(this)
+            return new Dimension([result, aUnit]).inherit(this)
           }
-        } else if (other instanceof Num) {
-          const unit = this.nodes[1].clone()
-          const result = operate(op, this.nodes[0].value, other.value)
-          return new Dimension([result, unit.clone()]).inherit(this)
+        } else {
+            const unit = this.value[1]
+            const result = operate(op, this.value[0], other[0].value)
+            return new Dimension([result, unit]).inherit(this)
         }
-        return this
-      }
+    }
     
     unify(other: Dimension, unit: string) {
         const newDimension = convertDimension(other, unit)

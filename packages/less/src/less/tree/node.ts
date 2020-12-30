@@ -175,12 +175,6 @@ class Node {
         }
     }
 
-    fround(context, value) {
-        const precision = context && context.numPrecision;
-        // add "epsilon" to ensure numbers like 1.000000005 (represented as 1.000000004999...) are properly rounded:
-        return (precision) ? Number((value + 2e-16).toFixed(precision)) : value;
-    }
-
     static compare(a, b) {
         /* returns:
          -1: a < b
