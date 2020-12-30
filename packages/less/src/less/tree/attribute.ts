@@ -7,7 +7,7 @@ type V1Args = [
 ]
 class Attribute extends Node {
     type: 'Attribute'
-    value: [string | Node, string, string | Node]
+    nodes: [string | Node, string, string | Node]
     
     constructor(...args: V1Args | NodeArgs) {
         const val = args[1]
@@ -19,11 +19,15 @@ class Attribute extends Node {
     }
 
     get key() {
-        return this.value[0]
+        return this.nodes[0]
     }
 
     get op() {
-        return this.value[1]
+        return this.nodes[1]
+    }
+
+    get value() {
+        return this.nodes[2]
     }
 
     genCSS(context, output) {
@@ -31,7 +35,7 @@ class Attribute extends Node {
     }
 
     toCSS(context) {
-        const [key, op, value] = this.value
+        const [key, op, value] = this.nodes
         let output = key instanceof Node ? key.toCSS(context) : key;
 
         if (op) {

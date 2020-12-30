@@ -5,17 +5,17 @@ import type { Context } from '../contexts'
 
 class Paren extends Node {
     type: 'Paren'
-    value: Node
+    nodes: Node
 
     genCSS(context: Context, output) {
         output.add('(');
-        this.value.genCSS(context, output);
+        this.nodes.genCSS(context, output);
         output.add(')');
     }
 
     eval(context: Context) {
         if (!this.evaluated) {
-            let content = this.value
+            let content = this.nodes
             let escape = content instanceof Operation || content instanceof Condition
             context.enterParens()
             const block = super.eval(context)

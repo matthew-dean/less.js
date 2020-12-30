@@ -2,7 +2,7 @@ import Node from './node';
 
 class Keyword extends Node {
     type: 'Keyword'
-    value: string
+    nodes: string
 
     static True = new Keyword('true');
     static False = new Keyword('false');
@@ -12,8 +12,11 @@ class Keyword extends Node {
     }
 
     genCSS(context, output) {
-        if (this.value === '%') { throw { type: 'Syntax', message: 'Invalid % without number' }; }
-        output.add(this.value);
+        const value = this.nodes
+        if (value === '%') {
+            throw { type: 'Syntax', message: 'Invalid % without number' };
+        }
+        output.add(value);
     }
 }
 

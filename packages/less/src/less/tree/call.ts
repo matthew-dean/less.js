@@ -18,7 +18,7 @@ class Call extends Node {
     options: INodeOptions & {
         calc: boolean
     }
-    value: [string, List]
+    nodes: [string, List]
 
     constructor(...args: V1Args | NodeArgs) {
         if (Array.isArray(args)) {
@@ -41,13 +41,12 @@ class Call extends Node {
         super(...(<NodeArgs>args));
     }
 
-    /** Backwards compatability */
     get name() {
-        return this.value[0]
+        return this.nodes[0]
     }
 
     get args() {
-        return this.value[1].value
+        return this.nodes[1].value
     }
 
     //

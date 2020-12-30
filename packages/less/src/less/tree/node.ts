@@ -38,11 +38,11 @@ class Node {
      * "the data that creates the CSS string".
      * 
      * The default visitor visits any Node nodes
-     * within `value`, and the default `eval` func
+     * within `nodes`, and the default `eval` func
      * does the same, recursively evaluating Node
-     * values within `value`
+     * values within `nodes`
      */
-    value: NodeValue
+    nodes: NodeValue
 
     parent: Node
     nodeVisible: boolean
@@ -62,12 +62,12 @@ class Node {
     type: string
 
     constructor(
-        value: NodeValue,
+        nodes: NodeValue,
         options?: INodeOptions,
         location?: ILocationInfo | number,
         fileInfo?: IFileInfo
     ) {
-        this.value = value;
+        this.nodes = nodes;
         if (typeof location === 'number') {
             this._location = { startOffset: location }
         } else {
@@ -81,23 +81,33 @@ class Node {
         this.rootNode = this;
         this.evaluated = false;
 
-        this.processValue(n => this.setParent(n))
+        this.processNodes(n => this.setParent(n))
+    }
+
+    /** 
+     * Usually, this is the same value as `nodes`,
+     * but individual Nodes can override to point
+     * to a subset of `nodes`. This is done for
+     * legacy API reasons.
+     */
+    get value() {
+        return this.nodes
     }
 
     /**
      * Processes all Node values in `value`
      */
-    processValue(func: (n: Node) => Node) {
-        const node = this.value
+    processNodes(func: (n: Node) => Node) {
+        const node = this.nodes
         if (Array.isArray(node)) {
             return node.forEach((n, i) => {
                 if (n instanceof Node) {
-                    this.value[i] = func(n)
+                    this.nodes[i] = func(n)
                 }
             })
         }
         if (node instanceof Node) {
-            this.value = func(node)
+            this.nodes = func(node)
         }
     }
 
@@ -150,7 +160,7 @@ class Node {
     }
 
     genCSS(context, output) {
-        const value = this.value;
+        const value = this.nodes;
         if (Array.isArray(value)) {
             value.forEach(val => {
                 this.addToOutput(val, context, output)
@@ -161,15 +171,23 @@ class Node {
     }
 
     accept(visitor) {
-        this.processValue(n => visitor.visit(n));
+        this.processNodes(n => visitor.visit(n));
     }
 
     eval(context?: any): Node {
         if (!this.evaluated) {
-            this.processValue(n => n.eval(context))
+            this.processNodes(n => n.eval(context))
             this.evaluated = true;
         }
         return this;
+    }
+
+    inherit(node: Node) {
+        this.parent = node.parent
+        this._location = node._location
+        this._fileInfo = node._fileInfo
+        this.rootNode = node.rootNode
+        return this
     }
 
     _operate(context, op, a, b) {
@@ -215,7 +233,7 @@ class Node {
         return 0;
     }
 
-    static numericCompare(a, b) {
+    static numericCompare(a: number, b: number) {
         return a  <  b ? -1
             : a === b ?  0
                 : a  >  b ?  1 : undefined;

@@ -29,7 +29,7 @@ type V1Args = [
 
 class Declaration extends Node {
     type: 'Declaration'
-    value: [Node[] | string, Node | null, string]
+    nodes: [Node[] | string, Node | null, string]
 
     constructor(...args: V1Args | NodeArgs) {
         /** v5 args */
@@ -74,17 +74,21 @@ class Declaration extends Node {
     }
 
     get name() {
-        return this.value[0]
+        return this.nodes[0]
+    }
+
+    get value() {
+        return this.nodes[1]
     }
 
     get important() {
-        return this.value[2]
+        return this.nodes[2]
     }
 
     genCSS(context, output) {
         output.add(this.name + (context.compress ? ':' : ': '), this.fileInfo(), this.getIndex());
         try {
-            this.value[1].genCSS(context, output);
+            this.nodes[1].genCSS(context, output);
         }
         catch (e) {
             e.index = this._index;
@@ -95,7 +99,7 @@ class Declaration extends Node {
     }
 
     eval(context) {
-        let name = this.value[0],
+        let name = this.nodes[0],
             evaldValue,
             variable = this.options.variable;
 
@@ -112,7 +116,7 @@ class Declaration extends Node {
 
         try {
             context.importantScope.push({});
-            evaldValue = this.value[1].eval(context);
+            evaldValue = this.nodes[1].eval(context);
 
             if (!this.options.variable && evaldValue.type === 'DetachedRuleset') {
                 throw { message: 'Rulesets cannot be evaluated on a property.',
@@ -141,7 +145,7 @@ class Declaration extends Node {
     }
 
     makeImportant() {
-        this.value[2] = ' !important';
+        this.nodes[2] = ' !important';
     }
 }
 

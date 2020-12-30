@@ -6,7 +6,7 @@ type V1Args = [
 ]
 
 class Assignment extends Node {
-    value: [string, Node | string]
+    nodes: [string, Node | string]
     type: 'Assignment'
 
     constructor(...args: V1Args | NodeArgs) {
@@ -19,7 +19,7 @@ class Assignment extends Node {
     }
 
     genCSS(context, output) {
-        const [key, val] = this.value;
+        const [key, val] = this.nodes;
         output.add(`${key}=`);
         if (val instanceof Node) {
             val.genCSS(context, output);

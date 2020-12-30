@@ -11,7 +11,7 @@ type V1Args = [
 ]
 class Expression extends Node {
     type: 'Expression'
-    value: Node[]
+    nodes: Node[]
     options: INodeOptions & {
         noSpacing: boolean
     }
@@ -38,18 +38,18 @@ class Expression extends Node {
         if (inParenthesis) {
             context.inParenthesis();
         }
-        if (this.value.length > 1) {
-            returnValue = new Expression(this.value.map(function (e) {
+        if (this.nodes.length > 1) {
+            returnValue = new Expression(this.nodes.map(function (e) {
                 if (!e.eval) {
                     return e;
                 }
                 return e.eval(context);
             }), this.options.noSpacing);
-        } else if (this.value.length === 1) {
-            if (this.value[0].parens && !this.value[0].parensInOp && !context.inCalc) {
+        } else if (this.nodes.length === 1) {
+            if (this.nodes[0].parens && !this.nodes[0].parensInOp && !context.inCalc) {
                 doubleParen = true;
             }
-            returnValue = this.value[0].eval(context);
+            returnValue = this.nodes[0].eval(context);
         } else {
             returnValue = this;
         }
@@ -64,16 +64,16 @@ class Expression extends Node {
     }
 
     genCSS(context, output) {
-        for (let i = 0; i < this.value.length; i++) {
-            this.value[i].genCSS(context, output);
-            if (!this.options.noSpacing && i + 1 < this.value.length) {
+        for (let i = 0; i < this.nodes.length; i++) {
+            this.nodes[i].genCSS(context, output);
+            if (!this.options.noSpacing && i + 1 < this.nodes.length) {
                 output.add(' ');
             }
         }
     }
 
     throwAwayComments() {
-        this.value = this.value.filter(function(v) {
+        this.nodes = this.nodes.filter(function(v) {
             return !(v instanceof Comment);
         });
     }

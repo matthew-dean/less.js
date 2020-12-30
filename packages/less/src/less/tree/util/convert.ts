@@ -24,7 +24,7 @@ const unitConversions: { [k: string]: any } = {
 
 let keyed = false
 
-export const convertDimension = (node: Dimension, toUnit: string) => {
+export const convertDimension = (node: Dimension, toUnit?: string) => {
   if (!(node instanceof Dimension)) {
     return
   }
@@ -36,6 +36,20 @@ export const convertDimension = (node: Dimension, toUnit: string) => {
     keyed = true
   }
   const fromUnit = node.value[1]
+  if (!toUnit) {
+    const keys = ['length', 'duration', 'angle']
+    const unifyKeys = ['px', 's', 'rad']
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      if (unitConversions[key][fromUnit]) {
+        toUnit = unifyKeys[i]
+        break;
+      }
+    }
+  }
+  if (!toUnit || fromUnit === toUnit) {
+    return node
+  }
   const fromType = unitConversions[fromUnit]
   const toType = unitConversions[toUnit]
 
@@ -50,5 +64,5 @@ export const convertDimension = (node: Dimension, toUnit: string) => {
   
   const result = (fromValue * fromFactor * toFactor) / fromFactor
 
-  return new Dimension([result, toUnit])
+  return new Dimension([result, toUnit], {})
 }

@@ -14,7 +14,7 @@ type V1Args = [
 //
 class Color extends Node {
     type: 'Color'
-    value: [rgb: number[], alpha: number, originalValue: string]
+    nodes: [rgb: number[], alpha: number, originalValue: string]
 
     constructor(...args: V1Args | NodeArgs) {
         let [
@@ -72,23 +72,23 @@ class Color extends Node {
         if (originalValue !== undefined) {
             value = originalValue;
         }
-        super([rgbArray, alpha, value]);
+        super([rgbArray, alpha, value], options, location, fileInfo);
     }
 
     get rgb() {
-        return this.value[0]
+        return this.nodes[0]
     }
 
     get alpha() {
-        return this.value[1]
+        return this.nodes[1]
     }
 
-    get originalValue() {
-        return this.value[2]
+    get value() {
+        return this.nodes[2]
     }
 
     luma() {
-        const rgb = this.value[0]
+        const rgb = this.nodes[0]
         let r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
 
         r = (r <= 0.03928) ? r / 12.92 : Math.pow(((r + 0.055) / 1.055), 2.4);
@@ -112,7 +112,7 @@ class Color extends Node {
             rgb,
             alpha,
             originalValue
-        ] = this.value;
+        ] = this.nodes;
 
         // `value` is set if this color was originally
         // converted from a named color string so we need
@@ -185,7 +185,7 @@ class Color extends Node {
         let [
             rgb,
             alpha
-        ] = this.value;
+        ] = this.nodes;
 
         const newRGB = new Array(3);
         alpha = alpha * (1 - other.alpha) + other.alpha;
@@ -200,7 +200,7 @@ class Color extends Node {
     }
 
     toHSL() {
-        const [ rgb, alpha ] = this.value;
+        const [ rgb, alpha ] = this.nodes;
         const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255, a = alpha;
 
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -226,7 +226,7 @@ class Color extends Node {
 
     // Adapted from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
     toHSV() {
-        const [ rgb, alpha ] = this.value;
+        const [ rgb, alpha ] = this.nodes;
         const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255, a = alpha;
 
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -259,7 +259,7 @@ class Color extends Node {
     }
 
     compare(x) {
-        const [ rgb, alpha ] = this.value;
+        const [ rgb, alpha ] = this.nodes;
         return (x.rgb &&
             x.rgb[0] === rgb[0] &&
             x.rgb[1] === rgb[1] &&

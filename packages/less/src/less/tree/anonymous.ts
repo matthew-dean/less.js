@@ -10,7 +10,7 @@ type V1Args = [
 
 class Anonymous extends Node {
     type: 'Anonymous'
-    value: string
+    nodes: string
 
     constructor(...args: V1Args | NodeArgs) {
         if (args[1] && typeof args[1] !== 'number') {

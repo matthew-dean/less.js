@@ -11,7 +11,7 @@ type V1Args = [
 class Condition extends Node {
     type: 'Condition'
 
-    value: [string, Node, Node]
+    nodes: [string, Node, Node]
     constructor(...args: V1Args | NodeArgs) {
         if (args[1] instanceof Node) {
             let [op, l, r, i, negate] = <V1Args>args
@@ -25,17 +25,17 @@ class Condition extends Node {
         super(...(<NodeArgs>args))
     }
     get op() {
-        return this.value[0]
+        return this.nodes[0]
     }
     get lvalue() {
-        return this.value[1]
+        return this.nodes[1]
     }
     get rvalue() {
-        return this.value[2]
+        return this.nodes[2]
     }
 
     eval(context) {
-        const [op, l, r] = this.value;
+        const [op, l, r] = this.nodes;
         const a = l.eval(context);
         const b = r.eval(context);
 

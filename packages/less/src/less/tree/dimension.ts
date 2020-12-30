@@ -7,14 +7,14 @@ import Color from './color';
 
 type V1Args = [
     value: string | number,
-    unit: string | Node
+    unit?: string | Node
 ]
 //
 // A number with a (optional) unit
 //
 class Dimension extends Node {
     type: 'Dimension'
-    value: [number, string]
+    nodes: [number, string]
 
     constructor(...args: NodeArgs | V1Args) {
         if (Array.isArray(args[0])) {
@@ -31,8 +31,12 @@ class Dimension extends Node {
         super([value, unit]);
     }
 
+    get value() {
+        return this.nodes[0];
+    }
+
     get unit() {
-        return this.value[1];
+        return this.nodes[1];
     }
 
     eval(context) {
@@ -40,12 +44,12 @@ class Dimension extends Node {
     }
 
     toColor() {
-        const val = this.value[0]
+        const val = this.nodes[0]
         return new Color([val, val, val]);
     }
 
     genCSS(context, output) {
-        let [value, unit] = this.value;
+        let [value, unit] = this.nodes;
         value = fround(context, value);
 
         let strValue = String(value);
@@ -69,7 +73,7 @@ class Dimension extends Node {
         const hasUnit = !!other.value[1]
 
         if (hasUnit) {
-          const aUnit = this.value[1]
+          const aUnit = this.nodes[1]
           const bNode = this.unify(other, aUnit)
           const bUnit = bNode.value[1]
     
@@ -88,11 +92,11 @@ class Dimension extends Node {
                * This can have un-intuitive behavior for a user,
                * so it is not a recommended setting.
                */
-              const result = operate(op, this.value[0], bNode.value[0])
+              const result = operate(op, this.nodes[0], bNode.value[0])
               return new Dimension([result, aUnit], {}).inherit(this)
             }
           } else {
-            const result = operate(op, this.value[0], bNode.value[0])
+            const result = operate(op, this.nodes[0], bNode.value[0])
             /** Dividing 8px / 1px will yield 8 */
             if (op === '/') {
               return new Dimension([result, undefined], {}).inherit(this)
@@ -102,13 +106,14 @@ class Dimension extends Node {
             return new Dimension([result, aUnit], {}).inherit(this)
           }
         } else {
-            const unit = this.value[1]
-            const result = operate(op, this.value[0], other[0].value)
+            const unit = this.nodes[1]
+            const result = operate(op, this.nodes[0], other[0].value)
             return new Dimension([result, unit], {}).inherit(this)
         }
     }
     
-    unify(other: Dimension, unit: string) {
+    unify(other?: Dimension, unit?: string) {
+        other = other || this
         const newDimension = convertDimension(other, unit)
         if (newDimension) {
             return newDimension
@@ -116,25 +121,26 @@ class Dimension extends Node {
         return other
     }
 
-    compare(other) {
-        let a, b;
+    compare(other: Node) {
+        let a: Dimension;
+        let b: Dimension;
 
         if (!(other instanceof Dimension)) {
             return undefined;
         }
 
-        if (this.unit.isEmpty() || other.unit.isEmpty()) {
+        if (this.unit || other.unit) {
             a = this;
             b = other;
         } else {
             a = this.unify();
             b = other.unify();
-            if (a.unit.compare(b.unit) !== 0) {
+            if (a.unit !== b.unit) {
                 return undefined;
             }
         }
 
-        return Node.numericCompare(a.value, b.value);
+        return Node.numericCompare(a.value[0], b.value[0]);
     }
 }
 
