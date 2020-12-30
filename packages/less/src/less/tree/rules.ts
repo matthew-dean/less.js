@@ -18,4 +18,4 @@ Rules.prototype = Object.assign(Object.create(Node.prototype), {
     }
 });
 
-export default Paren;
+export default Rules;

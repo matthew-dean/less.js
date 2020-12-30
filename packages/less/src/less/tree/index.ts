@@ -45,6 +45,9 @@ export default {
     Comment, Anonymous, List, Value: List, JavaScript, Assignment,
     Condition, Paren, Media, UnicodeDescriptor, Negative,
     Extend, VariableCall, NamespaceValue,
+    MixinCall,
+    MixinDefinition,
+    /** Legacy */
     mixin: {
         Call: MixinCall,
         Definition: MixinDefinition

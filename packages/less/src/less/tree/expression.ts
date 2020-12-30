@@ -1,4 +1,4 @@
-import Node, { isNodeArgs, NodeArgs } from './node';
+import Node, { INodeOptions, isNodeArgs, NodeArgs } from './node';
 import Paren from './paren';
 import Comment from './comment';
 import Dimension from './dimension';
@@ -12,6 +12,9 @@ type V1Args = [
 class Expression extends Node {
     type: 'Expression'
     value: Node[]
+    options: INodeOptions & {
+        noSpacing: boolean
+    }
 
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
