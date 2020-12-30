@@ -1,24 +1,30 @@
-import Node from './node';
+import Node, { isNodeArgs, NodeArgs } from './node';
 import Paren from './paren';
 import Comment from './comment';
 import Dimension from './dimension';
 import * as Constants from '../constants';
 const MATH = Constants.Math;
 
-const Expression = function(value, noSpacing) {
-    this.value = value;
-    this.noSpacing = noSpacing;
-    if (!value) {
-        throw new Error('Expression requires an array parameter');
+type V1Args = [
+    value: Node[],
+    noSpacing?: boolean
+]
+class Expression extends Node {
+    type: 'Expression'
+    value: Node[]
+
+    constructor(...args: NodeArgs | V1Args) {
+        if (isNodeArgs(args)) {
+            super(...args);
+            return
+        }
+        const [value, noSpacing] = args
+
+        if (!value) {
+            throw new Error('Expression requires an array parameter');
+        }
+        super(value, { noSpacing });
     }
-};
-
-Expression.prototype = Object.assign(new Node(), {
-    type: 'Expression',
-
-    accept(visitor) {
-        this.value = visitor.visitArray(this.value);
-    },
 
     eval(context) {
         let returnValue;
@@ -35,7 +41,7 @@ Expression.prototype = Object.assign(new Node(), {
                     return e;
                 }
                 return e.eval(context);
-            }), this.noSpacing);
+            }), this.options.noSpacing);
         } else if (this.value.length === 1) {
             if (this.value[0].parens && !this.value[0].parensInOp && !context.inCalc) {
                 doubleParen = true;
@@ -52,22 +58,24 @@ Expression.prototype = Object.assign(new Node(), {
             returnValue = new Paren(returnValue);
         }
         return returnValue;
-    },
+    }
 
     genCSS(context, output) {
         for (let i = 0; i < this.value.length; i++) {
             this.value[i].genCSS(context, output);
-            if (!this.noSpacing && i + 1 < this.value.length) {
+            if (!this.options.noSpacing && i + 1 < this.value.length) {
                 output.add(' ');
             }
         }
-    },
+    }
 
     throwAwayComments() {
         this.value = this.value.filter(function(v) {
             return !(v instanceof Comment);
         });
     }
-});
+}
+
+Expression.prototype.type = 'Expression';
 
 export default Expression;

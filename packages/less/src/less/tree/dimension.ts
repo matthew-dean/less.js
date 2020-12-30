@@ -16,7 +16,7 @@ class Dimension extends Node {
     type: 'Dimension'
     value: [number, string]
 
-    constructor(...args: V1Args | NodeArgs) {
+    constructor(...args: NodeArgs | V1Args) {
         if (Array.isArray(args[0])) {
             super(...(<NodeArgs>args));
             return;
@@ -89,22 +89,22 @@ class Dimension extends Node {
                * so it is not a recommended setting.
                */
               const result = operate(op, this.value[0], bNode.value[0])
-              return new Dimension([result, aUnit]).inherit(this)
+              return new Dimension([result, aUnit], {}).inherit(this)
             }
           } else {
             const result = operate(op, this.value[0], bNode.value[0])
             /** Dividing 8px / 1px will yield 8 */
             if (op === '/') {
-              return new Dimension([result, undefined]).inherit(this)
+              return new Dimension([result, undefined], {}).inherit(this)
             } else if (op === '*') {
               throw new Error(`Can't multiply a unit by a unit.`)
             }
-            return new Dimension([result, aUnit]).inherit(this)
+            return new Dimension([result, aUnit], {}).inherit(this)
           }
         } else {
             const unit = this.value[1]
             const result = operate(op, this.value[0], other[0].value)
-            return new Dimension([result, unit]).inherit(this)
+            return new Dimension([result, unit], {}).inherit(this)
         }
     }
     

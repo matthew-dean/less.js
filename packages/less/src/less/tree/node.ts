@@ -19,10 +19,15 @@ export type INodeOptions = {
 
 export type NodeArgs = [
     value: NodeValue,
-    options?: INodeOptions,
+    options: INodeOptions,
     location?: ILocationInfo | number,
     fileInfo?: IFileInfo
 ]
+
+export const isNodeArgs = (args: any[] | NodeArgs): args is NodeArgs => {
+    const optArg = args[1]
+    return !!optArg && typeof optArg === 'object' && optArg.constructor === Object
+}
 
 export { IFileInfo }
 
@@ -54,6 +59,7 @@ class Node {
     /** Increments as we enter / exit rules that block visibility? */
     visibilityBlocks: number
     evaluated: boolean
+    type: string
 
     constructor(
         value: NodeValue,

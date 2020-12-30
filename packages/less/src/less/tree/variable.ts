@@ -1,17 +1,31 @@
-import Node from './node';
+import Node, { IFileInfo, NodeArgs, isNodeArgs } from './node';
 import Call from './call';
 
-const Variable = function(name, index, currentFileInfo) {
-    this.name = name;
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-};
+type V1Args = [
+    name: string,
+    index: number,
+    currentFileInfo: IFileInfo
+]
 
-Variable.prototype = Object.assign(new Node(), {
-    type: 'Variable',
+class Variable extends Node {
+    evaluating: boolean
+    value: string
+
+    constructor(...args: V1Args | NodeArgs) {
+        if (isNodeArgs(args)) {
+            super(...args);
+            return;
+        }
+        const [name, index, currentFileInfo] = args
+        super(name, {}, index, currentFileInfo);
+    }
+
+    get name() {
+        return this.value;
+    }
 
     eval(context) {
-        let variable, name = this.name;
+        let variable, name = this.value;
 
         if (name.indexOf('@@') === 0) {
             name = `@${new Variable(name.slice(1), this.getIndex(), this.fileInfo()).eval(context).value}`;
@@ -49,9 +63,10 @@ Variable.prototype = Object.assign(new Node(), {
             throw { type: 'Name',
                 message: `variable ${name} is undefined`,
                 filename: this.fileInfo().filename,
-                index: this.getIndex() };
+                index: this.getIndex()
+            };
         }
-    },
+    }
 
     find(obj, fun) {
         for (let i = 0, r; i < obj.length; i++) {
@@ -60,6 +75,8 @@ Variable.prototype = Object.assign(new Node(), {
         }
         return null;
     }
-});
+}
+
+Variable.prototype.type = 'Variable';
 
 export default Variable;

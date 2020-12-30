@@ -1,5 +1,6 @@
 import Node, { NodeArgs } from './node';
 import colors from '../data/colors';
+import { fround } from './util/math'
 
 type V1Args = [
     rgb: string | number[],
@@ -116,7 +117,7 @@ class Color extends Node {
         // `value` is set if this color was originally
         // converted from a named color string so we need
         // to respect this and try to output named color too.
-        alpha = this.fround(context, alpha);
+        alpha = fround(context, alpha);
 
         if (originalValue) {
             if (originalValue.indexOf('rgb') === 0) {
@@ -149,9 +150,9 @@ class Color extends Node {
             case 'hsl':
                 color = this.toHSL();
                 args = [
-                    this.fround(context, color.h),
-                    `${this.fround(context, color.s * 100)}%`,
-                    `${this.fround(context, color.l * 100)}%`
+                    fround(context, color.h),
+                    `${fround(context, color.s * 100)}%`,
+                    `${fround(context, color.l * 100)}%`
                 ].concat(args);
         }
 
