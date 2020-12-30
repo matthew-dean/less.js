@@ -330,4 +330,8 @@ class Node {
     }
 }
 
+export interface NumericNode extends Node {
+    operate(context?: Context, op: string, other: Node): Node
+}
+
 export default Node;

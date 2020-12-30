@@ -2,10 +2,13 @@ import Node from './node';
 
 /**
  * A (comma) separated list of nodes.
+ * 
+ * This can be a selector, a CSS value,
+ * or function arguments.
  */
 class List<T extends Node = Node> extends Node {
     type: 'List'
-    value: T[]
+    nodes: T[]
 
     constructor(value) {
         if (!Array.isArray(value)) {

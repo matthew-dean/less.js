@@ -1,59 +1,81 @@
-import Node from './node';
+import Node, { NodeArgs, NumericNode } from './node';
 import Color from './color';
 import Dimension from './dimension';
 import * as Constants from '../constants';
 const MATH = Constants.Math;
 
+type V1Args = [
+    op: string,
+    operands: Node[],
+    isSpaced?: boolean
+]
+class Operation extends Node {
+    type: 'Operation'
+    nodes: [string, Node | NumericNode, Node | NumericNode]
 
-const Operation = function(op, operands, isSpaced) {
-    this.op = op.trim();
-    this.operands = operands;
-    this.isSpaced = isSpaced;
-};
+    constructor(...args: NodeArgs | V1Args) {
+        if (Array.isArray(args[0])) {
+            super(...(<NodeArgs>args));
+            return;
+        }
+        const [
+            op,
+            operands,
+            isSpaced
+        ] = <V1Args>args
 
-Operation.prototype = Object.assign(new Node(), {
-    type: 'Operation',
+        super([op, ...operands], { isSpaced })
+    }
 
-    accept(visitor) {
-        this.operands = visitor.visitArray(this.operands);
-    },
+    get op() {
+        return this.nodes[0]
+    }
+
+    get operands() {
+        const [_, l, r] = this.nodes
+        return [l, r]
+    }
 
     eval(context) {
-        let a = this.operands[0].eval(context), b = this.operands[1].eval(context), op;
+        let [op, a, b] = this.nodes;
+        a = this.nodes[1].eval(context);
+        b = this.nodes[2].eval(context);
 
-        if (context.isMathOn(this.op)) {
-            op = this.op === './' ? '/' : this.op;
+        if (context.isMathOn(op)) {
+            op = op === './' ? '/' : op;
             if (a instanceof Dimension && b instanceof Color) {
                 a = a.toColor();
             }
             if (b instanceof Dimension && a instanceof Color) {
                 b = b.toColor();
             }
-            if (!a.operate) {
+            if (!('operate' in a)) {
                 if (a instanceof Operation && a.op === '/' && context.math === MATH.PARENS_DIVISION) {
-                    return new Operation(this.op, [a, b], this.isSpaced);
+                    return new Operation([op, a, b], this.options).inherit(this);
                 }
                 throw { type: 'Operation',
                     message: 'Operation on an invalid type' };
             }
 
-            return a.operate(context, op, b);
+            return a.operate(context, op, b).inherit(this);
         } else {
-            return new Operation(this.op, [a, b], this.isSpaced);
+            return new Operation([op, a, b], this.options).inherit(this);
         }
-    },
+    }
 
     genCSS(context, output) {
         this.operands[0].genCSS(context, output);
-        if (this.isSpaced) {
+        if (this.options.isSpaced) {
             output.add(' ');
         }
         output.add(this.op);
-        if (this.isSpaced) {
+        if (this.options.isSpaced) {
             output.add(' ');
         }
         this.operands[1].genCSS(context, output);
     }
-});
+}
+
+Operation.prototype.type = 'Operation';
 
 export default Operation;
