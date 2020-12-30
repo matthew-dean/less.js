@@ -8,7 +8,6 @@ const VariableCall = function(variable, index, currentFileInfo) {
     this.variable = variable;
     this._index = index;
     this._fileInfo = currentFileInfo;
-    this.allowRoot = true;
 };
 
 VariableCall.prototype = Object.assign(new Node(), {
@@ -41,5 +40,7 @@ VariableCall.prototype = Object.assign(new Node(), {
         throw error;
     }
 });
+
+VariableCall.prototype.allowRoot = true;
 
 export default VariableCall;

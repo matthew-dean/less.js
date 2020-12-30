@@ -1,5 +1,11 @@
-import Node from './node';
+import Node, { NodeArgs } from './node';
 import colors from '../data/colors';
+
+type V1Args = [
+    rgb: string | number[],
+    alpha?: number,
+    originalValue?: string
+]
 
 //
 // RGB Colors - #ff0014, #eee
@@ -7,13 +13,32 @@ import colors from '../data/colors';
 //
 class Color extends Node {
     type: 'Color'
+    value: [rgb: number[], alpha: number, originalValue: string]
 
-    alpha: number
-    rgb: number[]
-    value: string
+    constructor(...args: V1Args | NodeArgs) {
+        let [
+            rgb,
+            alpha,
+            originalValue,
+            fileInfo
+        ] = args
 
-    constructor(rgb: string | number[], alpha?: number, originalForm?: string) {
-        super(undefined);
+        let options, location
+        
+        /** v5 API */
+        if (alpha !== undefined && typeof alpha !== 'number') {
+            /** The first arg is the entire value */
+            rgb = rgb[0];
+            alpha = rgb[1];
+            originalValue = rgb[2];
+
+            options = alpha;
+            location = originalValue;
+        } else {
+            fileInfo = undefined;
+        }
+
+        let rgbArray: number[]
         let value;
         //
         // The end goal here, is to parse the arguments
@@ -22,34 +47,48 @@ class Color extends Node {
         // This facilitates operations and conversions.
         //
         if (Array.isArray(rgb)) {
-            this.rgb = rgb;
+            rgbArray = rgb;
         } else if (rgb.length >= 6) {
-            this.rgb = [];
+            rgbArray = [];
             rgb.match(/.{2}/g).map((c, i) => {
                 if (i < 3) {
-                    this.rgb.push(parseInt(c, 16));
+                    rgbArray.push(parseInt(c, 16));
                 } else {
                     alpha = (parseInt(c, 16)) / 255;
                 }
             });
         } else {
-            this.rgb = [];
+            rgbArray = [];
             rgb.split('').map((c, i) => {
                 if (i < 3) {
-                    this.rgb.push(parseInt(c + c, 16));
+                    rgbArray.push(parseInt(c + c, 16));
                 } else {
                     alpha = (parseInt(c + c, 16)) / 255;
                 }
             });
         }
-        this.alpha = alpha || (typeof alpha === 'number' ? alpha : 1);
-        if (originalForm !== undefined) {
-            this.value = originalForm;
+        alpha = alpha || (typeof alpha === 'number' ? alpha : 1);
+        if (originalValue !== undefined) {
+            value = originalValue;
         }
+        super([rgbArray, alpha, value]);
+    }
+
+    get rgb() {
+        return this.value[0]
+    }
+
+    get alpha() {
+        return this.value[1]
+    }
+
+    get originalValue() {
+        return this.value[2]
     }
 
     luma() {
-        let r = this.rgb[0] / 255, g = this.rgb[1] / 255, b = this.rgb[2] / 255;
+        const rgb = this.value[0]
+        let r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
 
         r = (r <= 0.03928) ? r / 12.92 : Math.pow(((r + 0.055) / 1.055), 2.4);
         g = (g <= 0.03928) ? g / 12.92 : Math.pow(((g + 0.055) / 1.055), 2.4);
@@ -65,28 +104,33 @@ class Color extends Node {
     toCSS(context, doNotCompress?) {
         const compress = context && context.compress && !doNotCompress;
         let color;
-        let alpha;
         let colorFunction;
         let args = [];
+
+        let [
+            rgb,
+            alpha,
+            originalValue
+        ] = this.value;
 
         // `value` is set if this color was originally
         // converted from a named color string so we need
         // to respect this and try to output named color too.
-        alpha = this.fround(context, this.alpha);
+        alpha = this.fround(context, alpha);
 
-        if (this.value) {
-            if (this.value.indexOf('rgb') === 0) {
+        if (originalValue) {
+            if (originalValue.indexOf('rgb') === 0) {
                 if (alpha < 1) {
                     colorFunction = 'rgba';
                 }
-            } else if (this.value.indexOf('hsl') === 0) {
+            } else if (originalValue.indexOf('hsl') === 0) {
                 if (alpha < 1) {
                     colorFunction = 'hsla';
                 } else {
                     colorFunction = 'hsl';
                 }
             } else {
-                return this.value;
+                return originalValue;
             }
         } else {
             if (alpha < 1) {
@@ -96,7 +140,7 @@ class Color extends Node {
 
         switch (colorFunction) {
             case 'rgba':
-                args = this.rgb.map(function (c) {
+                args = rgb.map(function (c) {
                     return clamp(Math.round(c), 255);
                 }).concat(clamp(alpha, 1));
                 break;
@@ -137,12 +181,17 @@ class Color extends Node {
     // we create a new Color node to hold the result.
     //
     operate(context, op, other) {
-        const rgb = new Array(3);
-        const alpha = this.alpha * (1 - other.alpha) + other.alpha;
+        let [
+            rgb,
+            alpha
+        ] = this.value;
+
+        const newRGB = new Array(3);
+        alpha = alpha * (1 - other.alpha) + other.alpha;
         for (let c = 0; c < 3; c++) {
-            rgb[c] = this._operate(context, op, this.rgb[c], other.rgb[c]);
+            newRGB[c] = this._operate(context, op, rgb[c], other.rgb[c]);
         }
-        return new Color(rgb, alpha);
+        return new Color(newRGB, alpha);
     }
 
     toRGB() {
@@ -150,7 +199,8 @@ class Color extends Node {
     }
 
     toHSL() {
-        const r = this.rgb[0] / 255, g = this.rgb[1] / 255, b = this.rgb[2] / 255, a = this.alpha;
+        const [ rgb, alpha ] = this.value;
+        const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255, a = alpha;
 
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
         let h;
@@ -175,7 +225,8 @@ class Color extends Node {
 
     // Adapted from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
     toHSV() {
-        const r = this.rgb[0] / 255, g = this.rgb[1] / 255, b = this.rgb[2] / 255, a = this.alpha;
+        const [ rgb, alpha ] = this.value;
+        const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255, a = alpha;
 
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
         let h;
@@ -207,11 +258,12 @@ class Color extends Node {
     }
 
     compare(x) {
+        const [ rgb, alpha ] = this.value;
         return (x.rgb &&
-            x.rgb[0] === this.rgb[0] &&
-            x.rgb[1] === this.rgb[1] &&
-            x.rgb[2] === this.rgb[2] &&
-            x.alpha  === this.alpha) ? 0 : undefined;
+            x.rgb[0] === rgb[0] &&
+            x.rgb[1] === rgb[1] &&
+            x.rgb[2] === rgb[2] &&
+            x.alpha  === alpha) ? 0 : undefined;
     }
 
     static fromKeyword(keyword) {

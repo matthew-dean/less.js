@@ -27,11 +27,23 @@ export type NodeArgs = [
 export { IFileInfo }
 
 class Node {
+    /**
+     * This can contain a primitive value or a Node,
+     * or a mixed array of either/or. This should be
+     * "the data that creates the CSS string".
+     * 
+     * The default visitor visits any Node nodes
+     * within `value`, and the default `eval` func
+     * does the same, recursively evaluating Node
+     * values within `value`
+     */
     value: NodeValue
+
     parent: Node
     nodeVisible: boolean
     rootNode: Node
     allowRoot: boolean
+    evalFirst: boolean
 
     /** Specific node options */
     options: INodeOptions
@@ -60,7 +72,7 @@ class Node {
 
         this.visibilityBlocks = 0;
         this.nodeVisible = undefined;
-        this.rootNode = null;
+        this.rootNode = this;
         this.evaluated = false;
 
         this.processValue(n => this.setParent(n))
@@ -85,6 +97,8 @@ class Node {
 
     setParent(node: Node) {
         node.parent = this
+        node.rootNode = this.rootNode
+        
         if (!node._fileInfo) {
             node._fileInfo = this._fileInfo
         }

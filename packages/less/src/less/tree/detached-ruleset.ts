@@ -2,28 +2,33 @@ import Node from './node';
 import contexts from '../contexts';
 import * as utils from '../utils';
 
-const DetachedRuleset = function(ruleset, frames) {
-    this.ruleset = ruleset;
-    this.frames = frames;
-    this.setParent(this.ruleset, this);
-};
+/**
+ * @todo - rewrite and make sense of "frames"
+ */
+class DetachedRuleset extends Node {
+    type: 'DetachedRuleset'
+    frames: any[]
 
-DetachedRuleset.prototype = Object.assign(new Node(), {
-    type: 'DetachedRuleset',
-    evalFirst: true,
+    constructor(ruleset, frames) {
+        super(ruleset);
+        this.frames = frames;
+    }
 
-    accept(visitor) {
-        this.ruleset = visitor.visit(this.ruleset);
-    },
+    get ruleset() {
+        return this.value;
+    }
 
     eval(context) {
         const frames = this.frames || utils.copyArray(context.frames);
         return new DetachedRuleset(this.ruleset, frames);
-    },
+    }
 
     callEval(context) {
         return this.ruleset.eval(this.frames ? new contexts.Eval(context, this.frames.concat(context.frames)) : context);
     }
-});
+}
+
+DetachedRuleset.prototype.evalFirst = true;
+DetachedRuleset.prototype.type = 'DetachedRuleset';
 
 export default DetachedRuleset;

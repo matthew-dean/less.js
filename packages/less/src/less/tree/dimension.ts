@@ -1,42 +1,57 @@
-import Node from './node';
-import unitConversions from '../data/unit-conversions';
+import Node, { NodeArgs } from './node';
+import { convertDimension } from './util/convert';
+import { operate } from './util/math';
+
 import Unit from './unit';
 import Color from './color';
 
+type V1Args = [
+    value: string | number,
+    unit: string | Node
+]
 //
-// A number with a unit
+// A number with a (optional) unit
 //
-const Dimension = function(value, unit) {
-    this.value = parseFloat(value);
-    if (isNaN(this.value)) {
-        throw new Error('Dimension is not a number.');
+class Dimension extends Node {
+    type: 'Dimension'
+    value: [number, string]
+
+    constructor(...args: V1Args | NodeArgs) {
+        if (Array.isArray(args[0])) {
+            super(...(<NodeArgs>args));
+            return;
+        }
+        let [value, unit] = <V1Args>args
+        value = typeof value === 'number' ? value : parseFloat(value);
+        if (isNaN(value)) {
+            throw new Error('Dimension is not a number.');
+        }
+        unit = (unit && unit instanceof Unit) ? unit.value : unit
+
+        super([value, unit]);
     }
-    this.unit = (unit && unit instanceof Unit) ? unit :
-        new Unit(unit ? [unit] : undefined);
-    this.setParent(this.unit, this);
-};
 
-Dimension.prototype = Object.assign(new Node(), {
-    type: 'Dimension',
-
-    accept(visitor) {
-        this.unit = visitor.visit(this.unit);
-    },
+    get unit() {
+        return this.value[1];
+    }
 
     eval(context) {
         return this;
-    },
+    }
 
     toColor() {
-        return new Color([this.value, this.value, this.value]);
-    },
+        const val = this.value[0]
+        return new Color([val, val, val]);
+    }
 
     genCSS(context, output) {
-        if ((context && context.strictUnits) && !this.unit.isSingular()) {
+        let [value, unit] = this.value;
+        if ((context && context.strictUnits) && !unit.isSingular()) {
             throw new Error(`Multiple units in dimension. Correct the units or use the unit function. Bad unit: ${this.unit.toString()}`);
         }
 
-        const value = this.fround(context, this.value);
+        value = this.fround(context, value);
+
         let strValue = String(value);
 
         if (value !== 0 && value < 0.000001 && value > -0.000001) {
@@ -46,7 +61,7 @@ Dimension.prototype = Object.assign(new Node(), {
 
         if (context && context.compress) {
             // Zero values doesn't need a unit
-            if (value === 0 && this.unit.isLength()) {
+            if (value === 0 && unit.isLength()) {
                 output.add(strValue);
                 return;
             }
@@ -58,45 +73,60 @@ Dimension.prototype = Object.assign(new Node(), {
         }
 
         output.add(strValue);
-        this.unit.genCSS(context, output);
-    },
+        unit.genCSS(context, output);
+    }
 
-    // In an operation between two Dimensions,
-    // we default to the first Dimension's unit,
-    // so `1px + 2` will yield `3px`.
-    operate(context, op, other) {
-        /* jshint noempty:false */
-        let value = this._operate(context, op, this.value, other.value), unit = this.unit.clone();
+    operate(context, op: string, other: Node): Node {
+        const strictUnits = context.options.strictUnits
 
-        if (op === '+' || op === '-') {
-            if (unit.numerator.length === 0 && unit.denominator.length === 0) {
-                unit = other.unit.clone();
-                if (this.unit.backupUnit) {
-                    unit.backupUnit = this.unit.backupUnit;
-                }
-            } else if (other.unit.numerator.length === 0 && unit.denominator.length === 0) {
-                // do nothing
+        if (other instanceof Dimension) {
+          const aUnit = this.value[1]
+          const bNode = this.unify(other, aUnit)
+          const bUnit = bNode.value[1]
+    
+          if (aUnit !== bUnit) {
+            if (strictUnits !== false) {
+              throw new Error(
+                `Incompatible units. Change the units or use the unit function. `
+                  + `Bad units: '${aUnit}' and '${bUnit}'.`,
+              )
             } else {
-                other = other.convertTo(this.unit.usedUnits());
-
-                if (context.strictUnits && other.unit.toString() !== unit.toString()) {
-                    throw new Error(`Incompatible units. Change the units or use the unit function. `
-                        + `Bad units: '${unit.toString()}' and '${other.unit.toString()}'.`);
-                }
-
-                value = this._operate(context, op, this.value, other.value);
+              /**
+               * In an operation between two Dimensions,
+               * we default to the first Dimension's unit,
+               * so `1px + 2%` will yield `3px`.
+               *
+               * This can have un-intuitive behavior for a user,
+               * so it is not a recommended setting.
+               */
+              const result = operate(op, this.value[0], bNode.value[0])
+              return new Dimension([result, aUnit]).inherit(this)
             }
-        } else if (op === '*') {
-            unit.numerator = unit.numerator.concat(other.unit.numerator).sort();
-            unit.denominator = unit.denominator.concat(other.unit.denominator).sort();
-            unit.cancel();
-        } else if (op === '/') {
-            unit.numerator = unit.numerator.concat(other.unit.denominator).sort();
-            unit.denominator = unit.denominator.concat(other.unit.numerator).sort();
-            unit.cancel();
+          } else {
+            const result = operate(op, this.value[0], bNode.value[0])
+            /** Dividing 8px / 1px will yield 8 */
+            if (op === '/') {
+              return new Num(result).inherit(this)
+            } else if (op === '*') {
+              throw new Error(`Can't multiply a unit by a unit.`)
+            }
+            return new Dimension([result, aUnit.clone()]).inherit(this)
+          }
+        } else if (other instanceof Num) {
+          const unit = this.nodes[1].clone()
+          const result = operate(op, this.nodes[0].value, other.value)
+          return new Dimension([result, unit.clone()]).inherit(this)
         }
-        return new Dimension(value, unit);
-    },
+        return this
+      }
+    
+    unify(other: Dimension, unit: string) {
+        const newDimension = convertDimension(other, unit)
+        if (newDimension) {
+            return newDimension
+        }
+        return other
+    }
 
     compare(other) {
         let a, b;
@@ -117,59 +147,9 @@ Dimension.prototype = Object.assign(new Node(), {
         }
 
         return Node.numericCompare(a.value, b.value);
-    },
-
-    unify() {
-        return this.convertTo({ length: 'px', duration: 's', angle: 'rad' });
-    },
-
-    convertTo(conversions) {
-        let value = this.value;
-        const unit = this.unit.clone();
-        let i;
-        let groupName;
-        let group;
-        let targetUnit;
-        let derivedConversions = {};
-        let applyUnit;
-
-        if (typeof conversions === 'string') {
-            for (i in unitConversions) {
-                if (unitConversions[i].hasOwnProperty(conversions)) {
-                    derivedConversions = {};
-                    derivedConversions[i] = conversions;
-                }
-            }
-            conversions = derivedConversions;
-        }
-        applyUnit = function (atomicUnit, denominator) {
-            /* jshint loopfunc:true */
-            if (group.hasOwnProperty(atomicUnit)) {
-                if (denominator) {
-                    value = value / (group[atomicUnit] / group[targetUnit]);
-                } else {
-                    value = value * (group[atomicUnit] / group[targetUnit]);
-                }
-
-                return targetUnit;
-            }
-
-            return atomicUnit;
-        };
-
-        for (groupName in conversions) {
-            if (conversions.hasOwnProperty(groupName)) {
-                targetUnit = conversions[groupName];
-                group = unitConversions[groupName];
-
-                unit.map(applyUnit);
-            }
-        }
-
-        unit.cancel();
-
-        return new Dimension(value, unit);
     }
-});
+}
+
+Dimension.prototype.type = 'Dimension';
 
 export default Dimension;

@@ -1,4 +1,4 @@
-import Node from './node';
+import Node, { IFileInfo, ILocationInfo, INodeOptions } from './node';
 const _noSpaceCombinators = {
     '': true,
     ' ': true,
@@ -9,14 +9,23 @@ class Combinator extends Node {
     type: 'Combinator'
     value: string
 
-    constructor(value: string) {
-        const isSpace = value === ' '
+    constructor(
+        value: string,
+        options?: INodeOptions,
+        location?: ILocationInfo,
+        fileInfo?: IFileInfo
+    ) {
         super(
-            isSpace ? value : (value ? value.trim() : ''),
-            {
-                emptyOrWhitespace: isSpace || value === ''
-            }
+            value === ' ' ? value : (value ? value.trim() : ''),
+            options,
+            location,
+            fileInfo
         )
+    }
+
+    get emptyOrWhitespace() {
+        const val = this.value;
+        return val === ' ' || val === '';
     }
 
     genCSS(context, output) {

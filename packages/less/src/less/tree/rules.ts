@@ -1,20 +1,20 @@
 import Node from './node';
 
-const Paren = function(node) {
-    Node.call(this, node);
+const Rules = function(rules: Node[]) {
+    Node.call(this, rules);
 };
 
-Paren.prototype = Object.assign(Object.create(Node.prototype), {
-    type: 'Paren',
+Rules.prototype = Object.assign(Object.create(Node.prototype), {
+    type: 'Rules',
 
     genCSS(context, output) {
-        output.add('(');
+        output.add('{');
         this.value.genCSS(context, output);
-        output.add(')');
+        output.add('}');
     },
 
     eval(context) {
-        return new Paren(this.value.eval(context));
+        return new Rules(this.value.eval(context));
     }
 });
 

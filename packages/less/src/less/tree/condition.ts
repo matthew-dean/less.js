@@ -1,21 +1,28 @@
-import Node from './node';
+import Node, { NodeArgs } from './node';
+
+type V1Args = [
+    op: string,
+    left: Node,
+    right: Node,
+    index: number,
+    negate: boolean
+]
 
 class Condition extends Node {
     type: 'Condition'
 
     value: [string, Node, Node]
-    constructor(
-        op: string,
-        l: Node,
-        r: Node,
-        i: number,
-        negate: boolean
-    ) {
-        super(
-            [op.trim(), l, r],
-            { negate },
-            i
-        )
+    constructor(...args: V1Args | NodeArgs) {
+        if (args[1] instanceof Node) {
+            let [op, l, r, i, negate] = <V1Args>args
+            super(
+                [op.trim(), l, r],
+                { negate },
+                i
+            );
+            return;
+        }
+        super(...(<NodeArgs>args))
     }
     get op() {
         return this.value[0]
