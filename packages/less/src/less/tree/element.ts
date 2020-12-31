@@ -1,73 +1,84 @@
-import Node from './node';
+import Node, { IFileInfo, NodeArgs, OutputCollector } from './node';
 import Paren from './paren';
 import Combinator from './combinator';
+import type { Context } from '../contexts';
 
-const Element = function(combinator, value, isVariable, index, currentFileInfo, visibilityInfo) {
-    this.combinator = combinator instanceof Combinator ?
-        combinator : new Combinator(combinator);
+type V1Args = [
+    combinator: string | Combinator,
+    value: Node | string,
+    isVariable?: boolean,
+    index?: number,
+    fileInfo?: IFileInfo
+];
 
-    if (typeof value === 'string') {
-        this.value = value.trim();
-    } else if (value) {
-        this.value = value;
-    } else {
-        this.value = '';
-    }
-    this.isVariable = isVariable;
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-    this.copyVisibilityInfo(visibilityInfo);
-    this.setParent(this.combinator, this);
+export const isNodeArgs = (args: V1Args | NodeArgs): args is NodeArgs => {
+    return Array.isArray(args[0])
 }
 
-Element.prototype = Object.assign(new Node(), {
-    type: 'Element',
+/**
+ * @todo - eliminate in favor of expressions 
+ */
+class Element extends Node {
+    type: 'Element'
+    nodes: [Combinator, string | Node]
 
-    accept(visitor) {
-        const value = this.value;
-        this.combinator = visitor.visit(this.combinator);
-        if (typeof value === 'object') {
-            this.value = visitor.visit(value);
+    constructor(...args: NodeArgs | V1Args) {
+        if (isNodeArgs(args)) {
+            super(...args);
+            return;
         }
-    },
+        let [
+            combinator,
+            value,
+            isVariable,
+            index,
+            fileInfo
+        ] = args;
 
-    eval(context) {
-        return new Element(this.combinator,
-            this.value.eval ? this.value.eval(context) : this.value,
-            this.isVariable,
-            this.getIndex(),
-            this.fileInfo(), this.visibilityInfo());
-    },
+        combinator = combinator instanceof Combinator ?
+            combinator : new Combinator(combinator);
 
-    clone() {
-        return new Element(this.combinator,
-            this.value,
-            this.isVariable,
-            this.getIndex(),
-            this.fileInfo(), this.visibilityInfo());
-    },
+        if (typeof value === 'string') {
+            value = value.trim();
+        } else if (value) {
+            value = value;
+        } else {
+            value = '';
+        }
+        super([combinator, value], { isVariable }, index, fileInfo);
+    }
 
-    genCSS(context, output) {
+    get combinator() {
+        return this.nodes[0]
+    }
+
+    get value() {
+        return this.nodes[1]
+    }
+
+    genCSS(context: Context, output: OutputCollector) {
         output.add(this.toCSS(context), this.fileInfo(), this.getIndex());
-    },
+    }
 
-    toCSS(context) {
-        context = context || {};
+    toCSS(context?: Context) {
+        const thisContext: Context | Record<any, any> = context || {};
         let value = this.value;
-        const firstSelector = context.firstSelector;
+        const firstSelector = thisContext.firstSelector;
         if (value instanceof Paren) {
             // selector in parens should not be affected by outer selector
             // flags (breaks only interpolated selectors - see #1973)
-            context.firstSelector = true;
+            thisContext.firstSelector = true;
         }
-        value = value.toCSS ? value.toCSS(context) : value;
-        context.firstSelector = firstSelector;
+        value = value instanceof Node ? value.toCSS(context) : value;
+        thisContext.firstSelector = firstSelector;
         if (value === '' && this.combinator.value.charAt(0) === '&') {
             return '';
         } else {
             return this.combinator.toCSS(context) + value;
         }
     }
-});
+}
+
+Element.prototype.type = 'Element';
 
 export default Element;

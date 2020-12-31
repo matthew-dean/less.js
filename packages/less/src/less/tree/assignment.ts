@@ -1,4 +1,5 @@
-import Node, { NodeArgs } from './node';
+import Node, { NodeArgs, OutputCollector } from './node';
+import type { Context } from '../contexts';
 
 type V1Args = [
     key: string,
@@ -18,7 +19,7 @@ class Assignment extends Node {
         super(...(<NodeArgs>args));
     }
 
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         const [key, val] = this.nodes;
         output.add(`${key}=`);
         if (val instanceof Node) {

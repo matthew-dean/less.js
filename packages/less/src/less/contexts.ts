@@ -1,5 +1,7 @@
 import * as Constants from './constants';
-import type Node from './tree/node'
+import type Ruleset from './tree/ruleset';
+import type Media from './tree/media';
+import type Selector from './tree/selector';
 
 const {
     ALWAYS,
@@ -8,58 +10,77 @@ const {
 
 const { LOCAL } = Constants.RewriteUrls
 
-const contexts: {
-    Parse?: new (...args) => void
-    Eval?: new (...args) => void
-} = {};
 
-const copyFromOriginal = function copyFromOriginal(original, destination, propertiesToCopy) {
-    if (!original) { return; }
+ /** 
+  * This is the "context" object passed to the historical
+  * parser.
+  * 
+  * @todo - Is it necessary in these two contexts to copy
+  *         options? Are options ever mutated?
+  */
+class ParseContext {
+    /** @todo - define proper options object */
+    options: { [k: string]: any }
 
-    for (let i = 0; i < propertiesToCopy.length; i++) {
-        if (original.hasOwnProperty(propertiesToCopy[i])) {
-            destination[propertiesToCopy[i]] = original[propertiesToCopy[i]];
-        }
-    }
-};
-
-/*
- parse is used whilst parsing
- */
-const parseCopyProperties = [
-    // options
-    'paths',            // option - unmodified - paths to search for imports on
-    'rewriteUrls',      // option - whether to adjust URL's to be relative
-    'rootpath',         // option - rootpath to append to URL's
-    'strictImports',    // option -
-    'insecure',         // option - whether to allow imports from insecure ssl hosts
-    'dumpLineNumbers',  // option - whether to dump line numbers
-    'compress',         // option - whether to compress
-    'syncImport',       // option - whether to import synchronously
-    'chunkInput',       // option - whether to chunk input. more performant but causes parse issues.
-    'mime',             // browser only - mime type for sheet import
-    'useFileCache',     // browser only - whether to use the per file session cache
-    // context
-    'processImports',   // option & context - whether to process imports. if false then imports will not be imported.
-    // Used by the import manager to stop multiple import visitors being created.
-    'pluginManager'     // Used as the plugin manager for the session
-];
-
-contexts.Parse = class {
     constructor(options) {
-        copyFromOriginal(options, this, parseCopyProperties);
+        const {
+            // options
+            paths,            // option - unmodified - paths to search for imports on
+            rewriteUrls,      // option - whether to adjust URL's to be relative
+            rootpath,         // option - rootpath to append to URL's
+            strictImports,    // option -
+            insecure,         // option - whether to allow imports from insecure ssl hosts
+            dumpLineNumbers,  // option - whether to dump line numbers
+            compress,         // option - whether to compress
+            syncImport,       // option - whether to import synchronously
+            chunkInput,       // option - whether to chunk input. more performant but causes parse issues.
+            mime,             // browser only - mime type for sheet import
+            useFileCache,     // browser only - whether to use the per file session cache
+            // context
+            processImports,   // option & context - whether to process imports. if false then imports will not be imported.
+            // Used by the import manager to stop multiple import visitors being created.
+            pluginManager     // Used as the plugin manager for the session
+        } = options
 
-        if (typeof this.paths === 'string') { this.paths = [this.paths]; }
+        this.options = {
+            paths, 
+            rewriteUrls,
+            rootpath,   
+            strictImports,
+            insecure,     
+            dumpLineNumbers,
+            compress,       
+            syncImport,     
+            chunkInput,     
+            mime,
+            useFileCache,
+            processImports,
+            pluginManager
+        }
+        if (typeof paths === 'string') { this.options.paths = [paths]; }
     }
 }
 
-/** Eval context */
+/** 
+ * This is the context object passed during evaluation.
+ */
 class Context {
     /** @todo - define proper options object */
     options: { [k: string]: any }
     
     /** Ruleset (scoping) frames */
-    frames: Node[]
+    frames: Ruleset[]
+
+    mediaBlocks: Media[]
+
+    /** Current selectors */
+    selectors: Selector[][]
+
+    /** A marker set for the last rule in a ruleset */
+    lastRule: boolean
+
+    /** A marker set for the first selector in a list */
+    firstSelector: boolean
 
     importantScope: {
         important?: string
@@ -69,6 +90,9 @@ class Context {
     inCalc: boolean
     parensStack: boolean[]
 
+    /** How indented we currently should be */
+    tabLevel: number
+
     /**
      * A flag to perform math based on math options,
      * the current context position (such as in a calc()),
@@ -76,7 +100,7 @@ class Context {
      */
     mathOn: boolean
 
-    constructor(options, frames) {
+    constructor(options: Record<any, any>) {
         const {
             paths,             // additional include paths
             compress,          // whether to compress
@@ -107,12 +131,27 @@ class Context {
 
         if (typeof paths === 'string') { this.options.paths = [paths]; }
 
-        this.frames = frames || [];
+        this.frames = [];
+        this.selectors = [];
         this.importantScope = this.importantScope || [];
         this.calcStack = [];
         this.parensStack = [];
         this.inCalc = false;
         this.mathOn = true;
+    }
+
+    /** 
+     * Create a new derived context object from
+     * the current context.
+     * 
+     * Optionally create a new frames array 
+     */
+    create(frames?: Ruleset[]): Context {
+        const context = Object.create(this)
+        if (frames && Array.isArray(frames)) {
+            context.frames = frames;
+        }
+        return context
     }
 
     enterCalc() {
@@ -203,7 +242,10 @@ class Context {
     }
 }
 
-contexts.Eval = Context
+const contexts = {
+    Parse: ParseContext,
+    Eval: Context
+}
 
 function isPathRelative(path: string) {
     return !/^(?:[a-z-]+:|\/|#)/i.test(path);

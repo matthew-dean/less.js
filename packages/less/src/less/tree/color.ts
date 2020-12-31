@@ -1,4 +1,5 @@
-import Node, { NodeArgs } from './node';
+import Node, { NodeArgs, OutputCollector } from './node';
+import type { Context } from '../contexts';
 import colors from '../data/colors';
 import { fround } from './util/math'
 
@@ -16,7 +17,7 @@ class Color extends Node {
     type: 'Color'
     nodes: [rgb: number[], alpha: number, originalValue: string]
 
-    constructor(...args: V1Args | NodeArgs) {
+    constructor(...args: NodeArgs | V1Args) {
         let [
             rgb,
             alpha,
@@ -98,12 +99,12 @@ class Color extends Node {
         return 0.2126 * r + 0.7152 * g + 0.0722 * b;
     }
 
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         output.add(this.toCSS(context));
     }
 
-    toCSS(context, doNotCompress?) {
-        const compress = context && context.compress && !doNotCompress;
+    toCSS(context: Context, doNotCompress?) {
+        const compress = context && context.options.compress && !doNotCompress;
         let color;
         let colorFunction;
         let args = [];
@@ -117,7 +118,7 @@ class Color extends Node {
         // `value` is set if this color was originally
         // converted from a named color string so we need
         // to respect this and try to output named color too.
-        alpha = fround(context, alpha);
+        alpha = fround(alpha);
 
         if (originalValue) {
             if (originalValue.indexOf('rgb') === 0) {
@@ -150,9 +151,9 @@ class Color extends Node {
             case 'hsl':
                 color = this.toHSL();
                 args = [
-                    fround(context, color.h),
-                    `${fround(context, color.s * 100)}%`,
-                    `${fround(context, color.l * 100)}%`
+                    fround(color.h),
+                    `${fround(color.s * 100)}%`,
+                    `${fround(color.l * 100)}%`
                 ].concat(args);
         }
 

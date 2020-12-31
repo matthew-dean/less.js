@@ -1,5 +1,7 @@
-import type { IFileInfo } from '../types'
-import type { Context } from '../contexts'
+import type { IFileInfo, OutputCollector } from '../types'
+import type { Context } from '../contexts';
+import type Visitor from '../visitors/visitor';
+import type Parser from '../parser/parser';
 
 type Primitive = Node | any
 export type NodeValue = Primitive | Primitive[]
@@ -13,7 +15,9 @@ export type ILocationInfo = {
     endColumn?: number
 }
 export type INodeOptions = {
-    rulesetLike?: boolean
+    isRuleset?: boolean
+    isRulesetLike?: boolean
+    mapLines?: boolean
     /** Allow arbitrary options */
     [k: string]: boolean | string | number
 }
@@ -30,7 +34,7 @@ export const isNodeArgs = (args: any[] | NodeArgs): args is NodeArgs => {
     return !!optArg && typeof optArg === 'object' && optArg.constructor === Object
 }
 
-export { IFileInfo }
+export { IFileInfo, OutputCollector }
 class Node {
     /**
      * This can contain a primitive value or a Node,
@@ -59,7 +63,17 @@ class Node {
     /** Increments as we enter / exit rules that block visibility? */
     visibilityBlocks: number
     evaluated: boolean
+
     type: string
+
+    /** @deprecated */
+    parse: ReturnType<typeof Parser>;
+
+    /** 
+     * A precursor option to source maps
+     * @deprecated
+     */
+    debugInfo: boolean
 
     constructor(
         nodes: NodeValue,
@@ -140,12 +154,14 @@ class Node {
         return this._fileInfo;
     }
 
-    isRulesetLike() { return false; }
+    isRulesetLike() {
+        return !!this.options.isRulesetLike;
+    }
 
     toCSS(context?: Context) {
         const strs = [];
         this.genCSS(context, {
-            add: function(chunk, fileInfo, index) {
+            add: function(chunk) {
                 strs.push(chunk);
             },
             isEmpty: function () {
@@ -155,9 +171,9 @@ class Node {
         return strs.join('');
     }
 
-    addToOutput(val: Primitive, context: Context, output) {
+    addToOutput(val: Primitive, context: Context, output: OutputCollector) {
         if (val instanceof Node) {
-            output.add(val.genCSS(context, output))
+            val.genCSS(context, output)
         } else if (val) {
             /** Serialize a primitive value into a string */
             output.add(`${val}`)
@@ -165,7 +181,7 @@ class Node {
     }
 
     /** Will be over-ridden by most nodes */
-    genCSS(context: Context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         const value = this.nodes;
         if (Array.isArray(value)) {
             value.forEach(val => {
@@ -176,7 +192,7 @@ class Node {
         }
     }
 
-    accept(visitor) {
+    accept(visitor: Visitor) {
         this.processNodes(n => visitor.visit(n));
     }
 
@@ -244,6 +260,9 @@ class Node {
             case '/': return a / b;
         }
     }
+    
+    /** Over-ridden by specific nodes */
+    makeImportant(): Node { return this; }
 
     static compare(a, b) {
         /* returns:
@@ -335,7 +354,7 @@ class Node {
 }
 
 export interface NumericNode extends Node {
-    operate(context?: Context, op: string, other: Node): Node
+    operate(context: Context, op: string, other: Node): Node
 }
 
 export default Node;

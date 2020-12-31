@@ -6,6 +6,9 @@ import Expression from './expression';
 import AtRule from './atrule';
 import * as utils from '../utils';
 
+/**
+ * @todo - Can this be refactored to re-use code from `AtRule`?
+ */
 const Media = function(value, features, index, currentFileInfo, visibilityInfo) {
     this._index = index;
     this._fileInfo = currentFileInfo;

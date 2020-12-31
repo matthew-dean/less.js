@@ -1,4 +1,4 @@
-import Node from './node';
+import Node, { NodeArgs, OutputCollector } from './node';
 import Declaration from './declaration';
 import Keyword from './keyword';
 import Comment from './comment';
@@ -6,32 +6,103 @@ import Paren from './paren';
 import Selector from './selector';
 import Element from './element';
 import Anonymous from './anonymous';
-import contexts from '../contexts';
+import Import from './import';
 import globalFunctionRegistry from '../functions/function-registry';
 import defaultFunc from '../functions/default';
 import getDebugInfo from './debug-info';
 import * as utils from '../utils';
+import type Visitor from '../visitors/visitor';
+import type { Context } from '../contexts';
 
-/**
- * @todo Rewrite
- */
-const Ruleset = function(selectors, rules, strictImports, visibilityInfo) {
-    this.selectors = selectors;
-    this.rules = rules;
-    this._lookups = {};
-    this._variables = null;
-    this._properties = null;
-    this.strictImports = strictImports;
-    this.copyVisibilityInfo(visibilityInfo);
+type V1Args = [
+    selectors: Selector[] | null,
+    rules: Node[],
+    strictImports?: boolean
+]
+
+export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
+    return Array.isArray(args[1])
 }
 
-Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
-    type: 'Ruleset',
-    isRuleset: true,
+/**
+ * This currently represents a "Qualified Rule" in CSS.
+ * 
+ * @todo
+ * Rewrite from bottom up, if possible.
+ */
+class Ruleset extends Node {
+    type: 'Ruleset'
+    nodes: [Selector[], Node[]]
+    _lookups: Record<any, any>;
+    _variables: Record<string, Node>;
+    _properties: Record<string, Node[]>;
 
-    isRulesetLike() { return true; },
+    /** A root node */
+    root: boolean;
 
-    accept(visitor) {
+    /** The base ruleset of the tree */
+    firstRoot: boolean;
+
+    /** If import nodes will be evaluated if found */
+    allowImports: boolean;
+
+    /** 
+     * @todo - Find out if this is necessary and why.
+     */
+    originalRuleset: Node;
+
+    /**
+     * Each ruleset has a registry for JavaScript
+     * functions that inherit up the scope chain.
+     */
+    functionRegistry: typeof globalFunctionRegistry;
+
+    /**
+     * @todo - Document.
+     * Sum of all selector paths?
+     * set by visitor?
+     */
+    paths: Node[]
+
+    constructor(...args: NodeArgs | V1Args) {
+        if (!isV1Args(args)) {
+            super(...args);
+        } else {
+            let [
+                selectors,
+                rules,
+                strictImports
+            ] = args;
+            super(
+                [selectors, rules || []],
+                { strictImports }
+            );
+        }
+
+        this._lookups = {};
+        this._variables = null;
+        this._properties = null;
+    }
+
+    get selectors() {
+        return this.nodes[0];
+    }
+    set selectors(nodes: Selector[]) {
+        this.nodes[0] = nodes;
+    }
+    get rules() {
+        return this.nodes[1];
+    }
+    set rules(rules: Node[]) {
+        this.nodes[1] = rules;
+    }
+
+    isRulesetLike() { return true; }
+
+    /**
+     * @todo - can remove when nodes are simplified.
+     */
+    accept(visitor: Visitor) {
         if (this.paths) {
             this.paths = visitor.visitArray(this.paths, true);
         } else if (this.selectors) {
@@ -40,9 +111,13 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
         if (this.rules && this.rules.length) {
             this.rules = visitor.visitArray(this.rules);
         }
-    },
+    }
 
-    eval(context) {
+    /**
+     * @todo
+     * Can this eval() be simplified or split into multiple files?
+     */
+    eval(context: Context) {
         const that = this;
         let selectors;
         let selCnt;
@@ -95,8 +170,8 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
             hasOnePassingSelector = true;
         }
 
-        let rules = this.rules ? utils.copyArray(this.rules) : null;
-        const ruleset = new Ruleset(selectors, rules, this.strictImports, this.visibilityInfo());
+        let rules = this.rules.length ? utils.copyArray(this.rules) : [];
+        const ruleset = new Ruleset([selectors, rules], this.options).inherit(this);
         let rule;
         let subRule;
 
@@ -120,7 +195,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
             const n = frames.length;
             let found;
             for ( ; i !== n ; ++i ) {
-                found = frames[ i ].functionRegistry;
+                found = frames[i].functionRegistry;
                 if ( found ) { return found; }
             }
             return globalFunctionRegistry;
@@ -138,7 +213,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
         ctxSelectors.unshift(this.selectors);
 
         // Evaluate imports
-        if (ruleset.root || ruleset.allowImports || !ruleset.strictImports) {
+        if (ruleset.root || ruleset.allowImports || !ruleset.options.strictImports) {
             ruleset.evalImports(context);
         }
 
@@ -158,7 +233,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
             if (rule.type === 'MixinCall') {
                 /* jshint loopfunc:true */
                 rules = rule.eval(context).filter(function(r) {
-                    if ((r instanceof Declaration) && r.variable) {
+                    if ((r instanceof Declaration) && r.options.isVariable) {
                         // do not pollute the scope if the variable is
                         // already there. consider returning false here
                         // but we need a way to "return" variable from mixins
@@ -172,7 +247,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
             } else if (rule.type ===  'VariableCall') {
                 /* jshint loopfunc:true */
                 rules = rule.eval(context).rules.filter(function(r) {
-                    if ((r instanceof Declaration) && r.variable) {
+                    if ((r instanceof Declaration) && r.options.isVariable) {
                         // do not pollute the scope at all
                         return false;
                     }
@@ -202,7 +277,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
                     for (var j = 0; (subRule = rule.rules[j]); j++) {
                         if (subRule instanceof Node) {
                             subRule.copyVisibilityInfo(rule.visibilityInfo());
-                            if (!(subRule instanceof Declaration) || !subRule.variable) {
+                            if (!(subRule instanceof Declaration) || !subRule.options.isVariable) {
                                 rsRules.splice(++i, 0, subRule);
                             }
                         }
@@ -222,13 +297,13 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
         }
 
         return ruleset;
-    },
+    }
 
     evalImports(context) {
         const rules = this.rules;
         let i;
         let importRules;
-        if (!rules) { return; }
+        if (!rules.length) { return; }
 
         for (i = 0; i < rules.length; i++) {
             if (rules[i].type === 'Import') {
@@ -242,25 +317,28 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
                 this.resetCache();
             }
         }
-    },
+    }
 
     makeImportant() {
-        const result = new Ruleset(this.selectors, this.rules.map(function (r) {
-            if (r.makeImportant) {
-                return r.makeImportant();
-            } else {
-                return r;
-            }
-        }), this.strictImports, this.visibilityInfo());
+        const result = new Ruleset(
+            [
+                this.selectors,
+                this.rules.map(r => r.makeImportant())
+            ], {...this.options}
+        );
 
         return result;
-    },
+    }
 
     matchArgs(args) {
         return !args || args.length === 0;
-    },
+    }
 
-    // lets you call a css selector with a guard
+    /**
+     * Lets you call a css selector with a guard
+     *
+     * @todo - refactor with mixin definition?
+     */
     matchCondition(args, context) {
         const lastSelector = this.selectors[this.selectors.length - 1];
         if (!lastSelector.evaldCondition) {
@@ -268,30 +346,48 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
         }
         if (lastSelector.condition &&
             !lastSelector.condition.eval(
-                new contexts.Eval(context,
-                    context.frames))) {
+                context.create(context.frames)
+            )
+        ) {
             return false;
         }
         return true;
-    },
+    }
 
+    /**
+     * @todo
+     * Is there a way to create a more efficient
+     * lookup by type? Could we, for example,
+     * store references to a copy of `this.rules`,
+     * store a dictionary by type, and then if `this.cachedRules`
+     * differs (by reference?), then re-catalog the dictionary?
+     * 
+     * To do that, we would need to make sure that Nodes do not
+     * mutate their props.
+     * 
+     * This is easy to over-engineer but lookup speed is potentially
+     * important.
+     */
     resetCache() {
-        this._rulesets = null;
         this._variables = null;
         this._properties = null;
         this._lookups = {};
-    },
+    }
 
     variables() {
         if (!this._variables) {
-            this._variables = !this.rules ? {} : this.rules.reduce(function (hash, r) {
-                if (r instanceof Declaration && r.variable === true) {
+            this._variables = this.rules.reduce(function (hash, r) {
+                if (
+                    r instanceof Declaration
+                    && r.options.isVariable === true
+                    && r.name.constructor === String
+                ) {
                     hash[r.name] = r;
                 }
                 // when evaluating variables in an import statement, imports have not been eval'd
                 // so we need to go inside import statements.
                 // guard against root being a string (in the case of inlined less)
-                if (r.type === 'Import' && r.root && r.root.variables) {
+                if (r instanceof Import && r.root && r.root instanceof Ruleset) {
                     const vars = r.root.variables();
                     for (const name in vars) {
                         if (vars.hasOwnProperty(name)) {
@@ -303,12 +399,12 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
             }, {});
         }
         return this._variables;
-    },
+    }
 
     properties() {
         if (!this._properties) {
-            this._properties = !this.rules ? {} : this.rules.reduce(function (hash, r) {
-                if (r instanceof Declaration && r.variable !== true) {
+            this._properties = this.rules.reduce(function (hash, r) {
+                if (r instanceof Declaration && r.options.isVariable !== true) {
                     const name = (r.name.length === 1) && (r.name[0] instanceof Keyword) ?
                         r.name[0].value : r.name;
                     // Properties don't overwrite as they can merge
@@ -323,21 +419,21 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
             }, {});
         }
         return this._properties;
-    },
+    }
 
     variable(name) {
         const decl = this.variables()[name];
         if (decl) {
             return this.parseValue(decl);
         }
-    },
+    }
 
     property(name) {
         const decl = this.properties()[name];
         if (decl) {
             return this.parseValue(decl);
         }
-    },
+    }
 
     lastDeclaration() {
         for (let i = this.rules.length; i > 0; i--) {
@@ -346,7 +442,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
                 return this.parseValue(decl);
             }
         }
-    },
+    }
 
     parseValue(toParse) {
         const self = this;
@@ -388,7 +484,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
             });
             return nodes;
         }
-    },
+    }
 
     rulesets() {
         if (!this.rules) { return []; }
@@ -399,25 +495,31 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
         let rule;
 
         for (i = 0; (rule = rules[i]); i++) {
-            if (rule.isRuleset) {
+            if (rule instanceof Ruleset) {
                 filtRules.push(rule);
             }
         }
 
         return filtRules;
-    },
+    }
 
-    prependRule(rule) {
+    prependRule(rule: Node) {
         const rules = this.rules;
-        if (rules) {
-            rules.unshift(rule);
-        } else {
-            this.rules = [ rule ];
-        }
-        this.setParent(rule, this);
-    },
+        rules.unshift(rule);
+        this.setParent(rule);
+    }
 
-    find(selector, self, filter) {
+    /**
+     * Finds matching rules within this ruleset,
+     * given a selector.
+     * 
+     * @todo - Lots to document here and add unit tests
+     * 
+     * @todo
+     * We should speed this up by storing a normalized
+     * lookup value.
+     */
+    find(selector, self, filter: Function) {
         self = self || this;
         const rules = [];
         let match;
@@ -449,9 +551,11 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
         });
         this._lookups[key] = rules;
         return rules;
-    },
+    }
 
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
+        const compress = context.options.compress;
+
         let i;
         let j;
         const charsetRuleNodes = [];
@@ -469,8 +573,8 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
             context.tabLevel++;
         }
 
-        const tabRuleStr = context.compress ? '' : Array(context.tabLevel + 1).join('  ');
-        const tabSetStr = context.compress ? '' : Array(context.tabLevel).join('  ');
+        const tabRuleStr = compress ? '' : Array(context.tabLevel + 1).join('  ');
+        const tabSetStr = compress ? '' : Array(context.tabLevel).join('  ');
         let sep;
 
         let charsetNodeIndex = 0;
@@ -508,7 +612,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
             const pathCnt = paths.length;
             let pathSubCnt;
 
-            sep = context.compress ? ',' : (`,\n${tabSetStr}`);
+            sep = compress ? ',' : (`,\n${tabSetStr}`);
 
             for (i = 0; i < pathCnt; i++) {
                 path = paths[i];
@@ -524,7 +628,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
                 }
             }
 
-            output.add((context.compress ? '{' : ' {\n') + tabRuleStr);
+            output.add((compress ? '{' : ' {\n') + tabRuleStr);
         }
 
         // Compile rules and rulesets
@@ -548,28 +652,31 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
             context.lastRule = currentLastRule;
 
             if (!context.lastRule && rule.isVisible()) {
-                output.add(context.compress ? '' : (`\n${tabRuleStr}`));
+                output.add(compress ? '' : (`\n${tabRuleStr}`));
             } else {
                 context.lastRule = false;
             }
         }
 
         if (!this.root) {
-            output.add((context.compress ? '}' : `\n${tabSetStr}}`));
+            output.add((compress ? '}' : `\n${tabSetStr}}`));
             context.tabLevel--;
         }
 
-        if (!output.isEmpty() && !context.compress && this.firstRoot) {
+        if (!output.isEmpty() && !compress && this.firstRoot) {
             output.add('\n');
         }
-    },
+    }
 
     joinSelectors(paths, context, selectors) {
         for (let s = 0; s < selectors.length; s++) {
             this.joinSelector(paths, context, selectors[s]);
         }
-    },
+    }
 
+    /**
+     * @todo - This is far too complex. Rewrite from scratch. 
+     */
     joinSelector(paths, context, selector) {
 
         function createParenthesis(elementsToPak, originalElement) {
@@ -843,7 +950,7 @@ Ruleset.prototype = Object.assign(Object.create(Node.prototype), {
         }
 
     }
-});
+}
 
 Ruleset.prototype.allowRoot = true;
 

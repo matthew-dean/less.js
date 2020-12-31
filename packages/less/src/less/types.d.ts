@@ -7,3 +7,14 @@ export type IFileInfo = {
   rootFilename: string
   reference?: boolean
 }
+
+export type OutputCollector = {
+  add: (
+      chunk: string,
+      fileInfo?: IFileInfo,
+      index?: number,
+      /** Used in source map collector */
+      mapLines?: boolean
+  ) => void
+  isEmpty: () => boolean
+}

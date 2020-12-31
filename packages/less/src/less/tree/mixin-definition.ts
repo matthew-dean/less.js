@@ -63,7 +63,7 @@ Definition.prototype = Object.assign(new Ruleset(), {
         if (mixinEnv.frames && mixinEnv.frames[0] && mixinEnv.frames[0].functionRegistry) {
             frame.functionRegistry = mixinEnv.frames[0].functionRegistry.inherit();
         }
-        mixinEnv = new contexts.Eval(mixinEnv, [frame].concat(mixinEnv.frames));
+        mixinEnv = context.create([frame].concat(mixinEnv.frames));
 
         if (args) {
             args = utils.copyArray(args);
@@ -156,7 +156,7 @@ Definition.prototype = Object.assign(new Ruleset(), {
     evalCall(context, args, important) {
         const _arguments = [];
         const mixinFrames = this.frames ? this.frames.concat(context.frames) : context.frames;
-        const frame = this.evalParams(context, new contexts.Eval(context, mixinFrames), args, _arguments);
+        const frame = this.evalParams(context, context.create(mixinFrames), args, _arguments);
         let rules;
         let ruleset;
 
@@ -166,7 +166,7 @@ Definition.prototype = Object.assign(new Ruleset(), {
 
         ruleset = new Ruleset(null, rules);
         ruleset.originalRuleset = this;
-        ruleset = ruleset.eval(new contexts.Eval(context, [this, frame].concat(mixinFrames)));
+        ruleset = ruleset.eval(context.create([this, frame].concat(mixinFrames)));
         if (important) {
             ruleset = ruleset.makeImportant();
         }
@@ -175,11 +175,12 @@ Definition.prototype = Object.assign(new Ruleset(), {
 
     matchCondition(args, context) {
         if (this.condition && !this.condition.eval(
-            new contexts.Eval(context,
+            context.create(
                 [this.evalParams(context, /* the parameter variables */
-                    new contexts.Eval(context, this.frames ? this.frames.concat(context.frames) : context.frames), args, [])]
+                    context.create(this.frames ? this.frames.concat(context.frames) : context.frames), args, [])]
                     .concat(this.frames || []) // the parent namespace/mixin frames
-                    .concat(context.frames)))) { // the current environment frames
+                    .concat(context.frames)))
+            ) { // the current environment frames
             return false;
         }
         return true;

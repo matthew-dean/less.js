@@ -1,44 +1,112 @@
-import Node from './node';
+import Node, { IFileInfo, NodeArgs, isNodeArgs } from './node';
 import Element from './element';
 import LessError from '../less-error';
+import type Visitor from '../visitors/visitor';
 
-const Selector = function(elements, extendList, condition, index, currentFileInfo, visibilityInfo) {
-    this.extendList = extendList;
-    this.condition = condition;
-    this.evaldCondition = !condition;
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-    this.elements = this.getElements(elements);
-    this.mixinElements_ = undefined;
-    this.copyVisibilityInfo(visibilityInfo);
-    this.setParent(this.elements, this);
-};
+type V1Args = [
+    elements: Node[],
+    extendList?: Node[],
+    condition?: Node,
+    index?: number,
+    fileInfo?: IFileInfo
+];
 
-Selector.prototype = Object.assign(new Node(), {
-    type: 'Selector',
+/**
+ * @todo - Refactor such that a selector only contains
+ *         an Expression and a condition as node children
+ */
+class Selector extends Node {
+    type: 'Selector'
+    evaldCondition: boolean
 
-    accept(visitor) {
+    /** @todo - document */
+    mediaEmpty: boolean
+
+    /**
+     * A value used for matching mixin calls.
+     *
+     * @todo - Can be improved a lot.         
+     */
+    mixinElements_: Node[]
+
+    constructor(...args: NodeArgs | V1Args) {
+        if (isNodeArgs(args)) {
+            super(...args);
+            return;
+        }
+        let [
+            elements,
+            extendList,
+            condition,
+            index,
+            fileInfo
+        ] = args;
+
+        super(
+            [
+                elements,
+                extendList,
+                condition
+            ],
+            {},
+            index,
+            fileInfo
+        );
+        this.nodes[0] = this.getElements(elements);
+        this.evaldCondition = !condition;
+        this.mixinElements_ = undefined;
+    }
+
+    get elements() {
+        return this.nodes[0];
+    }
+    /**
+     * @todo:
+     * Refactor this and extend so that `Extend`
+     * receives this selector during parsing.
+     *   i.e.
+     *   This code: `.a:extend(.b)`
+     *     should result in:
+     *       <Extend { nodes: [.a, .b] }>
+     *   Instead of:
+     *       <Selector { nodes: [.a, [<Extend .b>]}>
+     * 
+     * Doing it the first way would make it much easier to
+     * evaluate and is actually more logical to the expression,
+     * which is that :extend is receiving the selector prior
+     * to it.
+     */
+    get extendList() {
+        return this.nodes[1];
+    }
+    get condition() {
+        return this.nodes[2];
+    }
+
+    /**
+     * @todo - This can be improved when this.nodes is more flat.
+     */
+    accept(visitor: Visitor) {
         if (this.elements) {
-            this.elements = visitor.visitArray(this.elements);
+            this.nodes[0] = visitor.visitArray(this.elements);
         }
         if (this.extendList) {
-            this.extendList = visitor.visitArray(this.extendList);
+            this.nodes[1] = visitor.visitArray(this.extendList);
         }
         if (this.condition) {
-            this.condition = visitor.visit(this.condition);
+            this.nodes[2] = visitor.visit(this.condition);
         }
-    },
+    }
 
     createDerived(elements, extendList, evaldCondition) {
         elements = this.getElements(elements);
-        const newSelector = new Selector(elements, extendList || this.extendList,
-            null, this.getIndex(), this.fileInfo(), this.visibilityInfo());
+        const newSelector = new Selector([elements, extendList || this.extendList]).inherit(this);
         newSelector.evaldCondition = (evaldCondition != null) ? evaldCondition : this.evaldCondition;
         newSelector.mediaEmpty = this.mediaEmpty;
         return newSelector;
-    },
+    }
 
-    getElements(els) {
+    getElements(els: Node[] | string) {
         if (!els) {
             return [new Element('', '&', false, this._index, this._fileInfo)];
         }
@@ -59,13 +127,14 @@ Selector.prototype = Object.assign(new Node(), {
                 });
         }
         return els;
-    },
+    }
 
     createEmptySelectors() {
-        const el = new Element('', '&', false, this._index, this._fileInfo), sels = [new Selector([el], null, null, this._index, this._fileInfo)];
+        const el = new Element('', '&', false, this._index, this._fileInfo);
+        const sels = [new Selector([el], null, null, this._index, this._fileInfo)];
         sels[0].mediaEmpty = true;
         return sels;
-    },
+    }
 
     match(other) {
         const elements = this.elements;
@@ -86,7 +155,7 @@ Selector.prototype = Object.assign(new Node(), {
         }
 
         return olen; // return number of matched elements
-    },
+    }
 
     mixinElements() {
         if (this.mixinElements_) {
@@ -106,14 +175,14 @@ Selector.prototype = Object.assign(new Node(), {
         }
 
         return (this.mixinElements_ = elements);
-    },
+    }
 
     isJustParentSelector() {
         return !this.mediaEmpty &&
             this.elements.length === 1 &&
             this.elements[0].value === '&' &&
             (this.elements[0].combinator.value === ' ' || this.elements[0].combinator.value === '');
-    },
+    }
 
     eval(context) {
         const evaldCondition = this.condition && this.condition.eval(context);
@@ -124,7 +193,7 @@ Selector.prototype = Object.assign(new Node(), {
         extendList = extendList && extendList.map(function(extend) { return extend.eval(context); });
 
         return this.createDerived(elements, extendList, evaldCondition);
-    },
+    }
 
     genCSS(context, output) {
         let i, element;
@@ -135,11 +204,13 @@ Selector.prototype = Object.assign(new Node(), {
             element = this.elements[i];
             element.genCSS(context, output);
         }
-    },
+    }
 
     getIsOutput() {
         return this.evaldCondition;
     }
-});
+}
+
+Selector.prototype.type = 'Selector';
 
 export default Selector;

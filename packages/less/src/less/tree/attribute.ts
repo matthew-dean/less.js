@@ -1,4 +1,5 @@
-import Node, { NodeArgs } from './node';
+import Node, { NodeArgs, OutputCollector } from './node';
+import type { Context } from '../contexts';
 
 type V1Args = [
     key: string | Node,
@@ -30,11 +31,11 @@ class Attribute extends Node {
         return this.nodes[2]
     }
 
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         output.add(this.toCSS(context));
     }
 
-    toCSS(context) {
+    toCSS(context: Context) {
         const [key, op, value] = this.nodes
         let output = key instanceof Node ? key.toCSS(context) : key;
 

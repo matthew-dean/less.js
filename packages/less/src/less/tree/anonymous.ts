@@ -1,11 +1,12 @@
-import Node, { NodeArgs } from './node';
+import Node, { NodeArgs, NodeValue, OutputCollector } from './node';
+import type { Context } from '../contexts';
 
 type V1Args = [
     value: string,
     index?: number,
     currentFileInfo?: any,
     mapLines?: boolean,
-    rulesetLike?: boolean
+    isRulesetLike?: boolean
 ]
 
 class Anonymous extends Node {
@@ -22,13 +23,13 @@ class Anonymous extends Node {
             index,
             currentFileInfo,
             mapLines,
-            rulesetLike
+            isRulesetLike
         ] = <V1Args>args
 
         super(
             value,
             {
-                rulesetLike: !!rulesetLike,
+                isRulesetLike,
                 mapLines
             },
             index,
@@ -40,15 +41,12 @@ class Anonymous extends Node {
         return this;
     }
 
-    compare(other) {
+    /** Will this ever not be a Node? */
+    compare(other: NodeValue) {
         return other.toCSS && this.toCSS() === other.toCSS() ? 0 : undefined;
     }
 
-    isRulesetLike() {
-        return this.options.rulesetLike;
-    }
-
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         this.nodeVisible = Boolean(this.value);
         if (this.nodeVisible) {
             output.add(this.value, this._fileInfo, this._index, this.options.mapLines);

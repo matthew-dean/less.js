@@ -3,6 +3,27 @@ import Selector from './selector';
 import Ruleset from './ruleset';
 import Anonymous from './anonymous';
 
+/**
+ * @note
+ * The reason why AtRules (and the `Media` node) have a Ruleset child
+ * (with a '&' selector) is because of at-rule bubbling (I think). If we have
+ * this...
+ *   .rule {
+ *     @at-rule {
+ *       prop: value;
+ *     }
+ *   }
+ * ...then what we generally want to end up with is:
+ *   @at-rule {
+ *     .rule {
+ *       prop: value;
+ *     }
+ *   }
+ * 
+ * Therefore, we can just start by wrapping rules with `&`, evaluating it,
+ * and pushing `@at-rule` to the root.
+ * 
+ */
 const AtRule = function(
     name: string,
     prelude: Node | string,

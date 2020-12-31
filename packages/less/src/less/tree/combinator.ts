@@ -7,7 +7,7 @@ const _noSpaceCombinators = {
 
 class Combinator extends Node {
     type: 'Combinator'
-    value: string
+    nodes: string
 
     constructor(
         value: string,
@@ -24,13 +24,13 @@ class Combinator extends Node {
     }
 
     get emptyOrWhitespace() {
-        const val = this.value;
+        const val = this.nodes;
         return val === ' ' || val === '';
     }
 
     genCSS(context, output) {
-        const spaceOrEmpty = (context.compress || _noSpaceCombinators[this.value]) ? '' : ' ';
-        output.add(spaceOrEmpty + this.value + spaceOrEmpty);
+        const spaceOrEmpty = (context.compress || _noSpaceCombinators[this.nodes]) ? '' : ' ';
+        output.add(spaceOrEmpty + this.nodes + spaceOrEmpty);
     }
 }
 

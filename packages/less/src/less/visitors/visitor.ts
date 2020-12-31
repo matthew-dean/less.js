@@ -1,61 +1,29 @@
-import tree from '../tree';
+import type Node from '../tree/node';
 
 const _visitArgs = { visitDeeper: true };
-let _hasIndexed = false;
 
 function _noop(node) {
     return node;
 }
 
-function indexNodeTypes(parent, ticker) {
-    // add .typeIndex to tree node types for lookup table
-    let key, child;
-    for (key in parent) { 
-        /* eslint guard-for-in: 0 */
-        child = parent[key];
-        switch (typeof child) {
-            case 'function':
-                // ignore bound functions directly on tree which do not have a prototype
-                // or aren't nodes
-                if (child.prototype && child.prototype.type) {
-                    child.prototype.typeIndex = ticker++;
-                }
-                break;
-            case 'object':
-                ticker = indexNodeTypes(child, ticker);
-                break;
-        
-        }
-    }
-    return ticker;
-}
-
 class Visitor {
+    /** @todo - refine types */
+    _implementation: any;
+    _visitInCache: any;
+    _visitOutCache: any;
+
     constructor(implementation) {
         this._implementation = implementation;
         this._visitInCache = {};
         this._visitOutCache = {};
-
-        if (!_hasIndexed) {
-            indexNodeTypes(tree, 1);
-            _hasIndexed = true;
-        }
     }
 
-    visit(node) {
-        if (!node) {
-            return node;
+    visit(n: Node): Node {
+        if (!n || !n.type) {
+            return n;
         }
 
-        const nodeTypeIndex = node.typeIndex;
-        if (!nodeTypeIndex) {
-            // MixinCall args aren't a node type?
-            if (node.value && node.value.typeIndex) {
-                this.visit(node.value);
-            }
-            return node;
-        }
-
+        const nodeTypeIndex = n.type;
         const impl = this._implementation;
         let func = this._visitInCache[nodeTypeIndex];
         let funcOut = this._visitOutCache[nodeTypeIndex];
@@ -65,40 +33,59 @@ class Visitor {
         visitArgs.visitDeeper = true;
 
         if (!func) {
-            fnName = `visit${node.type}`;
+            fnName = `visit${n.type}`;
             func = impl[fnName] || _noop;
             funcOut = impl[`${fnName}Out`] || _noop;
             this._visitInCache[nodeTypeIndex] = func;
             this._visitOutCache[nodeTypeIndex] = funcOut;
         }
 
+        /**
+         * @todo - Remove this type aliasing when we address the note below.
+         */
+        let node: Node | Node[] = n;
+
         if (func !== _noop) {
-            const newNode = func.call(impl, node, visitArgs);
-            if (node && impl.isReplacing) {
+            const newNode = func.call(impl, n, visitArgs);
+            if (n && impl.isReplacing) {
                 node = newNode;
             }
         }
 
         if (visitArgs.visitDeeper && node) {
-            if (node.length) {
+            /**
+             * @note This is hard to reason about and we shouldn't allow this to happen.
+             *       A Node that is visited should return a Node.
+             *       An array that is visited (this.visitArray) should
+             *       return an array.
+             * 
+             * @todo Investigate if this ever happens and fix if possible.
+             */
+            if (Array.isArray(node)) {
                 for (let i = 0, cnt = node.length; i < cnt; i++) {
                     if (node[i].accept) {
                         node[i].accept(this);
                     }
                 }
+                n = node[0];
             } else if (node.accept) {
                 node.accept(this);
+                n = node;
             }
         }
 
+        /**
+         * @note Because of the above code's weirdness (see note),
+         *       then we make sure we are calling back only one Node.
+         */
         if (funcOut != _noop) {
-            funcOut.call(impl, node);
+            funcOut.call(impl, n);
         }
 
-        return node;
+        return n;
     }
 
-    visitArray(nodes, nonReplacing) {
+    visitArray(nodes: Node[], nonReplacing?: boolean) {
         if (!nodes) {
             return nodes;
         }
@@ -118,8 +105,15 @@ class Visitor {
         const out = [];
         for (i = 0; i < cnt; i++) {
             const evald = this.visit(nodes[i]);
+
+            /** 
+             * @note This will remove nodes when the visitor
+             *       returns nothing, changing the shape of the
+             *       return array.
+             */
             if (evald === undefined) { continue; }
-            if (!evald.splice) {
+            
+            if (!(Array.isArray(evald))) {
                 out.push(evald);
             } else if (evald.length) {
                 this.flatten(evald, out);
@@ -128,15 +122,15 @@ class Visitor {
         return out;
     }
 
-    flatten(arr, out) {
+    flatten(arr: any[], out: any[]) {
         if (!out) {
             out = [];
         }
 
-        let cnt, i, item, nestedCnt, j, nestedItem;
+        let cnt = arr.length;
 
-        for (i = 0, cnt = arr.length; i < cnt; i++) {
-            item = arr[i];
+        for (let i = 0; i < cnt; i++) {
+            let item = arr[i];
             if (item === undefined) {
                 continue;
             }
@@ -145,8 +139,8 @@ class Visitor {
                 continue;
             }
 
-            for (j = 0, nestedCnt = item.length; j < nestedCnt; j++) {
-                nestedItem = item[j];
+            for (let j = 0, nestedCnt = item.length; j < nestedCnt; j++) {
+                let nestedItem = item[j];
                 if (nestedItem === undefined) {
                     continue;
                 }

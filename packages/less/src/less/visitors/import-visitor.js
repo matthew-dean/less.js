@@ -37,10 +37,11 @@ ImportVisitor.prototype = {
     },
     visitImport: function (importNode, visitArgs) {
         const inlineCSS = importNode.options.inline;
+        let context = this.context
 
         if (!importNode.css || inlineCSS) {
 
-            const context = new contexts.Eval(this.context, utils.copyArray(this.context.frames));
+            context = context.create(utils.copyArray(this.context.frames));
             const importParent = context.frames[0];
 
             this.importCount++;

@@ -3,7 +3,7 @@ import getDebugInfo from './debug-info';
 
 class Comment extends Node {
     type: 'Comment'
-    value: string
+    nodes: string
 
     constructor(value: string, isLineComment: boolean, index, currentFileInfo) {
         super(

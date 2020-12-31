@@ -1,4 +1,12 @@
-import Node, { IFileInfo, ILocationInfo, INodeOptions, NodeArgs } from './node';
+import Node, {
+    IFileInfo,
+    ILocationInfo,
+    INodeOptions,
+    NodeArgs,
+    OutputCollector
+} from './node';
+import type { Context } from '../contexts';
+
 import Value from './list';
 import Keyword from './keyword';
 import Anonymous from './anonymous';
@@ -27,9 +35,16 @@ type V1Args = [
     variable: boolean
 ]
 
+type DeclarationOptions = {
+    merge?: boolean
+    inline?: boolean
+    isVariable?: boolean
+}
+
 class Declaration extends Node {
     type: 'Declaration'
     nodes: [Node[] | string, Node | null, string]
+    options: DeclarationOptions
 
     constructor(...args: V1Args | NodeArgs) {
         /** v5 args */
@@ -63,7 +78,7 @@ class Declaration extends Node {
             options = {
                 merge,
                 inline: inline || false,
-                variable: (variable !== undefined) ? variable
+                isVariable: (variable !== undefined) ? variable
                     : (!Array.isArray(name) && (name.charAt(0) === '@'))
             }
             location = index
@@ -85,8 +100,9 @@ class Declaration extends Node {
         return this.nodes[2]
     }
 
-    genCSS(context, output) {
-        output.add(this.name + (context.compress ? ':' : ': '), this.fileInfo(), this.getIndex());
+    genCSS(context: Context, output: OutputCollector) {
+        const compress = context.options.compress;
+        output.add(this.name + (compress ? ':' : ': '), this.fileInfo(), this.getIndex());
         try {
             this.nodes[1].genCSS(context, output);
         }
@@ -95,13 +111,13 @@ class Declaration extends Node {
             e.filename = this._fileInfo.filename;
             throw e;
         }
-        output.add(this.important + ((this.options.inline || (context.lastRule && context.compress)) ? '' : ';'), this._fileInfo, this._index);
+        output.add(this.important + ((this.options.inline || (context.lastRule && compress)) ? '' : ';'), this._fileInfo, this._index);
     }
 
     eval(context) {
         let name = this.nodes[0],
             evaldValue,
-            variable = this.options.variable;
+            variable = this.options.isVariable;
 
         if (typeof name !== 'string') {
             // expand 'primitive' name directly to get
@@ -118,7 +134,7 @@ class Declaration extends Node {
             context.importantScope.push({});
             evaldValue = this.nodes[1].eval(context);
 
-            if (!this.options.variable && evaldValue.type === 'DetachedRuleset') {
+            if (!this.options.isVariable && evaldValue.type === 'DetachedRuleset') {
                 throw { message: 'Rulesets cannot be evaluated on a property.',
                     index: this.getIndex(), filename: this.fileInfo().filename };
             }
@@ -146,6 +162,7 @@ class Declaration extends Node {
 
     makeImportant() {
         this.nodes[2] = ' !important';
+        return this;
     }
 }
 

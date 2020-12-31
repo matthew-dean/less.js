@@ -1,5 +1,5 @@
 import Node from './node';
-import contexts from '../contexts';
+import { Context } from '../contexts';
 import * as utils from '../utils';
 
 /**
@@ -9,22 +9,24 @@ class DetachedRuleset extends Node {
     type: 'DetachedRuleset'
     frames: any[]
 
-    constructor(ruleset, frames) {
-        super(ruleset);
-        this.frames = frames;
-    }
-
     get ruleset() {
         return this.value;
     }
 
-    eval(context) {
-        const frames = this.frames || utils.copyArray(context.frames);
-        return new DetachedRuleset(this.ruleset, frames);
+    eval(context: Context) {
+        if (!this.evaluated) {
+            this.evaluated = true;
+            this.frames = utils.copyArray(context.frames);
+        }
+        return this;
     }
 
-    callEval(context) {
-        return this.ruleset.eval(this.frames ? new contexts.Eval(context, this.frames.concat(context.frames)) : context);
+    callEval(context: Context) {
+        return this.ruleset.eval(
+            this.frames
+                ? context.create(this.frames.concat(context.frames))
+                : context
+        );
     }
 }
 

@@ -1,4 +1,5 @@
-import Node, { IFileInfo, INodeOptions, NodeArgs } from './node';
+import Node, { IFileInfo, INodeOptions, NodeArgs, OutputCollector } from './node';
+import type { Context } from '../contexts';
 import List from './list'
 import Anonymous from './anonymous';
 import FunctionCaller from '../functions/function-caller';
@@ -60,7 +61,7 @@ class Call extends Node {
     // we try to pass a variable to a function, like: `saturate(@color)`.
     // The function should receive the value, not the variable.
     //
-    eval(context) {
+    eval(context: Context) {
         const isCalc = this.options.calc
         /**
          * Turn off math for calc(), and switch back on for evaluating nested functions
@@ -123,7 +124,7 @@ class Call extends Node {
         return new Call([this.name, args], this.options, this._location, this._fileInfo);
     }
 
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         const [name, args] = this.value
         output.add(`${name}(`, this.fileInfo(), this.getIndex());
         args.genCSS(context, output);

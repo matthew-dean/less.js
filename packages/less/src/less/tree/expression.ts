@@ -1,4 +1,9 @@
-import Node, { INodeOptions, isNodeArgs, NodeArgs } from './node';
+import Node, {
+    INodeOptions,
+    isNodeArgs,
+    NodeArgs,
+    OutputCollector
+} from './node';
 import List from './list';
 import Comment from './comment';
 import type { Context } from '../contexts'
@@ -93,7 +98,7 @@ class Expression extends Node {
         return this
     }
 
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         for (let i = 0; i < this.nodes.length; i++) {
             this.nodes[i].genCSS(context, output);
             if (!this.options.noSpacing && i + 1 < this.nodes.length) {

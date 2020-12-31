@@ -1,4 +1,5 @@
 import Node, { NodeArgs } from './node';
+import Bool from './bool';
 
 type V1Args = [
     op: string,
@@ -41,8 +42,8 @@ class Condition extends Node {
 
         const result = (function (op, a, b) {
             switch (op) {
-                case 'and': return a && b;
-                case 'or':  return a || b;
+                case 'and': return a.value && b.value;
+                case 'or':  return a.value || b.value;
                 default:
                     switch (Node.compare(a, b)) {
                         case -1:
@@ -57,7 +58,7 @@ class Condition extends Node {
             }
         })(op, a, b);
 
-        return this.options.negate ? !result : result;
+        return new Bool(this.options.negate ? !result : result);
     }
 }
 
