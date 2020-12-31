@@ -87,11 +87,15 @@ class Node {
     /** 
      * Usually, this is the same value as `nodes`,
      * but individual Nodes can override to point
-     * to a subset of `nodes`. This is done for
-     * legacy API reasons.
+     * to a subset of `nodes`. For instance, a Quoted
+     * node's value is the content between the quotes.
      */
     get value() {
         return this.nodes
+    }
+
+    set value(val: NodeValue) {
+        this.nodes = val
     }
 
     /**

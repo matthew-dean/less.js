@@ -1,40 +1,57 @@
-import Node from './node';
+import Node, { IFileInfo, NodeArgs } from './node';
+import Quoted from './quoted'
+import type { Context } from '../contexts'
 
 function escapePath(path) {
     return path.replace(/[\(\)'"\s]/g, function(match) { return `\\${match}`; });
 }
 
-const URL = function(val, index, currentFileInfo, isEvald) {
-    this.value = val;
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-    this.isEvald = isEvald;
-};
+type V1Args = [
+    value: Node,
+    index: number,
+    fileInfo: IFileInfo,
+    isEvald?: boolean
+]
 
-URL.prototype = Object.assign(new Node(), {
-    type: 'Url',
+export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
+    return typeof args[1] === 'number'
+}
 
-    accept(visitor) {
-        this.value = visitor.visit(this.value);
-    },
+class URL extends Node {
+    type: 'Url'
+    nodes: Node
 
-    genCSS(context, output) {
+    constructor(...args: NodeArgs | V1Args) {
+        if (isV1Args(args)) {
+            const [
+                value,
+                index,
+                fileInfo
+            ] = args
+            super(value, {}, index, fileInfo);
+            return;
+        }
+        super(...args);
+    }
+
+    genCSS(context: Context, output) {
         output.add('url(');
         this.value.genCSS(context, output);
         output.add(')');
-    },
+    }
 
-    eval(context) {
-        const val = this.value.eval(context);
-        let rootpath;
+    eval(context: Context) {
+        const val = this.nodes.eval(context);
+        let rootpath: string;
 
-        if (!this.isEvald) {
+        if (!this.evaluated) {
+            this.evaluated = true;
             // Add the rootpath if the URL requires a rewrite
             rootpath = this.fileInfo() && this.fileInfo().rootpath;
             if (typeof rootpath === 'string' &&
                 typeof val.value === 'string' &&
                 context.pathRequiresRewrite(val.value)) {
-                if (!val.quote) {
+                if (!(val instanceof Quoted)) {
                     rootpath = escapePath(rootpath);
                 }
                 val.value = context.rewritePath(val.value, rootpath);
@@ -43,10 +60,10 @@ URL.prototype = Object.assign(new Node(), {
             }
 
             // Add url args if enabled
-            if (context.urlArgs) {
+            if (context.options.urlArgs) {
                 if (!val.value.match(/^\s*data:/)) {
                     const delimiter = val.value.indexOf('?') === -1 ? '?' : '&';
-                    const urlArgs = delimiter + context.urlArgs;
+                    const urlArgs = delimiter + context.options.urlArgs;
                     if (val.value.indexOf('#') !== -1) {
                         val.value = val.value.replace('#', `${urlArgs}#`);
                     } else {
@@ -58,6 +75,8 @@ URL.prototype = Object.assign(new Node(), {
 
         return new URL(val, this.getIndex(), this.fileInfo(), true);
     }
-});
+}
+
+URL.prototype.type = 'Url';
 
 export default URL;

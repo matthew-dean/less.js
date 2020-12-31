@@ -12,7 +12,9 @@ import defaultFunc from '../functions/default';
 import getDebugInfo from './debug-info';
 import * as utils from '../utils';
 
-/** class */
+/**
+ * @todo Rewrite
+ */
 const Ruleset = function(selectors, rules, strictImports, visibilityInfo) {
     this.selectors = selectors;
     this.rules = rules;

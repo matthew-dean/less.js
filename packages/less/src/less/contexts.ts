@@ -9,8 +9,8 @@ const {
 const { LOCAL } = Constants.RewriteUrls
 
 const contexts: {
-    Parse?: Function
-    Eval?: Function
+    Parse?: new (...args) => void
+    Eval?: new (...args) => void
 } = {};
 
 const copyFromOriginal = function copyFromOriginal(original, destination, propertiesToCopy) {
@@ -45,11 +45,13 @@ const parseCopyProperties = [
     'pluginManager'     // Used as the plugin manager for the session
 ];
 
-contexts.Parse = function(options) {
-    copyFromOriginal(options, this, parseCopyProperties);
+contexts.Parse = class {
+    constructor(options) {
+        copyFromOriginal(options, this, parseCopyProperties);
 
-    if (typeof this.paths === 'string') { this.paths = [this.paths]; }
-};
+        if (typeof this.paths === 'string') { this.paths = [this.paths]; }
+    }
+}
 
 /** Eval context */
 class Context {
