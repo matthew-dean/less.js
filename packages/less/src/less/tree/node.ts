@@ -45,6 +45,15 @@ class Node {
      * within `nodes`, and the default `eval` func
      * does the same, recursively evaluating Node
      * values within `nodes`
+     * 
+     * @todo
+     * Many nodes need to be refactored to make better
+     * use of default methods. Specifically, Nodes should
+     * have values like:
+     *   nodes: 'string'         -- ok
+     *   nodes: Node             -- ok
+     *   nodes: ['string', Node] -- ok
+     *   nodes: [Node[]]         -- bad, too complex
      */
     nodes: NodeValue
 
@@ -74,6 +83,17 @@ class Node {
      * @deprecated
      */
     debugInfo: boolean
+
+    /**
+     * Currently, a @plugin node will get these props attached
+     * when evaluating?
+     * 
+     * @todo - remove @plugin and clean this up
+     */
+    imports: string[]
+    filename: string
+    functions: any[]
+
 
     constructor(
         nodes: NodeValue,
@@ -298,7 +318,7 @@ class Node {
         return 0;
     }
 
-    static numericCompare(a: number, b: number) {
+    static numericCompare(a: number | string, b: number | string) {
         return a  <  b ? -1
             : a === b ?  0
                 : a  >  b ?  1 : undefined;

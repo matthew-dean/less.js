@@ -1,30 +1,87 @@
-import Node from './node';
+import Node, { IFileInfo, ILocationInfo, INodeOptions, isNodeArgs, NodeArgs } from './node';
 import Selector from './selector';
+import List from './list';
+import Ruleset from './ruleset';
 import MixinDefinition from './mixin-definition';
 import defaultFunc from '../functions/default';
+import type { Context } from '../contexts';
+import type Visitor from '../visitors/visitor';
 
-const MixinCall = function(elements, args, index, currentFileInfo, important) {
-    this.selector = new Selector(elements);
-    this.arguments = args || [];
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-    this.important = important;
-    this.setParent(this.selector, this);
-};
+type V1Args = [
+    elements: Node[],
+    arguments: Node[],
+    index: number,
+    fileInfo: IFileInfo,
+    important: boolean
+];
 
-MixinCall.prototype = Object.assign(new Node(), {
-    type: 'MixinCall',
+type MixinArgs = [
+    value: [sel: Selector, args: List],
+    options: INodeOptions,
+    location?: ILocationInfo,
+    fileInfo?: IFileInfo
+];
 
-    accept(visitor) {
-        if (this.selector) {
-            this.selector = visitor.visit(this.selector);
+class MixinCall extends Node {
+    type: 'MixinCall';
+    nodes: [Selector, Node[]]
+    options: {
+        important: boolean
+    };
+    constructor(...callArgs: MixinArgs | V1Args) {
+        if (isNodeArgs(callArgs)) {
+            super(...callArgs);
+            return;
         }
-        if (this.arguments.length) {
-            this.arguments = visitor.visitArray(this.arguments);
-        }
-    },
+        const [
+            elements,
+            args,
+            index,
+            fileInfo,
+            important
+        ] = callArgs;
 
-    eval(context) {
+        super(
+            [
+                new Selector(elements),
+                args
+            ],
+            { important },
+            index,
+            fileInfo
+        );
+    }
+
+    get selector() {
+        return this.nodes[0]
+    }
+
+    get arguments() {
+        return this.nodes[1]
+    }
+
+    /** 
+     * @todo - Refactor call to be a list as second node
+     *         in order to remove this (inherit from Node)
+     */
+    accept(visitor: Visitor) {
+        const [selector, args] = this.nodes
+        if (selector) {
+            this.nodes[0] = <Selector>visitor.visit(selector);
+        }
+        if (args.length) {
+            this.nodes[1] = visitor.visitArray(args);
+        }
+    }
+
+    /**
+     * @todo
+     * This seems very complex and has a lot of loops
+     * and recursion. Can it be refactored / re-written?
+     * 
+     * At the least, break this up into testable utilities.
+     */
+    eval(context: Context) {
         let mixins;
         let mixin;
         let mixinPath;
@@ -33,9 +90,6 @@ MixinCall.prototype = Object.assign(new Node(), {
         let argValue;
         const rules = [];
         let match = false;
-        let i;
-        let m;
-        let f;
         let isRecursive;
         let isOneFound;
         const candidates = [];
@@ -50,15 +104,15 @@ MixinCall.prototype = Object.assign(new Node(), {
         let originalRuleset;
         let noArgumentsFilter;
 
-        this.selector = this.selector.eval(context);
+        this.nodes[0] = this.selector.eval(context);
 
         function calcDefGroup(mixin, mixinPath) {
-            let f, p, namespace;
+            let namespace;
 
-            for (f = 0; f < 2; f++) {
+            for (let f = 0; f < 2; f++) {
                 conditionResult[f] = true;
                 defaultFunc.value(f);
-                for (p = 0; p < mixinPath.length && conditionResult[f]; p++) {
+                for (let p = 0; p < mixinPath.length && conditionResult[f]; p++) {
                     namespace = mixinPath[p];
                     if (namespace.matchCondition) {
                         conditionResult[f] = conditionResult[f] && namespace.matchCondition(null, context);
@@ -79,12 +133,12 @@ MixinCall.prototype = Object.assign(new Node(), {
             return defFalseEitherCase;
         }
 
-        for (i = 0; i < this.arguments.length; i++) {
+        for (let i = 0; i < this.arguments.length; i++) {
             arg = this.arguments[i];
             argValue = arg.value.eval(context);
             if (arg.expand && Array.isArray(argValue.value)) {
                 argValue = argValue.value;
-                for (m = 0; m < argValue.length; m++) {
+                for (let m = 0; m < argValue.length; m++) {
                     args.push({value: argValue[m]});
                 }
             } else {
@@ -94,7 +148,7 @@ MixinCall.prototype = Object.assign(new Node(), {
 
         noArgumentsFilter = function(rule) {return rule.matchArgs(null, context);};
 
-        for (i = 0; i < context.frames.length; i++) {
+        for (let i = 0; i < context.frames.length; i++) {
             if ((mixins = context.frames[i].find(this.selector, null, noArgumentsFilter)).length > 0) {
                 isOneFound = true;
 
@@ -103,11 +157,11 @@ MixinCall.prototype = Object.assign(new Node(), {
                 // and build candidate list with corresponding flags. Then, when we know all possible matches,
                 // we make a final decision.
 
-                for (m = 0; m < mixins.length; m++) {
+                for (let m = 0; m < mixins.length; m++) {
                     mixin = mixins[m].rule;
                     mixinPath = mixins[m].path;
                     isRecursive = false;
-                    for (f = 0; f < context.frames.length; f++) {
+                    for (let f = 0; f < context.frames.length; f++) {
                         if ((!(mixin instanceof MixinDefinition)) && mixin === (context.frames[f].originalRuleset || context.frames[f])) {
                             isRecursive = true;
                             break;
@@ -131,7 +185,7 @@ MixinCall.prototype = Object.assign(new Node(), {
                 defaultFunc.reset();
 
                 count = [0, 0, 0];
-                for (m = 0; m < candidates.length; m++) {
+                for (let m = 0; m < candidates.length; m++) {
                     count[candidates[m].group]++;
                 }
 
@@ -146,17 +200,17 @@ MixinCall.prototype = Object.assign(new Node(), {
                     }
                 }
 
-                for (m = 0; m < candidates.length; m++) {
+                for (let m = 0; m < candidates.length; m++) {
                     candidate = candidates[m].group;
                     if ((candidate === defNone) || (candidate === defaultResult)) {
                         try {
                             mixin = candidates[m].mixin;
                             if (!(mixin instanceof MixinDefinition)) {
                                 originalRuleset = mixin.originalRuleset || mixin;
-                                mixin = new MixinDefinition('', [], mixin.rules, null, false, null, originalRuleset.visibilityInfo());
+                                mixin = new MixinDefinition('', [], mixin.rules, null, false).inherit(originalRuleset);
                                 mixin.originalRuleset = originalRuleset;
                             }
-                            const newRules = mixin.evalCall(context, args, this.important).rules;
+                            const newRules = mixin.evalCall(context, args, this.options.important).rules;
                             this._setVisibilityToReplacement(newRules);
                             Array.prototype.push.apply(rules, newRules);
                         } catch (e) {
@@ -166,7 +220,7 @@ MixinCall.prototype = Object.assign(new Node(), {
                 }
 
                 if (match) {
-                    return rules;
+                    return new Ruleset(null, rules).inherit(this);
                 }
             }
         }
@@ -179,7 +233,7 @@ MixinCall.prototype = Object.assign(new Node(), {
                 message: `${this.selector.toCSS().trim()} is undefined`,
                 index:   this.getIndex(), filename: this.fileInfo().filename };
         }
-    },
+    }
 
     _setVisibilityToReplacement(replacement) {
         let i, rule;
@@ -189,8 +243,9 @@ MixinCall.prototype = Object.assign(new Node(), {
                 rule.addVisibilityBlock();
             }
         }
-    },
+    }
 
+    /** @todo - rely on list formatting */
     format(args) {
         return `${this.selector.toCSS().trim()}(${args ? args.map(function (a) {
             let argValue = '';
@@ -200,12 +255,13 @@ MixinCall.prototype = Object.assign(new Node(), {
             if (a.value.toCSS) {
                 argValue += a.value.toCSS();
             } else {
+                /** @todo - document */
                 argValue += '???';
             }
             return argValue;
         }).join(', ') : ''})`;
     }
-});
+}
 
 MixinCall.prototype.allowRoot = true;
 

@@ -1,25 +1,23 @@
-import Node from './node';
+import Node, { OutputCollector } from './node';
 import Operation from './operation';
 import Dimension from './dimension';
+import type { Context } from '../contexts';
 
-const Negative = function(node) {
-    this.value = node;
-};
+class Negative extends Node {
+    type: 'Negative';
+    nodes: Node
 
-Negative.prototype = Object.assign(new Node(), {
-    type: 'Negative',
-
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         output.add('-');
-        this.value.genCSS(context, output);
-    },
+        this.nodes.genCSS(context, output);
+    };
 
-    eval(context) {
+    eval(context: Context) {
         if (context.isMathOn()) {
             return (new Operation('*', [new Dimension(-1), this.value])).eval(context);
         }
         return new Negative(this.value.eval(context));
     }
-});
+}
 
 export default Negative;

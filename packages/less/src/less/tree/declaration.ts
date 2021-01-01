@@ -27,12 +27,12 @@ function evalName(context, name) {
 type V1Args = [
     name: string | Node[],
     val: string | Node,
-    important: string,
-    merge: any,
-    index: number,
-    currentFileInfo: IFileInfo,
-    inline: boolean,
-    variable: boolean
+    important?: string,
+    merge?: any,
+    index?: number,
+    currentFileInfo?: IFileInfo,
+    inline?: boolean,
+    variable?: boolean
 ]
 
 type DeclarationOptions = {

@@ -15,7 +15,7 @@ import type Visitor from '../visitors/visitor';
 import type { Context } from '../contexts';
 
 type V1Args = [
-    selectors: Selector[] | null,
+    selectors: Selector[] | string | null,
     rules: Node[],
     strictImports?: boolean
 ]
@@ -28,11 +28,18 @@ export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
  * This currently represents a "Qualified Rule" in CSS.
  * 
  * @todo
- * Rewrite from bottom up, if possible.
+ * Split rules into a `Rules` node, so that the nodes
+ * array can have a flat Node array of
+ *   [List<Selector>, Rules]
+ * 
+ * @todo
+ * The paths should potentially be pulled out and just
+ * remain part of the visitor step.
+ * 
+ * After all todos, this `accept()` method can be removed
+ * (inherited from Node).
  */
 class Ruleset extends Node {
-    type: 'Ruleset'
-    nodes: [Selector[], Node[]]
     _lookups: Record<any, any>;
     _variables: Record<string, Node>;
     _properties: Record<string, Node[]>;
@@ -47,7 +54,7 @@ class Ruleset extends Node {
     allowImports: boolean;
 
     /** 
-     * @todo - Find out if this is necessary and why.
+     * @todo - Find out if this is necessary and document why.
      */
     originalRuleset: Node;
 
@@ -123,7 +130,7 @@ class Ruleset extends Node {
      * @todo
      * Can this eval() be simplified or split into multiple files?
      */
-    eval(context: Context) {
+    eval(context: Context): Ruleset {
         const that = this;
         let selectors;
         let selCnt;
@@ -243,7 +250,8 @@ class Ruleset extends Node {
                         // do not pollute the scope if the variable is
                         // already there. consider returning false here
                         // but we need a way to "return" variable from mixins
-                        return !(ruleset.variable(r.name));
+                        /** @note - can this be a Node at this time? */
+                        return !(ruleset.variable(<string>r.name));
                     }
                     return true;
                 });
@@ -325,7 +333,7 @@ class Ruleset extends Node {
         }
     }
 
-    makeImportant() {
+    makeImportant(): Node {
         const result = new Ruleset(
             [
                 this.selectors,
@@ -336,7 +344,7 @@ class Ruleset extends Node {
         return result;
     }
 
-    matchArgs(args) {
+    matchArgs(args, context?: Context) {
         return !args || args.length === 0;
     }
 
@@ -427,14 +435,14 @@ class Ruleset extends Node {
         return this._properties;
     }
 
-    variable(name) {
+    variable(name: string) {
         const decl = this.variables()[name];
         if (decl) {
             return this.parseValue(decl);
         }
     }
 
-    property(name) {
+    property(name: string) {
         const decl = this.properties()[name];
         if (decl) {
             return this.parseValue(decl);

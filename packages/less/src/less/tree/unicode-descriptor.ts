@@ -1,11 +1,13 @@
 import Node from './node';
 
-const UnicodeDescriptor = function(value) {
-    this.value = value;
-};
-
-UnicodeDescriptor.prototype = Object.assign(new Node(), {
+/**
+ * @todo
+ * Why is this needed? Is it important to distinguish from
+ * an Anonymous node?
+ */
+class UnicodeDescriptor extends Node {
     type: 'UnicodeDescriptor'
-});
+}
 
+UnicodeDescriptor.prototype.type = 'UnicodeDescriptor';
 export default UnicodeDescriptor;

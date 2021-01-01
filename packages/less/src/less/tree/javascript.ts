@@ -2,16 +2,33 @@ import JsEvalNode from './js-eval-node';
 import Dimension from './dimension';
 import Quoted from './quoted';
 import Anonymous from './anonymous';
+import { IFileInfo, INodeOptions } from './node';
 
-const JavaScript = function(string, escaped, index, currentFileInfo) {
-    this.escaped = escaped;
-    this.expression = string;
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-};
+/**
+ * @deprecated
+ */
+class JavaScript extends JsEvalNode {
+    type: 'JavaScript'
+    options: {
+        escaped: boolean
+    }
 
-JavaScript.prototype = Object.assign(new JsEvalNode(), {
-    type: 'JavaScript',
+    constructor(
+        str: string,
+        escaped: boolean | INodeOptions,
+        index: number,
+        fileInfo: IFileInfo
+    ) {
+        let options;
+        if (typeof escaped === 'boolean') {
+            options = { escaped };
+        }
+        super(str, options, index, fileInfo);
+    }
+
+    get expression() {
+        return this.nodes;
+    }
 
     eval(context) {
         const result = this.evaluateJavaScript(this.expression, context);
@@ -20,13 +37,14 @@ JavaScript.prototype = Object.assign(new JsEvalNode(), {
         if (type === 'number' && !isNaN(result)) {
             return new Dimension(result);
         } else if (type === 'string') {
-            return new Quoted(`"${result}"`, result, this.escaped, this._index);
+            return new Quoted(`"${result}"`, result, this.options.escaped, this._index);
         } else if (Array.isArray(result)) {
             return new Anonymous(result.join(', '));
         } else {
             return new Anonymous(result);
         }
     }
-});
+}
 
+JavaScript.prototype.type = 'JavaScript';
 export default JavaScript;

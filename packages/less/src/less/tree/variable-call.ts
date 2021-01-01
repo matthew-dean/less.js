@@ -1,19 +1,37 @@
-import Node from './node';
+import Node, { IFileInfo, isNodeArgs, NodeArgs } from './node';
 import Variable from './variable';
 import Ruleset from './ruleset';
 import DetachedRuleset from './detached-ruleset';
 import LessError from '../less-error';
+import type { Context } from '../contexts';
 
-const VariableCall = function(variable, index, currentFileInfo) {
-    this.variable = variable;
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-};
+type V1Args = [
+    variable: string,
+    index: number,
+    fileInfo: IFileInfo
+];
 
-VariableCall.prototype = Object.assign(new Node(), {
-    type: 'VariableCall',
+class VariableCall extends Node {
+    type: 'VariableCall'
 
-    eval(context) {
+    constructor(...args: NodeArgs | V1Args) {
+        if (isNodeArgs(args)) {
+            super(...args);
+            return;
+        }
+        const [
+            variable,
+            index,
+            fileInfo
+        ] = args;
+        super(variable, {}, index, fileInfo);
+    }
+
+    get variable() {
+        return this.nodes;
+    }
+
+    eval(context: Context) {
         let rules;
         let detachedRuleset = new Variable(this.variable, this.getIndex(), this.fileInfo()).eval(context);
         const error = new LessError({message: `Could not evaluate variable call ${this.variable}`});
@@ -39,8 +57,9 @@ VariableCall.prototype = Object.assign(new Node(), {
         }
         throw error;
     }
-});
+}
 
+VariableCall.prototype.type = 'VariableCall';
 VariableCall.prototype.allowRoot = true;
 
 export default VariableCall;

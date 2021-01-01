@@ -1656,7 +1656,13 @@ const Parser = function Parser(context, imports, fileInfo) {
                             if (i === value.length - 1) {
                                 item = item.trim();
                             }
-                            // Treat like quoted values, but replace vars like unquoted expressions
+                            /** 
+                             * Treat like quoted values, but replace vars like unquoted expressions
+                             * 
+                             * @note
+                             * Is this a good idea? Is it possible a custom property will have
+                             * at-names that aren't meant to be variables?
+                             */
                             const quote = new tree.Quoted('\'', item, true, index, fileInfo);
                             quote.variableRegex = /@([\w-]+)/g;
                             quote.propRegex = /\$([\w-]+)/g;

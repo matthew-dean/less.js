@@ -1,48 +1,92 @@
-import Node from './node';
+import Node, { IFileInfo, NodeArgs, isNodeArgs, OutputCollector } from './node';
 import Variable from './variable';
 import Property from './property';
+import type { Context } from '../contexts';
 
+type V1Args = [
+    quote: string,
+    content: string, // contents of the string (between quote marks)
+    escaped?: boolean,
+    index?: number,
+    fileInfo?: IFileInfo
+];
 
-const Quoted = function(str, content, escaped, index, currentFileInfo) {
-    this.escaped = (escaped == null) ? true : escaped;
-    this.value = content || '';
-    this.quote = str.charAt(0);
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-    this.variableRegex = /@\{([\w-]+)\}/g;
-    this.propRegex = /\$\{([\w-]+)\}/g;
-    this.allowRoot = escaped;
-};
+class Quoted extends Node {
+    type: 'Quoted';
+    variableRegex: RegExp;
+    propRegex: RegExp;
 
-Quoted.prototype = Object.assign(new Node(), {
-    type: 'Quoted',
+    options: {
+        quote: string;
+        escaped: boolean;
+    };
+    nodes: string;
 
-    genCSS(context, output) {
-        if (!this.escaped) {
-            output.add(this.quote, this.fileInfo(), this.getIndex());
+    constructor(...args: NodeArgs | V1Args) {
+        if (isNodeArgs(args)) {
+            const [
+                value,
+                options,
+                location,
+                fileInfo
+            ] = args;
+            super(value, options, location, fileInfo);
+            this.allowRoot = <boolean>(options.escaped);
+            return;
+        }
+        let [
+            quote,
+            content,
+            escaped,
+            index,
+            fileInfo
+        ] = args;
+
+        escaped = !!escaped;
+        super(
+            content,
+            { escaped, quote },
+            index,
+            fileInfo
+        );
+        this.allowRoot = escaped;
+    }
+
+    get value() {
+        return this.nodes
+    }
+
+    genCSS(context: Context, output: OutputCollector) {
+        const { quote, escaped } = this.options;
+        if (!escaped) {
+            output.add(quote, this.fileInfo(), this.getIndex());
         }
         output.add(this.value);
-        if (!this.escaped) {
-            output.add(this.quote);
+        if (!escaped) {
+            output.add(quote);
         }
-    },
+    }
 
     containsVariables() {
         return this.value.match(this.variableRegex);
-    },
+    }
 
-    eval(context) {
-        const that = this;
+    eval(context: Context) {
         let value = this.value;
-        const variableReplacement = function (_, name) {
-            const v = new Variable(`@${name}`, that.getIndex(), that.fileInfo()).eval(context, true);
+        const { quote, escaped } = this.options;
+        const variableReplacement = (_, name) => {
+            const v = new Variable(`@${name}`, this.getIndex(), this.fileInfo()).eval(context);
             return (v instanceof Quoted) ? v.value : v.toCSS();
         };
-        const propertyReplacement = function (_, name) {
-            const v = new Property(`$${name}`, that.getIndex(), that.fileInfo()).eval(context, true);
+        const propertyReplacement = (_, name) => {
+            const v = new Property(`$${name}`, this.getIndex(), this.fileInfo()).eval(context);
             return (v instanceof Quoted) ? v.value : v.toCSS();
         };
-        function iterativeReplace(value, regexp, replacementFnc) {
+        function iterativeReplace(
+            value: string,
+            regexp: RegExp,
+            replacementFnc: (substring: string, ...args: any[]) => string
+        ) {
             let evaluatedValue = value;
             do {
                 value = evaluatedValue.toString();
@@ -52,17 +96,30 @@ Quoted.prototype = Object.assign(new Node(), {
         }
         value = iterativeReplace(value, this.variableRegex, variableReplacement);
         value = iterativeReplace(value, this.propRegex, propertyReplacement);
-        return new Quoted(this.quote + value + this.quote, value, this.escaped, this.getIndex(), this.fileInfo());
-    },
+        return new Quoted(value, { quote, escaped }, this.getIndex(), this.fileInfo());
+    }
 
-    compare(other) {
+    compare(other: Node) {
         // when comparing quoted strings allow the quote to differ
-        if (other.type === 'Quoted' && !this.escaped && !other.escaped) {
+        if (other instanceof Quoted && !this.options.escaped && !other.options.escaped) {
             return Node.numericCompare(this.value, other.value);
         } else {
             return other.toCSS && this.toCSS() === other.toCSS() ? 0 : undefined;
         }
     }
-});
+}
+
+/**
+ * @todo
+ * Is there a way to use context-sensitive parsing to
+ * parse interpolated vars / props / expressions within
+ * a quote?
+ * 
+ * @note
+ * These props are over-ridden in the historical parser
+ */
+Quoted.prototype.variableRegex = /@\{([\w-]+)\}/g;
+Quoted.prototype.propRegex = /\$\{([\w-]+)\}/g;
+Quoted.prototype.type = 'Quoted';
 
 export default Quoted;

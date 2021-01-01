@@ -1,15 +1,17 @@
 import Node from './node';
 import Variable from './variable';
+import type { Context } from '../contexts';
 
-const JsEvalNode = function() {};
-
-JsEvalNode.prototype = Object.assign(new Node(), {
-    evaluateJavaScript(expression, context) {
+/**
+ * @deprecated
+ */
+class JsEvalNode extends Node {
+    evaluateJavaScript(expression, context: Context) {
         let result;
         const that = this;
         const evalContext = {};
 
-        if (!context.javascriptEnabled) {
+        if (!context.options.javascriptEnabled) {
             throw { message: 'Inline JavaScript is not enabled. Is it set in your options?',
                 filename: this.fileInfo().filename,
                 index: this.getIndex() };
@@ -48,7 +50,7 @@ JsEvalNode.prototype = Object.assign(new Node(), {
                 index: this.getIndex() };
         }
         return result;
-    },
+    }
 
     jsify(obj) {
         if (Array.isArray(obj.value) && (obj.value.length > 1)) {
@@ -57,6 +59,6 @@ JsEvalNode.prototype = Object.assign(new Node(), {
             return obj.toCSS();
         }
     }
-});
+}
 
 export default JsEvalNode;

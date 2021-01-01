@@ -8,6 +8,24 @@ type V1Args = [
     fileInfo: IFileInfo
 ]
 
+/**
+ * @todo:
+ * Refactor this and extend so that `Extend`
+ * receives the preceding selector during parsing.
+ *   i.e.
+ *   This code: `.a:extend(.b)`
+ *     should result in:
+ *       <Extend { nodes: [.a, .b] }>
+ *   Instead of:
+ *       <Selector { nodes: [.a, [<Extend .b>]}>
+ * 
+ * Doing it the first way would make it much easier to
+ * evaluate and is actually more logical to the expression,
+ * which is that :extend is receiving the selector prior
+ * to it.
+ * 
+ * @todo - remove extendList from Selector
+ */
 class Extend extends Node {
     type: 'Extend'
     nodes: Node

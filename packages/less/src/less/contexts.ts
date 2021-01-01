@@ -176,7 +176,7 @@ class Context {
         this.parensStack.pop();
     }
 
-    isMathOn(op: string) {
+    isMathOn(op?: string) {
         if (!this.mathOn) {
             return false;
         }

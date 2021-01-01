@@ -187,10 +187,11 @@ class Import extends Node {
                     e.message = 'Plugin error during evaluation';
                     throw new LessError(e, root.imports, root.filename);
                 }
-            }
-            registry = context.frames[0] && context.frames[0].functionRegistry;
-            if (registry && this.root && this.root.functions) {
-                registry.addMultiple( this.root.functions );
+            
+                registry = context.frames[0] && context.frames[0].functionRegistry;
+                if (registry && root.functions) {
+                    registry.addMultiple(root.functions);
+                }
             }
 
             return [];
@@ -218,7 +219,7 @@ class Import extends Node {
                 throw this.error;
             }
             return newImport;
-        } else if (this.root) {
+        } else if (this.root && this.root instanceof Ruleset) {
             ruleset = new Ruleset(null, utils.copyArray(this.root.rules));
             ruleset.evalImports(context);
 

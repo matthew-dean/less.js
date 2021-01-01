@@ -1,59 +1,153 @@
 import Selector from './selector';
-import Element from './element';
 import Ruleset from './ruleset';
 import Declaration from './declaration';
 import DetachedRuleset from './detached-ruleset';
 import Expression from './expression';
-import contexts from '../contexts';
 import * as utils from '../utils';
+import Node, { NodeArgs } from './node';
+import type { Context } from '../contexts';
+import type Visitor from '../visitors/visitor';
 
-const Definition = function(name, params, rules, condition, variadic, frames, visibilityInfo) {
-    this.name = name || 'anonymous mixin';
-    this.selectors = [new Selector([new Element(null, name, false, this._index, this._fileInfo)])];
-    this.params = params;
-    this.condition = condition;
-    this.variadic = variadic;
-    this.arity = params.length;
-    this.rules = rules;
-    this._lookups = {};
-    const optionalParameters = [];
-    this.required = params.reduce(function (count, p) {
-        if (!p.name || (p.name && !p.value)) {
-            return count + 1;
-        }
-        else {
-            optionalParameters.push(p.name);
-            return count;
-        }
-    }, 0);
-    this.optionalParameters = optionalParameters;
-    this.frames = frames;
-    this.copyVisibilityInfo(visibilityInfo);
+/**
+ * @todo - This seems like a strange one-off,
+ *         but this seems to be the type according
+ *         to the historical parser.
+ * 
+ *         Refactor into a proper Node?
+ */
+export type MixinDefinitionArg = {
+    name: string;
+    value: Node;
+    expand?: boolean;
+    variadic?: boolean;
+}
+
+type V1Args = [
+    name: string,
+    params: MixinDefinitionArg[] | undefined,
+    rules: Node[],
+    condition: Node | undefined,
+    variadic: boolean
+];
+
+const isNodeArgs = (args: V1Args | NodeArgs): args is NodeArgs => {
+    return !(Array.isArray(args[2])) && Array.isArray(args[0])
 };
+/**
+ * A mixin definition
+ */
+class Definition extends Ruleset {
+    type: 'MixinDefinition';
+    required: number;
+    arity: number;
+    optionalParameters: string[];
+    frames: Ruleset[];
+    options: {
+        variadic: boolean;
+    }
+    nodes: [
+        name: string,
+        rules: Node[],
+        params: MixinDefinitionArg[],
+        condition: Node
+    ]
 
-Definition.prototype = Object.assign(new Ruleset(), {
-    type: 'MixinDefinition',
-    evalFirst: true,
+    constructor(...args: NodeArgs | V1Args) {
+        let [
+            name,
+            params,
+            rules,
+            condition,
+            variadic
+        ] = args;
+        
+        let options;
+        let location;
+        let fileInfo;
 
-    accept(visitor) {
+        if (isNodeArgs(args)) {
+            options = params;
+            location = rules;
+            fileInfo = condition;
+            name = name[0];
+            params = name[1];
+            rules = name[2];
+            condition = name[3];
+        } else {
+            options = { variadic };
+        }
+
+        name = name || 'anonymous mixin';
+
+        super(
+            [
+                name,   // In base Ruleset, this would be selectors
+                rules,  // Aligns with base Ruleset order
+                params,
+                condition
+            ],
+            options,
+            location,
+            fileInfo
+        );
+
+        this.selectors = Selector.createEmptySelectors(0, fileInfo);
+        this.arity = params ? (<MixinDefinitionArg[]>params).length : 0;
+        this._lookups = {};
+
+        /**
+         * @todo - refactor
+         */
+        const optionalParameters = [];
+        this.required = (<MixinDefinitionArg[]>params).reduce(function (count, p) {
+            if (!p.name || (p.name && !p.value)) {
+                return count + 1;
+            }
+            else {
+                optionalParameters.push(p.name);
+                return count;
+            }
+        }, 0);
+        this.optionalParameters = optionalParameters;
+    }
+
+    get name() {
+        return this.nodes[0];
+    }
+    get params() {
+        return this.nodes[2];
+    }
+    get condition() {
+        return this.nodes[3]
+    }
+
+    accept(visitor: Visitor) {
+        /**
+         * Upon investigation, params aren't actually nodes?
+         */
         if (this.params && this.params.length) {
-            this.params = visitor.visitArray(this.params);
+            this.nodes[2] = this.params.map(
+                ({ name, value, expand }) => {
+                    return {
+                        name,
+                        value: visitor.visit(value),
+                        expand
+                    }
+                });
         }
         this.rules = visitor.visitArray(this.rules);
         if (this.condition) {
-            this.condition = visitor.visit(this.condition);
+            this.nodes[3] = visitor.visit(this.condition);
         }
-    },
+    }
 
-    evalParams(context, mixinEnv, args, evaldArguments) {
+    evalParams(context: Context, mixinEnv: Context, args, evaldArguments) {
         /* jshint boss:true */
         const frame = new Ruleset(null, null);
 
         let varargs;
         let arg;
         const params = utils.copyArray(this.params);
-        let i;
-        let j;
         let val;
         let name;
         let isNamedFound;
@@ -69,11 +163,11 @@ Definition.prototype = Object.assign(new Ruleset(), {
             args = utils.copyArray(args);
             argsLength = args.length;
 
-            for (i = 0; i < argsLength; i++) {
+            for (let i = 0; i < argsLength; i++) {
                 arg = args[i];
                 if (name = (arg && arg.name)) {
                     isNamedFound = false;
-                    for (j = 0; j < params.length; j++) {
+                    for (let j = 0; j < params.length; j++) {
                         if (!evaldArguments[j] && name === params[j].name) {
                             evaldArguments[j] = arg.value.eval(context);
                             frame.prependRule(new Declaration(name, arg.value.eval(context)));
@@ -92,7 +186,7 @@ Definition.prototype = Object.assign(new Ruleset(), {
             }
         }
         argIndex = 0;
-        for (i = 0; i < params.length; i++) {
+        for (let i = 0; i < params.length; i++) {
             if (evaldArguments[i]) { continue; }
 
             arg = args && args[argIndex];
@@ -100,7 +194,7 @@ Definition.prototype = Object.assign(new Ruleset(), {
             if (name = params[i].name) {
                 if (params[i].variadic) {
                     varargs = [];
-                    for (j = argIndex; j < argsLength; j++) {
+                    for (let j = argIndex; j < argsLength; j++) {
                         varargs.push(args[j].value.eval(context));
                     }
                     frame.prependRule(new Declaration(name, new Expression(varargs).eval(context)));
@@ -127,7 +221,7 @@ Definition.prototype = Object.assign(new Ruleset(), {
             }
 
             if (params[i].variadic && args) {
-                for (j = argIndex; j < argsLength; j++) {
+                for (let j = argIndex; j < argsLength; j++) {
                     evaldArguments[j] = args[j].value.eval(context);
                 }
             }
@@ -135,25 +229,28 @@ Definition.prototype = Object.assign(new Ruleset(), {
         }
 
         return frame;
-    },
+    }
 
     makeImportant() {
         const rules = !this.rules ? this.rules : this.rules.map(function (r) {
             if (r.makeImportant) {
-                return r.makeImportant(true);
+                return r.makeImportant();
             } else {
                 return r;
             }
         });
-        const result = new Definition(this.name, this.params, rules, this.condition, this.variadic, this.frames);
+        const result = this.clone()
+        result.rules = rules;
         return result;
-    },
+    }
 
-    eval(context) {
-        return new Definition(this.name, this.params, this.rules, this.condition, this.variadic, this.frames || utils.copyArray(context.frames));
-    },
+    eval(context: Context) {
+        const result = this.clone();
+        result.frames = utils.copyArray(context.frames);
+        return result;
+    }
 
-    evalCall(context, args, important) {
+    evalCall(context: Context, args, important) {
         const _arguments = [];
         const mixinFrames = this.frames ? this.frames.concat(context.frames) : context.frames;
         const frame = this.evalParams(context, context.create(mixinFrames), args, _arguments);
@@ -166,12 +263,13 @@ Definition.prototype = Object.assign(new Ruleset(), {
 
         ruleset = new Ruleset(null, rules);
         ruleset.originalRuleset = this;
-        ruleset = ruleset.eval(context.create([this, frame].concat(mixinFrames)));
+         // was [this, frame], but frames should be rulesets?
+        ruleset = ruleset.eval(context.create([frame].concat(mixinFrames)));
         if (important) {
             ruleset = ruleset.makeImportant();
         }
         return ruleset;
-    },
+    }
 
     matchCondition(args, context) {
         if (this.condition && !this.condition.eval(
@@ -184,9 +282,9 @@ Definition.prototype = Object.assign(new Ruleset(), {
             return false;
         }
         return true;
-    },
+    }
 
-    matchArgs(args, context) {
+    matchArgs(args: MixinDefinitionArg[], context: Context) {
         const allArgsCnt = (args && args.length) || 0;
         let len;
         const optionalParameters = this.optionalParameters;
@@ -198,7 +296,7 @@ Definition.prototype = Object.assign(new Ruleset(), {
             }
         }, 0);
 
-        if (!this.variadic) {
+        if (!this.options.variadic) {
             if (requiredArgsCnt < this.required) {
                 return false;
             }
@@ -223,8 +321,9 @@ Definition.prototype = Object.assign(new Ruleset(), {
         }
         return true;
     }
-});
+}
 
+Definition.prototype.evalFirst = true;
 Definition.prototype.allowRoot = true;
 
 export default Definition;

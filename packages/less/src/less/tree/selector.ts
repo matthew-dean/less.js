@@ -1,7 +1,8 @@
-import Node, { IFileInfo, NodeArgs, isNodeArgs } from './node';
+import Node, { IFileInfo, NodeArgs, isNodeArgs, OutputCollector } from './node';
 import Element from './element';
 import LessError from '../less-error';
 import type Visitor from '../visitors/visitor';
+import type { Context } from '../contexts';
 
 type V1Args = [
     elements: Node[],
@@ -60,22 +61,7 @@ class Selector extends Node {
     get elements() {
         return this.nodes[0];
     }
-    /**
-     * @todo:
-     * Refactor this and extend so that `Extend`
-     * receives this selector during parsing.
-     *   i.e.
-     *   This code: `.a:extend(.b)`
-     *     should result in:
-     *       <Extend { nodes: [.a, .b] }>
-     *   Instead of:
-     *       <Selector { nodes: [.a, [<Extend .b>]}>
-     * 
-     * Doing it the first way would make it much easier to
-     * evaluate and is actually more logical to the expression,
-     * which is that :extend is receiving the selector prior
-     * to it.
-     */
+
     get extendList() {
         return this.nodes[1];
     }
@@ -184,7 +170,7 @@ class Selector extends Node {
             (this.elements[0].combinator.value === ' ' || this.elements[0].combinator.value === '');
     }
 
-    eval(context) {
+    eval(context: Context) {
         const evaldCondition = this.condition && this.condition.eval(context);
         let elements = this.elements;
         let extendList = this.extendList;
@@ -195,7 +181,7 @@ class Selector extends Node {
         return this.createDerived(elements, extendList, evaldCondition);
     }
 
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         let i, element;
         if ((!context || !context.firstSelector) && this.elements[0].combinator.value === '') {
             output.add(' ', this.fileInfo(), this.getIndex());

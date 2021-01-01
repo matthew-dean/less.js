@@ -3,8 +3,8 @@ import Call from './call';
 
 type V1Args = [
     name: string,
-    index: number,
-    currentFileInfo: IFileInfo
+    index?: number,
+    currentFileInfo?: IFileInfo
 ]
 
 class Variable extends Node {

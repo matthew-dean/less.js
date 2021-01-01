@@ -11,7 +11,7 @@ type V1Args = [
     fileInfo?: IFileInfo
 ];
 
-export const isNodeArgs = (args: V1Args | NodeArgs): args is NodeArgs => {
+const isNodeArgs = (args: V1Args | NodeArgs): args is NodeArgs => {
     return Array.isArray(args[0]);
 };
 
