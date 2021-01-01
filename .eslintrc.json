@@ -13,7 +13,8 @@
     "rules": {
         "semi": ["error", "always"],
         "no-eval": 2,
-        "no-use-before-define": [
+        "no-use-before-define": "off",
+        "@typescript-eslint/no-use-before-define": [
             2,
             {
                 "functions": false
