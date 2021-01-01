@@ -106,7 +106,7 @@ class Dimension extends Node {
             }
         } else {
             const unit = this.nodes[1];
-            const result = operate(op, this.nodes[0], other[0].value);
+            const result = operate(op, this.nodes[0], other.value);
             return new Dimension([result, unit], {}).inherit(this);
         }
     }

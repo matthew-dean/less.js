@@ -66,8 +66,8 @@ class Definition extends Ruleset {
             location = rules;
             fileInfo = condition;
             name = name[0];
-            params = name[1];
-            rules = name[2];
+            rules = name[1];
+            params = name[2];
             condition = name[3];
         } else {
             options = { variadic };

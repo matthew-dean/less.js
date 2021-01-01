@@ -89,13 +89,17 @@ class Declaration extends Node {
     get name() {
         return this.nodes[0];
     }
-
     get value() {
         return this.nodes[1];
     }
-
+    set value(n: Node) {
+        this.nodes[1] = n;
+    }
     get important() {
         return this.nodes[2];
+    }
+    set important(str: string) {
+        this.nodes[2] = str;
     }
 
     genCSS(context: Context, output: OutputCollector) {

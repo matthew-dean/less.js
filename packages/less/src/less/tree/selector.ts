@@ -87,17 +87,17 @@ class Selector extends Node {
 
     createDerived(elements, extendList, evaldCondition) {
         elements = this.getElements(elements);
-        const newSelector = new Selector([elements, extendList || this.extendList]).inherit(this);
+        const newSelector = new Selector(elements, extendList || this.extendList).inherit(this);
         newSelector.evaldCondition = (evaldCondition != null) ? evaldCondition : this.evaldCondition;
         newSelector.mediaEmpty = this.mediaEmpty;
         return newSelector;
     }
 
-    getElements(els: Node[] | string): Element[] {
+    getElements(els: Element[] | string): Element[] {
         if (!els) {
             return [new Element('', '&', false, this._index, this._fileInfo)];
         }
-        let result: Element[]
+        let result: Element[];
         if (typeof els === 'string') {
             this.parse.parseNode(
                 els, 
@@ -113,6 +113,8 @@ class Selector extends Node {
                     }
                     result = result[0].elements;
                 });
+        } else {
+            result = els;
         }
         return result;
     }

@@ -15,13 +15,13 @@ type V1Args = [
 //
 class Color extends Node {
     type: 'Color'
-    nodes: [rgb: number[], alpha: number, originalValue: string]
+    nodes: [rgb: number[], alpha: number, strValue: string]
 
     constructor(...args: NodeArgs | V1Args) {
         let [
             rgb,
             alpha,
-            originalValue,
+            strValue,
             fileInfo
         ] = args;
 
@@ -32,10 +32,10 @@ class Color extends Node {
             /** The first arg is the entire value */
             rgb = rgb[0];
             alpha = rgb[1];
-            originalValue = rgb[2];
+            strValue = rgb[2];
 
             options = alpha;
-            location = originalValue;
+            location = strValue;
         } else {
             fileInfo = undefined;
         }
@@ -70,8 +70,8 @@ class Color extends Node {
             });
         }
         alpha = alpha || (typeof alpha === 'number' ? alpha : 1);
-        if (originalValue !== undefined) {
-            value = originalValue;
+        if (strValue !== undefined) {
+            value = strValue;
         }
         super([rgbArray, alpha, value], options, location, fileInfo);
     }
@@ -86,6 +86,9 @@ class Color extends Node {
 
     get value() {
         return this.nodes[2];
+    }
+    set value(str: string) {
+        this.nodes[2] = str;
     }
 
     luma() {
@@ -269,7 +272,7 @@ class Color extends Node {
     }
 
     static fromKeyword(keyword) {
-        let c;
+        let c: Color;
         const key = keyword.toLowerCase();
         if (colors.hasOwnProperty(key)) {
             c = new Color(colors[key].slice(1));

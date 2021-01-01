@@ -1,6 +1,7 @@
 import LessError from './less-error';
 import transformTree from './transform-tree';
 import logger from './logger';
+import contexts from './contexts';
 
 export default function(SourceMapBuilder) {
     class ParseTree {
@@ -34,9 +35,13 @@ export default function(SourceMapBuilder) {
 
                 if (options.sourceMap) {
                     sourceMapBuilder = new SourceMapBuilder(options.sourceMap);
-                    result.css = sourceMapBuilder.toCSS(evaldRoot, toCSSOptions, this.imports);
+                    result.css = sourceMapBuilder.toCSS(evaldRoot, {
+                        options: toCSSOptions
+                    }, this.imports);
                 } else {
-                    result.css = evaldRoot.toCSS(toCSSOptions);
+                    result.css = evaldRoot.toCSS({
+                        options: toCSSOptions
+                    });
                 }
             } catch (e) {
                 throw new LessError(e, this.imports);

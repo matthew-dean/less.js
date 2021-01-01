@@ -54,6 +54,9 @@ class Quoted extends Node {
     get value() {
         return this.nodes
     }
+    set value(str: string) {
+        this.nodes = str;
+    }
 
     genCSS(context: Context, output: OutputCollector) {
         const { quote, escaped } = this.options;
