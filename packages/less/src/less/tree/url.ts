@@ -1,6 +1,6 @@
 import Node, { IFileInfo, NodeArgs } from './node';
-import Quoted from './quoted'
-import type { Context } from '../contexts'
+import Quoted from './quoted';
+import type { Context } from '../contexts';
 
 function escapePath(path) {
     return path.replace(/[\(\)'"\s]/g, function(match) { return `\\${match}`; });
@@ -14,8 +14,8 @@ type V1Args = [
 ]
 
 export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
-    return typeof args[1] === 'number'
-}
+    return typeof args[1] === 'number';
+};
 
 class URL extends Node {
     type: 'Url'
@@ -27,7 +27,7 @@ class URL extends Node {
                 value,
                 index,
                 fileInfo
-            ] = args
+            ] = args;
             super(value, {}, index, fileInfo);
             return;
         }

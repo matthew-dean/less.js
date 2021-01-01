@@ -15,8 +15,8 @@ class Anonymous extends Node {
 
     constructor(...args: V1Args | NodeArgs) {
         if (args[1] && typeof args[1] !== 'number') {
-            super(...(<NodeArgs>args))
-            return
+            super(...(<NodeArgs>args));
+            return;
         }
         const [
             value,
@@ -24,7 +24,7 @@ class Anonymous extends Node {
             currentFileInfo,
             mapLines,
             isRulesetLike
-        ] = <V1Args>args
+        ] = <V1Args>args;
 
         super(
             value,
@@ -34,7 +34,7 @@ class Anonymous extends Node {
             },
             index,
             currentFileInfo
-        )
+        );
     }
 
     eval() {

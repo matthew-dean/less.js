@@ -18,7 +18,7 @@ type V1Args = [
 
 export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
     return Array.isArray(args[1]);
-}
+};
 
 /**
  * @todo - Can this be refactored to re-use code from `AtRule`?
@@ -33,7 +33,7 @@ class Media extends AtRule {
                 options,
                 location,
                 fileInfo
-            ] = args
+            ] = args;
             if (nodes.length === 2) {
                 nodes.unshift('@media');
             }
@@ -46,7 +46,7 @@ class Media extends AtRule {
             features,
             index,
             fileInfo
-        ] = args
+        ] = args;
 
         const selectors = Selector.createEmptySelectors(index, fileInfo);
         const featureList = new List(features);

@@ -9,7 +9,7 @@ class Unit extends Node {
     type: 'Unit'
 
     constructor(numerator: string[]) {
-        super(numerator[0])
+        super(numerator[0]);
     }
 }
 

@@ -6,7 +6,7 @@ import Node, {
 } from './node';
 import List from './list';
 import Comment from './comment';
-import type { Context } from '../contexts'
+import type { Context } from '../contexts';
 import * as Constants from '../constants';
 const MATH = Constants.Math;
 
@@ -24,9 +24,9 @@ class Expression extends Node {
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
             super(...args);
-            return
+            return;
         }
-        const [value, noSpacing] = args
+        const [value, noSpacing] = args;
 
         if (!value) {
             throw new Error('Expression requires an array parameter');
@@ -42,60 +42,60 @@ class Expression extends Node {
      */
     eval(context: Context): Expression | List | Node {
         if (!this.evaluated) {
-            super.eval(context)
+            super.eval(context);
 
-            const expressions: Expression[] = []
+            const expressions: Expression[] = [];
 
             const processNodes = (expr: Node) => {
-                let nodes = expr.nodes
-                let nodesLength = nodes.length
+                let nodes = expr.nodes;
+                let nodesLength = nodes.length;
                 for (let i = 0; i < nodesLength; i++) {
-                    const node = nodes[i]
+                    const node = nodes[i];
                     if (node instanceof List) {
                         node.nodes.forEach((listItem: Node) => {
                             const newNodes: Node[] = nodes.map((n: Node, x) => {
                                 if (x === i) {
-                                    return
+                                    return;
                                 }
-                                return n.clone()
-                            })
-                            newNodes[i] = listItem.clone()
-                            expressions.push(new Expression(newNodes))
-                        })
+                                return n.clone();
+                            });
+                            newNodes[i] = listItem.clone();
+                            expressions.push(new Expression(newNodes));
+                        });
                         expressions.forEach(expr => {
-                            processNodes(expr)
-                        })
-                        break
+                            processNodes(expr);
+                        });
+                        break;
                     } else if (node instanceof Expression) {
                         /** Flatten sub-expressions */
-                        const exprNodes = node.nodes
-                        const exprNodesLength = exprNodes.length
+                        const exprNodes = node.nodes;
+                        const exprNodesLength = exprNodes.length;
                         nodes = nodes
                             .splice(0, i)
                             .concat(exprNodes)
-                            .concat(nodes.splice(i + 1))
-                        expr.nodes = nodes
-                        nodesLength += exprNodesLength
-                        i += exprNodesLength
-                        processNodes(node)
+                            .concat(nodes.splice(i + 1));
+                        expr.nodes = nodes;
+                        nodesLength += exprNodesLength;
+                        i += exprNodesLength;
+                        processNodes(node);
                     }
                 }
-            }
+            };
 
-            processNodes(this)
+            processNodes(this);
 
-            const numExpressions = expressions.length
+            const numExpressions = expressions.length;
 
-            this.evaluated = true
+            this.evaluated = true;
             if (numExpressions === 0) {
-                return this
+                return this;
             } else if (numExpressions === 1) {
-                return expressions[0].inherit(this)
+                return expressions[0].inherit(this);
             } else {
-                return new List(expressions).inherit(this)
+                return new List(expressions).inherit(this);
             }
         }
-        return this
+        return this;
     }
 
     genCSS(context: Context, output: OutputCollector) {

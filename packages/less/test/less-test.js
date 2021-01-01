@@ -24,7 +24,7 @@ module.exports = function() {
     if (typeof String.prototype.endsWith !== 'function') {
         String.prototype.endsWith = function (str) {
             return this.slice(-str.length) === str;
-        }
+        };
     }
 
     less.logger.addListener({
@@ -174,11 +174,11 @@ module.exports = function() {
         }
 
         function stringify(str) {
-            return JSON.stringify(imports, null, '  ')
+            return JSON.stringify(imports, null, '  ');
         }
 
         /** Imports are not sorted */
-        const importsString = stringify(imports.sort())
+        const importsString = stringify(imports.sort());
 
         fs.readFile(path.join(lessFolder, name) + '.json', 'utf8', function (e, expectedImports) {
             if (e) {
@@ -484,11 +484,11 @@ module.exports = function() {
                 options.paths.push(addPath);
             }
         } else {
-            options.paths = [options.paths]
+            options.paths = [options.paths];
         }
         options.paths = options.paths.map(searchPath => {
-            return path.resolve(lessFolder, searchPath)
-        })
+            return path.resolve(lessFolder, searchPath);
+        });
         options.filename = path.resolve(process.cwd(), filePath);
         options.optimization = options.optimization || 0;
 

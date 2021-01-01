@@ -53,7 +53,7 @@ class Declaration extends Node {
             options,
             location,
             fileInfo
-        ] = args
+        ] = args;
         
         /** v1 args */
         if (args[1] instanceof Node || typeof args[1] === 'string') {
@@ -66,7 +66,7 @@ class Declaration extends Node {
                 currentFileInfo,
                 inline,
                 variable
-            ] = <V1Args>args
+            ] = <V1Args>args;
 
             value = [
                 name,
@@ -74,30 +74,30 @@ class Declaration extends Node {
                     ? val
                     : new Value([val ? new Anonymous(val) : null]),
                 important ? ` ${important.trim()}` : ''
-            ]
+            ];
             options = {
                 merge,
                 inline: inline || false,
                 isVariable: (variable !== undefined) ? variable
                     : (!Array.isArray(name) && (name.charAt(0) === '@'))
-            }
-            location = index
-            fileInfo = currentFileInfo
+            };
+            location = index;
+            fileInfo = currentFileInfo;
         }
         
         super(value, <INodeOptions>options, <ILocationInfo | number>location, fileInfo);
     }
 
     get name() {
-        return this.nodes[0]
+        return this.nodes[0];
     }
 
     get value() {
-        return this.nodes[1]
+        return this.nodes[1];
     }
 
     get important() {
-        return this.nodes[2]
+        return this.nodes[2];
     }
 
     genCSS(context: Context, output: OutputCollector) {

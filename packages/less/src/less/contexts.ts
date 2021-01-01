@@ -6,12 +6,12 @@ import type Selector from './tree/selector';
 const {
     ALWAYS,
     PARENS_DIVISION
-} = Constants.Math
+} = Constants.Math;
 
-const { LOCAL } = Constants.RewriteUrls
+const { LOCAL } = Constants.RewriteUrls;
 
 
- /** 
+/** 
   * This is the "context" object passed to the historical
   * parser.
   * 
@@ -40,7 +40,7 @@ class ParseContext {
             processImports,   // option & context - whether to process imports. if false then imports will not be imported.
             // Used by the import manager to stop multiple import visitors being created.
             pluginManager     // Used as the plugin manager for the session
-        } = options
+        } = options;
 
         this.options = {
             paths, 
@@ -56,7 +56,7 @@ class ParseContext {
             useFileCache,
             processImports,
             pluginManager
-        }
+        };
         if (typeof paths === 'string') { this.options.paths = [paths]; }
     }
 }
@@ -115,7 +115,7 @@ class Context {
             pluginManager,     // Used as the plugin manager for the session
             importantScope,    // used to bubble up !important statements
             rewriteUrls        // option - whether to adjust URL's to be relative
-        } = options
+        } = options;
 
         this.options = {
             paths,            
@@ -129,7 +129,7 @@ class Context {
             pluginManager,     
             importantScope,   
             rewriteUrls
-        }
+        };
 
         if (typeof paths === 'string') { this.options.paths = [paths]; }
 
@@ -149,11 +149,11 @@ class Context {
      * Optionally create a new frames array 
      */
     create(frames?: Ruleset[]): Context {
-        const context = Object.create(this)
+        const context = Object.create(this);
         if (frames && Array.isArray(frames)) {
             context.frames = frames;
         }
-        return context
+        return context;
     }
 
     enterCalc() {
@@ -247,7 +247,7 @@ class Context {
 const contexts = {
     Parse: ParseContext,
     Eval: Context
-}
+};
 
 function isPathRelative(path: string) {
     return !/^(?:[a-z-]+:|\/|#)/i.test(path);
@@ -257,5 +257,5 @@ function isPathLocalRelative(path: string) {
     return path.charAt(0) === '.';
 }
 
-export { Context }
+export { Context };
 export default contexts;

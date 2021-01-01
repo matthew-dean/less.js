@@ -29,7 +29,7 @@ const Definition = function(name, params, rules, condition, variadic, frames, vi
     this.optionalParameters = optionalParameters;
     this.frames = frames;
     this.copyVisibilityInfo(visibilityInfo);
-}
+};
 
 Definition.prototype = Object.assign(new Ruleset(), {
     type: 'MixinDefinition',
@@ -180,7 +180,7 @@ Definition.prototype = Object.assign(new Ruleset(), {
                     context.create(this.frames ? this.frames.concat(context.frames) : context.frames), args, [])]
                     .concat(this.frames || []) // the parent namespace/mixin frames
                     .concat(context.frames)))
-            ) { // the current environment frames
+        ) { // the current environment frames
             return false;
         }
         return true;

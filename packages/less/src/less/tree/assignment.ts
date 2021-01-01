@@ -11,10 +11,10 @@ class Assignment extends Node {
     type: 'Assignment'
 
     constructor(...args: V1Args | NodeArgs) {
-        const val = args[1]
+        const val = args[1];
         if (val instanceof Node || typeof val === 'string') {
             super([args[0], args[1]]);
-            return
+            return;
         }
         super(...(<NodeArgs>args));
     }

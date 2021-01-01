@@ -1,7 +1,7 @@
 import Node, { NodeArgs, OutputCollector } from './node';
 import type { Context } from '../contexts';
 import colors from '../data/colors';
-import { fround } from './util/math'
+import { fround } from './util/math';
 
 type V1Args = [
     rgb: string | number[],
@@ -23,9 +23,9 @@ class Color extends Node {
             alpha,
             originalValue,
             fileInfo
-        ] = args
+        ] = args;
 
-        let options, location
+        let options, location;
         
         /** v5 API */
         if (alpha !== undefined && typeof alpha !== 'number') {
@@ -40,7 +40,7 @@ class Color extends Node {
             fileInfo = undefined;
         }
 
-        let rgbArray: number[]
+        let rgbArray: number[];
         let value;
         //
         // The end goal here, is to parse the arguments
@@ -77,19 +77,19 @@ class Color extends Node {
     }
 
     get rgb() {
-        return this.nodes[0]
+        return this.nodes[0];
     }
 
     get alpha() {
-        return this.nodes[1]
+        return this.nodes[1];
     }
 
     get value() {
-        return this.nodes[2]
+        return this.nodes[2];
     }
 
     luma() {
-        const rgb = this.nodes[0]
+        const rgb = this.nodes[0];
         let r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
 
         r = (r <= 0.03928) ? r / 12.92 : Math.pow(((r + 0.055) / 1.055), 2.4);

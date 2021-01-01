@@ -2,7 +2,7 @@ import path from 'path';
 import fs from './fs';
 import AbstractFileManager from '../less/environment/abstract-file-manager.js';
 
-const FileManager = function() {}
+const FileManager = function() {};
 FileManager.prototype = Object.assign(new AbstractFileManager(), {
     supports() {
         return true;

@@ -15,7 +15,7 @@ class Condition extends Node {
     nodes: [string, Node, Node]
     constructor(...args: V1Args | NodeArgs) {
         if (args[1] instanceof Node) {
-            let [op, l, r, i, negate] = <V1Args>args
+            let [op, l, r, i, negate] = <V1Args>args;
             super(
                 [op.trim(), l, r],
                 { negate },
@@ -23,16 +23,16 @@ class Condition extends Node {
             );
             return;
         }
-        super(...(<NodeArgs>args))
+        super(...(<NodeArgs>args));
     }
     get op() {
-        return this.nodes[0]
+        return this.nodes[0];
     }
     get lvalue() {
-        return this.nodes[1]
+        return this.nodes[1];
     }
     get rvalue() {
-        return this.nodes[2]
+        return this.nodes[2];
     }
 
     eval(context) {

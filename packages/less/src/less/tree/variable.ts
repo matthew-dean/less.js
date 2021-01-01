@@ -16,7 +16,7 @@ class Variable extends Node {
             super(...args);
             return;
         }
-        const [name, index, currentFileInfo] = args
+        const [name, index, currentFileInfo] = args;
         super(name, {}, index, currentFileInfo);
     }
 

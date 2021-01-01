@@ -21,8 +21,8 @@ type V1Args = [
 ]
 
 export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
-    return Array.isArray(args[1])
-}
+    return Array.isArray(args[1]);
+};
 
 /**
  * This currently represents a "Qualified Rule" in CSS.

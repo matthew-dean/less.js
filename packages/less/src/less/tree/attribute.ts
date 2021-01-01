@@ -11,24 +11,24 @@ class Attribute extends Node {
     nodes: [string | Node, string, string | Node]
     
     constructor(...args: V1Args | NodeArgs) {
-        const val = args[1]
+        const val = args[1];
         if (typeof val === 'string') {
             super([args[0], val, args[2]]);
-            return
+            return;
         }
         super(...(<NodeArgs>args));
     }
 
     get key() {
-        return this.nodes[0]
+        return this.nodes[0];
     }
 
     get op() {
-        return this.nodes[1]
+        return this.nodes[1];
     }
 
     get value() {
-        return this.nodes[2]
+        return this.nodes[2];
     }
 
     genCSS(context: Context, output: OutputCollector) {
@@ -36,7 +36,7 @@ class Attribute extends Node {
     }
 
     toCSS(context: Context) {
-        const [key, op, value] = this.nodes
+        const [key, op, value] = this.nodes;
         let output = key instanceof Node ? key.toCSS(context) : key;
 
         if (op) {

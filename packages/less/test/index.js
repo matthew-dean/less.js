@@ -80,7 +80,7 @@ var testMap = [
     [{ processImports: false }, 'process-imports/']
 ];
 testMap.forEach(function(args) {
-    lessTester.runTestSet.apply(lessTester, args)
+    lessTester.runTestSet.apply(lessTester, args);
 });
 lessTester.testSyncronous({syncImport: true}, '_main/import');
 lessTester.testSyncronous({syncImport: true}, '_main/plugin');

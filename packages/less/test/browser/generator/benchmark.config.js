@@ -47,4 +47,4 @@ module.exports = {
             less: "https://cdnjs.cloudflare.com/ajax/libs/less.js/2.7.3/less.min.js"
         }
     }
-}
+};

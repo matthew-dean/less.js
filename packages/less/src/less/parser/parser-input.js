@@ -186,7 +186,7 @@ export default () => {
                     const str = input.substr(currentPosition, i + 1);
                     if (!loc && loc !== 0) {
                         skipWhitespace(i + 1);
-                        return str
+                        return str;
                     }
                     return [startChar, str];
                 default:
@@ -214,9 +214,9 @@ export default () => {
         let testChar;
 
         if (typeof tok === 'string') {
-            testChar = char => char === tok
+            testChar = char => char === tok;
         } else {
-            testChar = char => tok.test(char)
+            testChar = char => tok.test(char);
         }
 
         do {
@@ -232,7 +232,7 @@ export default () => {
                 }
                 returnVal = parseGroups;
                 skipWhitespace(i - startPos);
-                loop = false
+                loop = false;
             } else {
                 if (inComment) {
                     if (nextChar === '*' && 
@@ -306,7 +306,7 @@ export default () => {
         } while (loop);
 
         return returnVal ? returnVal : null;
-    }
+    };
 
     parserInput.autoCommentAbsorb = true;
     parserInput.commentStore = [];

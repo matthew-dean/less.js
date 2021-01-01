@@ -30,13 +30,13 @@ class Extend extends Node {
             options,
             index,
             fileInfo
-        ] = args
+        ] = args;
 
         options = typeof options === 'string'
             ? { extend: options }
-            : options || {}
+            : options || {};
 
-        super(selector, options, index, fileInfo)
+        super(selector, options, index, fileInfo);
         
         this.object_id = Extend.next_id++;
         this.parent_ids = [this.object_id];
@@ -54,11 +54,11 @@ class Extend extends Node {
     }
 
     get option() {
-        return this.options.extend
+        return this.options.extend;
     }
 
     get selector() {
-        return this.nodes
+        return this.nodes;
     }
 
     // it concatenates (joins) all selectors in selector array

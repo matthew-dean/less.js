@@ -6,7 +6,7 @@ class AbstractPluginLoader {
         // Implemented by Node.js plugin loader
         this.require = function() {
             return null;
-        }
+        };
     }
 
     evalPlugin(contents, context, imports, pluginOptions, fileInfo) {

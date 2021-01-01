@@ -4,7 +4,7 @@ let request;
 import AbstractFileManager from '../less/environment/abstract-file-manager.js';
 import logger from '../less/logger';
 
-const UrlFileManager = function() {}
+const UrlFileManager = function() {};
 UrlFileManager.prototype = Object.assign(new AbstractFileManager(), {
     supports(filename, currentDirectory, options, environment) {
         return isUrlRe.test( filename ) || isUrlRe.test(currentDirectory);
@@ -24,7 +24,7 @@ UrlFileManager.prototype = Object.assign(new AbstractFileManager(), {
             let urlStr = isUrlRe.test( filename ) ? filename : url.resolve(currentDirectory, filename);
             
             /** native-request currently has a bug */
-            const hackUrlStr = urlStr.indexOf('?') === -1 ? urlStr + '?' : urlStr
+            const hackUrlStr = urlStr.indexOf('?') === -1 ? urlStr + '?' : urlStr;
 
             request.get(hackUrlStr, (error, body, status) => {
                 if (status === 404) {

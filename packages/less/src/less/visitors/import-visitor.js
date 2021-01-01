@@ -37,7 +37,7 @@ ImportVisitor.prototype = {
     },
     visitImport: function (importNode, visitArgs) {
         const inlineCSS = importNode.options.inline;
-        let context = this.context
+        let context = this.context;
 
         if (!importNode.css || inlineCSS) {
 

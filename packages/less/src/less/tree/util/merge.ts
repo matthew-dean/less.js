@@ -34,4 +34,4 @@ export const mergeRules = function(rules) {
             result.value = new List(comma);
         }
     });
-}
+};

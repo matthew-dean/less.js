@@ -66,5 +66,5 @@ export default function() {
 
         /* This option allows you to specify a argument to go on to every URL.  */
         urlArgs: ''
-    }
+    };
 };

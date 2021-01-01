@@ -24,7 +24,7 @@ function debugInfo(context, ctx, lineSeparator?) {
 
 debugInfo.asComment = function(ctx) {
     return `/* line ${ctx.debugInfo.lineNumber}, ${ctx.debugInfo.fileName} */\n`;
-}
+};
 
 debugInfo.asMediaQuery = function(ctx) {
     let filenameWithProtocol = ctx.debugInfo.fileName;
@@ -37,6 +37,6 @@ debugInfo.asMediaQuery = function(ctx) {
         }
         return `\\${a}`;
     })}}line{font-family:\\00003${ctx.debugInfo.lineNumber}}}\n`;
-}
+};
 
 export default debugInfo;

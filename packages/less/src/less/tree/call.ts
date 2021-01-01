@@ -1,6 +1,6 @@
 import Node, { IFileInfo, INodeOptions, NodeArgs, OutputCollector } from './node';
 import type { Context } from '../contexts';
-import List from './list'
+import List from './list';
 import Anonymous from './anonymous';
 import FunctionCaller from '../functions/function-caller';
 
@@ -28,7 +28,7 @@ class Call extends Node {
                 funcArgs,
                 index,
                 currentFileInfo
-            ] = args
+            ] = args;
             super(
                 [name, new List(funcArgs)],
                 {
@@ -43,11 +43,11 @@ class Call extends Node {
     }
 
     get name() {
-        return this.nodes[0]
+        return this.nodes[0];
     }
 
     get args() {
-        return this.nodes[1].value
+        return this.nodes[1].value;
     }
 
     //
@@ -62,7 +62,7 @@ class Call extends Node {
     // The function should receive the value, not the variable.
     //
     eval(context: Context) {
-        const isCalc = this.options.calc
+        const isCalc = this.options.calc;
         /**
          * Turn off math for calc(), and switch back on for evaluating nested functions
          */
@@ -125,7 +125,7 @@ class Call extends Node {
     }
 
     genCSS(context: Context, output: OutputCollector) {
-        const [name, args] = this.value
+        const [name, args] = this.value;
         output.add(`${name}(`, this.fileInfo(), this.getIndex());
         args.genCSS(context, output);
         output.add(')');

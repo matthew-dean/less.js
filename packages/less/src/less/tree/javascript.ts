@@ -8,7 +8,7 @@ const JavaScript = function(string, escaped, index, currentFileInfo) {
     this.expression = string;
     this._index = index;
     this._fileInfo = currentFileInfo;
-}
+};
 
 JavaScript.prototype = Object.assign(new JsEvalNode(), {
     type: 'JavaScript',

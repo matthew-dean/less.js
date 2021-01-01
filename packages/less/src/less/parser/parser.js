@@ -2129,7 +2129,7 @@ const Parser = function Parser(context, imports, fileInfo) {
 
                 result = this.conditionAnd(needsParens);
                 if (!result) {
-                    return ;
+                    return; 
                 }
                 logical = or();
                 if (logical) {
@@ -2137,7 +2137,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                     if (next) {
                         result = new(tree.Condition)(logical, result, next);
                     } else {
-                        return ;
+                        return; 
                     }
                 }
                 return result;
@@ -2160,7 +2160,7 @@ const Parser = function Parser(context, imports, fileInfo) {
 
                 result = insideCondition();
                 if (!result) {
-                    return ;
+                    return; 
                 }
                 logical = and();
                 if (logical) {
@@ -2168,7 +2168,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                     if (next) {
                         result = new(tree.Condition)(logical, result, next);
                     } else {
-                        return ;
+                        return; 
                     }
                 }
                 return result;
@@ -2189,11 +2189,11 @@ const Parser = function Parser(context, imports, fileInfo) {
                     body = me.condition(needsParens);
                     if (!body) {
                         parserInput.restore();
-                        return ;
+                        return; 
                     }
                     if (!parserInput.$char(')')) {
                         parserInput.restore();
-                        return ;
+                        return; 
                     }
                     parserInput.forget();
                     return body;
@@ -2203,7 +2203,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                 parserInput.save();
                 if (!parserInput.$str('(')) {
                     parserInput.restore();
-                    return ;
+                    return; 
                 }
                 body = tryConditionFollowedByParenthesis(this);
                 if (body) {
@@ -2214,11 +2214,11 @@ const Parser = function Parser(context, imports, fileInfo) {
                 body = this.atomicCondition(needsParens);
                 if (!body) {
                     parserInput.restore();
-                    return ;
+                    return; 
                 }
                 if (!parserInput.$char(')')) {
                     parserInput.restore(`expected ')' got '${parserInput.currentChar()}'`);
-                    return ;
+                    return; 
                 }
                 parserInput.forget();
                 return body;

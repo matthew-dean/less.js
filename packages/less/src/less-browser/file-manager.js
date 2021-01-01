@@ -7,7 +7,7 @@ let logger;
 let fileCache = {};
 
 // TODOS - move log somewhere. pathDiff and doing something similar in node. use pathDiff in the other browser file for the initial load
-const FileManager = function() {}
+const FileManager = function() {};
 FileManager.prototype = Object.assign(new AbstractFileManager(), {
     alwaysMakePathsAbsolute() {
         return true;
@@ -111,4 +111,4 @@ export default (opts, log) => {
     options = opts;
     logger = log;
     return FileManager;
-}
+};

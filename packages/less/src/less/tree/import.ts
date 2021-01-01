@@ -6,7 +6,7 @@ import Ruleset from './ruleset';
 import Anonymous from './anonymous';
 import * as utils from '../utils';
 import LessError from '../less-error';
-import type { Context } from '../contexts'
+import type { Context } from '../contexts';
 
 type V1Args = [
     path: Node,
@@ -17,8 +17,8 @@ type V1Args = [
 ];
 
 export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
-    return typeof args[3] === 'number'
-}
+    return typeof args[3] === 'number';
+};
 //
 // CSS @import node
 //
@@ -58,16 +58,16 @@ class Import extends Node {
                 options,
                 index,
                 fileInfo
-            ] = args
-            super([path, features, undefined], options, index, fileInfo)
+            ] = args;
+            super([path, features, undefined], options, index, fileInfo);
         } else {
             const [
                 nodes,
                 options,
                 location,
                 fileInfo
-            ] = args
-            super(nodes, options, location, fileInfo)
+            ] = args;
+            super(nodes, options, location, fileInfo);
         }
 
         if (this.options.less !== undefined || this.options.inline) {
@@ -81,19 +81,19 @@ class Import extends Node {
     }
 
     get path() {
-        return this.nodes[0]
+        return this.nodes[0];
     }
 
     get features() {
-        return this.nodes[1]
+        return this.nodes[1];
     }
 
     get root() {
-        return this.nodes[2]
+        return this.nodes[2];
     }
 
     set root(n: Node | string) {
-        this.nodes[2] = n
+        this.nodes[2] = n;
     }
 
     genCSS(context: Context, output) {
@@ -109,7 +109,7 @@ class Import extends Node {
     }
 
     getPath() {
-        const path = this.path
+        const path = this.path;
         return (path instanceof URL) ?
             path.value.value : path.value;
     }
@@ -178,7 +178,7 @@ class Import extends Node {
         const features = this.features && this.features.eval(context);
 
         if (this.options.isPlugin) {
-            const root = this.root
+            const root = this.root;
             if (root && root instanceof Node) {
                 try {
                     root.eval(context);
@@ -205,7 +205,7 @@ class Import extends Node {
             }
         }
         if (this.options.inline) {
-            const contents = new Anonymous(<string>this.root, 0,
+            const contents = new Anonymous(<string> this.root, 0,
                 {
                     filename: this.importedFilename,
                     reference: this.path._fileInfo && this.path._fileInfo.reference

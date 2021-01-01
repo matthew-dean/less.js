@@ -1,2 +1,2 @@
-const runner = require('./generate')
-runner()
+const runner = require('./generate');
+runner();

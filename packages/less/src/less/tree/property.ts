@@ -70,6 +70,6 @@ class Property extends Variable {
     }
 }
 
-Property.prototype.type = 'Property'
+Property.prototype.type = 'Property';
 
 export default Property;

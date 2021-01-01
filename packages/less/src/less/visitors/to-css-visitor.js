@@ -43,7 +43,7 @@ class CSSVisitorUtils {
     resolveVisibility(node, originalRules) {
         if (!node.blocksVisibility()) {
             if (this.isEmpty(node) && !this.containsSilentNonBlockedChild(originalRules)) {
-                return ;
+                return; 
             }
 
             return node;
@@ -53,7 +53,7 @@ class CSSVisitorUtils {
         this.keepOnlyVisibleChilds(compiledRulesBody);
 
         if (this.isEmpty(compiledRulesBody)) {
-            return ;
+            return; 
         }
 
         node.ensureVisibility();
@@ -124,7 +124,7 @@ ToCSSVisitor.prototype = {
 
     visitImport: function (importNode, visitArgs) {
         if (importNode.blocksVisibility()) {
-            return ;
+            return; 
         }
         return importNode;
     },

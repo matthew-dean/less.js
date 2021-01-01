@@ -20,7 +20,7 @@ class Combinator extends Node {
             options,
             location,
             fileInfo
-        )
+        );
     }
 
     get emptyOrWhitespace() {
@@ -34,6 +34,6 @@ class Combinator extends Node {
     }
 }
 
-Combinator.prototype.type = 'Combinator'
+Combinator.prototype.type = 'Combinator';
 
 export default Combinator;

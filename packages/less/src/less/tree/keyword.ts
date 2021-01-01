@@ -12,7 +12,7 @@ class Keyword extends Node {
     }
 
     genCSS(context, output) {
-        const value = this.nodes
+        const value = this.nodes;
         if (value === '%') {
             throw { type: 'Syntax', message: 'Invalid % without number' };
         }

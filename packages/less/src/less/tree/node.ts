@@ -1,4 +1,4 @@
-import type { IFileInfo, OutputCollector } from '../types'
+import type { IFileInfo, OutputCollector } from '../types';
 import type { Context } from '../contexts';
 import type Visitor from '../visitors/visitor';
 import type Parser from '../parser/parser';
@@ -30,11 +30,11 @@ export type NodeArgs = [
 ]
 
 export const isNodeArgs = (args: any[] | NodeArgs): args is NodeArgs => {
-    const optArg = args[1]
-    return !!optArg && typeof optArg === 'object' && optArg.constructor === Object
-}
+    const optArg = args[1];
+    return !!optArg && typeof optArg === 'object' && optArg.constructor === Object;
+};
 
-export { IFileInfo, OutputCollector }
+export { IFileInfo, OutputCollector };
 class Node {
     /**
      * This can contain a primitive value or a Node,
@@ -83,9 +83,9 @@ class Node {
     ) {
         this.nodes = nodes;
         if (typeof location === 'number') {
-            this._location = { startOffset: location }
+            this._location = { startOffset: location };
         } else {
-            this._location = location
+            this._location = location;
         }
         this._fileInfo = fileInfo;
         this.options = options || {};
@@ -95,7 +95,7 @@ class Node {
         this.rootNode = this;
         this.evaluated = false;
 
-        this.processNodes(n => this.setParent(n))
+        this.processNodes(n => this.setParent(n));
     }
 
     /** 
@@ -105,45 +105,45 @@ class Node {
      * node's value is the content between the quotes.
      */
     get value() {
-        return this.nodes
+        return this.nodes;
     }
 
     set value(val: NodeValue) {
-        this.nodes = val
+        this.nodes = val;
     }
 
     /**
      * Processes all Node values in `value`
      */
     processNodes(func: (n: Node) => Node) {
-        const node = this.nodes
+        const node = this.nodes;
         if (Array.isArray(node)) {
             return node.forEach((n, i) => {
                 if (n instanceof Node) {
-                    this.nodes[i] = func(n)
+                    this.nodes[i] = func(n);
                 }
-            })
+            });
         }
         if (node instanceof Node) {
-            this.nodes = func(node)
+            this.nodes = func(node);
         }
     }
 
     setParent(node: Node) {
-        node.parent = this
-        node.rootNode = this.rootNode
+        node.parent = this;
+        node.rootNode = this.rootNode;
         
         if (!node._fileInfo) {
-            node._fileInfo = this._fileInfo
+            node._fileInfo = this._fileInfo;
         }
         if (!node._location) {
-            node._location = this._location
+            node._location = this._location;
         }
-        return node
+        return node;
     }
 
     get _index(): number {
-        return this._location.startOffset
+        return this._location.startOffset;
     }
 
     getIndex() {
@@ -173,10 +173,10 @@ class Node {
 
     addToOutput(val: Primitive, context: Context, output: OutputCollector) {
         if (val instanceof Node) {
-            val.genCSS(context, output)
+            val.genCSS(context, output);
         } else if (val) {
             /** Serialize a primitive value into a string */
-            output.add(`${val}`)
+            output.add(`${val}`);
         }
     }
 
@@ -185,7 +185,7 @@ class Node {
         const value = this.nodes;
         if (Array.isArray(value)) {
             value.forEach(val => {
-                this.addToOutput(val, context, output)
+                this.addToOutput(val, context, output);
             });
         } else {
             this.addToOutput(value, context, output);
@@ -198,19 +198,19 @@ class Node {
 
     eval(context?: any): Node {
         if (!this.evaluated) {
-            this.processNodes(n => n.eval(context))
+            this.processNodes(n => n.eval(context));
             this.evaluated = true;
         }
         return this;
     }
 
     inherit(node: Node) {
-        this.parent = node.parent
-        this._location = node._location
-        this._fileInfo = node._fileInfo
-        this.rootNode = node.rootNode
-        this.evaluated = node.evaluated
-        return this
+        this.parent = node.parent;
+        this._location = node._location;
+        this._fileInfo = node._fileInfo;
+        this.rootNode = node.rootNode;
+        this.evaluated = node.evaluated;
+        return this;
     }
 
     /**
@@ -219,7 +219,7 @@ class Node {
      * @param shallow - doesn't deeply clone nodes (retains references)
      */
     clone(shallow: boolean = false): this {
-        const Clazz = Object.getPrototypeOf(this).constructor
+        const Clazz = Object.getPrototypeOf(this).constructor;
         const newNode = new Clazz(
             this.nodes,
             {...this.options},
@@ -227,7 +227,7 @@ class Node {
              * so its reference is just copied */
             this._location,
             this._fileInfo
-        )
+        );
 
         /**
          * First copy over Node-derived-specific props. We eliminate any props specific
@@ -235,21 +235,21 @@ class Node {
          */
         for (let prop in this) {
             if (this.hasOwnProperty(prop)) {
-                newNode[prop] = this[prop]
+                newNode[prop] = this[prop];
             }
         }
 
         /** Copy inheritance props */
-        newNode.inherit(this)
+        newNode.inherit(this);
 
         if (!shallow) {
             /**
              * Perform a deep clone
              * This will overwrite the parent / root props of children nodes.
              */
-            newNode.processNodes((node: Node) => node.clone())
+            newNode.processNodes((node: Node) => node.clone());
         }
-        return newNode
+        return newNode;
     }
 
     _operate(context, op: string, a: number, b: number) {

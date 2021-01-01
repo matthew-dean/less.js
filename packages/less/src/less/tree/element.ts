@@ -12,8 +12,8 @@ type V1Args = [
 ];
 
 export const isNodeArgs = (args: V1Args | NodeArgs): args is NodeArgs => {
-    return Array.isArray(args[0])
-}
+    return Array.isArray(args[0]);
+};
 
 /**
  * @todo - eliminate in favor of expressions 
@@ -49,11 +49,11 @@ class Element extends Node {
     }
 
     get combinator() {
-        return this.nodes[0]
+        return this.nodes[0];
     }
 
     get value() {
-        return this.nodes[1]
+        return this.nodes[1];
     }
 
     genCSS(context: Context, output: OutputCollector) {

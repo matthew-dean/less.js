@@ -22,18 +22,18 @@ class Operation extends Node {
             op,
             operands,
             isSpaced
-        ] = <V1Args>args
+        ] = <V1Args>args;
 
-        super([op, ...operands], { isSpaced })
+        super([op, ...operands], { isSpaced });
     }
 
     get op() {
-        return this.nodes[0]
+        return this.nodes[0];
     }
 
     get operands() {
-        const [_, l, r] = this.nodes
-        return [l, r]
+        const [_, l, r] = this.nodes;
+        return [l, r];
     }
 
     eval(context) {

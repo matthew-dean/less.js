@@ -13,7 +13,7 @@ class Comment extends Node {
             },
             { startOffset: index },
             currentFileInfo
-        )
+        );
         this.debugInfo = false;
     }
 
