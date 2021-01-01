@@ -1,8 +1,5 @@
-import Node, { IFileInfo, ILocationInfo, INodeOptions, isNodeArgs, NodeArgs } from './node';
-import Selector from './selector';
-import List from './list';
-import Ruleset from './ruleset';
-import MixinDefinition from './mixin-definition';
+import Node, { IFileInfo, ILocationInfo, INodeOptions, isNodeArgs } from './node';
+import { Selector, List, Ruleset, MixinDefinition } from '.';
 import defaultFunc from '../functions/default';
 import type { Context } from '../contexts';
 import type Visitor from '../visitors/visitor';

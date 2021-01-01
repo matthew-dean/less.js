@@ -1,4 +1,4 @@
-import tree from '../tree';
+import * as tree from '../tree';
 import Visitor from './visitor';
 import logger from '../logger';
 import * as utils from '../utils';

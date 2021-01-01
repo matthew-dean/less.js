@@ -1,7 +1,5 @@
-import Node, { NodeArgs, isNodeArgs, IFileInfo, OutputCollector } from './node';
-import Selector from './selector';
-import Ruleset from './ruleset';
-import Anonymous from './anonymous';
+import { NodeArgs, isNodeArgs, IFileInfo, OutputCollector } from './node';
+import { Node, Selector, Ruleset, Anonymous } from '.';
 import type { Context } from '../contexts';
 
 type V1Args = [

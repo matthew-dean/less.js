@@ -4,8 +4,7 @@ import Node, {
     NodeArgs,
     OutputCollector
 } from './node';
-import List from './list';
-import Comment from './comment';
+import { List, Comment } from '.';
 import type { Context } from '../contexts';
 import * as Constants from '../constants';
 const MATH = Constants.Math;

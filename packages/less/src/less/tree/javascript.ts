@@ -1,7 +1,5 @@
 import JsEvalNode from './js-eval-node';
-import Dimension from './dimension';
-import Quoted from './quoted';
-import Anonymous from './anonymous';
+import { Dimension, Quoted, Anonymous } from '.';
 import { IFileInfo, INodeOptions } from './node';
 
 /**

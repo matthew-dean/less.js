@@ -1,5 +1,5 @@
 import Node, { IFileInfo, NodeArgs, isNodeArgs } from './node';
-import Call from './call';
+import { Call } from '.';
 
 type V1Args = [
     name: string,

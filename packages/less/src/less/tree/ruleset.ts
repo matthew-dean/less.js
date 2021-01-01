@@ -1,12 +1,14 @@
 import Node, { NodeArgs, OutputCollector } from './node';
-import Declaration from './declaration';
-import Keyword from './keyword';
-import Comment from './comment';
-import Paren from './paren';
-import Selector from './selector';
-import Element from './element';
-import Anonymous from './anonymous';
-import Import from './import';
+import {
+    Declaration,
+    Keyword,
+    Comment,
+    Paren,
+    Selector,
+    Element,
+    Anonymous,
+    Import
+} from '.';
 import globalFunctionRegistry from '../functions/function-registry';
 import defaultFunc from '../functions/default';
 import getDebugInfo from './debug-info';

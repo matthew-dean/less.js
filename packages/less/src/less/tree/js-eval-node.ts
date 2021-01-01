@@ -1,5 +1,5 @@
 import Node from './node';
-import Variable from './variable';
+import { Variable } from '.';
 import type { Context } from '../contexts';
 
 /**

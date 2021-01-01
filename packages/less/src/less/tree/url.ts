@@ -1,5 +1,5 @@
 import Node, { IFileInfo, NodeArgs } from './node';
-import Quoted from './quoted';
+import { Quoted } from '.';
 import type { Context } from '../contexts';
 
 function escapePath(path) {

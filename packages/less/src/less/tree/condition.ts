@@ -1,5 +1,5 @@
 import Node, { NodeArgs } from './node';
-import Bool from './bool';
+import { Bool } from '.';
 
 type V1Args = [
     op: string,

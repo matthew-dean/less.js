@@ -1,4 +1,4 @@
-import tree from '../tree';
+import * as tree from '../tree';
 import Visitor from './visitor';
 import { mergeRules } from '../tree/util/merge';
 

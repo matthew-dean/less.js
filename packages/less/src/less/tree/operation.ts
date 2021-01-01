@@ -1,6 +1,5 @@
 import Node, { NodeArgs, NumericNode } from './node';
-import Color from './color';
-import Dimension from './dimension';
+import { Color, Dimension } from '.';
 import * as Constants from '../constants';
 const MATH = Constants.Math;
 

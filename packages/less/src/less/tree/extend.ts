@@ -1,5 +1,5 @@
 import Node, { IFileInfo, NodeArgs } from './node';
-import Selector from './selector';
+import { Selector } from '.';
 
 type V1Args = [
     selector: Node,

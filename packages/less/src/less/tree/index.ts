@@ -32,24 +32,31 @@ import Negative from './negative';
 import Extend from './extend';
 import VariableCall from './variable-call';
 import NamespaceValue from './namespace-value';
+import Bool from './bool';
 
 // mixins
 import MixinCall from './mixin-call';
 import MixinDefinition from './mixin-definition';
 
-export default {
-    Node, Color, AtRule, Directive: AtRule, DetachedRuleset, Operation,
+/** Historical names */
+const Directive = AtRule;
+const Rule = Declaration;
+const Value = List;
+const mixin = {
+    Call: MixinCall,
+    Definition: MixinDefinition
+};
+
+export {
+    Node, Color, AtRule, Directive, DetachedRuleset, Operation,
     Dimension, Unit, Keyword, Variable, Property,
     Ruleset, Element, Attribute, Combinator, Selector,
-    Quoted, Expression, Declaration, Rule: Declaration, Call, URL, Import,
-    Comment, Anonymous, List, Value: List, JavaScript, Assignment,
+    Quoted, Expression, Declaration, Rule, Call, URL, Import,
+    Comment, Anonymous, List, Value, JavaScript, Assignment,
     Condition, Paren, Media, UnicodeDescriptor, Negative,
-    Extend, VariableCall, NamespaceValue,
+    Extend, VariableCall, NamespaceValue, Bool,
     MixinCall,
     MixinDefinition,
     /** Legacy */
-    mixin: {
-        Call: MixinCall,
-        Definition: MixinDefinition
-    }
+    mixin
 };

@@ -1,9 +1,4 @@
-import Ruleset from './ruleset';
-import List from './list';
-import Selector from './selector';
-import Anonymous from './anonymous';
-import Expression from './expression';
-import AtRule from './atrule';
+import { Ruleset, List, Selector, Anonymous, Expression, AtRule } from '.';
 import * as utils from '../utils';
 import { IFileInfo, NodeArgs } from './node';
 import type { Context } from '../contexts';

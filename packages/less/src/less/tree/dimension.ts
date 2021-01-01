@@ -2,8 +2,7 @@ import Node, { NodeArgs } from './node';
 import { convertDimension } from './util/convert';
 import { operate, fround } from './util/math';
 
-import Unit from './unit';
-import Color from './color';
+import { Unit, Color } from '.';
 
 type V1Args = [
     value: string | number,

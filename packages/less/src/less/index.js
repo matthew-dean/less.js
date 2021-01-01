@@ -1,6 +1,6 @@
 import Environment from './environment/environment';
 import data from './data';
-import tree from './tree';
+import * as tree from './tree';
 import AbstractFileManager from './environment/abstract-file-manager';
 import AbstractPluginLoader from './environment/abstract-plugin-loader';
 import visitors from './visitors';

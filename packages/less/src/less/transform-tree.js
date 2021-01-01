@@ -1,6 +1,6 @@
 import contexts from './contexts';
 import visitor from './visitors';
-import tree from './tree';
+import * as tree from './tree';
 
 export default function(root, options) {
     options = options || {};

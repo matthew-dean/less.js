@@ -1,6 +1,5 @@
 import Node, { IFileInfo, NodeArgs, OutputCollector } from './node';
-import Paren from './paren';
-import Combinator from './combinator';
+import { Paren, Combinator } from '.';
 import type { Context } from '../contexts';
 
 type V1Args = [

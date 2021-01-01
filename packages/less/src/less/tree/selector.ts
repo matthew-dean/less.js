@@ -1,5 +1,5 @@
 import Node, { IFileInfo, NodeArgs, isNodeArgs, OutputCollector } from './node';
-import Element from './element';
+import { Element } from '.';
 import LessError from '../less-error';
 import type Visitor from '../visitors/visitor';
 import type { Context } from '../contexts';

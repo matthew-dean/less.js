@@ -1,5 +1,5 @@
 import LessError from '../less-error';
-import tree from '../tree';
+import * as tree from '../tree';
 import visitors from '../visitors';
 import getParserInput from './parser-input';
 import * as utils from '../utils';

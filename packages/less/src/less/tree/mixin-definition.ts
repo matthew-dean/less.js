@@ -1,8 +1,4 @@
-import Selector from './selector';
-import Ruleset from './ruleset';
-import Declaration from './declaration';
-import DetachedRuleset from './detached-ruleset';
-import Expression from './expression';
+import { Selector, Ruleset, Declaration, DetachedRuleset, Expression } from '.';
 import * as utils from '../utils';
 import Node, { NodeArgs } from './node';
 import type { Context } from '../contexts';

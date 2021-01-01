@@ -1,7 +1,6 @@
 import Node, { IFileInfo, INodeOptions, NodeArgs, OutputCollector } from './node';
 import type { Context } from '../contexts';
-import List from './list';
-import Anonymous from './anonymous';
+import { List, Anonymous } from '.';
 import FunctionCaller from '../functions/function-caller';
 
 type V1Args = [

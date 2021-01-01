@@ -1,6 +1,5 @@
 import Node, { OutputCollector } from './node';
-import Operation from './operation';
-import Dimension from './dimension';
+import { Operation, Dimension } from '.';
 import type { Context } from '../contexts';
 
 class Negative extends Node {

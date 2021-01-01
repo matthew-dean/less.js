@@ -1,6 +1,5 @@
 import Node, { IFileInfo, INodeOptions, NodeArgs } from './node';
-import Variable from './variable';
-import Ruleset from './ruleset';
+import { Variable, Ruleset } from '.';
 import type { Context } from '../contexts';
 import DetachedRuleset from './detached-ruleset';
 

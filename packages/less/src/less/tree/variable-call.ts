@@ -1,7 +1,5 @@
 import Node, { IFileInfo, isNodeArgs, NodeArgs } from './node';
-import Variable from './variable';
-import Ruleset from './ruleset';
-import DetachedRuleset from './detached-ruleset';
+import { Variable, Ruleset, DetachedRuleset } from '.';
 import LessError from '../less-error';
 import type { Context } from '../contexts';
 

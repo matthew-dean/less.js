@@ -1,6 +1,4 @@
-import Node from './node';
-import Operation from './operation';
-import Condition from './condition';
+import { Node, Operation, Condition } from '.';
 import type { Context } from '../contexts';
 
 class Paren extends Node {

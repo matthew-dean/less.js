@@ -1,6 +1,5 @@
 import Node, { IFileInfo, NodeArgs, isNodeArgs, OutputCollector } from './node';
-import Variable from './variable';
-import Property from './property';
+import { Variable, Property } from '.';
 import type { Context } from '../contexts';
 
 type V1Args = [

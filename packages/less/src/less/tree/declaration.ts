@@ -7,9 +7,7 @@ import Node, {
 } from './node';
 import type { Context } from '../contexts';
 
-import Value from './list';
-import Keyword from './keyword';
-import Anonymous from './anonymous';
+import { List, Keyword, Anonymous } from '.';
 import * as Constants from '../constants';
 const MATH = Constants.Math;
 
@@ -72,7 +70,7 @@ class Declaration extends Node {
                 name,
                 (val instanceof Node)
                     ? val
-                    : new Value([val ? new Anonymous(val) : null]),
+                    : new List([val ? new Anonymous(val) : null]),
                 important ? ` ${important.trim()}` : ''
             ];
             options = {

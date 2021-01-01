@@ -1,6 +1,5 @@
-import Node, { IFileInfo, isNodeArgs, NodeArgs } from './node';
-import Declaration from './declaration';
-import Variable from './variable';
+import { IFileInfo, isNodeArgs, NodeArgs } from './node';
+import { Declaration, Variable } from '.';
 import { mergeRules } from './util/merge';
 
 type V1Args = [
