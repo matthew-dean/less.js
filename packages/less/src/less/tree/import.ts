@@ -35,11 +35,10 @@ class Import extends Node {
     type: 'Import'
     nodes: [Node, Node, Node | string]
     options: INodeOptions & {
+        css: boolean
         less: boolean
         inline: boolean
     }
-
-    css: boolean
 
     /** 
      * Added by the import visitor, and used
@@ -72,11 +71,11 @@ class Import extends Node {
         }
 
         if (this.options.less !== undefined || this.options.inline) {
-            this.css = !this.options.less || this.options.inline;
+            this.options.css = !this.options.less || this.options.inline;
         } else {
             const pathValue = this.getPath();
             if (pathValue && /[#\.\&\?]css([\?;].*)?$/.test(pathValue)) {
-                this.css = true;
+                this.options.css = true;
             }
         }
     }
@@ -98,7 +97,7 @@ class Import extends Node {
     }
 
     genCSS(context: Context, output) {
-        if (this.css && this.path._fileInfo.reference === undefined) {
+        if (this.options.css && this.path._fileInfo.reference === undefined) {
             output.add('@import ', this._fileInfo, this._index);
             this.path.genCSS(context, output);
             if (this.features) {
@@ -213,9 +212,9 @@ class Import extends Node {
                 }, true, true);
 
             return this.features ? new Media([contents], this.features.value) : [contents];
-        } else if (this.css) {
+        } else if (this.options.css) {
             const newImport = new Import([this.evalPath(context), features], this.options, this._location, this._fileInfo);
-            if (!newImport.css && this.error) {
+            if (!newImport.options.css && this.error) {
                 throw this.error;
             }
             return newImport;

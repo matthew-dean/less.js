@@ -129,9 +129,9 @@ class Selector extends Node {
         return els;
     }
 
-    createEmptySelectors() {
-        const el = new Element('', '&', false, this._index, this._fileInfo);
-        const sels = [new Selector([el], null, null, this._index, this._fileInfo)];
+    static createEmptySelectors(index: number, fileInfo: IFileInfo) {
+        const el = new Element('', '&', false, index, fileInfo);
+        const sels = [new Selector([el], null, null, index, fileInfo)];
         sels[0].mediaEmpty = true;
         return sels;
     }

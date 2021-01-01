@@ -1,7 +1,18 @@
-import Node from './node';
+import Node, { NodeArgs, isNodeArgs, IFileInfo, OutputCollector } from './node';
 import Selector from './selector';
 import Ruleset from './ruleset';
 import Anonymous from './anonymous';
+import type { Context } from '../contexts';
+
+type V1Args = [
+    name: string,
+    prelude: Node | string,
+    rules: Ruleset,
+    index: number,
+    fileInfo: IFileInfo,
+    debugInfo: boolean,
+    isRooted: boolean
+];
 
 /**
  * @note
@@ -24,59 +35,76 @@ import Anonymous from './anonymous';
  * and pushing `@at-rule` to the root.
  * 
  */
-const AtRule = function(
-    name: string,
-    prelude: Node | string,
-    rules: Node | Node[],
-    index,
-    currentFileInfo,
-    debugInfo,
-    isRooted,
-    visibilityInfo
-) {
-    this.name  = name;
-    this.value = (prelude instanceof Node) ? prelude : (prelude ? new Anonymous(prelude) : prelude);
-    
-    if (rules) {
-        if (Array.isArray(rules)) {
-            this.rules = rules;
-        } else {
-            this.rules = [rules];
-            this.rules[0].selectors = (new Selector([], null, null, index, currentFileInfo)).createEmptySelectors();
-        }
-        for (let i = 0; i < this.rules.length; i++) {
-            this.rules[i].allowImports = true;
-        }
-    }
-    this._index = index;
-    this._fileInfo = currentFileInfo;
-    this.debugInfo = debugInfo;
-    this.isRooted = isRooted || false;
-    this.copyVisibilityInfo(visibilityInfo);
-}
+class AtRule extends Node {
+    nodes: [string, Node, Ruleset]
 
-AtRule.prototype = Object.assign(new Node(), {
-    type: 'AtRule',
-    accept(visitor) {
-        const value = this.value, rules = this.rules;
+    constructor(...args: NodeArgs | V1Args) {
+        if (isNodeArgs(args)) {
+            super(...args);
+            return;
+        }
+
+        let [
+            name,
+            prelude,
+            rules,
+            index,
+            fileInfo,
+            debugInfo,
+            isRooted
+        ] = args;
+
+        /** If the prelude has a value, make sure it's a Node */
+        prelude = (prelude instanceof Node)
+            ? prelude
+            : (prelude ? new Anonymous(prelude) : prelude);
+        
         if (rules) {
-            this.rules = visitor.visitArray(rules);
+            /**
+             * @todo - refactor createEmptySelectors() to remove boilerplate,
+             * and create this ruleset properly when calling new AtRule()
+             */
+            rules.selectors = Selector.createEmptySelectors(index, fileInfo);
+            rules.allowImports = true;
         }
-        if (value) {
-            this.value = visitor.visit(value);
-        }
-    },
+        super(
+            [
+                name,
+                prelude,
+                rules
+            ],
+            { isRooted: !!isRooted },
+            index,
+            fileInfo
+        );
+    }
+
+    get name() {
+        return this.nodes[0];
+    }
+    get value() {
+        return this.nodes[1];
+    }
+    get rules() {
+        return this.nodes[2];
+    }
+    set rules(r: Ruleset) {
+        this.nodes[2] = r;
+        this.setParent(r);
+    }
 
     isRulesetLike() {
-        return this.rules || !this.isCharset();
-    },
+        return !!this.rules || !this.isCharset();
+    }
 
     isCharset() {
         return '@charset' === this.name;
-    },
+    }
 
-    genCSS(context, output) {
-        const value = this.value, rules = this.rules;
+    genCSS(context: Context, output: OutputCollector) {
+        const value = this.value;
+        const rules = this.rules;
+
         output.add(this.name, this.fileInfo(), this.getIndex());
         if (value) {
             output.add(' ');
@@ -87,10 +115,12 @@ AtRule.prototype = Object.assign(new Node(), {
         } else {
             output.add(';');
         }
-    },
+    }
 
-    eval(context) {
-        let mediaPathBackup, mediaBlocksBackup, value = this.value, rules = this.rules;
+    eval(context: Context): Node {
+        let mediaPathBackup, mediaBlocksBackup;
+        let value = this.value;
+        let rules = this.rules;
 
         // media stored inside other atrule should not bubble over it
         // backpup media bubbling information
@@ -105,72 +135,62 @@ AtRule.prototype = Object.assign(new Node(), {
         }
         if (rules) {
             // assuming that there is only one rule at this point - that is how parser constructs the rule
-            rules = [rules[0].eval(context)];
-            rules[0].root = true;
+            rules = rules.eval(context);
+            rules.root = true;
         }
         // restore media bubbling information
         context.mediaPath = mediaPathBackup;
         context.mediaBlocks = mediaBlocksBackup;
 
-        return new AtRule(this.name, value, rules,
-            this.getIndex(), this.fileInfo(), this.debugInfo, this.isRooted, this.visibilityInfo());
-    },
+        return new AtRule(
+            [this.name, value, rules],
+            {...this.options },
+            this._location,
+            this._fileInfo
+        );
+    }
 
     variable(name) {
         if (this.rules) {
-            // assuming that there is only one rule at this point - that is how parser constructs the rule
-            return Ruleset.prototype.variable.call(this.rules[0], name);
+            return Ruleset.prototype.variable.call(this.rules, name);
         }
-    },
+    }
 
     find() {
         if (this.rules) {
-            // assuming that there is only one rule at this point - that is how parser constructs the rule
-            return Ruleset.prototype.find.apply(this.rules[0], arguments);
+            return Ruleset.prototype.find.apply(this.rules, arguments);
         }
-    },
+    }
 
     rulesets() {
         if (this.rules) {
-            // assuming that there is only one rule at this point - that is how parser constructs the rule
-            return Ruleset.prototype.rulesets.apply(this.rules[0]);
+            return Ruleset.prototype.rulesets.apply(this.rules);
         }
-    },
+    }
 
-    outputRuleset(context, output, rules) {
-        const ruleCnt = rules.length;
-        let i;
+    outputRuleset(context: Context, output: OutputCollector, rules: Ruleset) {
         context.tabLevel = (context.tabLevel | 0) + 1;
 
         // Compressed
-        if (context.compress) {
+        if (context.options.compress) {
             output.add('{');
-            for (i = 0; i < ruleCnt; i++) {
-                rules[i].genCSS(context, output);
-            }
+            rules.genCSS(context, output);
             output.add('}');
             context.tabLevel--;
             return;
         }
 
         // Non-compressed
-        const tabSetStr = `\n${Array(context.tabLevel).join('  ')}`,
-            tabRuleStr = `${tabSetStr}  `;
-        if (!ruleCnt) {
-            output.add(` {${tabSetStr}}`);
-        } else {
-            output.add(` {${tabRuleStr}`);
-            rules[0].genCSS(context, output);
-            for (i = 1; i < ruleCnt; i++) {
-                output.add(tabRuleStr);
-                rules[i].genCSS(context, output);
-            }
-            output.add(`${tabSetStr}}`);
-        }
+        const tabSetStr = `\n${Array(context.tabLevel).join('  ')}`;
+        const tabRuleStr = `${tabSetStr}  `;
+
+        output.add(` {${tabRuleStr}`);
+        rules.genCSS(context, output);
+        output.add(`${tabSetStr}}`);
 
         context.tabLevel--;
     }
-});
-
+}
+AtRule.prototype.type = 'AtRule';
 AtRule.prototype.allowRoot = true;
 export default AtRule;

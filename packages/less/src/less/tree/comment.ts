@@ -9,17 +9,16 @@ class Comment extends Node {
         super(
             value,
             {
-                isLineComment,
-                /** deprecated */
-                debugInfo: false
+                isLineComment
             },
             { startOffset: index },
             currentFileInfo
         )
+        this.debugInfo = false;
     }
 
     genCSS(context, output) {
-        if (this.options.debugInfo) {
+        if (this.debugInfo) {
             output.add(getDebugInfo(context, this), this.fileInfo(), this.getIndex());
         }
         output.add(this.value);

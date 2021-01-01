@@ -71,6 +71,8 @@ class Context {
     /** Ruleset (scoping) frames */
     frames: Ruleset[]
 
+    /** Should be @media but types need to be refined in Media node */
+    mediaPath: any[]
     mediaBlocks: Media[]
 
     /** Current selectors */

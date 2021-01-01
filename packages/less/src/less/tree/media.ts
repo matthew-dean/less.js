@@ -1,105 +1,130 @@
 import Ruleset from './ruleset';
-import Value from './list';
+import List from './list';
 import Selector from './selector';
 import Anonymous from './anonymous';
 import Expression from './expression';
 import AtRule from './atrule';
 import * as utils from '../utils';
+import { IFileInfo, NodeArgs } from './node';
+import type { Context } from '../contexts';
+import type Node from './node';
+
+type V1Args = [
+    rules: Node[],
+    features: Node[],
+    index?: number,
+    fileInfo?: IFileInfo
+];
+
+export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
+    return Array.isArray(args[1]);
+}
 
 /**
  * @todo - Can this be refactored to re-use code from `AtRule`?
  */
-const Media = function(value, features, index, currentFileInfo, visibilityInfo) {
-    this._index = index;
-    this._fileInfo = currentFileInfo;
+class Media extends AtRule {
+    type: 'Media';
 
-    const selectors = (new Selector([], null, null, this._index, this._fileInfo)).createEmptySelectors();
-
-    this.features = new Value(features);
-    this.rules = [new Ruleset(selectors, value)];
-    this.rules[0].allowImports = true;
-    this.copyVisibilityInfo(visibilityInfo);
-    this.setParent(selectors, this);
-    this.setParent(this.features, this);
-    this.setParent(this.rules, this);
-};
-
-Media.prototype = Object.assign(new AtRule(), {
-    type: 'Media',
-
-    isRulesetLike() {
-        return true;
-    },
-
-    accept(visitor) {
-        if (this.features) {
-            this.features = visitor.visit(this.features);
+    constructor(...args: NodeArgs | V1Args) {
+        if (!(isV1Args(args))) {
+            const [
+                nodes,
+                options,
+                location,
+                fileInfo
+            ] = args
+            if (nodes.length === 2) {
+                nodes.unshift('@media');
+            }
+            super(nodes, options, location, fileInfo);
+            return;
         }
-        if (this.rules) {
-            this.rules = visitor.visitArray(this.rules);
-        }
-    },
 
-    genCSS(context, output) {
-        output.add('@media ', this._fileInfo, this._index);
-        this.features.genCSS(context, output);
-        this.outputRuleset(context, output, this.rules);
-    },
+        let [
+            rules,
+            features,
+            index,
+            fileInfo
+        ] = args
 
-    eval(context) {
+        const selectors = Selector.createEmptySelectors(index, fileInfo);
+        const featureList = new List(features);
+        const ruleset = new Ruleset([selectors, rules], {});
+        ruleset.allowImports = true;
+
+        super(['@media', featureList, ruleset], {}, index, fileInfo);
+    }
+
+    get features() {
+        return this.nodes[1];
+    }
+    set features(n: Node) {
+        this.nodes[1] = n;
+        this.setParent(n);
+    }
+
+    isRulesetLike() { return true; }
+
+    eval(context: Context) {
         if (!context.mediaBlocks) {
             context.mediaBlocks = [];
             context.mediaPath = [];
         }
 
-        const media = new Media(null, [], this._index, this._fileInfo, this.visibilityInfo());
+        const media = new Media(
+            [
+                this.features.eval(context),
+                new Ruleset(
+                    Selector.createEmptySelectors(this.getIndex(), this.fileInfo()),
+                    []
+                )
+            ],
+            {}, this._location, this._fileInfo
+        );
         if (this.debugInfo) {
-            this.rules[0].debugInfo = this.debugInfo;
+            this.rules.debugInfo = this.debugInfo;
             media.debugInfo = this.debugInfo;
         }
-        
-        media.features = this.features.eval(context);
 
         context.mediaPath.push(media);
         context.mediaBlocks.push(media);
 
-        this.rules[0].functionRegistry = context.frames[0].functionRegistry.inherit();
-        context.frames.unshift(this.rules[0]);
-        media.rules = [this.rules[0].eval(context)];
+        this.rules.functionRegistry = context.frames[0].functionRegistry.inherit();
+        context.frames.unshift(this.rules);
+        media.rules = this.rules.eval(context);
         context.frames.shift();
-
         context.mediaPath.pop();
 
         return context.mediaPath.length === 0 ? media.evalTop(context) :
             media.evalNested(context);
-    },
+    }
 
-    evalTop(context) {
+    evalTop(context: Context) {
         let result = this;
 
         // Render all dependent Media blocks.
         if (context.mediaBlocks.length > 1) {
-            const selectors = (new Selector([], null, null, this.getIndex(), this.fileInfo())).createEmptySelectors();
-            result = new Ruleset(selectors, context.mediaBlocks);
-            result.multiMedia = true;
-            result.copyVisibilityInfo(this.visibilityInfo());
-            this.setParent(result, this);
+            const selectors = Selector.createEmptySelectors(this.getIndex(), this.fileInfo());
+            const rules = new Ruleset(selectors, context.mediaBlocks);
+            rules.multiMedia = true;
+            rules.copyVisibilityInfo(this.visibilityInfo());
         }
 
-        delete context.mediaBlocks;
-        delete context.mediaPath;
+        context.mediaBlocks = undefined;
+        context.mediaPath = undefined;
 
         return result;
-    },
+    }
 
-    evalNested(context) {
+    evalNested(context: Context) {
         let i;
         let value;
         const path = context.mediaPath.concat([this]);
 
         // Extract the media-query conditions separated with `,` (OR).
         for (i = 0; i < path.length; i++) {
-            value = path[i].features instanceof Value ?
+            value = path[i].features instanceof List ?
                 path[i].features.value : path[i].features;
             path[i] = Array.isArray(value) ? value : [value];
         }
@@ -111,7 +136,7 @@ Media.prototype = Object.assign(new AtRule(), {
         //    a and e
         //    b and c and d
         //    b and c and e
-        this.features = new Value(this.permute(path).map(path => {
+        this.features = new List(this.permute(path).map(path => {
             path = path.map(fragment => fragment.toCSS ? fragment : new Anonymous(fragment));
 
             for (i = path.length - 1; i > 0; i--) {
@@ -120,11 +145,10 @@ Media.prototype = Object.assign(new AtRule(), {
 
             return new Expression(path);
         }));
-        this.setParent(this.features, this);
 
         // Fake a tree-node that doesn't output anything.
         return new Ruleset([], []);
-    },
+    }
 
     permute(arr) {
         if (arr.length === 0) {
@@ -141,17 +165,17 @@ Media.prototype = Object.assign(new AtRule(), {
             }
             return result;
         }
-    },
+    }
 
     bubbleSelectors(selectors) {
         if (!selectors) {
             return;
         }
-        this.rules = [new Ruleset(utils.copyArray(selectors), [this.rules[0]])];
-        this.setParent(this.rules, this);
+        this.rules = new Ruleset(utils.copyArray(selectors), [this.rules[0]]);
     }
-});
+}
 
+Media.prototype.type = 'Media';
 Media.prototype.allowRoot = true;
 
 export default Media;

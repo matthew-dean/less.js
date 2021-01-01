@@ -64,6 +64,12 @@ class Ruleset extends Node {
      */
     paths: Node[]
 
+    /**
+     * @todo - Document
+     * Added by Media node
+     */
+    multiMedia: boolean;
+
     constructor(...args: NodeArgs | V1Args) {
         if (!isV1Args(args)) {
             super(...args);
