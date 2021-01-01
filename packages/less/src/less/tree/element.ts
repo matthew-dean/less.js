@@ -59,6 +59,10 @@ class Element extends Node {
         output.add(this.toCSS(context), this.fileInfo(), this.getIndex());
     }
 
+    eval(context: Context): Element {
+        return this;
+    }
+
     toCSS(context?: Context) {
         const thisContext: Context | Record<any, any> = context || {};
         let value = this.value;

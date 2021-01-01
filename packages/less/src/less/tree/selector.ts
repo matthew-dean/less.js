@@ -5,7 +5,7 @@ import type Visitor from '../visitors/visitor';
 import type { Context } from '../contexts';
 
 type V1Args = [
-    elements: Node[],
+    elements: Element[],
     extendList?: Node[],
     condition?: Node,
     index?: number,
@@ -19,6 +19,7 @@ type V1Args = [
 class Selector extends Node {
     type: 'Selector'
     evaldCondition: boolean
+    nodes: [Element[], Node[], Node]
 
     /** @todo - document */
     mediaEmpty: boolean
@@ -28,7 +29,7 @@ class Selector extends Node {
      *
      * @todo - Can be improved a lot.         
      */
-    mixinElements_: Node[]
+    mixinElements_: Element[] | string[]
 
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
@@ -92,10 +93,11 @@ class Selector extends Node {
         return newSelector;
     }
 
-    getElements(els: Node[] | string) {
+    getElements(els: Node[] | string): Element[] {
         if (!els) {
             return [new Element('', '&', false, this._index, this._fileInfo)];
         }
+        let result: Element[]
         if (typeof els === 'string') {
             this.parse.parseNode(
                 els, 
@@ -109,10 +111,10 @@ class Selector extends Node {
                             message: err.message
                         }, this.parse.imports, this._fileInfo.filename);
                     }
-                    els = result[0].elements;
+                    result = result[0].elements;
                 });
         }
-        return els;
+        return result;
     }
 
     static createEmptySelectors(index: number, fileInfo: IFileInfo) {
@@ -149,7 +151,7 @@ class Selector extends Node {
         }
 
         let elements = this.elements.map( function(v) {
-            return v.combinator.value + (v.value.value || v.value);
+            return v.combinator.value + (v.value instanceof Node ? v.value.value : v.value);
         }).join('').match(/[,&#\*\.\w-]([\w-]|(\\.))*/g);
 
         if (elements) {
@@ -160,7 +162,7 @@ class Selector extends Node {
             elements = [];
         }
 
-        return (this.mixinElements_ = elements);
+        return (this.mixinElements_ = [...elements]);
     }
 
     isJustParentSelector() {

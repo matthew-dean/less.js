@@ -102,7 +102,7 @@ class Context {
      */
     mathOn: boolean
 
-    constructor(options: Record<any, any>) {
+    constructor(options: Record<any, any> = {}) {
         const {
             paths,             // additional include paths
             compress,          // whether to compress

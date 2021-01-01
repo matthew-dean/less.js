@@ -1,11 +1,11 @@
 import Node, { IFileInfo, ILocationInfo, INodeOptions, isNodeArgs } from './node';
-import { Selector, List, Ruleset, MixinDefinition } from '.';
+import { Selector, Element, List, Ruleset, MixinDefinition } from '.';
 import defaultFunc from '../functions/default';
 import type { Context } from '../contexts';
 import type Visitor from '../visitors/visitor';
 
 type V1Args = [
-    elements: Node[],
+    elements: Element[],
     arguments: Node[],
     index: number,
     fileInfo: IFileInfo,
