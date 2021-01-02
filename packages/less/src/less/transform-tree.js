@@ -50,7 +50,7 @@ export default function(root, options) {
     /**
      * first() / get() allows visitors to be added while visiting
      * 
-     * @todo Add scoping for visitors just like functions for @plugin; right now they're global
+     * @todo remove when `@plugin` is removed
      */
     if (options.pluginManager) {
         visitorIterator = options.pluginManager.visitor();
