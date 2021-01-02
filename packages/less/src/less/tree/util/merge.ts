@@ -1,17 +1,21 @@
-import Expression from '../expression';
-import List from '../list';
+import {
+    Expression,
+    List,
+    Node,
+    Declaration
+} from '../';
 
-export const mergeRules = function(rules) {
+export const mergeRules = function(rules: Declaration[]) {
     if (!rules) {
         return; 
     }
 
-    const groups    = {};
-    const groupsArr = [];
+    const groups: Record<string, Declaration[]>    = {};
+    const groupsArr: Declaration[][]               = [];
 
     for (let i = 0; i < rules.length; i++) {
         const rule = rules[i];
-        if (rule.merge) {
+        if (rule.options.merge) {
             const key = rule.name;
             groups[key] ? rules.splice(i--, 1) : 
                 groupsArr.push(groups[key] = []);
@@ -25,7 +29,7 @@ export const mergeRules = function(rules) {
             let space  = [];
             const comma  = [new Expression(space)];
             group.forEach(rule => {
-                if ((rule.merge === '+') && (space.length > 0)) {
+                if ((rule.options.merge === '+') && (space.length > 0)) {
                     comma.push(new Expression(space = []));
                 }
                 space.push(rule.value);

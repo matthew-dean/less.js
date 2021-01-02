@@ -254,7 +254,7 @@ ToCSSVisitor.prototype = {
                 i++;
             }
             // accept the visitor to remove rules and refactor itself
-            // then we can decide nogw whether we want it or not
+            // then we can decide now whether we want it or not
             // compile body
             if (nodeRuleCnt > 0) {
                 rulesetNode.accept(this._visitor);

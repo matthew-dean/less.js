@@ -254,8 +254,7 @@ class Ruleset extends Node {
                         // do not pollute the scope if the variable is
                         // already there. consider returning false here
                         // but we need a way to "return" variable from mixins
-                        /** @note - can this be a Node at this time? */
-                        return !(ruleset.variable(<string>r.name));
+                        return !(ruleset.variable(r.name));
                     }
                     return true;
                 });

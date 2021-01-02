@@ -1,4 +1,4 @@
-import { Selector, Ruleset, Declaration, DetachedRuleset, Expression } from '.';
+import { Selector, Element, Ruleset, Declaration, DetachedRuleset, Expression } from '.';
 import * as utils from '../utils';
 import Node, { NodeArgs } from './node';
 import type { Context } from '../contexts';
@@ -36,6 +36,7 @@ class Definition extends Ruleset {
     type: 'MixinDefinition';
     required: number;
     arity: number;
+    name: string;
     optionalParameters: string[];
     frames: Ruleset[];
     options: {
@@ -57,6 +58,7 @@ class Definition extends Ruleset {
             variadic
         ] = args;
         
+        let selectors;
         let options;
         let location;
         let fileInfo;
@@ -65,19 +67,19 @@ class Definition extends Ruleset {
             options = params;
             location = rules;
             fileInfo = condition;
+            selectors = name[0];
             rules = name[1];
             params = name[2];
             condition = name[3];
-            name = name[0];
         } else {
+            name = name || 'anonymous mixin';
             options = { variadic };
+            selectors = [new Selector([new Element(null, name, false, location, fileInfo)])];
         }
-
-        name = name || 'anonymous mixin';
 
         super(
             [
-                name,   // In base Ruleset, this would be selectors
+                selectors,   // In base Ruleset, this would be selectors
                 rules,  // Aligns with base Ruleset order
                 params,
                 condition
@@ -87,7 +89,7 @@ class Definition extends Ruleset {
             fileInfo
         );
 
-        this.selectors = Selector.createEmptySelectors(0, fileInfo);
+        this.name = name;
         this.arity = params ? (<MixinDefinitionArg[]>params).length : 0;
         this._lookups = {};
 
@@ -107,9 +109,6 @@ class Definition extends Ruleset {
         this.optionalParameters = optionalParameters;
     }
 
-    get name() {
-        return this.nodes[0];
-    }
     get params() {
         return this.nodes[2];
     }
@@ -259,8 +258,7 @@ class Definition extends Ruleset {
 
         ruleset = new Ruleset(null, rules);
         ruleset.originalRuleset = this;
-         // was [this, frame], but frames should be rulesets?
-        ruleset = ruleset.eval(context.create([frame].concat(mixinFrames)));
+        ruleset = ruleset.eval(context.create([this, frame].concat(mixinFrames)));
         if (important) {
             ruleset = ruleset.makeImportant();
         }

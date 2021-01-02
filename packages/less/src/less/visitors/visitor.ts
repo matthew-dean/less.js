@@ -6,6 +6,11 @@ function _noop(node) {
     return node;
 }
 
+/**
+ * @todo
+ * Make this a proper abstract class with typed abstract
+ * methods for each rule type
+ */
 class Visitor {
     /** @todo - refine types */
     _implementation: any;
@@ -18,12 +23,23 @@ class Visitor {
         this._visitOutCache = {};
     }
 
-    visit(n: Node): Node {
-        if (!n || !n.type) {
-            return n;
+    visit(node: Node) {
+        if (!node) {
+            return node;
         }
 
-        const nodeTypeIndex = n.type;
+        const nodeTypeIndex = node.type;
+        if (!nodeTypeIndex) {
+            /**
+             * MixinCall args aren't a node type?
+             * @todo - Fix this
+             */
+            if (node.value && node.value.typeIndex) {
+                this.visit(node.value);
+            }
+            return node;
+        }
+
         const impl = this._implementation;
         let func = this._visitInCache[nodeTypeIndex];
         let funcOut = this._visitOutCache[nodeTypeIndex];
@@ -33,29 +49,24 @@ class Visitor {
         visitArgs.visitDeeper = true;
 
         if (!func) {
-            fnName = `visit${n.type}`;
+            fnName = `visit${node.type}`;
             func = impl[fnName] || _noop;
             funcOut = impl[`${fnName}Out`] || _noop;
             this._visitInCache[nodeTypeIndex] = func;
             this._visitOutCache[nodeTypeIndex] = funcOut;
         }
 
-        /**
-         * @todo - Remove this type aliasing when we address the note below.
-         */
-        let node: Node | Node[] = n;
-
         if (func !== _noop) {
-            const newNode = func.call(impl, n, visitArgs);
-            if (n && impl.isReplacing) {
+            const newNode = func.call(impl, node, visitArgs);
+            if (node && impl.isReplacing) {
                 node = newNode;
             }
         }
 
         if (visitArgs.visitDeeper && node) {
             /**
-             * @note This is hard to reason about and we shouldn't allow this to happen.
-             *       A Node that is visited should return a Node.
+             * @note This is hard to reason about.
+             *       Ideally (?), a Node that is visited should return a Node.
              *       An array that is visited (this.visitArray) should
              *       return an array.
              * 
@@ -67,22 +78,16 @@ class Visitor {
                         node[i].accept(this);
                     }
                 }
-                n = node[0];
             } else if (node.accept) {
                 node.accept(this);
-                n = node;
             }
         }
 
-        /**
-         * @note Because of the above code's weirdness (see note),
-         *       then we make sure we are calling back only one Node.
-         */
         if (funcOut != _noop) {
-            funcOut.call(impl, n);
+            funcOut.call(impl, node);
         }
 
-        return n;
+        return node;
     }
 
     visitArray(nodes: Node[], nonReplacing?: boolean) {

@@ -7,26 +7,28 @@ import * as utils from '../utils';
  */
 class DetachedRuleset extends Node {
     type: 'DetachedRuleset'
-    frames: any[]
+    frames: any[];
+
+    constructor(ruleset, frames?) {
+        super(ruleset);
+        this.frames = frames;
+    }
 
     get ruleset() {
-        return this.value;
+        return this.nodes;
+    }
+
+    accept(visitor) {
+        this.nodes = visitor.visit(this.nodes);
     }
 
     eval(context: Context) {
-        if (!this.evaluated) {
-            this.evaluated = true;
-            this.frames = utils.copyArray(context.frames);
-        }
-        return this;
+        const frames = this.frames || utils.copyArray(context.frames);
+        return new DetachedRuleset(this.ruleset, frames);
     }
 
     callEval(context: Context) {
-        return this.ruleset.eval(
-            this.frames
-                ? context.create(this.frames.concat(context.frames))
-                : context
-        );
+        return this.ruleset.eval(this.frames ? context.create(this.frames.concat(context.frames)) : context);
     }
 }
 

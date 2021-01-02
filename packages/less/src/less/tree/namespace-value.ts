@@ -1,7 +1,6 @@
 import Node, { IFileInfo, INodeOptions, NodeArgs } from './node';
-import { Variable, Ruleset } from '.';
+import { Variable, Ruleset, Selector } from '.';
 import type { Context } from '../contexts';
-import DetachedRuleset from './detached-ruleset';
 
 type V1Args = [
     nodeCall: Node,
@@ -59,44 +58,45 @@ class NamespaceValue extends Node {
     /**
      * @todo - We need to clean up return types on mixin / DR calls.
      *         They should always return a ruleset.
+     * 
+     *         As well, there's too much re-use of vars which isn't
+     *         friendly to TypeScript.
      */
     eval(context: Context) {
-        let result: Node | Node[] = this.value.eval(context);
+        let name, rules: any = this.value.eval(context);
         
         for (let i = 0; i < this.lookups.length; i++) {
-            let name = this.lookups[i];
+            name = this.lookups[i];
 
             /**
              * Eval'd DRs return rulesets.
              * Eval'd mixins return rules, so let's make a ruleset if we need it.
              * We need to do this because of late parsing of values
-             * 
-             * @todo - Refactor eval of mixins to return rulesets - done?
              */
-            if (Array.isArray(result)) {
-                result = new Ruleset(null, result);
+            if (Array.isArray(rules)) {
+                rules = new Ruleset([new Selector(null)], rules);
             }
 
-            /** Now, result is a ruleset */
+            /** @note - rules should now be a Ruleset */
+
             if (name === '') {
-                result = (<Ruleset>result).lastDeclaration();
+                rules = rules.lastDeclaration();
             }
             else if (name.charAt(0) === '@') {
                 if (name.charAt(1) === '@') {
                     name = `@${new Variable(name.substr(1)).eval(context).value}`;
                 }
-                if (result instanceof Ruleset) {
-                    result = result.variable(name);
+                if (rules.variables) {
+                    rules = rules.variable(name);
                 }
                 
-                if (!result) {
+                if (!rules) {
                     throw { type: 'Name',
                         message: `variable ${name} not found`,
                         filename: this.fileInfo().filename,
                         index: this.getIndex() };
                 }
             }
-            /** This is a property lookup */
             else {
                 if (name.substring(0, 2) === '$@') {
                     name = `$${new Variable(name.substr(1)).eval(context).value}`;
@@ -104,14 +104,13 @@ class NamespaceValue extends Node {
                 else {
                     name = name.charAt(0) === '$' ? name : `$${name}`;
                 }
-                if ((<Ruleset>result).properties) {
-                    result = (<Ruleset>result).property(name);
+                if (rules.properties) {
+                    rules = rules.property(name);
                 }
-                /**
-                 * Now, result should be an array of matching declarations
-                 */
+
+                /** @note - rules should now be a Declaration[] */
             
-                if (!result) {
+                if (!rules) {
                     throw { type: 'Name',
                         message: `property "${name.substr(1)}" not found`,
                         filename: this.fileInfo().filename,
@@ -119,24 +118,17 @@ class NamespaceValue extends Node {
                 }
                 // Properties are an array of values, since a ruleset can have multiple props.
                 // We pick the last one (the "cascaded" value)
-                result = (<Node[]>result)[(<Node[]>result).length - 1];
+                rules = rules[rules.length - 1];
             }
 
-            /**
-             * @todo - Clean up types so these extra checks aren't necessary.
-             */
-
-            if (!(Array.isArray(result))) {
-                if (result.value) {
-                    result = result.eval(context).value;
-                }
-                if (result instanceof DetachedRuleset) {
-                    result = result.ruleset.eval(context);
-                }
+            if (rules.value) {
+                rules = rules.eval(context).value;
+            }
+            if (rules.ruleset) {
+                rules = rules.ruleset.eval(context);
             }
         }
-        /** We should be down to single Node now? */
-        return <Node>result;
+        return rules;
     }
 }
 

@@ -9,7 +9,6 @@ import type { Context } from '../contexts';
 
 import { List, Keyword, Anonymous } from '.';
 import * as Constants from '../constants';
-import Condition from './condition';
 const MATH = Constants.Math;
 
 function evalName(context, name) {
@@ -35,7 +34,7 @@ type V1Args = [
 ]
 
 type DeclarationOptions = {
-    merge?: boolean
+    merge?: string | boolean
     inline?: boolean
     isVariable?: boolean
 }

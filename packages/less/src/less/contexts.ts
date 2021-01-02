@@ -68,7 +68,10 @@ class Context {
     /** @todo - define proper options object */
     options: { [k: string]: any }
     
-    /** Ruleset (scoping) frames */
+    /** 
+     * Ruleset (scoping) frames
+     * @note - In Less, mixin definitions are also rulesets 
+     */
     frames: Ruleset[]
 
     /** Should be @media but types need to be refined in Media node */
