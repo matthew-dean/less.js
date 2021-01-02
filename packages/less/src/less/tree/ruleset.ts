@@ -97,6 +97,7 @@ class Ruleset extends Node {
         this._lookups = {};
         this._variables = null;
         this._properties = null;
+        this.paths = [];
     }
 
     get selectors() {
@@ -247,7 +248,7 @@ class Ruleset extends Node {
         for (i = 0; (rule = rsRules[i]); i++) {
             if (rule.type === 'MixinCall') {
                 /* jshint loopfunc:true */
-                rules = rule.eval(context).filter(function(r) {
+                rules = rule.eval(context).rules.filter(function(r) {
                     if ((r instanceof Declaration) && r.options.isVariable) {
                         // do not pollute the scope if the variable is
                         // already there. consider returning false here
@@ -522,7 +523,6 @@ class Ruleset extends Node {
     prependRule(rule: Node) {
         const rules = this.rules;
         rules.unshift(rule);
-        this.setParent(rule);
     }
 
     /**
@@ -535,12 +535,12 @@ class Ruleset extends Node {
      * We should speed this up by storing a normalized
      * lookup value.
      */
-    find(selector, self, filter: Function) {
+    find(selector, self, filter: Function, context: Context) {
         self = self || this;
         const rules = [];
         let match;
         let foundMixins;
-        const key = selector.toCSS();
+        const key = selector.toCSS(context);
 
         if (key in this._lookups) { return this._lookups[key]; }
 

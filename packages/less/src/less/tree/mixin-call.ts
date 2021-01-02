@@ -41,7 +41,7 @@ class MixinCall extends Node {
         super(
             [
                 new Selector(elements),
-                args
+                args || []
             ],
             { important },
             index,
@@ -78,7 +78,7 @@ class MixinCall extends Node {
      * 
      * At the least, break this up into testable utilities.
      */
-    eval(context: Context) {
+    eval(context: Context): Ruleset {
         let mixins;
         let mixin;
         let mixinPath;
@@ -146,7 +146,7 @@ class MixinCall extends Node {
         noArgumentsFilter = function(rule) {return rule.matchArgs(null, context);};
 
         for (let i = 0; i < context.frames.length; i++) {
-            if ((mixins = context.frames[i].find(this.selector, null, noArgumentsFilter)).length > 0) {
+            if ((mixins = context.frames[i].find(this.selector, null, noArgumentsFilter, context)).length > 0) {
                 isOneFound = true;
 
                 // To make `default()` function independent of definition order we have two "subpasses" here.
@@ -261,5 +261,5 @@ class MixinCall extends Node {
 }
 
 MixinCall.prototype.allowRoot = true;
-
+MixinCall.prototype.type = 'MixinCall';
 export default MixinCall;

@@ -1,4 +1,5 @@
 import Node, { IFileInfo, ILocationInfo, INodeOptions } from './node';
+import type { Context } from '../contexts';
 const _noSpaceCombinators = {
     '': true,
     ' ': true,
@@ -28,8 +29,8 @@ class Combinator extends Node {
         return val === ' ' || val === '';
     }
 
-    genCSS(context, output) {
-        const spaceOrEmpty = (context.compress || _noSpaceCombinators[this.nodes]) ? '' : ' ';
+    genCSS(context: Context, output) {
+        const spaceOrEmpty = (context?.options.compress || _noSpaceCombinators[this.nodes]) ? '' : ' ';
         output.add(spaceOrEmpty + this.nodes + spaceOrEmpty);
     }
 }

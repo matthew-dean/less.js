@@ -57,7 +57,6 @@ class Node {
      */
     nodes: NodeValue
 
-    parent: Node
     nodeVisible: boolean
     rootNode: Node
     allowRoot: boolean
@@ -105,17 +104,14 @@ class Node {
         if (typeof location === 'number') {
             this._location = { startOffset: location };
         } else {
-            this._location = location;
+            this._location = location || { startOffset: 0 };
         }
         this._fileInfo = fileInfo;
         this.options = options || {};
 
         this.visibilityBlocks = 0;
         this.nodeVisible = undefined;
-        this.rootNode = this;
         this.evaluated = false;
-
-        this.processNodes(n => this.setParent(n));
     }
 
     /** 
@@ -149,21 +145,11 @@ class Node {
         }
     }
 
-    setParent(node: Node) {
-        node.parent = this;
-        node.rootNode = this.rootNode;
-        
-        if (!node._fileInfo) {
-            node._fileInfo = this._fileInfo;
-        }
-        if (!node._location) {
-            node._location = this._location;
-        }
-        return node;
-    }
-
     get _index(): number {
         return this._location.startOffset;
+    }
+    set _index(n: number) {
+        this._location.startOffset = n;
     }
 
     getIndex() {
@@ -225,11 +211,12 @@ class Node {
     }
 
     inherit(node: Node) {
-        this.parent = node.parent;
         this._location = node._location;
         this._fileInfo = node._fileInfo;
         this.rootNode = node.rootNode;
         this.evaluated = node.evaluated;
+        this.nodeVisible = node.nodeVisible;
+        this.visibilityBlocks = node.visibilityBlocks;
         return this;
     }
 

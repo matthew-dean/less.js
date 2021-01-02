@@ -49,7 +49,7 @@ class Dimension extends Node {
 
     genCSS(context, output) {
         let [value, unit] = this.nodes;
-        value = fround(context, value);
+        value = fround(value);
 
         let strValue = String(value);
 

@@ -56,7 +56,6 @@ class Media extends AtRule {
     }
     set features(n: Node) {
         this.nodes[1] = n;
-        this.setParent(n);
     }
 
     isRulesetLike() { return true; }

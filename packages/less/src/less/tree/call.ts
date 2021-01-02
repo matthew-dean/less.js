@@ -21,7 +21,7 @@ class Call extends Node {
     nodes: [string, List]
 
     constructor(...args: V1Args | NodeArgs) {
-        if (Array.isArray(args)) {
+        if (Array.isArray(args[1])) {
             const [
                 name,
                 funcArgs,

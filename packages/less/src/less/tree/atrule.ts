@@ -88,7 +88,6 @@ class AtRule extends Node {
     }
     set rules(r: Ruleset) {
         this.nodes[2] = r;
-        this.setParent(r);
     }
 
     isRulesetLike() {
