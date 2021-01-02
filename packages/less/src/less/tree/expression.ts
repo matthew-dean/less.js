@@ -42,6 +42,9 @@ class Expression extends Node {
     eval(context: Context): Expression | List | Node {
         if (!this.evaluated) {
             super.eval(context);
+            if (this.nodes.length === 1) {
+                return this.nodes[0];
+            }
 
             const expressions: Expression[] = [];
 

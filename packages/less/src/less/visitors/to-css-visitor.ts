@@ -1,8 +1,15 @@
 import * as tree from '../tree';
 import Visitor from './visitor';
 import { mergeRules } from '../tree/util/merge';
+import type { Context } from '../contexts';
+import type {
+    Declaration
+} from '../tree';
 
 class CSSVisitorUtils {
+    _visitor: Visitor;
+    _context: Context;
+
     constructor(context) {
         this._visitor = new Visitor(this);
         this._context = context;
@@ -91,8 +98,8 @@ ToCSSVisitor.prototype = {
         return this._visitor.visit(root);
     },
 
-    visitDeclaration: function (declNode, visitArgs) {
-        if (declNode.blocksVisibility() || declNode.variable) {
+    visitDeclaration: function (declNode: Declaration, visitArgs) {
+        if (declNode.blocksVisibility()) {
             return;
         }
         return declNode;
@@ -203,7 +210,7 @@ ToCSSVisitor.prototype = {
 
         for (let i = 0; i < rules.length; i++) {
             const ruleNode = rules[i];
-            if (isRoot && ruleNode instanceof tree.Declaration && !ruleNode.variable) {
+            if (isRoot && ruleNode instanceof tree.Declaration && !ruleNode.options.isVariable) {
                 throw { message: 'Properties must be inside selector blocks. They cannot be in the root',
                     index: ruleNode.getIndex(), filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename};
             }
@@ -307,12 +314,13 @@ ToCSSVisitor.prototype = {
         for (i = rules.length - 1; i >= 0 ; i--) {
             rule = rules[i];
             if (rule instanceof tree.Declaration) {
-                if (!ruleCache[rule.name]) {
-                    ruleCache[rule.name] = rule;
+                const name = rule.name;
+                if (!ruleCache[name]) {
+                    ruleCache[name] = rule;
                 } else {
-                    ruleList = ruleCache[rule.name];
+                    ruleList = ruleCache[name];
                     if (ruleList instanceof tree.Declaration) {
-                        ruleList = ruleCache[rule.name] = [ruleCache[rule.name].toCSS(this._context)];
+                        ruleList = ruleCache[name] = [ruleCache[name].toCSS(this._context)];
                     }
                     const ruleCSS = rule.toCSS(this._context);
                     if (ruleList.indexOf(ruleCSS) !== -1) {
@@ -323,7 +331,9 @@ ToCSSVisitor.prototype = {
                 }
             }
         }
-    }
+    },
+
+    _mergeRules: mergeRules
 };
 
 export default ToCSSVisitor;

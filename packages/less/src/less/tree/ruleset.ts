@@ -43,8 +43,8 @@ export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
  */
 class Ruleset extends Node {
     _lookups: Record<any, any>;
-    _variables: Record<string, Node>;
-    _properties: Record<string, Node[]>;
+    _variables: Record<string, Declaration>;
+    _properties: Record<string, Declaration[]>;
 
     /** A root node */
     root: boolean;
@@ -132,6 +132,7 @@ class Ruleset extends Node {
     /**
      * @todo
      * Can this eval() be simplified or split into multiple files?
+     * There's far too much going on here, without documentation.
      */
     eval(context: Context): Ruleset {
         const that = this;
@@ -380,10 +381,12 @@ class Ruleset extends Node {
      * differs (by reference?), then re-catalog the dictionary?
      * 
      * To do that, we would need to make sure that Nodes do not
-     * mutate their props.
+     * mutate their props. OR this may be solved by removing
+     * leaking variables. (Right now, mixin vars [and mixin names]
+     * are spliced directly into rules.)
      * 
      * This is easy to over-engineer but lookup speed is potentially
-     * important.
+     * important. It needs test coverage.
      */
     resetCache() {
         this._variables = null;
@@ -422,8 +425,7 @@ class Ruleset extends Node {
         if (!this._properties) {
             this._properties = this.rules.reduce(function (hash, r) {
                 if (r instanceof Declaration && r.options.isVariable !== true) {
-                    const name = (r.name.length === 1) && (r.name[0] instanceof Keyword) ?
-                        r.name[0].value : r.name;
+                    const name = r.name;
                     // Properties don't overwrite as they can merge
                     if (!hash[`$${name}`]) {
                         hash[`$${name}`] = [ r ];
@@ -440,6 +442,7 @@ class Ruleset extends Node {
 
     variable(name: string) {
         const decl = this.variables()[name];
+        /** @todo - remove late parsing */
         if (decl) {
             return this.parseValue(decl);
         }
@@ -447,6 +450,7 @@ class Ruleset extends Node {
 
     property(name: string) {
         const decl = this.properties()[name];
+        /** @todo - remove late parsing */
         if (decl) {
             return this.parseValue(decl);
         }
@@ -461,9 +465,24 @@ class Ruleset extends Node {
         }
     }
 
-    parseValue(toParse) {
+    /**
+     * @note
+     * This was added to parse "on-demand" the value of a declaration,
+     * but this pattern has a few problems:
+     *   1. It isn't good separation of concerns between parsing
+     *      and evaluation.
+     *   2. It doesn't allow us to actually remove the parser from
+     *      a future browser runtime.
+     *   3. With an efficient parser and evaluater, it doesn't save
+     *      us a lot of time or memory.
+     *   4. All those being the case, this adds code / cognitive
+     *      overhead to Nodes that do this late parsing.
+     * 
+     * @deprecated
+     */
+    parseValue(toParse: Declaration | Declaration[]) {
         const self = this;
-        function transformDeclaration(decl) {
+        function transformDeclaration(decl: Declaration) {
             if (decl.value instanceof Anonymous && !decl.parsed) {
                 if (typeof decl.value.value === 'string') {
                     this.parse.parseNode(
@@ -535,7 +554,7 @@ class Ruleset extends Node {
      * We should speed this up by storing a normalized
      * lookup value.
      */
-    find(selector, self, filter: Function) {
+    find(selector: Selector, self, filter: Function) {
         self = self || this;
         const rules = [];
         let match;

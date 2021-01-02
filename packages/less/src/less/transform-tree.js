@@ -83,7 +83,13 @@ export default function(root, options) {
         visitors[i].run(evaldRoot);
     }
 
-    // Run any remaining visitors added after eval pass
+    /** 
+     * Run any remaining visitors added after eval pass
+     * 
+     * @todo - To be removed when `@plugin` is removed.
+     * 
+     * @deprecated
+     */
     if (options.pluginManager) {
         visitorIterator.first();
         while ((v = visitorIterator.get())) {

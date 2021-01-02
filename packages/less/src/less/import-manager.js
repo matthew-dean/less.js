@@ -144,6 +144,9 @@ export default function(environment) {
                 context.ext = importOptions.isPlugin ? '.js' : '.less';
             }
 
+            /**
+             * @todo - rewrite when `@plugin` is removed
+             */
             if (importOptions.isPlugin) {
                 context.mime = 'application/javascript';
 

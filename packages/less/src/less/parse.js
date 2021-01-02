@@ -29,8 +29,14 @@ export default function(environment, ParseTree, ImportManager) {
         } else {
             let context;
             let rootFileInfo;
-            const pluginManager = new PluginManager(this, !options.reUsePluginManager);
 
+            /**
+             * @todo
+             * This is hacky. Find a way to do this without attaching to `options`.
+             * 
+             * This may not be needed when `@plugin` is removed.
+             */
+            const pluginManager = new PluginManager(this, !options.reUsePluginManager);
             options.pluginManager = pluginManager;
 
             context = new contexts.Parse(options);
@@ -59,7 +65,6 @@ export default function(environment, ParseTree, ImportManager) {
 
             // TODO: allow the plugins to be just a list of paths or names
             // Do an async plugin queue like lessc
-
             if (options.plugins) {
                 options.plugins.forEach(function(plugin) {
                     let evalResult, contents;

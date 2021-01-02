@@ -9,6 +9,7 @@ import type { Context } from '../contexts';
 
 import { List, Keyword, Anonymous } from '.';
 import * as Constants from '../constants';
+import Condition from './condition';
 const MATH = Constants.Math;
 
 function evalName(context, name) {
@@ -43,6 +44,9 @@ class Declaration extends Node {
     type: 'Declaration'
     nodes: [Node[] | string, Node | null, string]
     options: DeclarationOptions
+
+    /** @deprecated */
+    parsed: boolean
 
     constructor(...args: V1Args | NodeArgs) {
         /** v5 args */
@@ -86,8 +90,12 @@ class Declaration extends Node {
         super(value, <INodeOptions>options, <ILocationInfo | number>location, fileInfo);
     }
 
-    get name() {
-        return this.nodes[0];
+    get name(): string {
+        let name = this.nodes[0];
+        if (Array.isArray(name)) {
+            return name[0].value;
+        }
+        return name;
     }
     get value() {
         return this.nodes[1];
@@ -100,6 +108,10 @@ class Declaration extends Node {
     }
     set important(str: string) {
         this.nodes[2] = str;
+    }
+
+    blocksVisibility() {
+        return this.options.isVariable;
     }
 
     genCSS(context: Context, output: OutputCollector) {
@@ -116,10 +128,9 @@ class Declaration extends Node {
         output.add(this.important + ((this.options.inline || (context.lastRule && compress)) ? '' : ';'), this._fileInfo, this._index);
     }
 
-    eval(context) {
-        let name = this.nodes[0],
-            evaldValue,
-            variable = this.options.isVariable;
+    eval(context: Context) {
+        let name = this.nodes[0];
+        let isVariable = this.options.isVariable;
 
         if (typeof name !== 'string') {
             // expand 'primitive' name directly to get
@@ -129,12 +140,12 @@ class Declaration extends Node {
             } else {
                 name = evalName(context, name);
             }
-            variable = false; // never treat expanded interpolation as new variable name
+            isVariable = false; // never treat expanded interpolation as new variable name
         }
 
         try {
             context.importantScope.push({});
-            evaldValue = this.nodes[1].eval(context);
+            const evaldValue = this.nodes[1].eval(context);
 
             if (!this.options.isVariable && evaldValue.type === 'DetachedRuleset') {
                 throw { message: 'Rulesets cannot be evaluated on a property.',
@@ -148,7 +159,7 @@ class Declaration extends Node {
 
             return new Declaration(
                 [name, evaldValue, important],
-                {...this.options, variable },
+                {...this.options, isVariable },
                 this._location,
                 this._fileInfo
             );
