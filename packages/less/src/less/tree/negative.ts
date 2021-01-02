@@ -19,4 +19,6 @@ class Negative extends Node {
     }
 }
 
+Negative.prototype.type = 'Negative';
+
 export default Negative;

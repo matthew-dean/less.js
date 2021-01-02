@@ -3,7 +3,7 @@ import { Paren, Combinator } from '.';
 import type { Context } from '../contexts';
 
 type V1Args = [
-    combinator: string | Combinator,
+    combinator: Combinator | string,
     value: Node | string,
     isVariable?: boolean,
     index?: number,
@@ -50,7 +50,9 @@ class Element extends Node {
     get combinator() {
         return this.nodes[0];
     }
-
+    set combinator(c: Combinator) {
+        this.nodes[0] = c;
+    }
     get value() {
         return this.nodes[1];
     }

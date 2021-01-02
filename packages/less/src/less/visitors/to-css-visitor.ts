@@ -3,7 +3,8 @@ import Visitor from './visitor';
 import { mergeRules } from '../tree/util/merge';
 import type { Context } from '../contexts';
 import type {
-    Declaration
+    Declaration,
+    Ruleset
 } from '../tree';
 
 class CSSVisitorUtils {
@@ -42,7 +43,7 @@ class CSSVisitorUtils {
             ? (owner.rules.length === 0) : true;
     }
 
-    hasVisibleSelector(rulesetNode) {
+    hasVisibleSelector(rulesetNode: Ruleset) {
         return (rulesetNode && rulesetNode.paths)
             ? (rulesetNode.paths.length > 0) : false;
     }
@@ -69,7 +70,7 @@ class CSSVisitorUtils {
         return node;
     }
 
-    isVisibleRuleset(rulesetNode) {
+    isVisibleRuleset(rulesetNode: Ruleset) {
         if (rulesetNode.firstRoot) {
             return true;
         }
@@ -86,7 +87,7 @@ class CSSVisitorUtils {
     }
 }
 
-const ToCSSVisitor = function(context) {
+const ToCSSVisitor = function(context: Context) {
     this._visitor = new Visitor(this);
     this._context = context;
     this.utils = new CSSVisitorUtils(context);

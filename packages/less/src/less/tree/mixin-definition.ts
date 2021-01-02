@@ -321,5 +321,6 @@ class Definition extends Ruleset {
 
 Definition.prototype.evalFirst = true;
 Definition.prototype.allowRoot = true;
+Definition.prototype.type = 'MixinDefinition';
 
 export default Definition;

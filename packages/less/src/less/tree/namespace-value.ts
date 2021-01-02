@@ -140,4 +140,5 @@ class NamespaceValue extends Node {
     }
 }
 
+NamespaceValue.prototype.type = 'NamespaceValue';
 export default NamespaceValue;

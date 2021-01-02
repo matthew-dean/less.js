@@ -6,7 +6,7 @@ export default function(root, options) {
     options = options || {};
     let evaldRoot;
     let variables = options.variables;
-    const evalEnv = new contexts.Eval(options);
+    const context = new contexts.Eval(options);
 
     //
     // Allows setting variables with a hash, so:
@@ -33,14 +33,14 @@ export default function(root, options) {
             }
             return new tree.Declaration(`@${k}`, value, false, null, 0);
         });
-        evalEnv.frames = [new tree.Ruleset(null, variables)];
+        context.frames = [new tree.Ruleset(null, variables)];
     }
 
     const visitors = [
         new visitor.JoinSelectorVisitor(),
         new visitor.MarkVisibleSelectorsVisitor(true),
         new visitor.ExtendVisitor(),
-        new visitor.ToCSSVisitor({compress: Boolean(options.compress)})
+        new visitor.ToCSSVisitor(context)
     ];
 
     const preEvalVisitors = [];
@@ -50,7 +50,7 @@ export default function(root, options) {
     /**
      * first() / get() allows visitors to be added while visiting
      * 
-     * @todo remove when `@plugin` is removed
+     * @todo refactor/simplify when `@plugin` is removed
      */
     if (options.pluginManager) {
         visitorIterator = options.pluginManager.visitor();
@@ -77,7 +77,7 @@ export default function(root, options) {
         }
     }
 
-    evaldRoot = root.eval(evalEnv);
+    evaldRoot = root.eval(context);
 
     for (var i = 0; i < visitors.length; i++) {
         visitors[i].run(evaldRoot);

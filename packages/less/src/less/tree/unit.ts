@@ -13,4 +13,5 @@ class Unit extends Node {
     }
 }
 
+Unit.prototype.type = 'Unit';
 export default Unit;

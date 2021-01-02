@@ -987,6 +987,7 @@ class Ruleset extends Node {
     }
 }
 
+Ruleset.prototype.type = 'Ruleset';
 Ruleset.prototype.allowRoot = true;
 
 export default Ruleset;
