@@ -139,7 +139,7 @@ class Definition extends Ruleset {
 
     evalParams(context: Context, mixinEnv: Context, args, evaldArguments) {
         /* jshint boss:true */
-        const frame = new Ruleset(null, null);
+        const frame = new Ruleset(null, []);
 
         let varargs;
         let arg;

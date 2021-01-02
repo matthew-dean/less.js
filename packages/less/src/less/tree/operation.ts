@@ -15,15 +15,17 @@ class Operation extends Node {
     constructor(...args: NodeArgs | V1Args) {
         if (Array.isArray(args[0])) {
             super(...(<NodeArgs>args));
-            return;
-        }
-        const [
-            op,
-            operands,
-            isSpaced
-        ] = <V1Args>args;
+            this.nodes[0] = this.nodes[0].trim();
+        } else {
+            let [
+                op,
+                operands,
+                isSpaced
+            ] = <V1Args>args;
+            op = op.trim();
 
-        super([op, ...operands], { isSpaced });
+            super([op, ...operands], { isSpaced });
+        }
     }
 
     get op() {

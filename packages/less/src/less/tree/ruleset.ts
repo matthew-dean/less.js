@@ -535,12 +535,12 @@ class Ruleset extends Node {
      * We should speed this up by storing a normalized
      * lookup value.
      */
-    find(selector, self, filter: Function, context: Context) {
+    find(selector, self, filter: Function) {
         self = self || this;
         const rules = [];
         let match;
         let foundMixins;
-        const key = selector.toCSS(context);
+        const key = selector.toCSS();
 
         if (key in this._lookups) { return this._lookups[key]; }
 

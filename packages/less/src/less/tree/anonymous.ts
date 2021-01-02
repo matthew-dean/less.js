@@ -8,7 +8,6 @@ type V1Args = [
     mapLines?: boolean,
     isRulesetLike?: boolean
 ]
-
 class Anonymous extends Node {
     type: 'Anonymous'
     nodes: string

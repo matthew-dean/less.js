@@ -69,33 +69,33 @@ class Dimension extends Node {
             return this;
         }
 
-        const hasUnit = !!other.value[1];
+        const hasUnit = !!other.unit;
 
         if (hasUnit) {
-            const aUnit = this.nodes[1];
+            const aUnit = this.unit;
             const bNode = this.unify(other, aUnit);
-            const bUnit = bNode.value[1];
+            const bUnit = bNode.unit;
     
             if (aUnit !== bUnit) {
                 if (strictUnits !== false) {
                     throw new Error(
                         `Incompatible units. Change the units or use the unit function. `
-                  + `Bad units: '${aUnit}' and '${bUnit}'.`
+                        + `Bad units: '${aUnit}' and '${bUnit}'.`
                     );
                 } else {
                     /**
-               * In an operation between two Dimensions,
-               * we default to the first Dimension's unit,
-               * so `1px + 2%` will yield `3px`.
-               *
-               * This can have un-intuitive behavior for a user,
-               * so it is not a recommended setting.
-               */
-                    const result = operate(op, this.nodes[0], bNode.value[0]);
+                     * In an operation between two Dimensions,
+                     * we default to the first Dimension's unit,
+                     * so `1px + 2%` will yield `3px`.
+                     *
+                     * This can have un-intuitive behavior for a user,
+                     * so it is not a recommended setting.
+                     */
+                    const result = operate(op, this.value, bNode.value);
                     return new Dimension([result, aUnit], {}).inherit(this);
                 }
             } else {
-                const result = operate(op, this.nodes[0], bNode.value[0]);
+                const result = operate(op, this.value, bNode.value);
                 /** Dividing 8px / 1px will yield 8 */
                 if (op === '/') {
                     return new Dimension([result, undefined], {}).inherit(this);

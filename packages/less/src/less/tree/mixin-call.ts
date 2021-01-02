@@ -146,7 +146,7 @@ class MixinCall extends Node {
         noArgumentsFilter = function(rule) {return rule.matchArgs(null, context);};
 
         for (let i = 0; i < context.frames.length; i++) {
-            if ((mixins = context.frames[i].find(this.selector, null, noArgumentsFilter, context)).length > 0) {
+            if ((mixins = context.frames[i].find(this.selector, null, noArgumentsFilter)).length > 0) {
                 isOneFound = true;
 
                 // To make `default()` function independent of definition order we have two "subpasses" here.
