@@ -62,7 +62,9 @@ class Selector extends Node {
     get elements() {
         return this.nodes[0];
     }
-
+    set elements(els: Element[]) {
+        this.nodes[0] = els;
+    }
     get extendList() {
         return this.nodes[1];
     }

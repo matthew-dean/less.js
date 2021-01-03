@@ -38,7 +38,8 @@ export default function(environment) {
          * @param callback - callback for when it is imported
          */
         push(path, tryAppendExtension, currentFileInfo, importOptions, callback) {
-            const importManager = this, pluginLoader = this.context.pluginManager.Loader;
+            const importManager = this;
+            const pluginLoader = this.context?.options?.pluginManager.Loader;
 
             this.queue.push(path);
 

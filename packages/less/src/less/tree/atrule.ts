@@ -5,7 +5,7 @@ import type { Context } from '../contexts';
 type V1Args = [
     name: string,
     prelude: Node | string,
-    rules: Ruleset,
+    rules: Ruleset[], // I guess?
     index: number,
     fileInfo: IFileInfo,
     debugInfo: boolean,
@@ -34,7 +34,7 @@ type V1Args = [
  * 
  */
 class AtRule extends Node {
-    nodes: [string, Node, Ruleset]
+    nodes: [string, Node, Node[]]
 
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
@@ -59,11 +59,16 @@ class AtRule extends Node {
         
         if (rules) {
             /**
-             * @todo - refactor createEmptySelectors() to remove boilerplate,
-             * and create this ruleset properly when calling new AtRule()
+             * @todo - Figure out why there are multiple rulesets
+             *         and only rulesets?
              */
-            rules.selectors = Selector.createEmptySelectors(index, fileInfo);
-            rules.allowImports = true;
+            if (!(Array.isArray(rules))) {
+                rules = [rules];
+                rules[0].selectors = Selector.createEmptySelectors(index, fileInfo);
+            }
+            for (let i = 0; i < rules.length; i++) {
+                rules[i].allowImports = true;
+            }
         }
         super(
             [
@@ -83,11 +88,25 @@ class AtRule extends Node {
     get value() {
         return this.nodes[1];
     }
+    set value(n: Node) {
+        this.nodes[1] = n;
+    }
     get rules() {
         return this.nodes[2];
     }
-    set rules(r: Ruleset) {
+    set rules(r: Node[]) {
         this.nodes[2] = r;
+    }
+
+    accept(visitor) {
+        const value = this.value;
+        const rules = this.rules;
+        if (rules) {
+            this.rules = visitor.visitArray(rules);
+        }
+        if (value) {
+            this.value = visitor.visit(value);
+        }
     }
 
     isRulesetLike() {
@@ -99,9 +118,7 @@ class AtRule extends Node {
     }
 
     genCSS(context: Context, output: OutputCollector) {
-        const value = this.value;
-        const rules = this.rules;
-
+        const value = this.value, rules = this.rules;
         output.add(this.name, this.fileInfo(), this.getIndex());
         if (value) {
             output.add(' ');
@@ -114,10 +131,8 @@ class AtRule extends Node {
         }
     }
 
-    eval(context: Context): Node {
-        let mediaPathBackup, mediaBlocksBackup;
-        let value = this.value;
-        let rules = this.rules;
+    eval(context: Context) {
+        let mediaPathBackup, mediaBlocksBackup, value = this.value, rules = this.rules;
 
         // media stored inside other atrule should not bubble over it
         // backpup media bubbling information
@@ -132,58 +147,66 @@ class AtRule extends Node {
         }
         if (rules) {
             // assuming that there is only one rule at this point - that is how parser constructs the rule
-            rules = rules.eval(context);
-            rules.root = true;
+            rules = [rules[0].eval(context)];
+            (<Ruleset>rules[0]).root = true;
         }
         // restore media bubbling information
         context.mediaPath = mediaPathBackup;
         context.mediaBlocks = mediaBlocksBackup;
 
-        return new AtRule(
-            [this.name, value, rules],
-            {...this.options },
-            this._location,
-            this._fileInfo
-        );
+        return new AtRule([this.name, value, rules], {...this.options}).inherit(this);
     }
 
     variable(name) {
         if (this.rules) {
-            return Ruleset.prototype.variable.call(this.rules, name);
+            // assuming that there is only one rule at this point - that is how parser constructs the rule
+            return Ruleset.prototype.variable.call(this.rules[0], name);
         }
     }
 
     find() {
         if (this.rules) {
-            return Ruleset.prototype.find.apply(this.rules, arguments);
+            // assuming that there is only one rule at this point - that is how parser constructs the rule
+            return Ruleset.prototype.find.apply(this.rules[0], arguments);
         }
     }
 
     rulesets() {
         if (this.rules) {
-            return Ruleset.prototype.rulesets.apply(this.rules);
+            // assuming that there is only one rule at this point - that is how parser constructs the rule
+            return Ruleset.prototype.rulesets.apply(this.rules[0]);
         }
     }
 
-    outputRuleset(context: Context, output: OutputCollector, rules: Ruleset) {
+    outputRuleset(context, output, rules) {
+        const ruleCnt = rules.length;
+        let i;
         context.tabLevel = (context.tabLevel | 0) + 1;
 
         // Compressed
-        if (context.options.compress) {
+        if (context.compress) {
             output.add('{');
-            rules.genCSS(context, output);
+            for (i = 0; i < ruleCnt; i++) {
+                rules[i].genCSS(context, output);
+            }
             output.add('}');
             context.tabLevel--;
             return;
         }
 
         // Non-compressed
-        const tabSetStr = `\n${Array(context.tabLevel).join('  ')}`;
-        const tabRuleStr = `${tabSetStr}  `;
-
-        output.add(` {${tabRuleStr}`);
-        rules.genCSS(context, output);
-        output.add(`${tabSetStr}}`);
+        const tabSetStr = `\n${Array(context.tabLevel).join('  ')}`, tabRuleStr = `${tabSetStr}  `;
+        if (!ruleCnt) {
+            output.add(` {${tabSetStr}}`);
+        } else {
+            output.add(` {${tabRuleStr}`);
+            rules[0].genCSS(context, output);
+            for (i = 1; i < ruleCnt; i++) {
+                output.add(tabRuleStr);
+                rules[i].genCSS(context, output);
+            }
+            output.add(`${tabSetStr}}`);
+        }
 
         context.tabLevel--;
     }

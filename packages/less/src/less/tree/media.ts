@@ -20,6 +20,7 @@ export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
  */
 class Media extends AtRule {
     type: 'Media';
+    nodes: [string, Node, Ruleset[]]
 
     constructor(...args: NodeArgs | V1Args) {
         if (!(isV1Args(args))) {
@@ -45,10 +46,10 @@ class Media extends AtRule {
 
         const selectors = Selector.createEmptySelectors(index, fileInfo);
         const featureList = new List(features);
-        const ruleset = new Ruleset([selectors, rules], {});
-        ruleset.allowImports = true;
+        rules = [new Ruleset(selectors, rules)];
+        (<Ruleset>rules[0]).allowImports = true;
 
-        super(['@media', featureList, ruleset], {}, index, fileInfo);
+        super(['@media', featureList, rules], {}, index, fileInfo);
     }
 
     get features() {
@@ -56,6 +57,12 @@ class Media extends AtRule {
     }
     set features(n: Node) {
         this.nodes[1] = n;
+    }
+    get rules() {
+        return this.nodes[2];
+    }
+    set rules(r: Ruleset[]) {
+        this.nodes[2] = r;
     }
 
     isRulesetLike() { return true; }
@@ -77,16 +84,16 @@ class Media extends AtRule {
             {}, this._location, this._fileInfo
         );
         if (this.debugInfo) {
-            this.rules.debugInfo = this.debugInfo;
+            this.rules[0].debugInfo = this.debugInfo;
             media.debugInfo = this.debugInfo;
         }
 
         context.mediaPath.push(media);
         context.mediaBlocks.push(media);
 
-        this.rules.functionRegistry = context.frames[0].functionRegistry.inherit();
-        context.frames.unshift(this.rules);
-        media.rules = this.rules.eval(context);
+        this.rules[0].functionRegistry = context.frames[0].functionRegistry.inherit();
+        context.frames.unshift(this.rules[0]);
+        media.rules = [this.rules[0].eval(context)];
         context.frames.shift();
         context.mediaPath.pop();
 
@@ -165,7 +172,7 @@ class Media extends AtRule {
         if (!selectors) {
             return;
         }
-        this.rules = new Ruleset(utils.copyArray(selectors), [this.rules[0]]);
+        this.rules = [new Ruleset(utils.copyArray(selectors), [this.rules[0]])];
     }
 }
 

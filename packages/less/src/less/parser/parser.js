@@ -158,8 +158,8 @@ const Parser = function Parser(context, imports, fileInfo) {
             globalVars = (additionalData && additionalData.globalVars) ? `${Parser.serializeVars(additionalData.globalVars)}\n` : '';
             modifyVars = (additionalData && additionalData.modifyVars) ? `\n${Parser.serializeVars(additionalData.modifyVars)}` : '';
 
-            if (context.pluginManager) {
-                const preProcessors = context.pluginManager.getPreProcessors();
+            if (context.options.pluginManager) {
+                const preProcessors = context.options.pluginManager.getPreProcessors();
                 for (let i = 0; i < preProcessors.length; i++) {
                     str = preProcessors[i].process(str, { context, imports, fileInfo });
                 }
@@ -182,7 +182,7 @@ const Parser = function Parser(context, imports, fileInfo) {
             // with the `root` property set to true, so no `{}` are
             // output. The callback is called when the input is parsed.
             try {
-                parserInput.start(str, context.chunkInput, function fail(msg, index) {
+                parserInput.start(str, context.options.chunkInput, function fail(msg, index) {
                     throw new LessError({
                         index,
                         type: 'Parse',
@@ -249,7 +249,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                 }
             };
 
-            if (context.processImports !== false) {
+            if (context.options.processImports !== false) {
                 new visitors.ImportVisitor(imports, finish)
                     .run(root);
             } else {
@@ -1482,7 +1482,7 @@ const Parser = function Parser(context, imports, fileInfo) {
 
                 parserInput.save();
 
-                if (context.dumpLineNumbers) {
+                if (context.options.dumpLineNumbers) {
                     debugInfo = getDebugInfo(parserInput.i);
                 }
 
@@ -1490,8 +1490,8 @@ const Parser = function Parser(context, imports, fileInfo) {
 
                 if (selectors && (rules = this.block())) {
                     parserInput.forget();
-                    const ruleset = new(tree.Ruleset)(selectors, rules, context.strictImports);
-                    if (context.dumpLineNumbers) {
+                    const ruleset = new(tree.Ruleset)(selectors, rules, context.options.strictImports);
+                    if (context.options.dumpLineNumbers) {
                         ruleset.debugInfo = debugInfo;
                     }
                     return ruleset;
@@ -1811,7 +1811,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                 let debugInfo;
                 const index = parserInput.i;
 
-                if (context.dumpLineNumbers) {
+                if (context.options.dumpLineNumbers) {
                     debugInfo = getDebugInfo(index);
                 }
 
@@ -1829,7 +1829,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                     parserInput.forget();
 
                     media = new(tree.Media)(rules, features, index, fileInfo);
-                    if (context.dumpLineNumbers) {
+                    if (context.options.dumpLineNumbers) {
                         media.debugInfo = debugInfo;
                     }
 
@@ -1988,7 +1988,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                 if (rules || (!hasBlock && value && parserInput.$char(';'))) {
                     parserInput.forget();
                     return new(tree.AtRule)(name, value, rules, index, fileInfo,
-                        context.dumpLineNumbers ? getDebugInfo(index) : null,
+                        context.options.dumpLineNumbers ? getDebugInfo(index) : null,
                         isRooted
                     );
                 }

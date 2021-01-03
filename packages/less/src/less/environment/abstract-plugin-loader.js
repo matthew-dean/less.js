@@ -20,7 +20,7 @@ class AbstractPluginLoader {
 
         let loader, registry, pluginObj, localModule, pluginManager, filename, result;
 
-        pluginManager = context.pluginManager;
+        pluginManager = context.options.pluginManager;
 
         if (fileInfo) {
             if (typeof fileInfo === 'string') {
