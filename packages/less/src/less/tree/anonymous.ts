@@ -1,8 +1,8 @@
-import Node, { NodeArgs, NodeValue, OutputCollector } from './node';
+import Node, { isNodeArgs, NodeArgs, NodeValue, OutputCollector } from './node';
 import type { Context } from '../contexts';
 
 type V1Args = [
-    value: string,
+    value?: string,
     index?: number,
     currentFileInfo?: any,
     mapLines?: boolean,
@@ -13,8 +13,8 @@ class Anonymous extends Node {
     value: string
 
     constructor(...args: V1Args | NodeArgs) {
-        if (args[1] && typeof args[1] !== 'number') {
-            super(...(<NodeArgs>args));
+        if (isNodeArgs(args)) {
+            super(...args);
             return;
         }
         const [

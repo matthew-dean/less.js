@@ -32,8 +32,8 @@ export function copyArray<T>(arr: T[]): T[] {
     return copy;
 }
 
-export function clone(obj) {
-    const cloned = {};
+export function clone<T>(obj: T): T {
+    const cloned: any = {};
     for (const prop in obj) {
         if (obj.hasOwnProperty(prop)) {
             cloned[prop] = obj[prop];

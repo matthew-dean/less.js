@@ -1,5 +1,6 @@
 import { Node, Operation, Condition } from '.';
 import type { Context } from '../contexts';
+import Expression from './expression';
 import { NodeArgs } from './node';
 
 class Paren extends Node {
@@ -12,30 +13,29 @@ class Paren extends Node {
         output.add(')');
     }
 
-    eval(context: Context) {
+    eval(context: Context): Node {
         if (!this.evaluated) {
             let content = this.value;
-            let escape = content instanceof Operation || content instanceof Condition;
             context.enterParens();
-            const block = super.eval(context);
+            super.eval(context);
             context.exitParens();
       
             /**
-             * If the result of an operation or compare reduced to a single result,
+             * If the result of an eval can be reduced to a single result,
              * then return the result (remove parens)
              */
-            if (escape) {
-                let content = block.value;
-                if (
-                    content
-                    && content instanceof Node
-                    && (!(content instanceof Operation)
-                        && !(content instanceof Condition)
-                )) {
-                    return content.inherit(this);
-                }
+            content = this.value;
+            if (
+                content
+                && content instanceof Node
+                && (
+                    !(content instanceof Operation)
+                    && !(content instanceof Condition)
+                    && !(content instanceof Expression)
+                )
+            ) {
+                return content.inherit(this);
             }
-            return block;
         }
         return this;
     }

@@ -1,9 +1,13 @@
-import Dimension from '../tree/dimension';
-import Color from '../tree/color';
-import Quoted from '../tree/quoted';
-import Anonymous from '../tree/anonymous';
-import Expression from '../tree/expression';
-import Operation from '../tree/operation';
+import {
+    Dimension,
+    Color,
+    Quoted,
+    Anonymous,
+    Expression,
+    Operation,
+    Node
+} from '../tree';
+
 let colorFunctions;
 
 function clamp(val) {
@@ -39,7 +43,7 @@ function toHSV(color) {
 
 function number(n) {
     if (n instanceof Dimension) {
-        return parseFloat(n.unit.is('%') ? n.value / 100 : n.value);
+        return n.unit === '%' ? n.value / 100 : n.value;
     } else if (typeof n === 'number') {
         return n;
     } else {
@@ -50,15 +54,35 @@ function number(n) {
     }
 }
 function scaled(n, size) {
-    if (n instanceof Dimension && n.unit.is('%')) {
-        return parseFloat(n.value * size / 100);
+    if (n instanceof Dimension && n.unit === '%') {
+        return n.value * size / 100;
     } else {
         return number(n);
     }
 }
+
+/**
+ * @todo - proper var names and types
+ */
+function hue(h, m1, m2) {
+    h = h < 0 ? h + 1 : (h > 1 ? h - 1 : h);
+    if (h * 6 < 1) {
+        return m1 + (m2 - m1) * h * 6;
+    }
+    else if (h * 2 < 1) {
+        return m2;
+    }
+    else if (h * 3 < 2) {
+        return m1 + (m2 - m1) * (2 / 3 - h) * 6;
+    }
+    else {
+        return m1;
+    }
+}
+
 colorFunctions = {
     rgb: function (r, g, b) {
-        let a = 1;
+        let a: number | Node = 1;
         /**
          * Comma-less syntax
          *   e.g. rgb(0 128 255 / 50%)
@@ -101,7 +125,7 @@ colorFunctions = {
         catch (e) {}
     },
     hsl: function (h, s, l) {
-        let a = 1;
+        let a: Number | Node = 1;
         if (h instanceof Expression) {
             const val = h.value;
             h = val[0];
@@ -134,22 +158,6 @@ colorFunctions = {
             let m1;
             let m2;
 
-            function hue(h) {
-                h = h < 0 ? h + 1 : (h > 1 ? h - 1 : h);
-                if (h * 6 < 1) {
-                    return m1 + (m2 - m1) * h * 6;
-                }
-                else if (h * 2 < 1) {
-                    return m2;
-                }
-                else if (h * 3 < 2) {
-                    return m1 + (m2 - m1) * (2 / 3 - h) * 6;
-                }
-                else {
-                    return m1;
-                }
-            }
-
             h = (number(h) % 360) / 360;
             s = clamp(number(s));l = clamp(number(l));a = clamp(number(a));
 
@@ -157,9 +165,9 @@ colorFunctions = {
             m1 = l * 2 - m2;
 
             const rgb = [
-                hue(h + 1 / 3) * 255,
-                hue(h)       * 255,
-                hue(h - 1 / 3) * 255
+                hue(h + 1 / 3, m1, m2) * 255,
+                hue(h, m1, m2)       * 255,
+                hue(h - 1 / 3, m1, m2) * 255
             ];
             a = number(a);
             return new Color(rgb, a, 'hsla');

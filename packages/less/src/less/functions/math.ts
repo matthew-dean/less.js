@@ -1,6 +1,6 @@
 import mathHelper from './math-helper.js';
 
-const mathFunctions = {
+const mathFunctions: Record<string, any> = {
     // name,  unit
     ceil:  null,
     floor: null,

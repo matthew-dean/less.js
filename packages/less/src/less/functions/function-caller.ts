@@ -1,7 +1,25 @@
+import type { Context } from '../contexts';
 import Expression from '../tree/expression';
+import type { IFileInfo } from '../tree/node';
 
-class functionCaller {
-    constructor(name, context, index, currentFileInfo) {
+/**
+ * Used as a `this` scope for function calls.
+ * 
+ * @todo
+ * Should this be passed the current environment, to clean up
+ * the data-uri function? Alternatively, should context have a
+ * reference to the environment?
+ */
+class FunctionCaller {
+    name: string;
+    index: number;
+    context: Context;
+    currentFileInfo: IFileInfo;
+    func: Function & {
+        evalArgs: boolean
+    }
+
+    constructor(name: string, context: Context, index: number, currentFileInfo: IFileInfo) {
         this.name = name.toLowerCase();
         this.index = index;
         this.context = context;
@@ -24,8 +42,11 @@ class functionCaller {
         }
         const commentFilter = item => !(item.type === 'Comment');
 
-        // This code is terrible and should be replaced as per this issue...
-        // https://github.com/less/less.js/issues/2477
+        /**
+         * @todo
+         * This code is terrible and should be replaced as per this issue:
+         * @see: https://github.com/less/less.js/issues/2477
+         */
         args = args
             .filter(commentFilter)
             .map(item => {
@@ -40,6 +61,13 @@ class functionCaller {
                 return item;
             });
 
+        /** 
+         * @todo
+         * Re-do this, as functions should all have a properly-scoped
+         * `this` object bound to them (where? intrinsically?) with a
+         * `context` property already present. See `data-uri` which
+         * references `this.context`
+         */
         if (evalArgs === false) {
             return this.func(this.context, ...args);
         }
@@ -48,4 +76,4 @@ class functionCaller {
     }
 }
 
-export default functionCaller;
+export default FunctionCaller;

@@ -151,7 +151,7 @@ class Node {
                                 continue;
                             }
                             /**
-                             * If node processing returns an empty result
+                             * If node processing returns an empty result,
                              * remove the node
                              * 
                              * @todo - insert multiple items if the result
@@ -221,6 +221,14 @@ class Node {
         }
     }
 
+    /** 
+     * @note
+     * An attempt was made to use processNodes() for this,
+     * but visitors have unique logic around `visitArray`
+     * 
+     * @todo - Simplify the visitor `visitArray` pattern
+     *         so that processNodes can be better abstracted
+     */
     accept(visitor: Visitor) {
         const keys = this.nodeKeys;
         keys.forEach(key => {

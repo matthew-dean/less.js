@@ -2,12 +2,24 @@ import Quoted from '../tree/quoted';
 import URL from '../tree/url';
 import * as utils from '../utils';
 import logger from '../logger';
+import type { Context } from '../contexts';
+import type { IFileInfo } from '../tree/node';
+import type FunctionCaller from './function-caller';
 
+/**
+ * @note - What is the value of this?
+ * @todo - Bind a properly-defined `this` object to every
+ *         function that has `context` and `environment` as props
+ */
 export default environment => {
     
     const fallback = (functionThis, node) => new URL(node, functionThis.index, functionThis.currentFileInfo).eval(functionThis.context);    
 
-    return { 'data-uri': function(mimetypeNode, filePathNode) {
+    return { 'data-uri': function(
+            this: FunctionCaller,
+            mimetypeNode,
+            filePathNode
+        ) {
 
         if (!filePathNode) {
             filePathNode = mimetypeNode;
@@ -27,6 +39,7 @@ export default environment => {
             filePath = filePath.slice(0, fragmentStart);
         }
         const context = utils.clone(this.context);
+        /** What uses this? */
         context.rawBuffer = true;
 
         const fileManager = environment.getFileManager(filePath, currentDirectory, context, environment, true);

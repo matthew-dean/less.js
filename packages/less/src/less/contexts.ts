@@ -105,6 +105,11 @@ class Context {
      */
     mathOn: boolean
 
+    /**
+     * @todo - what is this needed for
+     */
+    rawBuffer: boolean
+
     constructor(options: Record<any, any> = {}) {
         const {
             paths,             // additional include paths

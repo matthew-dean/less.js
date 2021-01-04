@@ -16,7 +16,7 @@ const isunit = (n, unit) => {
     if (typeof unit !== 'string') {
         throw { type: 'Argument', message: 'Second argument to isunit should be a unit or a string.' };
     }
-    return (n instanceof Dimension) && n.unit.is(unit) ? Keyword.True : Keyword.False;
+    return (n instanceof Dimension) && n.unit === unit ? Keyword.True : Keyword.False;
 };
 
 export default {

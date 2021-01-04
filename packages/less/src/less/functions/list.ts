@@ -8,6 +8,7 @@ import Selector from '../tree/selector';
 import Element from '../tree/element';
 import Quote from '../tree/quoted';
 import List from '../tree/list';
+import { DetachedRuleset, MixinDefinition } from '../tree';
 
 const getItemsFromNode = node => {
     // handle non-array values as an array of length 1
@@ -68,7 +69,10 @@ export default {
 
         return new Expression(list);
     },
-    each: function(list, rs) {
+    /**
+     * @todo - refine types
+     */
+    each: function(list: Node, rs: any) {
         const rules = [];
         let newRules;
         let iterator;
@@ -86,9 +90,9 @@ export default {
             } else {
                 iterator = [tryEval(list.value)];
             }
-        } else if (list.ruleset) {
+        } else if (list instanceof DetachedRuleset) {
             iterator = tryEval(list.ruleset).rules;
-        } else if (list.rules) {
+        } else if (list instanceof Ruleset) {
             iterator = list.rules.map(tryEval);
         } else if (Array.isArray(list)) {
             iterator = list.map(tryEval);
@@ -110,11 +114,11 @@ export default {
         }
 
         for (let i = 0; i < iterator.length; i++) {
-            let key;
-            let value;
+            let key: string | Node;
+            let value: Node;
             const item = iterator[i];
             if (item instanceof Declaration) {
-                key = typeof item.name === 'string' ? item.name : item.name[0].value;
+                key = item.name;
                 value = item.value;
             } else {
                 key = new Dimension(i + 1);
@@ -127,32 +131,48 @@ export default {
 
             newRules = rs.rules.slice(0);
             if (valueName) {
-                newRules.push(new Declaration(valueName,
-                    value,
-                    false, false, this.index, this.currentFileInfo));
+                newRules.push(new Declaration(
+                    {
+                        name: valueName,
+                        value,
+                    },
+                    {},
+                    this.index,
+                    this.currentFileInfo
+                ));
             }
             if (indexName) {
-                newRules.push(new Declaration(indexName,
-                    new Dimension(i + 1),
-                    false, false, this.index, this.currentFileInfo));
+                newRules.push(new Declaration(
+                    {
+                        name: indexName,
+                        value: new Dimension(i + 1)
+                    },
+                    {},
+                    this.index,
+                    this.currentFileInfo
+                ));
             }
             if (keyName) {
-                newRules.push(new Declaration(keyName,
-                    key,
-                    false, false, this.index, this.currentFileInfo));
+                newRules.push(new Declaration(
+                    {
+                        name: keyName,
+                        value: key,
+                    },
+                    {},
+                    this.index,
+                    this.currentFileInfo
+                ));
             }
 
             rules.push(new Ruleset([ new(Selector)([ new Element("", '&') ]) ],
                 newRules,
-                rs.strictImports,
-                rs.visibilityInfo()
+                rs.strictImports
             ));
         }
 
         return new Ruleset([ new(Selector)([ new Element("", '&') ]) ],
             rules,
-            rs.strictImports,
-            rs.visibilityInfo()
+            rs.strictImports
         ).eval(this.context);
     }
 };
