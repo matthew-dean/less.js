@@ -7,9 +7,10 @@ import Node from './node';
  */
 class Unit extends Node {
     type: 'Unit'
+    value: string
 
     constructor(numerator: string[]) {
-        super(numerator[0]);
+        super({ value: numerator[0] });
     }
 }
 

@@ -1,30 +1,37 @@
-import Node from './node';
+import Node, { NodeArgs, isNodeArgs } from './node';
 import { Context } from '../contexts';
 import * as utils from '../utils';
+import { Ruleset } from '.';
+
+type V1Args = [
+    ruleset: Ruleset,
+    frames?: Ruleset[]
+];
 
 /**
  * @todo - rewrite and make sense of "frames"
  */
 class DetachedRuleset extends Node {
     type: 'DetachedRuleset'
-    frames: any[];
+    frames: Ruleset[];
+    ruleset: Ruleset;
 
-    constructor(ruleset, frames?) {
-        super(ruleset);
+    constructor(...args: NodeArgs | V1Args) {
+        if (isNodeArgs(args)) {
+            super(...args);
+            return;
+        }
+        const ruleset = args[0];
+        const frames = args[1];
+        super({ ruleset });
         this.frames = frames;
-    }
-
-    get ruleset() {
-        return this.nodes;
-    }
-
-    accept(visitor) {
-        this.nodes = visitor.visit(this.nodes);
     }
 
     eval(context: Context) {
         const frames = this.frames || utils.copyArray(context.frames);
-        return new DetachedRuleset(this.ruleset, frames);
+        const rules = new DetachedRuleset(this.ruleset);
+        rules.frames = frames;
+        return rules;
     }
 
     callEval(context: Context) {

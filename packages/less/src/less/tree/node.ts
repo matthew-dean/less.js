@@ -3,8 +3,11 @@ import type { Context } from '../contexts';
 import type Visitor from '../visitors/visitor';
 import type Parser from '../parser/parser';
 
-type Primitive = Node | any
+type Primitive = Node | string | boolean | number
 export type NodeValue = Primitive | Primitive[]
+export type NodeCollection = {
+    [k: string]: NodeValue
+}
 
 export type ILocationInfo = {
     startOffset: number
@@ -23,15 +26,15 @@ export type INodeOptions = {
 }
 
 export type NodeArgs = [
-    value: NodeValue,
-    options: INodeOptions,
+    value: NodeCollection | Node,
+    options?: INodeOptions,
     location?: ILocationInfo | number,
     fileInfo?: IFileInfo
 ]
 
 export const isNodeArgs = (args: any[] | NodeArgs): args is NodeArgs => {
-    const optArg = args[1];
-    return !!optArg && typeof optArg === 'object' && optArg.constructor === Object;
+    const optArg = args[0];
+    return typeof optArg === 'object' && optArg.constructor === Object;
 };
 
 export { IFileInfo, OutputCollector };
@@ -55,7 +58,9 @@ class Node {
      *   nodes: ['string', Node] -- ok
      *   nodes: [Node[]]         -- bad, too complex
      */
-    nodes: NodeValue
+    nodes: NodeCollection
+    nodeKeys: string[]
+    value: NodeValue
 
     nodeVisible: boolean
     rootNode: Node
@@ -95,12 +100,26 @@ class Node {
 
 
     constructor(
-        nodes: NodeValue,
+        nodes: NodeCollection | Node,
         options?: INodeOptions,
         location?: ILocationInfo | number,
         fileInfo?: IFileInfo
     ) {
-        this.nodes = nodes;
+        const nodesColl = nodes instanceof Node ? { value: nodes } : nodes
+        Object.defineProperty(this, 'nodes', { value: nodesColl })
+
+        const nodeKeys = Object.keys(nodesColl);
+        this.nodeKeys = nodeKeys;
+
+        /** Place all sub-node keys on `this` */
+        nodeKeys.forEach(key => {
+            const value = nodes[key];
+            Object.defineProperty(this, key, {
+                value,
+                enumerable: true,
+                writable: true
+            })
+        })
         if (typeof location === 'number') {
             this._location = { startOffset: location };
         } else {
@@ -114,35 +133,39 @@ class Node {
         this.evaluated = false;
     }
 
-    /** 
-     * Usually, this is the same value as `nodes`,
-     * but individual Nodes can override to point
-     * to a subset of `nodes`. For instance, a Quoted
-     * node's value is the content between the quotes.
-     */
-    get value() {
-        return this.nodes;
-    }
-
-    set value(val: NodeValue) {
-        this.nodes = val;
-    }
-
     /**
      * Processes all Node values in `value`
      */
     processNodes(func: (n: Node) => Node) {
-        const node = this.nodes;
-        if (Array.isArray(node)) {
-            return node.forEach((n, i) => {
-                if (n instanceof Node) {
-                    this.nodes[i] = func(n);
+        const keys = this.nodeKeys
+        keys.forEach(key => {
+            const nodeVal: NodeValue = this[key]
+            if (nodeVal) {
+                if (Array.isArray(nodeVal)) {
+                    for (let i = 0; i < nodeVal.length; i++) {
+                        const node: Primitive = nodeVal[i];
+                        if (node instanceof Node) {
+                            const result = func(node);
+                            if (result) {
+                                nodeVal[i] = result;
+                                continue;
+                            }
+                            /**
+                             * If node processing returns an empty result
+                             * remove the node
+                             * 
+                             * @todo - insert multiple items if the result
+                             *         returns an array?
+                             */
+                            nodeVal.splice(i, 1);
+                            i--;
+                        }
+                    }
+                } else if (nodeVal instanceof Node) {
+                    this[key] = func(nodeVal);
                 }
-            });
-        }
-        if (node instanceof Node) {
-            this.nodes = func(node);
-        }
+            }
+        });
     }
 
     get _index(): number {
@@ -188,7 +211,7 @@ class Node {
 
     /** Will be over-ridden by most nodes */
     genCSS(context: Context, output: OutputCollector) {
-        const value = this.nodes;
+        const value = this.value;
         if (Array.isArray(value)) {
             value.forEach(val => {
                 this.addToOutput(val, context, output);

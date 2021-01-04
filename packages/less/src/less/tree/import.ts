@@ -1,20 +1,17 @@
-import Node, { IFileInfo, INodeOptions, NodeArgs } from './node';
-import { Media, URL, Quoted, Ruleset, Anonymous } from '.';
+import Node, { IFileInfo, INodeOptions, isNodeArgs, NodeArgs, NodeCollection } from './node';
+import { Media, URL, Quoted, Ruleset, Anonymous, Variable, Property } from '.';
 import * as utils from '../utils';
 import LessError from '../less-error';
 import type { Context } from '../contexts';
 
 type V1Args = [
-    path: Node,
+    path: Quoted | URL,
     features: Node,
-    options: any,
-    index: number,
-    fileInfo: IFileInfo
+    options?: any,
+    index?: number,
+    fileInfo?: IFileInfo
 ];
 
-export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
-    return typeof args[3] === 'number';
-};
 //
 // CSS @import node
 //
@@ -29,7 +26,9 @@ export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
 //
 class Import extends Node {
     type: 'Import'
-    nodes: [Node, Node, Node | string]
+    path: Quoted | URL | Variable | Property | Anonymous
+    features: Node
+    root: Node | string
     options: INodeOptions & {
         css: boolean
         less: boolean
@@ -47,7 +46,7 @@ class Import extends Node {
     error: any
 
     constructor(...args: NodeArgs | V1Args) {
-        if (isV1Args(args)) {
+        if (!isNodeArgs(args)) {
             const [
                 path,
                 features,
@@ -55,7 +54,7 @@ class Import extends Node {
                 index,
                 fileInfo
             ] = args;
-            super([path, features, undefined], options, index, fileInfo);
+            super({ path, features, root: undefined }, options, index, fileInfo);
         } else {
             const [
                 nodes,
@@ -63,6 +62,7 @@ class Import extends Node {
                 location,
                 fileInfo
             ] = args;
+            (<NodeCollection>nodes).root = undefined;
             super(nodes, options, location, fileInfo);
         }
 
@@ -74,22 +74,6 @@ class Import extends Node {
                 this.options.css = true;
             }
         }
-    }
-
-    get path() {
-        return this.nodes[0];
-    }
-
-    get features() {
-        return this.nodes[1];
-    }
-
-    get root() {
-        return this.nodes[2];
-    }
-
-    set root(n: Node | string) {
-        this.nodes[2] = n;
     }
 
     genCSS(context: Context, output) {
@@ -111,7 +95,7 @@ class Import extends Node {
     }
 
     isVariableImport() {
-        let path = this.path;
+        let path: Node | string = this.path;
         if (path instanceof URL) {
             path = path.value;
         }
@@ -130,7 +114,7 @@ class Import extends Node {
         }
 
         // or clone?
-        this.nodes[0] = path.eval(context);
+        this.path = path.eval(context);
         return this;
     }
 
@@ -210,7 +194,7 @@ class Import extends Node {
 
             return this.features ? new Media([contents], this.features.value) : [contents];
         } else if (this.options.css) {
-            const newImport = new Import([this.evalPath(context), features], this.options, this._location, this._fileInfo);
+            const newImport = new Import({ path: this.evalPath(context), features }, this.options, this._location, this._fileInfo);
             if (!newImport.options.css && this.error) {
                 throw this.error;
             }

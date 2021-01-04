@@ -1,7 +1,6 @@
 import Node, { IFileInfo, NodeArgs, isNodeArgs, OutputCollector } from './node';
 import { Element } from '.';
 import LessError from '../less-error';
-import type Visitor from '../visitors/visitor';
 import type { Context } from '../contexts';
 
 type V1Args = [
@@ -19,7 +18,9 @@ type V1Args = [
 class Selector extends Node {
     type: 'Selector'
     evaldCondition: boolean
-    nodes: [Element[], Node[], Node]
+    elements: Element[]
+    extendList: Node[]
+    condition: Node
 
     /** @todo - document */
     mediaEmpty: boolean
@@ -45,46 +46,18 @@ class Selector extends Node {
         ] = args;
 
         super(
-            [
+            {
                 elements,
                 extendList,
                 condition
-            ],
+            },
             {},
             index,
             fileInfo
         );
-        this.nodes[0] = this.getElements(elements);
+        this.elements = this.getElements(elements);
         this.evaldCondition = !condition;
         this.mixinElements_ = undefined;
-    }
-
-    get elements() {
-        return this.nodes[0];
-    }
-    set elements(els: Element[]) {
-        this.nodes[0] = els;
-    }
-    get extendList() {
-        return this.nodes[1];
-    }
-    get condition() {
-        return this.nodes[2];
-    }
-
-    /**
-     * @todo - This can be improved when this.nodes is more flat.
-     */
-    accept(visitor: Visitor) {
-        if (this.elements) {
-            this.nodes[0] = visitor.visitArray(this.elements);
-        }
-        if (this.extendList) {
-            this.nodes[1] = visitor.visitArray(this.extendList);
-        }
-        if (this.condition) {
-            this.nodes[2] = visitor.visit(this.condition);
-        }
     }
 
     createDerived(elements, extendList, evaldCondition) {

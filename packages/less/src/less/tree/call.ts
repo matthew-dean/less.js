@@ -1,4 +1,4 @@
-import Node, { IFileInfo, INodeOptions, NodeArgs, OutputCollector } from './node';
+import Node, { IFileInfo, INodeOptions, isNodeArgs, NodeArgs, OutputCollector } from './node';
 import type { Context } from '../contexts';
 import { List, Anonymous } from '.';
 import FunctionCaller from '../functions/function-caller';
@@ -18,35 +18,28 @@ class Call extends Node {
     options: INodeOptions & {
         calc: boolean
     }
-    nodes: [string, List]
+    name: string
+    args: Node
 
     constructor(...args: V1Args | NodeArgs) {
-        if (Array.isArray(args[1])) {
-            const [
-                name,
-                funcArgs,
-                index,
-                currentFileInfo
-            ] = args;
-            super(
-                [name, new List(funcArgs)],
-                {
-                    calc: name === 'calc'
-                },
-                index,
-                currentFileInfo
-            );
+        if (isNodeArgs(args)) {
+            super(...args);
             return;
         }
-        super(...(<NodeArgs>args));
-    }
-
-    get name() {
-        return this.nodes[0];
-    }
-
-    get args() {
-        return this.nodes[1].value;
+        const [
+            name,
+            funcArgs,
+            index,
+            currentFileInfo
+        ] = args;
+        super(
+            { name, args: new List(funcArgs) },
+            {
+                calc: name === 'calc'
+            },
+            index,
+            currentFileInfo
+        );
     }
 
     //
@@ -117,14 +110,14 @@ class Call extends Node {
             return result;
         }
 
-        const args = this.value[1].eval(context);
+        const args = this.args.eval(context);
         exitCalc();
 
-        return new Call([this.name, args], this.options, this._location, this._fileInfo);
+        return new Call({ name: this.name, args }, this.options, this._location, this._fileInfo);
     }
 
     genCSS(context: Context, output: OutputCollector) {
-        const [name, args] = this.value;
+        const { name, args } = this;
         output.add(`${name}(`, this.fileInfo(), this.getIndex());
         args.genCSS(context, output);
         output.add(')');

@@ -1,4 +1,4 @@
-import Node, { IFileInfo, NodeArgs } from './node';
+import Node, { IFileInfo, isNodeArgs, NodeArgs, NodeCollection } from './node';
 import { Selector } from '.';
 
 type V1Args = [
@@ -28,7 +28,7 @@ type V1Args = [
  */
 class Extend extends Node {
     type: 'Extend'
-    nodes: Node
+    selector: Node
 
     /** @todo - I believe this can be simplified without the use of tracking ids */
     static next_id = 0
@@ -49,6 +49,9 @@ class Extend extends Node {
             index,
             fileInfo
         ] = args;
+        if (isNodeArgs(args)) {
+            selector = { selector } as NodeCollection
+        }
 
         options = typeof options === 'string'
             ? { extend: options }
@@ -73,10 +76,6 @@ class Extend extends Node {
 
     get option() {
         return this.options.extend;
-    }
-
-    get selector() {
-        return this.nodes;
     }
 
     // it concatenates (joins) all selectors in selector array

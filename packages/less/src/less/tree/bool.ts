@@ -6,11 +6,10 @@ import type { Context } from '../contexts';
  * (such as the result of a comparison)
  */
 class Bool extends Node {
-    nodes:  boolean
     type: 'Bool'
 
     genCSS(context: Context, output: OutputCollector) {
-        output.add(this.nodes.toString());
+        output.add(this.value.toString());
     }
 }
 

@@ -1,4 +1,4 @@
-import Node, { NodeArgs, OutputCollector } from './node';
+import Node, { isNodeArgs, NodeArgs, OutputCollector } from './node';
 import type { Context } from '../contexts';
 import colors from '../data/colors';
 import { fround } from './util/math';
@@ -15,33 +15,33 @@ type V1Args = [
 //
 class Color extends Node {
     type: 'Color'
-    nodes: [rgb: number[], alpha: number, strValue: string]
+    rgb: number[]
+    alpha: number
+    value: string
 
     constructor(...args: NodeArgs | V1Args) {
         let [
             rgb,
             alpha,
-            strValue,
+            value,
             fileInfo
         ] = args;
 
         let options, location;
         
         /** v5 API */
-        if (alpha !== undefined && typeof alpha !== 'number') {
+        if (isNodeArgs(args)) {
             /** The first arg is the entire value */
-            rgb = rgb[0];
-            alpha = rgb[1];
-            strValue = rgb[2];
-
             options = alpha;
-            location = strValue;
+            location = value;
+            rgb = rgb['rgb'];
+            alpha = rgb['alpha'];
+            value = rgb['value'];
         } else {
             fileInfo = undefined;
         }
 
         let rgbArray: number[];
-        let value;
         //
         // The end goal here, is to parse the arguments
         // into an integer triplet, such as `128, 255, 0`
@@ -50,9 +50,9 @@ class Color extends Node {
         //
         if (Array.isArray(rgb)) {
             rgbArray = rgb;
-        } else if (rgb.length >= 6) {
+        } else if ((<string>rgb).length >= 6) {
             rgbArray = [];
-            rgb.match(/.{2}/g).map((c, i) => {
+            (<string>rgb).match(/.{2}/g).map((c, i) => {
                 if (i < 3) {
                     rgbArray.push(parseInt(c, 16));
                 } else {
@@ -61,7 +61,7 @@ class Color extends Node {
             });
         } else {
             rgbArray = [];
-            rgb.split('').map((c, i) => {
+            (<string>rgb).split('').map((c, i) => {
                 if (i < 3) {
                     rgbArray.push(parseInt(c + c, 16));
                 } else {
@@ -70,25 +70,12 @@ class Color extends Node {
             });
         }
         alpha = alpha || (typeof alpha === 'number' ? alpha : 1);
-        if (strValue !== undefined) {
-            value = strValue;
-        }
-        super([rgbArray, alpha, value], options, location, fileInfo);
-    }
-
-    get rgb() {
-        return this.nodes[0];
-    }
-
-    get alpha() {
-        return this.nodes[1];
-    }
-
-    get value() {
-        return this.nodes[2];
-    }
-    set value(str: string) {
-        this.nodes[2] = str;
+        super(
+            { rgb: rgbArray, alpha: <number>alpha, value: <string>value },
+            options,
+            location,
+            fileInfo
+        );
     }
 
     luma() {
@@ -112,30 +99,30 @@ class Color extends Node {
         let colorFunction;
         let args = [];
 
-        let [
+        let {
             rgb,
             alpha,
-            originalValue
-        ] = this.nodes;
+            value
+         } = this;
 
         // `value` is set if this color was originally
         // converted from a named color string so we need
         // to respect this and try to output named color too.
         alpha = fround(alpha);
 
-        if (originalValue) {
-            if (originalValue.indexOf('rgb') === 0) {
+        if (value) {
+            if (value.indexOf('rgb') === 0) {
                 if (alpha < 1) {
                     colorFunction = 'rgba';
                 }
-            } else if (originalValue.indexOf('hsl') === 0) {
+            } else if (value.indexOf('hsl') === 0) {
                 if (alpha < 1) {
                     colorFunction = 'hsla';
                 } else {
                     colorFunction = 'hsl';
                 }
             } else {
-                return originalValue;
+                return value;
             }
         } else {
             if (alpha < 1) {
@@ -185,11 +172,11 @@ class Color extends Node {
     // our result, in the form of an integer triplet,
     // we create a new Color node to hold the result.
     //
-    operate(context, op, other) {
-        let [
+    operate(context: Context, op, other) {
+        let {
             rgb,
             alpha
-        ] = this.nodes;
+        } = this;
 
         const newRGB = new Array(3);
         alpha = alpha * (1 - other.alpha) + other.alpha;
@@ -204,7 +191,7 @@ class Color extends Node {
     }
 
     toHSL() {
-        const [ rgb, alpha ] = this.nodes;
+        const { rgb, alpha } = this;
         const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255, a = alpha;
 
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -230,7 +217,7 @@ class Color extends Node {
 
     // Adapted from http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
     toHSV() {
-        const [ rgb, alpha ] = this.nodes;
+        const { rgb, alpha } = this;
         const r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255, a = alpha;
 
         const max = Math.max(r, g, b), min = Math.min(r, g, b);
@@ -263,7 +250,7 @@ class Color extends Node {
     }
 
     compare(x) {
-        const [ rgb, alpha ] = this.nodes;
+        const { rgb, alpha } = this;
         return (x.rgb &&
             x.rgb[0] === rgb[0] &&
             x.rgb[1] === rgb[1] &&

@@ -19,7 +19,7 @@ class Quoted extends Node {
         quote: string;
         escaped: boolean;
     };
-    nodes: string;
+    value: string;
 
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
@@ -35,7 +35,7 @@ class Quoted extends Node {
         }
         let [
             quote,
-            content,
+            value,
             escaped,
             index,
             fileInfo
@@ -43,19 +43,12 @@ class Quoted extends Node {
 
         escaped = !!escaped;
         super(
-            content,
+            { value },
             { escaped, quote },
             index,
             fileInfo
         );
         this.allowRoot = escaped;
-    }
-
-    get value() {
-        return this.nodes
-    }
-    set value(str: string) {
-        this.nodes = str;
     }
 
     genCSS(context: Context, output: OutputCollector) {
@@ -98,7 +91,7 @@ class Quoted extends Node {
         }
         value = iterativeReplace(value, this.variableRegex, variableReplacement);
         value = iterativeReplace(value, this.propRegex, propertyReplacement);
-        return new Quoted(value, { quote, escaped }, this.getIndex(), this.fileInfo());
+        return new Quoted({ value }, { quote, escaped }, this.getIndex(), this.fileInfo());
     }
 
     compare(other: Node) {

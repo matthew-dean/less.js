@@ -19,7 +19,8 @@ const isNodeArgs = (args: V1Args | NodeArgs): args is NodeArgs => {
  */
 class Element extends Node {
     type: 'Element'
-    nodes: [Combinator, string | Node]
+    combinator: Combinator
+    value: Node | string
 
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
@@ -44,17 +45,7 @@ class Element extends Node {
         } else {
             value = '';
         }
-        super([combinator, value], { isVariable }, index, fileInfo);
-    }
-
-    get combinator() {
-        return this.nodes[0];
-    }
-    set combinator(c: Combinator) {
-        this.nodes[0] = c;
-    }
-    get value() {
-        return this.nodes[1];
+        super({ combinator, value }, { isVariable }, index, fileInfo);
     }
 
     genCSS(context: Context, output: OutputCollector) {

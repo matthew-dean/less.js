@@ -10,7 +10,7 @@ type V1Args = [
 ]
 class Anonymous extends Node {
     type: 'Anonymous'
-    nodes: string
+    value: string
 
     constructor(...args: V1Args | NodeArgs) {
         if (args[1] && typeof args[1] !== 'number') {
@@ -26,7 +26,7 @@ class Anonymous extends Node {
         ] = <V1Args>args;
 
         super(
-            value,
+            { value },
             {
                 isRulesetLike,
                 mapLines
@@ -42,7 +42,7 @@ class Anonymous extends Node {
 
     /** Will this ever not be a Node? */
     compare(other: NodeValue) {
-        return other.toCSS && this.toCSS() === other.toCSS() ? 0 : undefined;
+        return other instanceof Node && this.toCSS() === other.toCSS() ? 0 : undefined;
     }
 
     genCSS(context: Context, output: OutputCollector) {

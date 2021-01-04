@@ -1,4 +1,4 @@
-import Node, { IFileInfo, ILocationInfo, INodeOptions } from './node';
+import Node, { IFileInfo, ILocationInfo, INodeOptions, isNodeArgs } from './node';
 import type { Context } from '../contexts';
 const _noSpaceCombinators = {
     '': true,
@@ -8,7 +8,7 @@ const _noSpaceCombinators = {
 
 class Combinator extends Node {
     type: 'Combinator'
-    nodes: string
+    value: string
 
     constructor(
         value: string,
@@ -17,7 +17,7 @@ class Combinator extends Node {
         fileInfo?: IFileInfo
     ) {
         super(
-            value === ' ' ? value : (value ? value.trim() : ''),
+            value === ' ' ? { value } : { value: (value ? value.trim() : '') },
             options,
             location,
             fileInfo
@@ -25,13 +25,13 @@ class Combinator extends Node {
     }
 
     get emptyOrWhitespace() {
-        const val = this.nodes;
+        const val = this.value;
         return val === ' ' || val === '';
     }
 
     genCSS(context: Context, output) {
-        const spaceOrEmpty = (context?.options.compress || _noSpaceCombinators[this.nodes]) ? '' : ' ';
-        output.add(spaceOrEmpty + this.nodes + spaceOrEmpty);
+        const spaceOrEmpty = (context?.options.compress || _noSpaceCombinators[this.value]) ? '' : ' ';
+        output.add(spaceOrEmpty + this.value + spaceOrEmpty);
     }
 }
 

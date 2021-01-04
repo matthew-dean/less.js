@@ -1,26 +1,29 @@
-import Node, { NodeArgs, OutputCollector } from './node';
+import Node, { isNodeArgs, NodeArgs, OutputCollector } from './node';
 import type { Context } from '../contexts';
 
 type V1Args = [
     key: string,
-    val: Node | string
+    value: Node | string
 ]
 
 class Assignment extends Node {
-    nodes: [string, Node | string]
     type: 'Assignment'
+    key: string
+    value: Node | string
 
     constructor(...args: V1Args | NodeArgs) {
-        const val = args[1];
-        if (val instanceof Node || typeof val === 'string') {
-            super([args[0], args[1]]);
+        if (isNodeArgs(args)) {
+            super(...args);
             return;
         }
-        super(...(<NodeArgs>args));
+        const [key, value] = args;
+        super({ key, value });
     }
 
     genCSS(context: Context, output: OutputCollector) {
-        const [key, val] = this.nodes;
+        const key = this.key;
+        const val = this.value;
+        
         output.add(`${key}=`);
         if (val instanceof Node) {
             val.genCSS(context, output);

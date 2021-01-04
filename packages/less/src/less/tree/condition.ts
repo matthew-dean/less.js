@@ -11,13 +11,15 @@ type V1Args = [
 
 class Condition extends Node {
     type: 'Condition'
+    op: string;
+    lvalue: Node;
+    rvalue: Node;
 
-    nodes: [string, Node, Node]
     constructor(...args: V1Args | NodeArgs) {
         if (args[1] instanceof Node) {
-            let [op, l, r, i, negate] = <V1Args>args;
+            let [op, lvalue, rvalue, i, negate] = <V1Args>args;
             super(
-                [op.trim(), l, r],
+                { op: op.trim(), lvalue, rvalue },
                 { negate },
                 i
             );
@@ -25,20 +27,11 @@ class Condition extends Node {
         }
         super(...(<NodeArgs>args));
     }
-    get op() {
-        return this.nodes[0];
-    }
-    get lvalue() {
-        return this.nodes[1];
-    }
-    get rvalue() {
-        return this.nodes[2];
-    }
 
     eval(context) {
-        const [op, l, r] = this.nodes;
-        const a = l.eval(context);
-        const b = r.eval(context);
+        const { op, lvalue, rvalue } = this;
+        const a = lvalue.eval(context);
+        const b = rvalue.eval(context);
 
         const result = (function (op, a, b) {
             switch (op) {
@@ -58,7 +51,7 @@ class Condition extends Node {
             }
         })(op, a, b);
 
-        return new Bool(this.options.negate ? !result : result);
+        return new Bool({ value: this.options.negate ? !result : result });
     }
 }
 

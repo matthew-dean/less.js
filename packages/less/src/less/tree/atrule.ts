@@ -34,7 +34,9 @@ type V1Args = [
  * 
  */
 class AtRule extends Node {
-    nodes: [string, Node, Node[]]
+    name: string
+    value: Node
+    rules: Node[]
 
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
@@ -44,7 +46,7 @@ class AtRule extends Node {
 
         let [
             name,
-            prelude,
+            value,
             rules,
             index,
             fileInfo,
@@ -53,9 +55,9 @@ class AtRule extends Node {
         ] = args;
 
         /** If the prelude has a value, make sure it's a Node */
-        prelude = (prelude instanceof Node)
-            ? prelude
-            : (prelude ? new Anonymous(prelude) : prelude);
+        value = (value instanceof Node)
+            ? value
+            : (value ? new Anonymous(value) : value);
         
         if (rules) {
             /**
@@ -71,42 +73,15 @@ class AtRule extends Node {
             }
         }
         super(
-            [
+            {
                 name,
-                prelude,
+                value,
                 rules
-            ],
+            },
             { isRooted: !!isRooted },
             index,
             fileInfo
         );
-    }
-
-    get name() {
-        return this.nodes[0];
-    }
-    get value() {
-        return this.nodes[1];
-    }
-    set value(n: Node) {
-        this.nodes[1] = n;
-    }
-    get rules() {
-        return this.nodes[2];
-    }
-    set rules(r: Node[]) {
-        this.nodes[2] = r;
-    }
-
-    accept(visitor) {
-        const value = this.value;
-        const rules = this.rules;
-        if (rules) {
-            this.rules = visitor.visitArray(rules);
-        }
-        if (value) {
-            this.value = visitor.visit(value);
-        }
     }
 
     isRulesetLike() {
@@ -154,7 +129,7 @@ class AtRule extends Node {
         context.mediaPath = mediaPathBackup;
         context.mediaBlocks = mediaBlocksBackup;
 
-        return new AtRule([this.name, value, rules], {...this.options}).inherit(this);
+        return new AtRule({ name: this.name, value, rules }, {...this.options}).inherit(this);
     }
 
     variable(name) {

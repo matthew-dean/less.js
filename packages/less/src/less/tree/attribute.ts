@@ -1,4 +1,4 @@
-import Node, { NodeArgs, OutputCollector } from './node';
+import Node, { isNodeArgs, NodeArgs, OutputCollector } from './node';
 import type { Context } from '../contexts';
 
 type V1Args = [
@@ -8,35 +8,26 @@ type V1Args = [
 ]
 class Attribute extends Node {
     type: 'Attribute'
-    nodes: [string | Node, string, string | Node]
+    key: string | Node
+    op: string
+    value: string | Node
     
     constructor(...args: V1Args | NodeArgs) {
-        const val = args[1];
-        if (typeof val === 'string') {
-            super([args[0], val, args[2]]);
-            return;
+        if (isNodeArgs(args)) {
+            super(...args);
+        } else {
+            const [key, op, value] = args;
+            super({ key, op, value });
         }
-        super(...(<NodeArgs>args));
     }
 
-    get key() {
-        return this.nodes[0];
-    }
-
-    get op() {
-        return this.nodes[1];
-    }
-
-    get value() {
-        return this.nodes[2];
-    }
 
     genCSS(context: Context, output: OutputCollector) {
         output.add(this.toCSS(context));
     }
 
     toCSS(context: Context) {
-        const [key, op, value] = this.nodes;
+        const { key, op, value } = this;
         let output = key instanceof Node ? key.toCSS(context) : key;
 
         if (op) {

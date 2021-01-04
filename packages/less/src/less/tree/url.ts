@@ -1,5 +1,5 @@
-import Node, { IFileInfo, NodeArgs } from './node';
-import { Quoted } from '.';
+import Node, { IFileInfo, isNodeArgs, NodeArgs } from './node';
+import { Quoted, Variable, Property, Anonymous } from '.';
 import type { Context } from '../contexts';
 
 function escapePath(path) {
@@ -7,28 +7,24 @@ function escapePath(path) {
 }
 
 type V1Args = [
-    value: Node,
-    index: number,
-    fileInfo: IFileInfo,
+    value: Quoted | Variable | Property | Anonymous,
+    index?: number,
+    fileInfo?: IFileInfo,
     isEvald?: boolean
 ]
 
-export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
-    return typeof args[1] === 'number';
-};
-
 class URL extends Node {
     type: 'Url'
-    nodes: Node
+    value: Quoted | Variable | Property | Anonymous
 
     constructor(...args: NodeArgs | V1Args) {
-        if (isV1Args(args)) {
+        if (!isNodeArgs(args)) {
             const [
                 value,
                 index,
                 fileInfo
             ] = args;
-            super(value, {}, index, fileInfo);
+            super({ value }, {}, index, fileInfo);
             return;
         }
         super(...args);
@@ -41,7 +37,7 @@ class URL extends Node {
     }
 
     eval(context: Context) {
-        const val = this.nodes.eval(context);
+        const val = this.value.eval(context);
         let rootpath: string;
 
         if (!this.evaluated) {

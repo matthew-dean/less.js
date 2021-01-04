@@ -15,7 +15,7 @@ type V1Args = [
 ]
 class Expression extends Node {
     type: 'Expression'
-    nodes: Node[]
+    value: Node[]
     options: INodeOptions & {
         noSpacing: boolean
     }
@@ -30,7 +30,7 @@ class Expression extends Node {
         if (!value) {
             throw new Error('Expression requires an array parameter');
         }
-        super(value, { noSpacing });
+        super({ value }, { noSpacing });
     }
 
     /**
@@ -42,19 +42,19 @@ class Expression extends Node {
     eval(context: Context): Expression | List | Node {
         if (!this.evaluated) {
             super.eval(context);
-            if (this.nodes.length === 1) {
-                return this.nodes[0];
+            if (this.value.length === 1) {
+                return this.value[0];
             }
 
             const expressions: Expression[] = [];
 
-            const processNodes = (expr: Node) => {
-                let nodes = expr.nodes;
+            const processNodes = (expr: Expression) => {
+                let nodes = expr.value;
                 let nodesLength = nodes.length;
                 for (let i = 0; i < nodesLength; i++) {
                     const node = nodes[i];
                     if (node instanceof List) {
-                        node.nodes.forEach((listItem: Node) => {
+                        node.value.forEach((listItem: Node) => {
                             const newNodes: Node[] = nodes.map((n: Node, x) => {
                                 if (x === i) {
                                     return;
@@ -70,13 +70,13 @@ class Expression extends Node {
                         break;
                     } else if (node instanceof Expression) {
                         /** Flatten sub-expressions */
-                        const exprNodes = node.nodes;
+                        const exprNodes = node.value;
                         const exprNodesLength = exprNodes.length;
                         nodes = nodes
                             .splice(0, i)
                             .concat(exprNodes)
                             .concat(nodes.splice(i + 1));
-                        expr.nodes = nodes;
+                        expr.value = nodes;
                         nodesLength += exprNodesLength;
                         i += exprNodesLength;
                         processNodes(node);
@@ -101,16 +101,16 @@ class Expression extends Node {
     }
 
     genCSS(context: Context, output: OutputCollector) {
-        for (let i = 0; i < this.nodes.length; i++) {
-            this.nodes[i].genCSS(context, output);
-            if (!this.options.noSpacing && i + 1 < this.nodes.length) {
+        for (let i = 0; i < this.value.length; i++) {
+            this.value[i].genCSS(context, output);
+            if (!this.options.noSpacing && i + 1 < this.value.length) {
                 output.add(' ');
             }
         }
     }
 
     throwAwayComments() {
-        this.nodes = this.nodes.filter(function(v) {
+        this.value = this.value.filter(function(v) {
             return !(v instanceof Comment);
         });
     }

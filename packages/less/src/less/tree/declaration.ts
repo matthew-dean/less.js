@@ -3,6 +3,7 @@ import Node, {
     ILocationInfo,
     INodeOptions,
     NodeArgs,
+    NodeCollection,
     OutputCollector
 } from './node';
 import type { Context } from '../contexts';
@@ -23,8 +24,8 @@ function evalName(context, name) {
 }
 
 type V1Args = [
-    name: string | Node[],
-    val: string | Node,
+    property: string | Node[],
+    value: string | Node,
     important?: string,
     merge?: any,
     index?: number,
@@ -41,7 +42,9 @@ type DeclarationOptions = {
 
 class Declaration extends Node {
     type: 'Declaration'
-    nodes: [Node[] | string, Node | null, string]
+    property: Node[] | string
+    value: Node | null
+    important: string
     options: DeclarationOptions
 
     /** @deprecated */
@@ -50,7 +53,7 @@ class Declaration extends Node {
     constructor(...args: V1Args | NodeArgs) {
         /** v5 args */
         let [
-            value,
+            nodes,
             options,
             location,
             fileInfo
@@ -59,7 +62,7 @@ class Declaration extends Node {
         /** v1 args */
         if (args[1] instanceof Node || typeof args[1] === 'string') {
             const [
-                name,
+                property,
                 val,
                 important,
                 merge,
@@ -69,44 +72,37 @@ class Declaration extends Node {
                 variable
             ] = <V1Args>args;
 
-            value = [
-                name,
-                (val instanceof Node)
+            nodes = {
+                property,
+                value: (val instanceof Node)
                     ? val
                     : new List([val ? new Anonymous(val) : null]),
-                important ? ` ${important.trim()}` : ''
-            ];
+                important: important ? ` ${important.trim()}` : ''
+            };
             options = {
                 merge,
                 inline: inline || false,
                 isVariable: (variable !== undefined) ? variable
-                    : (!Array.isArray(name) && (name.charAt(0) === '@'))
+                    : (!Array.isArray(property) && (property.charAt(0) === '@'))
             };
             location = index;
             fileInfo = currentFileInfo;
         }
         
-        super(value, <INodeOptions>options, <ILocationInfo | number>location, fileInfo);
+        super(
+            <NodeCollection>nodes,
+            <INodeOptions>options,
+            <ILocationInfo | number>location,
+            fileInfo
+        );
     }
 
-    get name(): string {
-        let name = this.nodes[0];
+    get name() {
+        let name = this.property;
         if (Array.isArray(name)) {
             return name[0].value;
         }
         return name;
-    }
-    get value() {
-        return this.nodes[1];
-    }
-    set value(n: Node) {
-        this.nodes[1] = n;
-    }
-    get important() {
-        return this.nodes[2];
-    }
-    set important(str: string) {
-        this.nodes[2] = str;
     }
 
     blocksVisibility() {
@@ -117,7 +113,7 @@ class Declaration extends Node {
         const compress = context.options.compress;
         output.add(this.name + (compress ? ':' : ': '), this.fileInfo(), this.getIndex());
         try {
-            this.nodes[1].genCSS(context, output);
+            this.value.genCSS(context, output);
         }
         catch (e) {
             e.index = this._index;
@@ -128,23 +124,23 @@ class Declaration extends Node {
     }
 
     eval(context: Context) {
-        let name = this.nodes[0];
+        let property = this.property;
         let isVariable = this.options.isVariable;
 
-        if (typeof name !== 'string') {
+        if (Array.isArray(property)) {
             // expand 'primitive' name directly to get
             // things faster (~10% for benchmark.less):
-            if (name.length === 1 && name[0] instanceof Keyword) {
-                name = (<Keyword>name[0]).value;
+            if (property.length === 1 && property[0] instanceof Keyword) {
+                property = (<Keyword>property[0]).value;
             } else {
-                name = evalName(context, name);
+                property = evalName(context, property);
             }
             isVariable = false; // never treat expanded interpolation as new variable name
         }
 
         try {
             context.importantScope.push({});
-            const evaldValue = this.nodes[1].eval(context);
+            const evaldValue = this.value.eval(context);
 
             if (!this.options.isVariable && evaldValue.type === 'DetachedRuleset') {
                 throw { message: 'Rulesets cannot be evaluated on a property.',
@@ -157,7 +153,7 @@ class Declaration extends Node {
             }
 
             return new Declaration(
-                [name, evaldValue, important],
+                { property, value: evaldValue, important },
                 {...this.options, isVariable },
                 this._location,
                 this._fileInfo
@@ -172,8 +168,12 @@ class Declaration extends Node {
         }
     }
 
+    /** 
+     * @note
+     * This created a new node in the past. Should nodes never mutate?
+    */
     makeImportant() {
-        this.nodes[2] = ' !important';
+        this.important = ' !important';
         return this;
     }
 }

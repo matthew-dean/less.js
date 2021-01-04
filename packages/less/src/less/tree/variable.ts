@@ -9,23 +9,23 @@ type V1Args = [
 
 class Variable extends Node {
     evaluating: boolean
-    nodes: string
+    value: string
 
     constructor(...args: V1Args | NodeArgs) {
         if (isNodeArgs(args)) {
             super(...args);
             return;
         }
-        const [name, index, currentFileInfo] = args;
-        super(name, {}, index, currentFileInfo);
+        const [value, index, currentFileInfo] = args;
+        super({ value }, {}, index, currentFileInfo);
     }
 
     get name() {
-        return this.nodes;
+        return this.value;
     }
 
     eval(context) {
-        let variable, name = this.nodes;
+        let variable, name = this.name;
 
         if (name.indexOf('@@') === 0) {
             name = `@${new Variable(name.slice(1), this.getIndex(), this.fileInfo()).eval(context).value}`;

@@ -1,4 +1,5 @@
-import Node from './node';
+import Node, { OutputCollector } from './node';
+import type { Context } from '../contexts';
 
 /**
  * A (comma) separated list of nodes.
@@ -8,16 +9,16 @@ import Node from './node';
  */
 class List<T extends Node = Node> extends Node {
     type: 'List'
-    nodes: T[]
+    value: T[]
 
     constructor(value) {
         if (!Array.isArray(value)) {
             value = [ value ];
         }
-        super(value);
+        super({ value });
     }
 
-    eval(context) {
+    eval(context: Context) {
         if (this.value.length === 1) {
             return this.value[0].eval(context);
         } else {
@@ -25,11 +26,11 @@ class List<T extends Node = Node> extends Node {
         }
     }
 
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         this.value.forEach((val, i) => {
             val.genCSS(context, output);
             if (i + 1 < this.value.length) {
-                output.add((context && context.compress) ? ',' : ', ');
+                output.add((context && context.options.compress) ? ',' : ', ');
             }
         });
     }

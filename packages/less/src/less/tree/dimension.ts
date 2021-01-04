@@ -1,54 +1,49 @@
-import Node, { NodeArgs } from './node';
+import Node, { isNodeArgs, NodeArgs, OutputCollector } from './node';
 import { convertDimension } from './util/convert';
 import { operate, fround } from './util/math';
 
 import { Unit, Color } from '.';
+import { Context } from '../contexts';
 
 type V1Args = [
     value: string | number,
     unit?: string | Node
 ]
+
 //
 // A number with a (optional) unit
 //
 class Dimension extends Node {
     type: 'Dimension'
-    nodes: [number, string]
+    value: number
+    unit: string
 
     constructor(...args: NodeArgs | V1Args) {
-        if (Array.isArray(args[0])) {
-            super(...(<NodeArgs>args));
+        if (isNodeArgs(args)) {
+            super(...args);
             return;
         }
-        let [value, unit] = <V1Args>args;
+        let [value, unit] = args;
         value = typeof value === 'number' ? value : parseFloat(value);
         if (isNaN(value)) {
             throw new Error('Dimension is not a number.');
         }
         unit = (unit && unit instanceof Unit) ? unit.value : unit;
 
-        super([value, unit]);
+        super({ value, unit });
     }
 
-    get value() {
-        return this.nodes[0];
-    }
-
-    get unit() {
-        return this.nodes[1];
-    }
-
-    eval(context) {
+    eval(context: Context) {
         return this;
     }
 
     toColor() {
-        const val = this.nodes[0];
+        const val = this.value;
         return new Color([val, val, val]);
     }
 
-    genCSS(context, output) {
-        let [value, unit] = this.nodes;
+    genCSS(context: Context, output: OutputCollector) {
+        let { value, unit } = this;
         value = fround(value);
 
         let strValue = String(value);
@@ -92,22 +87,22 @@ class Dimension extends Node {
                      * so it is not a recommended setting.
                      */
                     const result = operate(op, this.value, bNode.value);
-                    return new Dimension([result, aUnit], {}).inherit(this);
+                    return new Dimension({ value: result, unit: aUnit }).inherit(this);
                 }
             } else {
                 const result = operate(op, this.value, bNode.value);
                 /** Dividing 8px / 1px will yield 8 */
                 if (op === '/') {
-                    return new Dimension([result, undefined], {}).inherit(this);
+                    return new Dimension({ value: result }).inherit(this);
                 } else if (op === '*') {
                     throw new Error(`Can't multiply a unit by a unit.`);
                 }
-                return new Dimension([result, aUnit], {}).inherit(this);
+                return new Dimension({ value: result, unit: aUnit }).inherit(this);
             }
         } else {
             const unit = this.nodes[1];
-            const result = operate(op, this.nodes[0], other.value);
-            return new Dimension([result, unit], {}).inherit(this);
+            const result = operate(op, this.value, other.value);
+            return new Dimension({ value: result, unit }).inherit(this);
         }
     }
     

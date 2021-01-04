@@ -17,7 +17,7 @@ class Property extends Variable {
 
     eval(context) {
         let property;
-        const name = this.nodes;
+        const name = this.value;
 
         if (this.evaluating) {
             throw { type: 'Name',
