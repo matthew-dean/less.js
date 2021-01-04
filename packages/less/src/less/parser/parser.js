@@ -988,7 +988,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                                     isSemiColonSeparated = true;
                                 }
                                 (isSemiColonSeparated ? argsSemiColon : argsComma)
-                                    .push({ variadic: true });
+                                    .push(new tree.MixinArg({}, { variadic: true }));
                                 break;
                             }
                             arg = entities.variable() || entities.property() || entities.literal() || entities.keyword() || this.call(true);
@@ -1042,7 +1042,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                                         isSemiColonSeparated = true;
                                     }
                                     (isSemiColonSeparated ? argsSemiColon : argsComma)
-                                        .push({ name: arg.name, variadic: true });
+                                        .push(new tree.MixinArg({ name: arg.name }, { variadic: true }));
                                     break;
                                 } else {
                                     expand = true;
@@ -1057,7 +1057,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                             expressions.push(value);
                         }
 
-                        argsComma.push({ name:nameLoop, value, expand });
+                        argsComma.push(new tree.MixinArg({ name: nameLoop, value }, { expand }));
 
                         if (parserInput.$char(',')) {
                             hasSep = true;
@@ -1076,7 +1076,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                             if (expressions.length > 1) {
                                 value = new(tree.Value)(expressions);
                             }
-                            argsSemiColon.push({ name, value, expand });
+                            argsSemiColon.push(new(tree.MixinArg)({ name, value }, { expand }));
 
                             name = null;
                             expressions = [];

@@ -1,103 +1,116 @@
-import { Selector, Element, Ruleset, Declaration, DetachedRuleset, Expression } from '.';
+import { Selector, Element, Ruleset, Declaration, DetachedRuleset, Expression, MixinArg } from '.';
 import * as utils from '../utils';
-import Node, { NodeArgs } from './node';
+import Node, { NodeArgs, isNodeArgs, INodeOptions, ILocationInfo, IFileInfo } from './node';
 import type { Context } from '../contexts';
 import type Visitor from '../visitors/visitor';
 
-/**
- * @todo - This seems like a strange one-off,
- *         but this seems to be the type according
- *         to the historical parser.
- * 
- *         Refactor into a proper Node?
- */
-export type MixinDefinitionArg = {
-    name: string;
-    value: Node;
-    expand?: boolean;
-    variadic?: boolean;
-}
 
 type V1Args = [
     name: string,
-    params: MixinDefinitionArg[] | undefined,
+    params: MixinArg[] | undefined,
     rules: Node[],
     condition: Node | undefined,
     variadic: boolean
 ];
 
-const isNodeArgs = (args: V1Args | NodeArgs): args is NodeArgs => {
-    return !(Array.isArray(args[2])) && Array.isArray(args[0])
-};
+type DefinitionArgs = [
+    nodes: {
+        name: string,
+        selectors?: Selector[],
+        params?: MixinArg[],
+        rules: Node[],
+        condition?: Node
+    },
+    options: INodeOptions,
+    location: ILocationInfo,
+    fileInfo: IFileInfo
+];
+
 /**
  * A mixin definition
  */
 class Definition extends Ruleset {
-    type: 'MixinDefinition';
-    required: number;
-    arity: number;
-    name: string;
+    type: 'MixinDefinition'
+    required: number
+    arity: number
+
+    name: string
+    params: MixinArg[]
+    condition: Node
+
     optionalParameters: string[];
     frames: Ruleset[];
     options: {
         variadic: boolean;
     }
-    nodes: [
-        name: string,
-        rules: Node[],
-        params: MixinDefinitionArg[],
-        condition: Node
-    ]
 
-    constructor(...args: NodeArgs | V1Args) {
-        let [
-            name,
-            params,
-            rules,
-            condition,
-            variadic
-        ] = args;
-        
-        let selectors;
-        let options;
-        let location;
-        let fileInfo;
+    constructor(...args: DefinitionArgs | V1Args) {
+        let name: string
+        let params: MixinArg[]
+        let condition: Node
+        let rules: Node[];
+        let options: INodeOptions;
+        let location: ILocationInfo;
+        let fileInfo: IFileInfo;
+        let selectors: Selector[];
 
         if (isNodeArgs(args)) {
-            options = params;
-            location = rules;
-            fileInfo = condition;
-            selectors = name[0];
-            rules = name[1];
-            params = name[2];
-            condition = name[3];
+            const [
+                nodes,
+                opts,
+                loc,
+                file
+            ] = args;
+            name = nodes.name;
+            params = nodes.params;
+            rules = nodes.rules;
+            condition = nodes.condition;
+            selectors = nodes.selectors;
+
+            options = opts;
+            location = loc;
+            fileInfo = file;
         } else {
-            name = name || 'anonymous mixin';
+            const [
+                nme,
+                prms,
+                rule,
+                cond,
+                variadic
+            ] = <V1Args>args;
             options = { variadic };
-            selectors = [new Selector([new Element(null, name, false, location, fileInfo)])];
+            name = nme;
+            params = prms;
+            rules = rule;
+            condition = cond;
         }
+        name = name || 'anonymous mixin';
+        selectors = selectors || [new Selector([
+            new Element({ combinator: null, value: name }, {}, location, fileInfo)]
+        )];
 
         super(
-            [
-                selectors,   // In base Ruleset, this would be selectors
-                rules,  // Aligns with base Ruleset order
+            {
+                name,
+                selectors,
+                rules,
                 params,
                 condition
-            ],
+            },
             options,
             location,
             fileInfo
         );
 
         this.name = name;
-        this.arity = params ? (<MixinDefinitionArg[]>params).length : 0;
+        this.arity = params ? (<MixinArg[]>params).length : 0;
         this._lookups = {};
 
         /**
          * @todo - refactor
          */
         const optionalParameters = [];
-        this.required = (<MixinDefinitionArg[]>params).reduce(function (count, p) {
+        this.required = (<MixinArg[]>params).reduce(function (count, p) {
             if (!p.name || (p.name && !p.value)) {
                 return count + 1;
             }
@@ -107,33 +120,6 @@ class Definition extends Ruleset {
             }
         }, 0);
         this.optionalParameters = optionalParameters;
-    }
-
-    get params() {
-        return this.nodes[2];
-    }
-    get condition() {
-        return this.nodes[3]
-    }
-
-    accept(visitor: Visitor) {
-        /**
-         * Upon investigation, params aren't actually nodes?
-         */
-        if (this.params && this.params.length) {
-            this.nodes[2] = this.params.map(
-                ({ name, value, expand }) => {
-                    return {
-                        name,
-                        value: visitor.visit(value),
-                        expand
-                    }
-                });
-        }
-        this.rules = visitor.visitArray(this.rules);
-        if (this.condition) {
-            this.nodes[3] = visitor.visit(this.condition);
-        }
     }
 
     evalParams(context: Context, mixinEnv: Context, args, evaldArguments) {
@@ -187,7 +173,7 @@ class Definition extends Ruleset {
             arg = args && args[argIndex];
 
             if (name = params[i].name) {
-                if (params[i].variadic) {
+                if (params[i].options.variadic) {
                     varargs = [];
                     for (let j = argIndex; j < argsLength; j++) {
                         varargs.push(args[j].value.eval(context));
@@ -215,7 +201,7 @@ class Definition extends Ruleset {
                 }
             }
 
-            if (params[i].variadic && args) {
+            if (params[i].options.variadic && args) {
                 for (let j = argIndex; j < argsLength; j++) {
                     evaldArguments[j] = args[j].value.eval(context);
                 }
@@ -278,7 +264,7 @@ class Definition extends Ruleset {
         return true;
     }
 
-    matchArgs(args: MixinDefinitionArg[], context: Context) {
+    matchArgs(args: MixinArg[], context: Context) {
         const allArgsCnt = (args && args.length) || 0;
         let len;
         const optionalParameters = this.optionalParameters;
@@ -307,7 +293,7 @@ class Definition extends Ruleset {
         len = Math.min(requiredArgsCnt, this.arity);
 
         for (let i = 0; i < len; i++) {
-            if (!this.params[i].name && !this.params[i].variadic) {
+            if (!this.params[i].name && !this.params[i].options.variadic) {
                 if (args[i].value.eval(context).toCSS() != this.params[i].value.eval(context).toCSS()) {
                     return false;
                 }

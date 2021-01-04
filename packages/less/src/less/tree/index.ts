@@ -37,6 +37,7 @@ import Bool from './bool';
 // mixins
 import MixinCall from './mixin-call';
 import MixinDefinition from './mixin-definition';
+import MixinArg from './mixin-arg';
 
 /** Historical names */
 const Directive = AtRule;
@@ -57,6 +58,7 @@ export {
     Extend, VariableCall, NamespaceValue, Bool,
     MixinCall,
     MixinDefinition,
+    MixinArg,
     /** Legacy */
     mixin
 };

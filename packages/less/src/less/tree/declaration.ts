@@ -100,7 +100,7 @@ class Declaration extends Node {
     get name() {
         let name = this.property;
         if (Array.isArray(name)) {
-            return name[0].value;
+            return <string>name[0].value;
         }
         return name;
     }

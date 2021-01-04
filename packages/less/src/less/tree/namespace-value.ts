@@ -1,9 +1,9 @@
-import Node, { IFileInfo, INodeOptions, NodeArgs } from './node';
+import Node, { IFileInfo, INodeOptions, NodeArgs, isNodeArgs } from './node';
 import { Variable, Ruleset, Selector } from '.';
 import type { Context } from '../contexts';
 
 type V1Args = [
-    nodeCall: Node,
+    value: Node,
     lookups: string[],
     index?: number,
     fileInfo?: IFileInfo
@@ -24,35 +24,22 @@ type V1Args = [
  */
 class NamespaceValue extends Node {
     type: 'NamespaceValue'
-    nodes: [
-        Node,
-        string[]
-    ]
+    value: Node
+    lookups: string[]
 
     constructor(...args: NodeArgs | V1Args) {
+        if (isNodeArgs(args)) {
+            super(...args);
+            return;
+        }
         let [
-            nodeCall,
+            value,
             lookups,
             index,
             fileInfo
         ] = args;
 
-        let value = nodeCall
-        let options = lookups
-
-        /** v1 args */
-        if (Array.isArray(lookups)) {
-            value = [nodeCall, lookups]
-            options = {}
-        }
-        super(value, <INodeOptions>options, index, fileInfo);
-    }
-
-    get value() {
-        return this.nodes[0];
-    }
-    get lookups() {
-        return this.nodes[1];
+        super({ value, lookups }, {}, index, fileInfo);
     }
 
     /**

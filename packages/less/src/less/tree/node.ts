@@ -106,7 +106,7 @@ class Node {
         fileInfo?: IFileInfo
     ) {
         const nodesColl = nodes instanceof Node ? { value: nodes } : nodes
-        Object.defineProperty(this, 'nodes', { value: nodesColl })
+        this.nodes = nodesColl
 
         const nodeKeys = Object.keys(nodesColl);
         this.nodeKeys = nodeKeys;
@@ -116,7 +116,6 @@ class Node {
             const value = nodes[key];
             Object.defineProperty(this, key, {
                 value,
-                enumerable: true,
                 writable: true
             })
         })

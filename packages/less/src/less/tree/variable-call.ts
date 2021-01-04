@@ -11,6 +11,7 @@ type V1Args = [
 
 class VariableCall extends Node {
     type: 'VariableCall'
+    variable: string
 
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
@@ -22,11 +23,7 @@ class VariableCall extends Node {
             index,
             fileInfo
         ] = args;
-        super(variable, {}, index, fileInfo);
-    }
-
-    get variable() {
-        return this.nodes;
+        super({ variable }, {}, index, fileInfo);
     }
 
     eval(context: Context) {

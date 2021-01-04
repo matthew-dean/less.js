@@ -1,21 +1,34 @@
-import Node, { NodeArgs, NumericNode } from './node';
+import Node, { isNodeArgs, INodeOptions, ILocationInfo, IFileInfo, OutputCollector } from './node';
 import { Color, Dimension } from '.';
 import * as Constants from '../constants';
+import { Context } from '../contexts';
 const MATH = Constants.Math;
 
 type V1Args = [
     op: string,
-    operands: Node[],
+    operands: [Node, Node],
     isSpaced?: boolean
 ]
+
+type OperationArgs = [
+    nodes: {
+        op: string,
+        operands: [Node, Node]
+    },
+    options?: INodeOptions,
+    location?: ILocationInfo,
+    fileInfo?: IFileInfo
+]
+
 class Operation extends Node {
     type: 'Operation'
-    nodes: [string, Node | NumericNode, Node | NumericNode]
+    op: string;
+    operands: [Node, Node];
 
-    constructor(...args: NodeArgs | V1Args) {
-        if (Array.isArray(args[0])) {
-            super(...(<NodeArgs>args));
-            this.nodes[0] = this.nodes[0].trim();
+    constructor(...args: OperationArgs | V1Args) {
+        if (isNodeArgs(args)) {
+            args[0].op = args[0].op.trim()
+            super(...args);
         } else {
             let [
                 op,
@@ -24,23 +37,14 @@ class Operation extends Node {
             ] = <V1Args>args;
             op = op.trim();
 
-            super([op, ...operands], { isSpaced });
+            super({ op, operands }, { isSpaced });
         }
     }
 
-    get op() {
-        return this.nodes[0];
-    }
-
-    get operands() {
-        const [_, l, r] = this.nodes;
-        return [l, r];
-    }
-
-    eval(context) {
-        let [op, a, b] = this.nodes;
-        a = this.nodes[1].eval(context);
-        b = this.nodes[2].eval(context);
+    eval(context: Context) {
+        let { op, operands } = this;
+        let a: Dimension | Color | Node = operands[0].eval(context);
+        let b: Dimension | Color | Node  = operands[1].eval(context);
 
         if (context.isMathOn(op)) {
             op = op === './' ? '/' : op;
@@ -51,8 +55,8 @@ class Operation extends Node {
                 b = b.toColor();
             }
             if (!('operate' in a)) {
-                if (a instanceof Operation && a.op === '/' && context.math === MATH.PARENS_DIVISION) {
-                    return new Operation([op, a, b], this.options).inherit(this);
+                if (a instanceof Operation && a.op === '/' && context.options.math === MATH.PARENS_DIVISION) {
+                    return new Operation({ op, operands: [a, b] }, this.options).inherit(this);
                 }
                 throw { type: 'Operation',
                     message: 'Operation on an invalid type' };
@@ -60,11 +64,11 @@ class Operation extends Node {
 
             return a.operate(context, op, b).inherit(this);
         } else {
-            return new Operation([op, a, b], this.options).inherit(this);
+            return new Operation({ op, operands: [a, b] }, this.options).inherit(this);
         }
     }
 
-    genCSS(context, output) {
+    genCSS(context: Context, output: OutputCollector) {
         this.operands[0].genCSS(context, output);
         if (this.options.isSpaced) {
             output.add(' ');

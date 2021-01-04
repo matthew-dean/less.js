@@ -1,4 +1,4 @@
-import Node, { NodeArgs, OutputCollector } from './node';
+import Node, { isNodeArgs, NodeArgs, OutputCollector } from './node';
 import {
     Declaration,
     Keyword,
@@ -22,10 +22,6 @@ type V1Args = [
     strictImports?: boolean
 ]
 
-export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
-    return Array.isArray(args[1]);
-};
-
 /**
  * This currently represents a "Qualified Rule" in CSS.
  * 
@@ -46,8 +42,12 @@ class Ruleset extends Node {
     _variables: Record<string, Declaration>;
     _properties: Record<string, Declaration[]>;
 
-    /** A root node */
+    /** This is a root node */
     root: boolean;
+
+    /** @todo - make a selector list? */
+    selectors: Selector[]
+    rules: Node[]
 
     /** The base ruleset of the tree */
     firstRoot: boolean;
@@ -80,7 +80,11 @@ class Ruleset extends Node {
     multiMedia: boolean;
 
     constructor(...args: NodeArgs | V1Args) {
-        if (!isV1Args(args)) {
+        if (isNodeArgs(args)) {
+            const nodes = args[0];
+            if (!nodes.paths) {
+                nodes.paths = [];
+            }
             super(...args);
         } else {
             let [
@@ -89,7 +93,11 @@ class Ruleset extends Node {
                 strictImports
             ] = args;
             super(
-                [selectors, rules || []],
+                {
+                    selectors,
+                    rules: rules || [],
+                    paths: []
+                },
                 { strictImports }
             );
         }
@@ -97,37 +105,9 @@ class Ruleset extends Node {
         this._lookups = {};
         this._variables = null;
         this._properties = null;
-        this.paths = [];
-    }
-
-    get selectors() {
-        return this.nodes[0];
-    }
-    set selectors(nodes: Selector[]) {
-        this.nodes[0] = nodes;
-    }
-    get rules() {
-        return this.nodes[1];
-    }
-    set rules(rules: Node[]) {
-        this.nodes[1] = rules;
     }
 
     isRulesetLike() { return true; }
-
-    /**
-     * @todo - can remove when nodes are simplified.
-     */
-    accept(visitor: Visitor) {
-        if (this.paths) {
-            this.paths = visitor.visitArray(this.paths, true);
-        } else if (this.selectors) {
-            this.selectors = visitor.visitArray(this.selectors);
-        }
-        if (this.rules && this.rules.length) {
-            this.rules = visitor.visitArray(this.rules);
-        }
-    }
 
     /**
      * @todo
@@ -188,7 +168,7 @@ class Ruleset extends Node {
         }
 
         let rules = this.rules.length ? utils.copyArray(this.rules) : [];
-        const ruleset = new Ruleset([selectors, rules], this.options).inherit(this);
+        const ruleset = new Ruleset({ selectors, rules }, this.options).inherit(this);
         let rule;
         let subRule;
 
@@ -338,10 +318,10 @@ class Ruleset extends Node {
 
     makeImportant(): Node {
         const result = new Ruleset(
-            [
-                this.selectors,
-                this.rules.map(r => r.makeImportant())
-            ], {...this.options}
+            {
+                selectors: this.selectors,
+                rules: this.rules.map(r => r.makeImportant())
+            }, {...this.options}
         );
 
         return result;

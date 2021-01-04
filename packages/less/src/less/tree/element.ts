@@ -1,4 +1,4 @@
-import Node, { IFileInfo, NodeArgs, OutputCollector } from './node';
+import Node, { IFileInfo, NodeArgs, isNodeArgs, OutputCollector } from './node';
 import { Paren, Combinator } from '.';
 import type { Context } from '../contexts';
 
@@ -9,10 +9,6 @@ type V1Args = [
     index?: number,
     fileInfo?: IFileInfo
 ];
-
-const isNodeArgs = (args: V1Args | NodeArgs): args is NodeArgs => {
-    return Array.isArray(args[0]);
-};
 
 /**
  * @todo - eliminate in favor of expressions 
