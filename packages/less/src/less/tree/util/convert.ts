@@ -64,5 +64,5 @@ export const convertDimension = (node: Dimension, toUnit?: string) => {
   
     const result = (fromValue * fromFactor * toFactor) / fromFactor;
 
-    return new Dimension([result, toUnit], {});
+    return new Dimension({ value: result, unit: toUnit });
 };

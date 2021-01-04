@@ -40,64 +40,63 @@ class Expression extends Node {
      * We also flatten expressions within expressions to be a flat node list.
      */
     eval(context: Context): Expression | List | Node {
-        if (!this.evaluated) {
-            super.eval(context);
-            if (this.value.length === 1) {
-                return this.value[0];
-            }
-
-            const expressions: Expression[] = [];
-
-            const processNodes = (expr: Expression) => {
-                let nodes = expr.value;
-                let nodesLength = nodes.length;
-                for (let i = 0; i < nodesLength; i++) {
-                    const node = nodes[i];
-                    if (node instanceof List) {
-                        node.value.forEach((listItem: Node) => {
-                            const newNodes: Node[] = nodes.map((n: Node, x) => {
-                                if (x === i) {
-                                    return;
-                                }
-                                return n.clone();
-                            });
-                            newNodes[i] = listItem.clone();
-                            expressions.push(new Expression(newNodes));
-                        });
-                        expressions.forEach(expr => {
-                            processNodes(expr);
-                        });
-                        break;
-                    } else if (node instanceof Expression) {
-                        /** Flatten sub-expressions */
-                        const exprNodes = node.value;
-                        const exprNodesLength = exprNodes.length;
-                        nodes = nodes
-                            .splice(0, i)
-                            .concat(exprNodes)
-                            .concat(nodes.splice(i + 1));
-                        expr.value = nodes;
-                        nodesLength += exprNodesLength;
-                        i += exprNodesLength;
-                        processNodes(node);
-                    }
-                }
-            };
-
-            processNodes(this);
-
-            const numExpressions = expressions.length;
-
-            this.evaluated = true;
-            if (numExpressions === 0) {
-                return this;
-            } else if (numExpressions === 1) {
-                return expressions[0].inherit(this);
-            } else {
-                return new List(expressions).inherit(this);
-            }
+        // incorrectly true?
+        // if (this.evaluated)
+        super.eval(context);
+        if (this.value.length === 1) {
+            return this.value[0];
         }
-        return this;
+
+        const expressions: Expression[] = [];
+
+        const processNodes = (expr: Expression) => {
+            let nodes = expr.value;
+            let nodesLength = nodes.length;
+            for (let i = 0; i < nodesLength; i++) {
+                const node = nodes[i];
+                if (node instanceof List) {
+                    node.value.forEach((listItem: Node) => {
+                        const newNodes: Node[] = nodes.map((n: Node, x) => {
+                            if (x === i) {
+                                return;
+                            }
+                            return n.clone();
+                        });
+                        newNodes[i] = listItem.clone();
+                        expressions.push(new Expression(newNodes));
+                    });
+                    expressions.forEach(expr => {
+                        processNodes(expr);
+                    });
+                    break;
+                } else if (node instanceof Expression) {
+                    /** Flatten sub-expressions */
+                    const exprNodes = node.value;
+                    const exprNodesLength = exprNodes.length;
+                    nodes = nodes
+                        .splice(0, i)
+                        .concat(exprNodes)
+                        .concat(nodes.splice(i + 1));
+                    expr.value = nodes;
+                    nodesLength += exprNodesLength;
+                    i += exprNodesLength;
+                    processNodes(node);
+                }
+            }
+        };
+
+        processNodes(this);
+
+        const numExpressions = expressions.length;
+
+        this.evaluated = true;
+        if (numExpressions === 0) {
+            return this;
+        } else if (numExpressions === 1) {
+            return expressions[0].inherit(this);
+        } else {
+            return new List(expressions).inherit(this);
+        }
     }
 
     genCSS(context: Context, output: OutputCollector) {

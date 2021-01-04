@@ -5,7 +5,7 @@ import FunctionCaller from '../functions/function-caller';
 
 type V1Args = [
     name: string,
-    funcArgs: Node[],
+    args: Node[],
     index?: number,
     currentFileInfo?: IFileInfo
 ]
@@ -19,21 +19,22 @@ class Call extends Node {
         calc: boolean
     }
     name: string
-    args: Node
+    /** @todo - make this a List? */
+    args: Node[]
 
-    constructor(...args: V1Args | NodeArgs) {
-        if (isNodeArgs(args)) {
-            super(...args);
+    constructor(...callArgs: V1Args | NodeArgs) {
+        if (isNodeArgs(callArgs)) {
+            super(...callArgs);
             return;
         }
         const [
             name,
-            funcArgs,
+            args,
             index,
             currentFileInfo
-        ] = args;
+        ] = callArgs;
         super(
-            { name, args: new List(funcArgs) },
+            { name, args },
             {
                 calc: name === 'calc'
             },
@@ -110,7 +111,7 @@ class Call extends Node {
             return result;
         }
 
-        const args = this.args.eval(context);
+        const args = this.args.map(a => a.eval(context));
         exitCalc();
 
         return new Call({ name: this.name, args }, this.options, this._location, this._fileInfo);
@@ -119,7 +120,12 @@ class Call extends Node {
     genCSS(context: Context, output: OutputCollector) {
         const { name, args } = this;
         output.add(`${name}(`, this.fileInfo(), this.getIndex());
-        args.genCSS(context, output);
+        for (let i = 0; i < this.args.length; i++) {
+            args[i].genCSS(context, output);
+            if (i + 1 < args.length) {
+                output.add(', ');
+            }
+        }
         output.add(')');
     }
 }

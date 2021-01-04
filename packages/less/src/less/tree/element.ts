@@ -19,10 +19,22 @@ class Element extends Node {
     value: Node | string
 
     constructor(...args: NodeArgs | V1Args) {
+        /** @todo - reduce code duplication */
         if (isNodeArgs(args)) {
             super(...args);
+            let combinator = this.combinator;
+            let value = this.value;
+            this.combinator = combinator instanceof Combinator ?
+                combinator : new Combinator(combinator);
+            if (typeof value === 'string') {
+                value = value.trim();
+            } else if (!value) {
+                value = '';
+            }
+            this.value = value;
             return;
         }
+        
         let [
             combinator,
             value,
@@ -36,11 +48,10 @@ class Element extends Node {
 
         if (typeof value === 'string') {
             value = value.trim();
-        } else if (value) {
-            value = value;
-        } else {
+        } else if (!value) {
             value = '';
         }
+
         super({ combinator, value }, { isVariable }, index, fileInfo);
     }
 

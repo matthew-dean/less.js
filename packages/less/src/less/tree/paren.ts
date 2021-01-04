@@ -3,17 +3,17 @@ import type { Context } from '../contexts';
 
 class Paren extends Node {
     type: 'Paren'
-    nodes: Node
+    value: Node
 
     genCSS(context: Context, output) {
         output.add('(');
-        this.nodes.genCSS(context, output);
+        this.value.genCSS(context, output);
         output.add(')');
     }
 
     eval(context: Context) {
         if (!this.evaluated) {
-            let content = this.nodes;
+            let content = this.value;
             let escape = content instanceof Operation || content instanceof Condition;
             context.enterParens();
             const block = super.eval(context);
@@ -23,9 +23,14 @@ class Paren extends Node {
              * If the result of an operation or compare reduced to a single result,
              * then return the result (remove parens)
              */
-            if (escape && block instanceof Node) {
+            if (escape) {
                 let content = block.value;
-                if (!(content instanceof Operation) && !(content instanceof Condition)) {
+                if (
+                    content
+                    && content instanceof Node
+                    && (!(content instanceof Operation)
+                        && !(content instanceof Condition)
+                )) {
                     return content.inherit(this);
                 }
             }

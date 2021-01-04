@@ -79,7 +79,7 @@ class Color extends Node {
     }
 
     luma() {
-        const rgb = this.nodes[0];
+        const rgb = this.rgb;
         let r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
 
         r = (r <= 0.03928) ? r / 12.92 : Math.pow(((r + 0.055) / 1.055), 2.4);

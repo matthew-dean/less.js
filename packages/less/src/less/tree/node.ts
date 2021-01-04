@@ -2,6 +2,7 @@ import type { IFileInfo, OutputCollector } from '../types';
 import type { Context } from '../contexts';
 import type Visitor from '../visitors/visitor';
 import type Parser from '../parser/parser';
+import { flatten } from './util/merge';
 
 type Primitive = Node | string | boolean | number
 export type NodeValue = Primitive | Primitive[]
@@ -32,9 +33,9 @@ export type NodeArgs = [
     fileInfo?: IFileInfo
 ]
 
-export const isNodeArgs = (args: any[] | NodeArgs): args is NodeArgs => {
+export const isNodeArgs = <T extends NodeArgs = NodeArgs>(args: any[] | T): args is T => {
     const optArg = args[0];
-    return typeof optArg === 'object' && optArg.constructor === Object;
+    return optArg && typeof optArg === 'object' && optArg.constructor === Object;
 };
 
 export { IFileInfo, OutputCollector };
@@ -154,7 +155,7 @@ class Node {
                              * remove the node
                              * 
                              * @todo - insert multiple items if the result
-                             *         returns an array?
+                             *         returns an array? Visitors do sometimes.
                              */
                             nodeVal.splice(i, 1);
                             i--;
@@ -221,7 +222,19 @@ class Node {
     }
 
     accept(visitor: Visitor) {
-        this.processNodes(n => visitor.visit(n));
+        const keys = this.nodeKeys;
+        keys.forEach(key => {
+            const nodeVal: NodeValue = this[key]
+            if (nodeVal) {
+                if (Array.isArray(nodeVal) && nodeVal[0] instanceof Node) {
+                    this[key] = visitor.visitArray(<Node[]>nodeVal);
+                } else if (nodeVal instanceof Node) {
+                    this[key] = visitor.visit(nodeVal);
+                }
+            }
+        });
+
+        // this.processNodes(n => visitor.visit(n), !!visitor._implementation?.isReplacing);
     }
 
     eval(context?: any): Node {

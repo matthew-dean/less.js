@@ -161,7 +161,7 @@ class Media extends AtRule {
         if (!selectors) {
             return;
         }
-        this.rules = [new Ruleset(utils.copyArray(selectors), [this.rules[0]])];
+        this.rules = [new Ruleset([...selectors], [this.rules[0]])];
     }
 }
 

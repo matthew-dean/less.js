@@ -1,4 +1,4 @@
-import Node, { IFileInfo, ILocationInfo, INodeOptions, isNodeArgs } from './node';
+import Node, { IFileInfo, ILocationInfo, INodeOptions, isNodeArgs, NodeCollection } from './node';
 import type { Context } from '../contexts';
 const _noSpaceCombinators = {
     '': true,
@@ -11,13 +11,17 @@ class Combinator extends Node {
     value: string
 
     constructor(
-        value: string,
+        value: string | NodeCollection,
         options?: INodeOptions,
         location?: ILocationInfo,
         fileInfo?: IFileInfo
     ) {
+        if (isNodeArgs([value])) {
+            super(<NodeCollection>value, options, location, fileInfo);
+            return;
+        }
         super(
-            value === ' ' ? { value } : { value: (value ? value.trim() : '') },
+            value === ' ' ? { value } : { value: (value ? (<string>value).trim() : '') },
             options,
             location,
             fileInfo

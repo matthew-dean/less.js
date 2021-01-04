@@ -29,16 +29,6 @@ class Visitor {
         }
 
         const nodeTypeIndex = node.type;
-        if (!nodeTypeIndex) {
-            /**
-             * MixinCall args aren't a node type?
-             * @todo - Fix this
-             */
-            if (node.value && node.value.typeIndex) {
-                this.visit(node.value);
-            }
-            return node;
-        }
 
         const impl = this._implementation;
         let func = this._visitInCache[nodeTypeIndex];

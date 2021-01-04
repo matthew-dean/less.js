@@ -100,7 +100,7 @@ class Dimension extends Node {
                 return new Dimension({ value: result, unit: aUnit }).inherit(this);
             }
         } else {
-            const unit = this.nodes[1];
+            const unit = this.unit;
             const result = operate(op, this.value, other.value);
             return new Dimension({ value: result, unit }).inherit(this);
         }
