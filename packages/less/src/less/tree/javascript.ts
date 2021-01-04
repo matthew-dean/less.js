@@ -10,9 +10,10 @@ class JavaScript extends JsEvalNode {
     options: {
         escaped: boolean
     }
+    expression: string;
 
     constructor(
-        str: string,
+        expression: string,
         escaped: boolean | INodeOptions,
         index: number,
         fileInfo: IFileInfo
@@ -21,11 +22,7 @@ class JavaScript extends JsEvalNode {
         if (typeof escaped === 'boolean') {
             options = { escaped };
         }
-        super(str, options, index, fileInfo);
-    }
-
-    get expression() {
-        return this.nodes;
+        super({ expression }, options, index, fileInfo);
     }
 
     eval(context) {

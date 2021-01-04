@@ -36,7 +36,7 @@ type V1Args = [
 class AtRule extends Node {
     name: string
     value: Node
-    rules: Node[]
+    rules: Ruleset[]
 
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {

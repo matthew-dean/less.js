@@ -26,7 +26,7 @@ export type INodeOptions = {
 }
 
 export type NodeArgs = [
-    value: NodeCollection | Node,
+    value: NodeCollection,
     options?: INodeOptions,
     location?: ILocationInfo | number,
     fileInfo?: IFileInfo

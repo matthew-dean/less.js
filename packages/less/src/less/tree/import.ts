@@ -192,7 +192,7 @@ class Import extends Node {
                     reference: this.path._fileInfo && this.path._fileInfo.reference
                 }, true, true);
 
-            return this.features ? new Media([contents], this.features.value) : [contents];
+            return this.features ? new Media([contents], [(<Node>this.features.value)]) : [contents];
         } else if (this.options.css) {
             const newImport = new Import({ path: this.evalPath(context), features }, this.options, this._location, this._fileInfo);
             if (!newImport.options.css && this.error) {
@@ -203,7 +203,7 @@ class Import extends Node {
             ruleset = new Ruleset(null, utils.copyArray(this.root.rules));
             ruleset.evalImports(context);
 
-            return this.features ? new Media(ruleset.rules, this.features.value) : ruleset.rules;
+            return this.features ? new Media(ruleset.rules, [(<Node>this.features.value)]) : ruleset.rules;
         } else {
             return [];
         }

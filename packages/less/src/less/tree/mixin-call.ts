@@ -2,26 +2,26 @@ import Node, { IFileInfo, ILocationInfo, INodeOptions, isNodeArgs } from './node
 import { Selector, Element, List, Ruleset, MixinDefinition } from '.';
 import defaultFunc from '../functions/default';
 import type { Context } from '../contexts';
-import type Visitor from '../visitors/visitor';
 
 type V1Args = [
     elements: Element[],
-    arguments: Node[],
+    args: Node[],
     index: number,
     fileInfo: IFileInfo,
     important: boolean
 ];
 
 type MixinArgs = [
-    value: [sel: Selector, args: List],
+    value: { selector: Selector, args: List },
     options: INodeOptions,
     location?: ILocationInfo,
     fileInfo?: IFileInfo
 ];
 
 class MixinCall extends Node {
-    type: 'MixinCall';
-    nodes: [Selector, Node[]]
+    type: 'MixinCall'
+    selector: Selector;
+    args: Node[];
     options: {
         important: boolean
     };
@@ -39,36 +39,19 @@ class MixinCall extends Node {
         ] = callArgs;
 
         super(
-            [
-                new Selector(elements),
-                args || []
-            ],
+            {
+                selector: new Selector(elements),
+                args: args || []
+            },
             { important },
             index,
             fileInfo
         );
     }
 
-    get selector() {
-        return this.nodes[0]
-    }
-
+    /** Historical compatibility */
     get arguments() {
-        return this.nodes[1]
-    }
-
-    /** 
-     * @todo - Refactor call to be a list as second node
-     *         in order to remove this (inherit from Node)
-     */
-    accept(visitor: Visitor) {
-        const [selector, args] = this.nodes
-        if (selector) {
-            this.nodes[0] = <Selector>visitor.visit(selector);
-        }
-        if (args.length) {
-            this.nodes[1] = visitor.visitArray(args);
-        }
+        return this.args;
     }
 
     /**
@@ -101,7 +84,7 @@ class MixinCall extends Node {
         let originalRuleset;
         let noArgumentsFilter;
 
-        this.nodes[0] = this.selector.eval(context);
+        this.selector = this.selector.eval(context);
 
         function calcDefGroup(mixin, mixinPath) {
             let namespace;
@@ -130,8 +113,8 @@ class MixinCall extends Node {
             return defFalseEitherCase;
         }
 
-        for (let i = 0; i < this.arguments.length; i++) {
-            arg = this.arguments[i];
+        for (let i = 0; i < this.args.length; i++) {
+            arg = this.args[i];
             argValue = arg.value.eval(context);
             if (arg.expand && Array.isArray(argValue.value)) {
                 argValue = argValue.value;

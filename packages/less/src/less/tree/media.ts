@@ -1,6 +1,6 @@
 import { Ruleset, List, Selector, Anonymous, Expression, AtRule } from '.';
 import * as utils from '../utils';
-import { IFileInfo, NodeArgs } from './node';
+import { IFileInfo, isNodeArgs, NodeArgs } from './node';
 import type { Context } from '../contexts';
 import type Node from './node';
 
@@ -11,27 +11,22 @@ type V1Args = [
     fileInfo?: IFileInfo
 ];
 
-export const isV1Args = (args: V1Args | NodeArgs): args is V1Args => {
-    return Array.isArray(args[1]);
-};
-
 /**
  * @todo - Can this be refactored to re-use code from `AtRule`?
  */
 class Media extends AtRule {
-    type: 'Media';
-    nodes: [string, Node, Ruleset[]]
+    type: 'Media'
 
     constructor(...args: NodeArgs | V1Args) {
-        if (!(isV1Args(args))) {
+        if (isNodeArgs(args)) {
             const [
                 nodes,
                 options,
                 location,
                 fileInfo
             ] = args;
-            if (nodes.length === 2) {
-                nodes.unshift('@media');
+            if (!nodes.name) {
+                nodes.name = '@media';
             }
             super(nodes, options, location, fileInfo);
             return;
@@ -49,20 +44,14 @@ class Media extends AtRule {
         rules = [new Ruleset(selectors, rules)];
         (<Ruleset>rules[0]).allowImports = true;
 
-        super(['@media', featureList, rules], {}, index, fileInfo);
+        super({ name: '@media', value: featureList, rules }, {}, index, fileInfo);
     }
 
     get features() {
-        return this.nodes[1];
+        return this.value;
     }
     set features(n: Node) {
-        this.nodes[1] = n;
-    }
-    get rules() {
-        return this.nodes[2];
-    }
-    set rules(r: Ruleset[]) {
-        this.nodes[2] = r;
+        this.value = n;
     }
 
     isRulesetLike() { return true; }
@@ -74,13 +63,13 @@ class Media extends AtRule {
         }
 
         const media = new Media(
-            [
-                this.features.eval(context),
-                new Ruleset(
+            {
+                value: this.features.eval(context),
+                rules: new Ruleset(
                     Selector.createEmptySelectors(this.getIndex(), this.fileInfo()),
                     []
                 )
-            ],
+            },
             {}, this._location, this._fileInfo
         );
         if (this.debugInfo) {
