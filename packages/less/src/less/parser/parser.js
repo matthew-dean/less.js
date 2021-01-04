@@ -2035,8 +2035,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                     a = this.addition();
                     if (a && parserInput.$char(')')) {
                         parserInput.forget();
-                        e = new(tree.Expression)([a]);
-                        e.parens = true;
+                        e = new(tree.Paren)(new(tree.Expression)([a]));
                         return e;
                     }
                     parserInput.restore('Expected \')\'');

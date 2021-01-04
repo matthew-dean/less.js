@@ -114,7 +114,7 @@ class Node {
 
         /** Place all sub-node keys on `this` */
         nodeKeys.forEach(key => {
-            const value = nodes[key];
+            const value = nodesColl[key];
             Object.defineProperty(this, key, {
                 value,
                 writable: true
@@ -233,8 +233,6 @@ class Node {
                 }
             }
         });
-
-        // this.processNodes(n => visitor.visit(n), !!visitor._implementation?.isReplacing);
     }
 
     eval(context?: any): Node {

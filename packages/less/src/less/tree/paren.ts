@@ -1,5 +1,6 @@
 import { Node, Operation, Condition } from '.';
 import type { Context } from '../contexts';
+import { NodeArgs } from './node';
 
 class Paren extends Node {
     type: 'Paren'
