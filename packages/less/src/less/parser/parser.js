@@ -40,8 +40,10 @@ import functionRegistry from '../functions/function-registry';
 
 const Parser = function Parser(context, imports, fileInfo) {
     let parsers;
+    /** @todo - hoist parserInput as a imported object */
     const parserInput = getParserInput();
 
+    /** Hoist these functions out of this top function */
     function error(msg, type) {
         throw new LessError(
             {
@@ -109,7 +111,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                 if (result) {
                     try {
                         result._index = i + currentIndex;
-                        result._fileInfo = fileInfo;
+                        result.fileInfo = fileInfo;
                     } catch (e) {}
                     returnNodes.push(result);
                 }
@@ -136,7 +138,7 @@ const Parser = function Parser(context, imports, fileInfo) {
     //
     // The Parser
     //
-    return {
+    const parser = {
         parserInput,
         imports,
         fileInfo,
@@ -191,8 +193,8 @@ const Parser = function Parser(context, imports, fileInfo) {
                     }, imports);
                 });
 
-                tree.Node.prototype.parse = this;
-                root = new tree.Ruleset(null, this.parsers.primary());
+                tree.Node.prototype.parse = parser;
+                root = new tree.Ruleset(null, parser.parsers.primary());
                 tree.Node.prototype.rootNode = root;
                 root.root = true;
                 root.firstRoot = true;
@@ -2274,7 +2276,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                             error('expected expression');
                         }
                     } else {
-                        c = new(tree.Condition)('=', a, new(tree.Keyword)('true'), index, false);
+                        c = new(tree.Condition)('=', a, new(tree.Bool)(true), index, false);
                     }
                     return c;
                 }
@@ -2406,6 +2408,7 @@ const Parser = function Parser(context, imports, fileInfo) {
             }
         }
     };
+    return parser;
 };
 Parser.serializeVars = vars => {
     let s = '';

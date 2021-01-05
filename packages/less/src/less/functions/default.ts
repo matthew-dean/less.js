@@ -1,4 +1,4 @@
-import Keyword from '../tree/keyword';
+import { Bool } from '../tree';
 
 const defaultFunc = {
     eval: function () {
@@ -8,7 +8,7 @@ const defaultFunc = {
             throw e;
         }
         if (v != null) {
-            return v ? Keyword.True : Keyword.False;
+            return v ? new Bool(true) : new Bool(false);
         }
     },
     value: function (v) {

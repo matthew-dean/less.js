@@ -111,16 +111,16 @@ class Declaration extends Node {
 
     genCSS(context: Context, output: OutputCollector) {
         const compress = context.options.compress;
-        output.add(this.name + (compress ? ':' : ': '), this.fileInfo(), this.getIndex());
+        output.add(this.name + (compress ? ':' : ': '), this.fileInfo, this.getIndex());
         try {
             this.value.genCSS(context, output);
         }
         catch (e) {
             e.index = this._index;
-            e.filename = this._fileInfo.filename;
+            e.filename = this.fileInfo.filename;
             throw e;
         }
-        output.add(this.important + ((this.options.inline || (context.lastRule && compress)) ? '' : ';'), this._fileInfo, this._index);
+        output.add(this.important + ((this.options.inline || (context.lastRule && compress)) ? '' : ';'), this.fileInfo, this._index);
     }
 
     eval(context: Context) {
@@ -144,7 +144,7 @@ class Declaration extends Node {
 
             if (!this.options.isVariable && evaldValue.type === 'DetachedRuleset') {
                 throw { message: 'Rulesets cannot be evaluated on a property.',
-                    index: this.getIndex(), filename: this.fileInfo().filename };
+                    index: this.getIndex(), filename: this.fileInfo.filename };
             }
             let important = this.important;
             const importantResult = context.importantScope.pop();
@@ -155,14 +155,14 @@ class Declaration extends Node {
             return new Declaration(
                 { property, value: evaldValue, important },
                 {...this.options, isVariable },
-                this._location,
-                this._fileInfo
+                this.location,
+                this.fileInfo
             );
         }
         catch (e) {
             if (typeof e.index !== 'number') {
                 e.index = this.getIndex();
-                e.filename = this.fileInfo().filename;
+                e.filename = this.fileInfo.filename;
             }
             throw e;
         }

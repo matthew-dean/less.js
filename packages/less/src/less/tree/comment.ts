@@ -34,7 +34,7 @@ class Comment extends Node {
 
     genCSS(context: Context, output) {
         if (this.debugInfo) {
-            output.add(getDebugInfo(context, this), this.fileInfo(), this.getIndex());
+            output.add(getDebugInfo(context, this), this.fileInfo, this.getIndex());
         }
         output.add(this.value);
     }

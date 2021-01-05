@@ -73,10 +73,13 @@ class Dimension extends Node {
     
             if (aUnit !== bUnit) {
                 if (strictUnits !== false) {
-                    throw new Error(
-                        `Incompatible units. Change the units or use the unit function. `
-                        + `Bad units: '${aUnit}' and '${bUnit}'.`
-                    );
+                    throw {
+                        message:
+                            `Incompatible units. Change the units or use the unit function. `
+                            + `Bad units: '${aUnit}' and '${bUnit}'.`,
+                        index: this.getIndex(),
+                        filename: this.fileInfo.filename
+                    };
                 } else {
                     /**
                      * In an operation between two Dimensions,
@@ -95,7 +98,11 @@ class Dimension extends Node {
                 if (op === '/') {
                     return new Dimension({ value: result }).inherit(this);
                 } else if (op === '*') {
-                    throw new Error(`Can't multiply a unit by a unit.`);
+                    throw {
+                        message: `Can't multiply a unit by a unit.`,
+                        index: this.getIndex(),
+                        filename: this.fileInfo.filename
+                    };
                 }
                 return new Dimension({ value: result, unit: aUnit }).inherit(this);
             }

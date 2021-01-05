@@ -54,7 +54,7 @@ class Quoted extends Node {
     genCSS(context: Context, output: OutputCollector) {
         const { quote, escaped } = this.options;
         if (!escaped) {
-            output.add(quote, this.fileInfo(), this.getIndex());
+            output.add(quote, this.fileInfo, this.getIndex());
         }
         output.add(this.value);
         if (!escaped) {
@@ -70,11 +70,11 @@ class Quoted extends Node {
         let value = this.value;
         const { quote, escaped } = this.options;
         const variableReplacement = (_, name) => {
-            const v = new Variable(`@${name}`, this.getIndex(), this.fileInfo()).eval(context);
+            const v = new Variable(`@${name}`, this.getIndex(), this.fileInfo).eval(context);
             return (v instanceof Quoted) ? v.value : v.toCSS();
         };
         const propertyReplacement = (_, name) => {
-            const v = new Property(`$${name}`, this.getIndex(), this.fileInfo()).eval(context);
+            const v = new Property(`$${name}`, this.getIndex(), this.fileInfo).eval(context);
             return (v instanceof Quoted) ? v.value : v.toCSS();
         };
         function iterativeReplace(
@@ -91,7 +91,7 @@ class Quoted extends Node {
         }
         value = iterativeReplace(value, this.variableRegex, variableReplacement);
         value = iterativeReplace(value, this.propRegex, propertyReplacement);
-        return new Quoted({ value }, { quote, escaped }, this.getIndex(), this.fileInfo());
+        return new Quoted({ value }, { quote, escaped }, this.getIndex(), this.fileInfo);
     }
 
     compare(other: Node) {

@@ -1,8 +1,9 @@
-import contexts from './contexts';
+import contexts, { Context } from './contexts';
 import Parser from './parser/parser';
 import LessError from './less-error';
 import * as utils from './utils';
 import logger from './logger';
+import type { Node, IFileInfo } from './tree/node';
 
 export default function(environment) {
     // FileInfo = {
@@ -15,18 +16,41 @@ export default function(environment) {
     //  'reference' - whether the file should not be output and only output parts that are referenced
 
     class ImportManager {
-        constructor(less, context, rootFileInfo) {
+        /** @todo - define Less object */
+        less: any
+        rootFilename: string
+        /** Search paths, when importing */
+        paths: string[]
+        /** map - filename to contents of all the files */
+        contents: {
+            [file: string]: string
+        }
+        /** map - filename to lines at the beginning of each file to ignore */
+        contentsIgnoredChars: {
+            [file: string]: string
+        }
+        mime: string
+        error: Error
+        context: Context
+        queue: string[]
+        /** Holds the imported parse trees. */
+        files: {
+            [file: string]: {
+                root: Node
+                options: any;
+            }
+        }
+        
+        constructor(less: any, context: Context, rootFileInfo: IFileInfo) {
             this.less = less;
             this.rootFilename = rootFileInfo.filename;
-            this.paths = context.paths || [];  // Search paths, when importing
-            this.contents = {};             // map - filename to contents of all the files
-            this.contentsIgnoredChars = {}; // map - filename to lines at the beginning of each file to ignore
+            this.paths = context.options.paths || [];  
+            this.contents = {};             
+            this.contentsIgnoredChars = {};
             this.mime = context.mime;
             this.error = null;
             this.context = context;
-            // Deprecated? Unused outside of here, could be useful.
-            this.queue = [];        // Files which haven't been imported yet
-            this.files = {};        // Holds the imported parse trees.
+            this.files = {};        
         }
 
         /**
@@ -36,16 +60,15 @@ export default function(environment) {
          * @param currentFileInfo - the current file info (used for instance to work out relative paths)
          * @param importOptions - import options
          * @param callback - callback for when it is imported
+         * 
+         * @todo - When debugging, I discovered that any code error below will cause
+         *         an indefinite hang without exit in the import-visitor
          */
         push(path, tryAppendExtension, currentFileInfo, importOptions, callback) {
             const importManager = this;
             const pluginLoader = this.context?.options?.pluginManager.Loader;
 
-            this.queue.push(path);
-
-            const fileParsedFunc = function (e, root, fullPath) {
-                importManager.queue.splice(importManager.queue.indexOf(path), 1); // Remove the path from the queue
-
+            const fileParsedFunc = function (e, root?, fullPath?) {
                 const importedEqualsRoot = fullPath === importManager.rootFilename;
                 if (importOptions.optional && e) {
                     callback(null, {rules:[]}, false, null);
@@ -63,8 +86,8 @@ export default function(environment) {
                 }
             };
 
-            const newFileInfo = {
-                rewriteUrls: this.context.rewriteUrls,
+            const newFileInfo: Partial<IFileInfo> = {
+                rewriteUrls: this.context.options.rewriteUrls,
                 entryPath: currentFileInfo.entryPath,
                 rootpath: currentFileInfo.rootpath,
                 rootFilename: currentFileInfo.rootFilename
@@ -93,7 +116,7 @@ export default function(environment) {
                 newFileInfo.currentDirectory = fileManager.getPath(resolvedFilename);
                 if (newFileInfo.rewriteUrls) {
                     newFileInfo.rootpath = fileManager.join(
-                        (importManager.context.rootpath || ''),
+                        (importManager.context.options.rootpath || ''),
                         fileManager.pathDiff(newFileInfo.currentDirectory, newFileInfo.entryPath));
 
                     if (!fileManager.isPathAbsolute(newFileInfo.rootpath) && fileManager.alwaysMakePathsAbsolute()) {
@@ -102,9 +125,9 @@ export default function(environment) {
                 }
                 newFileInfo.filename = resolvedFilename;
 
-                const newEnv = new contexts.Parse(importManager.context);
+                const newEnv = new contexts.Parse(importManager.context.options);
 
-                newEnv.processImports = false;
+                newEnv.options.processImports = false;
                 importManager.contents[resolvedFilename] = contents;
 
                 if (currentFileInfo.reference || importOptions.reference) {
@@ -131,7 +154,7 @@ export default function(environment) {
                         fileParsedFunc(null, importManager.files[resolvedFilename].root, resolvedFilename);
                     }
                     else {
-                        new Parser(newEnv, importManager, newFileInfo).parse(contents, function (e, root) {
+                        Parser(newEnv, importManager, newFileInfo).parse(contents, function (e, root) {
                             fileParsedFunc(e, root, resolvedFilename);
                         });
                     }
@@ -139,29 +162,29 @@ export default function(environment) {
             };
             let loadedFile;
             let promise;
-            const context = utils.clone(this.context);
+            const options = {...this.context.options }
 
             if (tryAppendExtension) {
-                context.ext = importOptions.isPlugin ? '.js' : '.less';
+                options.ext = importOptions.isPlugin ? '.js' : '.less';
             }
 
             /**
              * @todo - rewrite when `@plugin` is removed
              */
             if (importOptions.isPlugin) {
-                context.mime = 'application/javascript';
+                options.mime = 'application/javascript';
 
-                if (context.syncImport) {
-                    loadedFile = pluginLoader.loadPluginSync(path, currentFileInfo.currentDirectory, context, environment, fileManager);
+                if (options.syncImport) {
+                    loadedFile = pluginLoader.loadPluginSync(path, currentFileInfo.currentDirectory, options, environment, fileManager);
                 } else {
-                    promise = pluginLoader.loadPlugin(path, currentFileInfo.currentDirectory, context, environment, fileManager);
+                    promise = pluginLoader.loadPlugin(path, currentFileInfo.currentDirectory, options, environment, fileManager);
                 }
             }
             else {
-                if (context.syncImport) {
-                    loadedFile = fileManager.loadFileSync(path, currentFileInfo.currentDirectory, context, environment);
+                if (options.syncImport) {
+                    loadedFile = fileManager.loadFileSync(path, currentFileInfo.currentDirectory, options, environment);
                 } else {
-                    promise = fileManager.loadFile(path, currentFileInfo.currentDirectory, context, environment,
+                    promise = fileManager.loadFile(path, currentFileInfo.currentDirectory, options, environment,
                         (err, loadedFile) => {
                             if (err) {
                                 fileParsedFunc(err);

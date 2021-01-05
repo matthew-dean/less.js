@@ -56,7 +56,7 @@ class Element extends Node {
     }
 
     genCSS(context: Context, output: OutputCollector) {
-        output.add(this.toCSS(context), this.fileInfo(), this.getIndex());
+        output.add(this.toCSS(context), this.fileInfo, this.getIndex());
     }
 
     eval(context: Context): Element {

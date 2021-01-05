@@ -213,15 +213,15 @@ ToCSSVisitor.prototype = {
             const ruleNode = rules[i];
             if (isRoot && ruleNode instanceof tree.Declaration && !ruleNode.options.isVariable) {
                 throw { message: 'Properties must be inside selector blocks. They cannot be in the root',
-                    index: ruleNode.getIndex(), filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename};
+                    index: ruleNode.getIndex(), filename: ruleNode.fileInfo.filename};
             }
             if (ruleNode instanceof tree.Call) {
                 throw { message: `Function '${ruleNode.name}' did not return a root node`,
-                    index: ruleNode.getIndex(), filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename};
+                    index: ruleNode.getIndex(), filename: ruleNode.fileInfo.filename};
             }
             if (ruleNode.type && !ruleNode.allowRoot) {
                 throw { message: `${ruleNode.type} node returned by a function is not valid here`,
-                    index: ruleNode.getIndex(), filename: ruleNode.fileInfo() && ruleNode.fileInfo().filename};
+                    index: ruleNode.getIndex(), filename: ruleNode.fileInfo.filename};
             }
         }
     },

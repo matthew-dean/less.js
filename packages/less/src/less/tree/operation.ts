@@ -58,8 +58,12 @@ class Operation extends Node {
                 if (a instanceof Operation && a.op === '/' && context.options.math === MATH.PARENS_DIVISION) {
                     return new Operation({ op, operands: [a, b] }, this.options).inherit(this);
                 }
-                throw { type: 'Operation',
-                    message: 'Operation on an invalid type' };
+                throw {
+                    type: 'Operation',
+                    message: 'Operation on an invalid type',
+                    index: this.getIndex(),
+                    filename: this.fileInfo.filename
+                };
             }
 
             return a.operate(context, op, b).inherit(this);

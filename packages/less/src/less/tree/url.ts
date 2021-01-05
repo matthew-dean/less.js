@@ -43,7 +43,7 @@ class URL extends Node {
         if (!this.evaluated) {
             this.evaluated = true;
             // Add the rootpath if the URL requires a rewrite
-            rootpath = this.fileInfo() && this.fileInfo().rootpath;
+            rootpath = this.fileInfo && this.fileInfo.rootpath;
             if (typeof rootpath === 'string' &&
                 typeof val.value === 'string' &&
                 context.pathRequiresRewrite(val.value)) {
@@ -69,7 +69,7 @@ class URL extends Node {
             }
         }
 
-        return new URL(val, this.getIndex(), this.fileInfo(), true);
+        return new URL(val, this.getIndex(), this.fileInfo, true);
     }
 }
 

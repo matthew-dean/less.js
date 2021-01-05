@@ -1,16 +1,11 @@
-import { IFileInfo, isNodeArgs, NodeArgs } from './node';
 import { Declaration, Variable } from '.';
 import { mergeRules } from './util/merge';
 
-type V1Args = [
-    name: string,
-    index: number,
-    currentFileInfo: IFileInfo
-]
 /**
  * A property reference e.g. $prop
  * 
- * @todo - merge with variable node?
+ * @todo
+ * Put in better abstraction to reduce code copying from Variable
  */
 class Property extends Variable {
     type: 'Property'
@@ -22,7 +17,7 @@ class Property extends Variable {
         if (this.evaluating) {
             throw { type: 'Name',
                 message: `Recursive property reference for ${name}`,
-                filename: this.fileInfo().filename,
+                filename: this.fileInfo.filename,
                 index: this.getIndex() };
         }
 
@@ -62,7 +57,7 @@ class Property extends Variable {
         } else {
             throw { type: 'Name',
                 message: `Property '${name}' is undefined`,
-                filename: this._fileInfo.filename,
+                filename: this.fileInfo.filename,
                 index: this._index
             };
         }

@@ -28,7 +28,7 @@ class VariableCall extends Node {
 
     eval(context: Context) {
         let rules;
-        let detachedRuleset = new Variable(this.variable, this.getIndex(), this.fileInfo()).eval(context);
+        let detachedRuleset = new Variable(this.variable, this.getIndex(), this.fileInfo).eval(context);
         const error = new LessError({message: `Could not evaluate variable call ${this.variable}`});
 
         if (!detachedRuleset.ruleset) {

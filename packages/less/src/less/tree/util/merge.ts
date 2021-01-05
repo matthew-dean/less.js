@@ -38,35 +38,3 @@ export const mergeRules = function(rules: Declaration[]) {
         }
     });
 };
-
-/**
- * Code moved from base Visitor class
- */
-export const flatten = (arr: any[], out: any[] = []) => {
-    let cnt = arr.length;
-
-    for (let i = 0; i < cnt; i++) {
-        let item = arr[i];
-        if (item === undefined) {
-            continue;
-        }
-        if (!item.splice) {
-            out.push(item);
-            continue;
-        }
-
-        for (let j = 0, nestedCnt = item.length; j < nestedCnt; j++) {
-            let nestedItem = item[j];
-            if (nestedItem === undefined) {
-                continue;
-            }
-            if (!nestedItem.splice) {
-                out.push(nestedItem);
-            } else if (nestedItem.length) {
-                flatten(nestedItem, out);
-            }
-        }
-    }
-
-    return out;
-}

@@ -73,7 +73,7 @@ class Call extends Node {
         };
 
         let result;
-        const funcCaller = new FunctionCaller(this.name, context, this.getIndex(), this.fileInfo());
+        const funcCaller = new FunctionCaller(this.name, context, this.getIndex(), this.fileInfo);
 
         if (funcCaller.isValid()) {
             try {
@@ -87,7 +87,7 @@ class Call extends Node {
                     type: e.type || 'Runtime',
                     message: `Error evaluating function \`${this.name}\`${e.message ? `: ${e.message}` : ''}`,
                     index: this.getIndex(), 
-                    filename: this.fileInfo().filename,
+                    filename: this.fileInfo.filename,
                     line: e.lineNumber,
                     column: e.columnNumber
                 };
@@ -107,19 +107,19 @@ class Call extends Node {
                 
             }
             result._index = this._index;
-            result._fileInfo = this._fileInfo;
+            result.fileInfo = this.fileInfo;
             return result;
         }
 
         const args = this.args.map(a => a.eval(context));
         exitCalc();
 
-        return new Call({ name: this.name, args }, this.options, this._location, this._fileInfo);
+        return new Call({ name: this.name, args }, this.options, this.location, this.fileInfo);
     }
 
     genCSS(context: Context, output: OutputCollector) {
         const { name, args } = this;
-        output.add(`${name}(`, this.fileInfo(), this.getIndex());
+        output.add(`${name}(`, this.fileInfo, this.getIndex());
         for (let i = 0; i < this.args.length; i++) {
             args[i].genCSS(context, output);
             if (i + 1 < args.length) {

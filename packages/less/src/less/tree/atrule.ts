@@ -94,7 +94,7 @@ class AtRule extends Node {
 
     genCSS(context: Context, output: OutputCollector) {
         const value = this.value, rules = this.rules;
-        output.add(this.name, this.fileInfo(), this.getIndex());
+        output.add(this.name, this.fileInfo, this.getIndex());
         if (value) {
             output.add(' ');
             value.genCSS(context, output);

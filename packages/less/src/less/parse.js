@@ -81,7 +81,7 @@ export default function(environment, ParseTree, ImportManager) {
                 });
             }
 
-            new Parser(context, imports, rootFileInfo)
+            Parser(context, imports, rootFileInfo)
                 .parse(input, function (e, root) {
                     if (e) { return callback(e); }
                     callback(null, root, imports, options);

@@ -48,7 +48,7 @@ class Anonymous extends Node {
     genCSS(context: Context, output: OutputCollector) {
         this.nodeVisible = Boolean(this.value);
         if (this.nodeVisible) {
-            output.add(this.value, this._fileInfo, this._index, this.options.mapLines);
+            output.add(this.value, this.fileInfo, this._index, this.options.mapLines);
         }
     }
 }

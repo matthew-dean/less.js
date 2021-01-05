@@ -1,13 +1,16 @@
-import Keyword from '../tree/keyword';
-import DetachedRuleset from '../tree/detached-ruleset';
-import Dimension from '../tree/dimension';
-import Color from '../tree/color';
-import Quoted from '../tree/quoted';
-import Anonymous from '../tree/anonymous';
-import URL from '../tree/url';
-import Operation from '../tree/operation';
+import {
+    Bool,
+    Keyword,
+    DetachedRuleset,
+    Dimension,
+    Color,
+    Quoted,
+    Anonymous,
+    URL,
+    Operation
+}from '../tree';
 
-const isa = (n, Type) => (n instanceof Type) ? Keyword.True : Keyword.False;
+const isa = (n, Type) => (n instanceof Type) ? new Bool(true) : new Bool(false);
 const isunit = (n, unit) => {
     if (unit === undefined) {
         throw { type: 'Argument', message: 'missing the required second argument to isunit.' };
@@ -16,7 +19,7 @@ const isunit = (n, unit) => {
     if (typeof unit !== 'string') {
         throw { type: 'Argument', message: 'Second argument to isunit should be a unit or a string.' };
     }
-    return (n instanceof Dimension) && n.unit === unit ? Keyword.True : Keyword.False;
+    return (n instanceof Dimension) && n.unit === unit ? new Bool(true) : new Bool(false);
 };
 
 export default {

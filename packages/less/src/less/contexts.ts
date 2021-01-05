@@ -110,6 +110,11 @@ class Context {
      */
     rawBuffer: boolean
 
+    /**
+     * Allows setting mime type? Used in import manager 
+     */
+    mime: string
+
     constructor(options: Record<any, any> = {}) {
         const {
             paths,             // additional include paths

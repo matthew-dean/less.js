@@ -80,7 +80,7 @@ class NamespaceValue extends Node {
                 if (!rules) {
                     throw { type: 'Name',
                         message: `variable ${name} not found`,
-                        filename: this.fileInfo().filename,
+                        filename: this.fileInfo.filename,
                         index: this.getIndex() };
                 }
             }
@@ -100,7 +100,7 @@ class NamespaceValue extends Node {
                 if (!rules) {
                     throw { type: 'Name',
                         message: `property "${name.substr(1)}" not found`,
-                        filename: this.fileInfo().filename,
+                        filename: this.fileInfo.filename,
                         index: this.getIndex() };
                 }
                 // Properties are an array of values, since a ruleset can have multiple props.

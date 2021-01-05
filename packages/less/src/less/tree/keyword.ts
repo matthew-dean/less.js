@@ -8,9 +8,6 @@ class Keyword extends Node {
     type: 'Keyword'
     value: string
 
-    static True = new Keyword('true');
-    static False = new Keyword('false');
-
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
             super(...args);
@@ -22,7 +19,12 @@ class Keyword extends Node {
     genCSS(context: Context, output: OutputCollector) {
         const value = this.value;
         if (value === '%') {
-            throw { type: 'Syntax', message: 'Invalid % without number' };
+            throw {
+                type: 'Syntax',
+                message: 'Invalid % without number',
+                index: this.getIndex(),
+                filename: this.fileInfo.filename
+            };
         }
         output.add(value);
     }

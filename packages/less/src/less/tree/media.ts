@@ -66,11 +66,11 @@ class Media extends AtRule {
             {
                 value: this.features.eval(context),
                 rules: new Ruleset(
-                    Selector.createEmptySelectors(this.getIndex(), this.fileInfo()),
+                    Selector.createEmptySelectors(this.getIndex(), this.fileInfo),
                     []
                 )
             },
-            {}, this._location, this._fileInfo
+            {}, this.location, this.fileInfo
         );
         if (this.debugInfo) {
             this.rules[0].debugInfo = this.debugInfo;
@@ -95,7 +95,7 @@ class Media extends AtRule {
 
         // Render all dependent Media blocks.
         if (context.mediaBlocks.length > 1) {
-            const selectors = Selector.createEmptySelectors(this.getIndex(), this.fileInfo());
+            const selectors = Selector.createEmptySelectors(this.getIndex(), this.fileInfo);
             const rules = new Ruleset(selectors, context.mediaBlocks);
             rules.multiMedia = true;
             rules.copyVisibilityInfo(this.visibilityInfo());

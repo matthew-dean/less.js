@@ -1,5 +1,6 @@
 import chunker from './chunker';
 
+/** @todo - this is a static file, it doesn't need to be called as a function */
 export default () => {
     let // Less input string
         input;

@@ -188,7 +188,7 @@ class ProcessExtendsVisitor {
                         newSelector = extendVisitor.extendSelector(matches, selectorPath, selfSelector, extend.isVisible());
 
                         // but now we create a new extend from it
-                        newExtend = new(tree.Extend)(targetExtend.selector, targetExtend.option, 0, targetExtend.fileInfo(), info);
+                        newExtend = new(tree.Extend)(targetExtend.selector, targetExtend.option, 0, targetExtend.fileInfo, info);
                         newExtend.selfSelectors = newSelector;
 
                         // add the extend onto the list of extends for that selector
@@ -419,7 +419,7 @@ class ProcessExtendsVisitor {
                 replacementSelector.elements[0].value,
                 replacementSelector.elements[0].isVariable,
                 replacementSelector.elements[0].getIndex(),
-                replacementSelector.elements[0].fileInfo()
+                replacementSelector.elements[0].fileInfo
             );
 
             if (match.pathIndex > currentSelectorPathIndex && currentSelectorPathElementIndex > 0) {

@@ -2,7 +2,6 @@ import type { IFileInfo, OutputCollector } from '../types';
 import type { Context } from '../contexts';
 import type Visitor from '../visitors/visitor';
 import type Parser from '../parser/parser';
-import { flatten } from './util/merge';
 
 type Primitive = Node | string | boolean | number
 export type NodeValue = Primitive | Primitive[]
@@ -39,7 +38,7 @@ export const isNodeArgs = <T extends NodeArgs = NodeArgs>(args: any[] | T): args
 };
 
 export { IFileInfo, OutputCollector };
-class Node {
+export class Node {
     /**
      * This can contain a primitive value or a Node,
      * or a mixed array of either/or. This should be
@@ -71,8 +70,8 @@ class Node {
     /** Specific node options */
     options: INodeOptions
 
-    _location: ILocationInfo
-    _fileInfo: IFileInfo
+    location: ILocationInfo
+    fileInfo: IFileInfo
 
     /** Increments as we enter / exit rules that block visibility? */
     visibilityBlocks: number
@@ -121,11 +120,11 @@ class Node {
             })
         })
         if (typeof location === 'number') {
-            this._location = { startOffset: location };
+            this.location = { startOffset: location };
         } else {
-            this._location = location || { startOffset: 0 };
+            this.location = location || { startOffset: 0 };
         }
-        this._fileInfo = fileInfo;
+        this.fileInfo = fileInfo || {};
         this.options = options || {};
 
         this.visibilityBlocks = 0;
@@ -169,18 +168,14 @@ class Node {
     }
 
     get _index(): number {
-        return this._location.startOffset;
+        return this.location.startOffset;
     }
     set _index(n: number) {
-        this._location.startOffset = n;
+        this.location.startOffset = n;
     }
 
     getIndex() {
         return this._index;
-    }
-
-    fileInfo() {
-        return this._fileInfo;
     }
 
     isRulesetLike() {
@@ -252,8 +247,8 @@ class Node {
     }
 
     inherit(node: Node) {
-        this._location = node._location;
-        this._fileInfo = node._fileInfo;
+        this.location = node.location;
+        this.fileInfo = node.fileInfo;
         this.rootNode = node.rootNode;
         this.evaluated = node.evaluated;
         this.nodeVisible = node.nodeVisible;
@@ -273,8 +268,8 @@ class Node {
             {...this.options},
             /** For now, there's no reason to mutate location,
              * so its reference is just copied */
-            this._location,
-            this._fileInfo
+            this.location,
+            this.fileInfo
         );
 
         /**

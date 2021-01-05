@@ -70,7 +70,7 @@ class Selector extends Node {
 
     getElements(els: Element[] | string): Element[] {
         if (!els) {
-            return [new Element('', '&', false, this._index, this._fileInfo)];
+            return [new Element('', '&', false, this._index, this.fileInfo)];
         }
         let result: Element[];
         if (typeof els === 'string') {
@@ -78,13 +78,13 @@ class Selector extends Node {
                 els, 
                 ['selector'],
                 this._index, 
-                this._fileInfo, 
+                this.fileInfo, 
                 function(err, result) {
                     if (err) {
                         throw new LessError({
                             index: err.index,
                             message: err.message
-                        }, this.parse.imports, this._fileInfo.filename);
+                        }, this.parse.imports, this.fileInfo.filename);
                     }
                     result = result[0].elements;
                 });
@@ -163,7 +163,7 @@ class Selector extends Node {
     genCSS(context: Context, output: OutputCollector) {
         let i, element;
         if ((!context || !context.firstSelector) && this.elements[0].combinator.value === '') {
-            output.add(' ', this.fileInfo(), this.getIndex());
+            output.add(' ', this.fileInfo, this.getIndex());
         }
         for (i = 0; i < this.elements.length; i++) {
             element = this.elements[i];

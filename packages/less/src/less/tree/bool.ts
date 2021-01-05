@@ -1,5 +1,6 @@
-import Node, { OutputCollector } from './node';
+import Node, { NodeCollection, OutputCollector } from './node';
 import type { Context } from '../contexts';
+
 
 /**
  * A boolean keyword, or a boolean result
@@ -7,6 +8,14 @@ import type { Context } from '../contexts';
  */
 class Bool extends Node {
     type: 'Bool'
+
+    constructor(value: boolean | NodeCollection) {
+        if (value.constructor === Boolean) {
+            super({ value });
+        } else {
+            super(<NodeCollection>value);
+        }
+    }
 
     genCSS(context: Context, output: OutputCollector) {
         output.add(this.value.toString());

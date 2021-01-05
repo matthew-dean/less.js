@@ -1,8 +1,11 @@
-import Anonymous from '../tree/anonymous';
+import {
+    Anonymous,
+    Bool
+} from '../tree';
 import Keyword from '../tree/keyword';
 
 function boolean(condition) {
-    return condition ? Keyword.True : Keyword.False;
+    return condition ? new Bool(true) : new Bool(false);
 }
 
 /**
@@ -18,9 +21,9 @@ If.evalArgs = false;
 function isdefined(context, variable) {
     try {
         variable.eval(context);
-        return Keyword.True;
+        return new Bool(true);
     } catch (e) {
-        return Keyword.False;
+        return new Bool(false);
     }
 }
 

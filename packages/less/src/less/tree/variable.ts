@@ -1,5 +1,6 @@
 import Node, { IFileInfo, NodeArgs, isNodeArgs } from './node';
-import { Call } from '.';
+import { Call, Ruleset } from '.';
+import type { Context } from '../contexts';
 
 type V1Args = [
     name: string,
@@ -24,17 +25,17 @@ class Variable extends Node {
         return this.value;
     }
 
-    eval(context) {
+    eval(context: Context) {
         let variable, name = this.name;
 
         if (name.indexOf('@@') === 0) {
-            name = `@${new Variable(name.slice(1), this.getIndex(), this.fileInfo()).eval(context).value}`;
+            name = `@${new Variable(name.slice(1), this.getIndex(), this.fileInfo).eval(context).value}`;
         }
 
         if (this.evaluating) {
             throw { type: 'Name',
                 message: `Recursive variable definition for ${name}`,
-                filename: this.fileInfo().filename,
+                filename: this.fileInfo.filename,
                 index: this.getIndex() };
         }
 
@@ -62,15 +63,15 @@ class Variable extends Node {
         } else {
             throw { type: 'Name',
                 message: `variable ${name} is undefined`,
-                filename: this.fileInfo().filename,
+                filename: this.fileInfo.filename,
                 index: this.getIndex()
             };
         }
     }
 
-    find(obj, fun) {
-        for (let i = 0, r; i < obj.length; i++) {
-            r = fun.call(obj, obj[i]);
+    find(frames: Ruleset[], fun: (r: Ruleset) => Node) {
+        for (let i = 0, r; i < frames.length; i++) {
+            r = fun.call(frames, frames[i]);
             if (r) { return r; }
         }
         return null;

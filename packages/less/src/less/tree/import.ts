@@ -77,8 +77,8 @@ class Import extends Node {
     }
 
     genCSS(context: Context, output) {
-        if (this.options.css && this.path._fileInfo.reference === undefined) {
-            output.add('@import ', this._fileInfo, this._index);
+        if (this.options.css && this.path.fileInfo.reference === undefined) {
+            output.add('@import ', this.fileInfo, this._index);
             this.path.genCSS(context, output);
             if (this.features) {
                 output.add(' ');
@@ -120,7 +120,7 @@ class Import extends Node {
 
     evalPath(context: Context) {
         const path = this.path.eval(context);
-        const fileInfo = this._fileInfo;
+        const fileInfo = this.fileInfo;
 
         if (!(path instanceof URL)) {
             // Add the rootpath if the URL requires a rewrite
@@ -189,12 +189,12 @@ class Import extends Node {
             const contents = new Anonymous(<string> this.root, 0,
                 {
                     filename: this.importedFilename,
-                    reference: this.path._fileInfo && this.path._fileInfo.reference
+                    reference: this.path.fileInfo && this.path.fileInfo.reference
                 }, true, true);
 
             return this.features ? new Media([contents], [(<Node>this.features.value)]) : [contents];
         } else if (this.options.css) {
-            const newImport = new Import({ path: this.evalPath(context), features }, this.options, this._location, this._fileInfo);
+            const newImport = new Import({ path: this.evalPath(context), features }, this.options, this.location, this.fileInfo);
             if (!newImport.options.css && this.error) {
                 throw this.error;
             }

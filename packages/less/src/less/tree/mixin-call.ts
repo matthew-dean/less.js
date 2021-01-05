@@ -176,7 +176,7 @@ class MixinCall extends Node {
                     if ((count[defTrue] + count[defFalse]) > 1) {
                         throw { type: 'Runtime',
                             message: `Ambiguous use of \`default()\` found when matching for \`${this.format(args)}\``,
-                            index: this.getIndex(), filename: this.fileInfo().filename };
+                            index: this.getIndex(), filename: this.fileInfo.filename };
                     }
                 }
 
@@ -194,7 +194,7 @@ class MixinCall extends Node {
                             this._setVisibilityToReplacement(newRules);
                             Array.prototype.push.apply(rules, newRules);
                         } catch (e) {
-                            throw { message: e.message, index: this.getIndex(), filename: this.fileInfo().filename, stack: e.stack };
+                            throw { message: e.message, index: this.getIndex(), filename: this.fileInfo.filename, stack: e.stack };
                         }
                     }
                 }
@@ -207,11 +207,11 @@ class MixinCall extends Node {
         if (isOneFound) {
             throw { type:    'Runtime',
                 message: `No matching definition was found for \`${this.format(args)}\``,
-                index:   this.getIndex(), filename: this.fileInfo().filename };
+                index:   this.getIndex(), filename: this.fileInfo.filename };
         } else {
             throw { type:    'Name',
                 message: `${this.selector.toCSS().trim()} is undefined`,
-                index:   this.getIndex(), filename: this.fileInfo().filename };
+                index:   this.getIndex(), filename: this.fileInfo.filename };
         }
     }
 

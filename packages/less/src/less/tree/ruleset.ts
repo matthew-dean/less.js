@@ -154,7 +154,7 @@ class Ruleset extends Node {
                     toParseSelectors.join(','),
                     ["selectors"], 
                     selectors[0].getIndex(), 
-                    selectors[0].fileInfo(), 
+                    selectors[0].fileInfo, 
                     function(err, result) {
                         if (result) {
                             selectors = utils.flattenArray(result);
@@ -468,7 +468,7 @@ class Ruleset extends Node {
                         decl.value.value,
                         ['value', 'important'], 
                         decl.value.getIndex(), 
-                        decl.fileInfo(), 
+                        decl.fileInfo, 
                         function(err, result) {
                             if (err) {
                                 decl.parsed = true;
@@ -705,7 +705,7 @@ class Ruleset extends Node {
                         elementsToPak[j],
                         originalElement.isVariable,
                         originalElement._index,
-                        originalElement._fileInfo
+                        originalElement.fileInfo
                     );
                 }
                 replacementParen = new Paren(new Selector(insideParent));
@@ -715,7 +715,7 @@ class Ruleset extends Node {
 
         function createSelector(containedElement, originalElement) {
             let element, selector;
-            element = new Element(null, containedElement, originalElement.isVariable, originalElement._index, originalElement._fileInfo);
+            element = new Element(null, containedElement, originalElement.isVariable, originalElement._index, originalElement.fileInfo);
             selector = new Selector([element]);
             return selector;
         }
@@ -757,7 +757,7 @@ class Ruleset extends Node {
                     parentEl.value,
                     replacedElement.isVariable,
                     replacedElement._index,
-                    replacedElement._fileInfo
+                    replacedElement.fileInfo
                 ));
                 newJoinedSelector.elements = newJoinedSelector.elements.concat(addPath[0].elements.slice(1));
             }
@@ -893,7 +893,7 @@ class Ruleset extends Node {
                             // the combinator used on el should now be applied to the next element instead so that
                             // it is not lost
                             if (sel.length > 0) {
-                                sel[0].elements.push(new Element(el.combinator, '', el.isVariable, el._index, el._fileInfo));
+                                sel[0].elements.push(new Element(el.combinator, '', el.isVariable, el._index, el.fileInfo));
                             }
                             selectorsMultiplied.push(sel);
                         }

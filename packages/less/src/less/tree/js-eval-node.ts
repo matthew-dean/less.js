@@ -13,19 +13,19 @@ class JsEvalNode extends Node {
 
         if (!context.options.javascriptEnabled) {
             throw { message: 'Inline JavaScript is not enabled. Is it set in your options?',
-                filename: this.fileInfo().filename,
+                filename: this.fileInfo.filename,
                 index: this.getIndex() };
         }
 
         expression = expression.replace(/@\{([\w-]+)\}/g, function (_, name) {
-            return that.jsify(new Variable(`@${name}`, that.getIndex(), that.fileInfo()).eval(context));
+            return that.jsify(new Variable(`@${name}`, that.getIndex(), that.fileInfo).eval(context));
         });
 
         try {
             expression = new Function(`return (${expression})`);
         } catch (e) {
             throw { message: `JavaScript evaluation error: ${e.message} from \`${expression}\`` ,
-                filename: this.fileInfo().filename,
+                filename: this.fileInfo.filename,
                 index: this.getIndex() };
         }
 
@@ -46,7 +46,7 @@ class JsEvalNode extends Node {
             result = expression.call(evalContext);
         } catch (e) {
             throw { message: `JavaScript evaluation error: '${e.name}: ${e.message.replace(/["]/g, '\'')}'` ,
-                filename: this.fileInfo().filename,
+                filename: this.fileInfo.filename,
                 index: this.getIndex() };
         }
         return result;

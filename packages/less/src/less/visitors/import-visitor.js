@@ -60,7 +60,7 @@ ImportVisitor.prototype = {
         try {
             evaldImportNode = importNode.evalForImport(context);
         } catch (e) {
-            if (!e.filename) { e.index = importNode.getIndex(); e.filename = importNode.fileInfo().filename; }
+            if (!e.filename) { e.index = importNode.getIndex(); e.filename = importNode.fileInfo.filename; }
             // attempt to eval properly and treat as css
             importNode.css = true;
             // if that fails, this error will be thrown
@@ -85,7 +85,7 @@ ImportVisitor.prototype = {
 
             const onImported = this.onImported.bind(this, evaldImportNode, context), sequencedOnImported = this._sequencer.addImport(onImported);
 
-            this._importer.push(evaldImportNode.getPath(), tryAppendLessExtension, evaldImportNode.fileInfo(),
+            this._importer.push(evaldImportNode.getPath(), tryAppendLessExtension, evaldImportNode.fileInfo,
                 evaldImportNode.options, sequencedOnImported);
         } else {
             this.importCount--;
@@ -97,7 +97,7 @@ ImportVisitor.prototype = {
     onImported: function (importNode, context, e, root, importedAtRoot, fullPath) {
         if (e) {
             if (!e.filename) {
-                e.index = importNode.getIndex(); e.filename = importNode.fileInfo().filename;
+                e.index = importNode.getIndex(); e.filename = importNode.fileInfo.filename;
             }
             this.error = e;
         }
