@@ -49,7 +49,7 @@ class Extend extends Node {
             index,
             fileInfo
         ] = args;
-        if (isNodeArgs(args)) {
+        if (!isNodeArgs(args)) {
             selector = { selector } as NodeCollection
         }
 

@@ -28,7 +28,7 @@ class Dimension extends Node {
         if (isNaN(value)) {
             throw new Error('Dimension is not a number.');
         }
-        unit = (unit && unit instanceof Unit) ? unit.value : unit;
+        unit = (unit && unit instanceof Unit) ? unit.value : (unit || '');
 
         super({ value, unit });
     }
@@ -135,6 +135,10 @@ class Dimension extends Node {
         }
 
         return Node.numericCompare(a.value[0], b.value[0]);
+    }
+
+    convertTo(unit: string) {
+        return this.unify(this, unit);
     }
 }
 

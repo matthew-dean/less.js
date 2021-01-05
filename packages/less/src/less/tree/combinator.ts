@@ -34,7 +34,7 @@ class Combinator extends Node {
     }
 
     genCSS(context: Context, output) {
-        const spaceOrEmpty = (context?.options.compress || _noSpaceCombinators[this.value]) ? '' : ' ';
+        const spaceOrEmpty = (context?.options?.compress || _noSpaceCombinators[this.value]) ? '' : ' ';
         output.add(spaceOrEmpty + this.value + spaceOrEmpty);
     }
 }

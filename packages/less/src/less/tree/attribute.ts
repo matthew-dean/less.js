@@ -35,7 +35,7 @@ class Attribute extends Node {
             output += value instanceof Node ? value.toCSS(context) : value;
         }
 
-        return `[${value}]`;
+        return `[${output}]`;
     }
 }
 

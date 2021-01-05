@@ -1,4 +1,4 @@
-import Node, { OutputCollector } from './node';
+import Node, { isNodeArgs, NodeArgs, OutputCollector } from './node';
 import type { Context } from '../contexts';
 
 /**
@@ -11,11 +11,17 @@ class List<T extends Node = Node> extends Node {
     type: 'List'
     value: T[]
 
-    constructor(value) {
-        if (!Array.isArray(value)) {
-            value = [ value ];
+    constructor(...args: NodeArgs | [Node] | [Node[]]) {
+        if (isNodeArgs(args)) {
+            super(...args);
+            return;
         }
-        super({ value });
+        const [value] = args;
+        if (!Array.isArray(value)) {
+            super({ value: [value] });
+        } else {
+            super({ value });
+        }
     }
 
     eval(context: Context) {
