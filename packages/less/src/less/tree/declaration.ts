@@ -168,13 +168,10 @@ class Declaration extends Node {
         }
     }
 
-    /** 
-     * @note
-     * This created a new node in the past. Should nodes never mutate?
-    */
     makeImportant() {
-        this.important = ' !important';
-        return this;
+        const node = this.clone();
+        node.important = ' !important';
+        return node;
     }
 }
 

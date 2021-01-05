@@ -85,12 +85,15 @@ class Dimension extends Node {
                      * In an operation between two Dimensions,
                      * we default to the first Dimension's unit,
                      * so `1px + 2%` will yield `3px`.
+                     * 
+                     * If only the right-side unit has a unit, we default
+                     * to that unit.
                      *
                      * This can have un-intuitive behavior for a user,
                      * so it is not a recommended setting.
                      */
                     const result = operate(op, this.value, bNode.value);
-                    return new Dimension({ value: result, unit: aUnit }).inherit(this);
+                    return new Dimension({ value: result, unit: aUnit || bUnit }).inherit(this);
                 }
             } else {
                 const result = operate(op, this.value, bNode.value);

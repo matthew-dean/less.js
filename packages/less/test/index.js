@@ -11,7 +11,7 @@ var testMap = [
         relativeUrls: true,
         silent: true,
         javascriptEnabled: true
-    }, '_main/'],
+    }, '_tmp/'],
     // [{}, 'namespacing/'],
     // [{
     //     math: 'parens'

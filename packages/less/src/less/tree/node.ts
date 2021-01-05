@@ -240,8 +240,10 @@ export class Node {
 
     eval(context?: any): Node {
         if (!this.evaluated) {
-            this.processNodes(n => n.eval(context));
-            this.evaluated = true;
+            const node = this.clone();
+            node.processNodes(n => n.eval(context));
+            node.evaluated = true;
+            return node;
         }
         return this;
     }

@@ -19,40 +19,30 @@ class Element extends Node {
     value: Node | string
 
     constructor(...args: NodeArgs | V1Args) {
-        /** @todo - reduce code duplication */
         if (isNodeArgs(args)) {
             super(...args);
-            let combinator = this.combinator;
-            let value = this.value;
-            this.combinator = combinator instanceof Combinator ?
-                combinator : new Combinator(combinator);
-            if (typeof value === 'string') {
-                value = value.trim();
-            } else if (!value) {
-                value = '';
-            }
-            this.value = value;
-            return;
+        } else {
+            let [
+                combinator,
+                value,
+                isVariable,
+                index,
+                fileInfo
+            ] = args;
+
+            super({ combinator, value }, { isVariable }, index, fileInfo);
         }
-        
-        let [
-            combinator,
-            value,
-            isVariable,
-            index,
-            fileInfo
-        ] = args;
 
-        combinator = combinator instanceof Combinator ?
+        let combinator = this.combinator;
+        let value = this.value;
+        this.combinator = combinator instanceof Combinator ?
             combinator : new Combinator(combinator);
-
         if (typeof value === 'string') {
             value = value.trim();
         } else if (!value) {
             value = '';
         }
-
-        super({ combinator, value }, { isVariable }, index, fileInfo);
+        this.value = value;
     }
 
     genCSS(context: Context, output: OutputCollector) {
@@ -60,7 +50,16 @@ class Element extends Node {
     }
 
     eval(context: Context): Element {
-        return this;
+        const { value, combinator } = this;
+        return new Element(
+            {
+                combinator,
+                value: value instanceof Node ? value.eval(context) : value
+            },
+            this.options,
+            this.location,
+            this.fileInfo
+        );
     }
 
     toCSS(context?: Context) {

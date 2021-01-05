@@ -43,11 +43,11 @@ class Expression extends Node {
     eval(context: Context): Expression | List | Node {
         // incorrectly true?
         // if (this.evaluated)
-        super.eval(context);
-        if (this.value.length === 1) {
-            return this.value[0];
+        const node = <Expression>super.eval(context);
+        if (node.value.length === 1) {
+            return node.value[0];
         }
-        return this;
+        return node;
 
         /**
          * @todo - re-write list / expression merging
