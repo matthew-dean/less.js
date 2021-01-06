@@ -8,6 +8,7 @@ import type { Context } from '../contexts';
  */
 class Bool extends Node {
     type: 'Bool'
+    value: boolean
 
     constructor(value: boolean | NodeCollection) {
         if (value.constructor === Boolean) {

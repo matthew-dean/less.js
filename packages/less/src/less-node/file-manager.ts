@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from './fs';
 import AbstractFileManager from '../less/environment/abstract-file-manager.js';
+import type { Context } from '../less/contexts';
 
 const FileManager = function() {};
 FileManager.prototype = Object.assign(new AbstractFileManager(), {
@@ -12,7 +13,8 @@ FileManager.prototype = Object.assign(new AbstractFileManager(), {
         return true;
     },
 
-    loadFile(filename, currentDirectory, options, environment, callback) {
+    loadFile(filename, currentDirectory, context: Context, environment, callback) {
+        let options = context.options;
         let fullFilename;
         const isAbsoluteFilename = this.isPathAbsolute(filename);
         const filenamesTried = [];
@@ -22,8 +24,6 @@ FileManager.prototype = Object.assign(new AbstractFileManager(), {
         let result = null;
         let isNodeModule = false;
         const npmPrefix = 'npm://';
-
-        options = options || {};
 
         const paths = isAbsoluteFilename ? [''] : [currentDirectory];
 
@@ -59,6 +59,24 @@ FileManager.prototype = Object.assign(new AbstractFileManager(), {
             }
         }
 
+        function tryWithExtension(i: number) {
+            const extFilename = options.ext ? self.tryAppendExtension(fullFilename, options.ext) : fullFilename;
+
+            if (extFilename !== fullFilename && !explicit && paths[i] === '.') {
+                try {
+                    fullFilename = require.resolve(extFilename);
+                    isNodeModule = true;
+                }
+                catch (e) {
+                    filenamesTried.push(npmPrefix + extFilename);
+                    fullFilename = extFilename;
+                }
+            }
+            else {
+                fullFilename = extFilename;
+            }
+        }
+
         function getFileData(fulfill, reject) {
             (function tryPathIndex(i) {
                 if (i < paths.length) {
@@ -78,29 +96,11 @@ FileManager.prototype = Object.assign(new AbstractFileManager(), {
                                 }
                                 catch (e) {
                                     filenamesTried.push(npmPrefix + fullFilename);
-                                    tryWithExtension();
+                                    tryWithExtension(i);
                                 }
                             }
                             else {
-                                tryWithExtension();
-                            }
-
-                            function tryWithExtension() {
-                                const extFilename = options.ext ? self.tryAppendExtension(fullFilename, options.ext) : fullFilename;
-
-                                if (extFilename !== fullFilename && !explicit && paths[i] === '.') {
-                                    try {
-                                        fullFilename = require.resolve(extFilename);
-                                        isNodeModule = true;
-                                    }
-                                    catch (e) {
-                                        filenamesTried.push(npmPrefix + extFilename);
-                                        fullFilename = extFilename;
-                                    }
-                                }
-                                else {
-                                    fullFilename = extFilename;
-                                }
+                                tryWithExtension(i);
                             }
 
                             const readFileArgs = [fullFilename];
@@ -140,9 +140,13 @@ FileManager.prototype = Object.assign(new AbstractFileManager(), {
         }
     },
 
-    loadFileSync(filename, currentDirectory, options, environment) {
-        options.syncImport = true;
-        return this.loadFile(filename, currentDirectory, options, environment);
+    loadFileSync(filename, currentDirectory, context: Context, environment) {
+        /**
+         * @note
+         * Why do we mutate options like this?
+         */
+        context.options.syncImport = true;
+        return this.loadFile(filename, currentDirectory, context, environment);
     }
 });
 

@@ -11,16 +11,16 @@ class List<T extends Node = Node> extends Node {
     type: 'List'
     value: T[]
 
-    constructor(...args: NodeArgs | [Node] | [Node[]]) {
+    constructor(...args: NodeArgs | [Node, number?] | [Node[], number?]) {
         if (isNodeArgs(args)) {
             super(...args);
             return;
         }
-        const [value] = args;
+        const [value, index] = args;
         if (!Array.isArray(value)) {
-            super({ value: [value] });
+            super({ value: [value] }, {}, index);
         } else {
-            super({ value });
+            super({ value }, {}, index);
         }
     }
 

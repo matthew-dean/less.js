@@ -2,6 +2,8 @@ import * as Constants from './constants';
 import type Ruleset from './tree/ruleset';
 import type Media from './tree/media';
 import type Selector from './tree/selector';
+import type { PluginManager } from './plugin-manager'
+import type { ImportManager } from './import-manager'
 
 const {
     ALWAYS,
@@ -18,48 +20,48 @@ const { LOCAL } = Constants.RewriteUrls;
   * @todo - Is it necessary in these two contexts to copy
   *         options? Are options ever mutated?
   */
-class ParseContext {
-    /** @todo - define proper options object */
-    options: { [k: string]: any }
+// class ParseContext {
+//     /** @todo - define proper options object */
+//     options: { [k: string]: any }
 
-    constructor(options) {
-        const {
-            // options
-            paths,            // option - unmodified - paths to search for imports on
-            rewriteUrls,      // option - whether to adjust URL's to be relative
-            rootpath,         // option - rootpath to append to URL's
-            strictImports,    // option -
-            insecure,         // option - whether to allow imports from insecure ssl hosts
-            dumpLineNumbers,  // option - whether to dump line numbers
-            compress,         // option - whether to compress
-            syncImport,       // option - whether to import synchronously
-            chunkInput,       // option - whether to chunk input. more performant but causes parse issues.
-            mime,             // browser only - mime type for sheet import
-            useFileCache,     // browser only - whether to use the per file session cache
-            // context
-            processImports,   // option & context - whether to process imports. if false then imports will not be imported.
-            // Used by the import manager to stop multiple import visitors being created.
-            pluginManager     // Used as the plugin manager for the session
-        } = options;
+//     constructor(options) {
+//         const {
+//             // options
+//             paths,            // option - unmodified - paths to search for imports on
+//             rewriteUrls,      // option - whether to adjust URL's to be relative
+//             rootpath,         // option - rootpath to append to URL's
+//             strictImports,    // option -
+//             insecure,         // option - whether to allow imports from insecure ssl hosts
+//             dumpLineNumbers,  // option - whether to dump line numbers
+//             compress,         // option - whether to compress
+//             syncImport,       // option - whether to import synchronously
+//             chunkInput,       // option - whether to chunk input. more performant but causes parse issues.
+//             mime,             // browser only - mime type for sheet import
+//             useFileCache,     // browser only - whether to use the per file session cache
+//             // context
+//             processImports,   // option & context - whether to process imports. if false then imports will not be imported.
+//             // Used by the import manager to stop multiple import visitors being created.
+//             pluginManager     // Used as the plugin manager for the session
+//         } = options;
 
-        this.options = {
-            paths, 
-            rewriteUrls,
-            rootpath,   
-            strictImports,
-            insecure,     
-            dumpLineNumbers,
-            compress,       
-            syncImport,     
-            chunkInput,     
-            mime,
-            useFileCache,
-            processImports,
-            pluginManager
-        };
-        if (typeof paths === 'string') { this.options.paths = [paths]; }
-    }
-}
+//         this.options = {
+//             paths, 
+//             rewriteUrls,
+//             rootpath,   
+//             strictImports,
+//             insecure,     
+//             dumpLineNumbers,
+//             compress,       
+//             syncImport,     
+//             chunkInput,     
+//             mime,
+//             useFileCache,
+//             processImports,
+//             pluginManager
+//         };
+//         if (typeof paths === 'string') { this.options.paths = [paths]; }
+//     }
+// }
 
 /** 
  * This is the context object passed during evaluation.
@@ -67,6 +69,10 @@ class ParseContext {
 class Context {
     /** @todo - define proper options object */
     options: { [k: string]: any }
+
+    /** @todo - may not be needed when inline plugins are removed */
+    pluginManager: PluginManager;
+    importManager: ImportManager;
     
     /** 
      * Ruleset (scoping) frames
@@ -116,35 +122,50 @@ class Context {
     mime: string
 
     constructor(options: Record<any, any> = {}) {
-        const {
-            paths,             // additional include paths
-            compress,          // whether to compress
-            math,              // whether math has to be within parenthesis
-            strictUnits,       // whether units need to evaluate correctly
-            sourceMap,         // whether to output a source map
-            importMultiple,    // whether we are currently importing multiple copies
-            urlArgs,           // whether to add args into url tokens
-            javascriptEnabled, // option - whether Inline JavaScript is enabled. if undefined, defaults to false
-            pluginManager,     // Used as the plugin manager for the session
-            importantScope,    // used to bubble up !important statements
-            rewriteUrls        // option - whether to adjust URL's to be relative
-        } = options;
+        // const {
+        //     paths,             // additional include paths
+        //     compress,          // whether to compress
+        //     math,              // whether math has to be within parenthesis
+        //     strictUnits,       // whether units need to evaluate correctly
+        //     sourceMap,         // whether to output a source map
+        //     importMultiple,    // whether we are currently importing multiple copies
+        //     urlArgs,           // whether to add args into url tokens
+        //     javascriptEnabled, // option - whether Inline JavaScript is enabled. if undefined, defaults to false
+        //     pluginManager,     // Used as the plugin manager for the session
+        //     importantScope,    // used to bubble up !important statements
+        //     rewriteUrls        // option - whether to adjust URL's to be relative
+        // } = options;
 
-        this.options = {
-            paths,            
-            compress,
-            math,           
-            strictUnits,    
-            sourceMap,      
-            importMultiple,   
-            urlArgs,          
-            javascriptEnabled, 
-            pluginManager,     
-            importantScope,   
-            rewriteUrls
-        };
+        // this.options = {
+        //     paths,            
+        //     compress,
+        //     math,           
+        //     strictUnits,    
+        //     sourceMap,      
+        //     importMultiple,   
+        //     urlArgs,          
+        //     javascriptEnabled, 
+        //     pluginManager,     
+        //     importantScope,   
+        //     rewriteUrls
+        // };
+        this.options = options;
 
+        const paths = options.paths;
         if (typeof paths === 'string') { this.options.paths = [paths]; }
+
+        /** 
+         * Stick options on `this` like it was historically
+         * for backwards compatibility (in case any file managers
+         * or plugins are expecting options).
+         * 
+         * It's slower, so use `context.options`.
+         */
+        const optionKeys = Object.keys(options);
+        optionKeys.forEach(key => {
+            const value = options[key];
+            Object.defineProperty(this, key, { value })
+        })
 
         this.frames = [];
         this.selectors = [];
@@ -258,7 +279,7 @@ class Context {
 }
 
 const contexts = {
-    Parse: ParseContext,
+    // Parse: ParseContext,
     Eval: Context
 };
 

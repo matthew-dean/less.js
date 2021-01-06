@@ -1,8 +1,21 @@
+
 /**
  * Plugin Manager
  */
-class PluginManager {
-    constructor(less) {
+export class PluginManager {
+    /** @todo - refine types */
+    less: any;
+    visitors: any[];
+    preProcessors: any[];
+    postProcessors: any[];
+    installedPlugins: any[];
+    fileManagers: any[];
+    iterator: number;
+    pluginCache: Record<string, any>;
+    /** @todo -  Define proper abstract loader  */
+    Loader: any
+
+    constructor(less, Loader) {
         this.less = less;
         this.visitors = [];
         this.preProcessors = [];
@@ -11,7 +24,7 @@ class PluginManager {
         this.fileManagers = [];
         this.iterator = -1;
         this.pluginCache = {};
-        this.Loader = new less.PluginLoader(less);
+        this.Loader = Loader;
     }
 
     /**
@@ -31,11 +44,14 @@ class PluginManager {
      * @param plugin
      * @param {String} filename
      */
-    addPlugin(plugin, filename, functionRegistry) {
+    addPlugin(plugin, filename?: string, functionRegistry?) {
         this.installedPlugins.push(plugin);
         if (filename) {
             this.pluginCache[filename] = plugin;
         }
+        /**
+         * @todo - this is hacky
+         */
         if (plugin.install) {
             plugin.install(this.less, this, functionRegistry || this.less.functions.functionRegistry);
         }
@@ -155,14 +171,3 @@ class PluginManager {
     }
 }
 
-let pm;
-
-const PluginManagerFactory = function(less, newFactory) {
-    if (newFactory || !pm) {
-        pm = new PluginManager(less);
-    }
-    return pm;
-};
-
-//
-export default PluginManagerFactory;

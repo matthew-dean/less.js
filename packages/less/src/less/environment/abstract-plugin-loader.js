@@ -1,12 +1,13 @@
 import functionRegistry from '../functions/function-registry';
 import LessError from '../less-error';
 
-
 /**
  * @see: https://github.com/less/less-meta/issues/36
  * 
- * In short, `@plugin` should be removed, meaning that much
- * of this can be simplified / re-written.
+ * In short, `@plugin` should be removed once
+ * `@import { func } from 'functions'` is allowed.
+ * meaning that much of this can be
+ * simplified / re-written.
  */
 class AbstractPluginLoader {
     constructor() {
@@ -20,7 +21,7 @@ class AbstractPluginLoader {
 
         let loader, registry, pluginObj, localModule, pluginManager, filename, result;
 
-        pluginManager = context.options.pluginManager;
+        pluginManager = context.pluginManager;
 
         if (fileInfo) {
             if (typeof fileInfo === 'string') {

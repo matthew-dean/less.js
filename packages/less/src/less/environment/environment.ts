@@ -4,8 +4,12 @@
  */
 
 import logger from '../logger';
+import type { Context } from '../contexts';
 
 class Environment {
+    /** @todo - refine types */
+    fileManagers: any[];
+
     constructor(externalEnvironment, fileManagers) {
         this.fileManagers = fileManagers || [];
         externalEnvironment = externalEnvironment || {};
@@ -20,12 +24,17 @@ class Environment {
             if (environmentFunc) {
                 this[propName] = environmentFunc.bind(externalEnvironment);
             } else if (i < requiredFunctions.length) {
-                this.warn(`missing required function in environment - ${propName}`);
+                logger.warn(`missing required function in environment - ${propName}`);
             }
         }
     }
 
-    getFileManager(filename, currentDirectory, options, environment, isSync) {
+    /**
+     * @todo
+     * It seems like the local setup environment should be part of context,
+     * and not a separate parameter (although we should keep it for historical API?)
+     */
+    getFileManager(filename, currentDirectory, context: Context, environment, isSync) {
 
         if (!filename) {
             logger.warn('getFileManager called with no filename.. Please report this issue. continuing.');
@@ -35,12 +44,12 @@ class Environment {
         }
 
         let fileManagers = this.fileManagers;
-        if (options.pluginManager) {
-            fileManagers = [].concat(fileManagers).concat(options.pluginManager.getFileManagers());
+        if (context.pluginManager) {
+            fileManagers = [].concat(fileManagers).concat(context.pluginManager.getFileManagers());
         }
         for (let i = fileManagers.length - 1; i >= 0 ; i--) {
             const fileManager = fileManagers[i];
-            if (fileManager[isSync ? 'supportsSync' : 'supports'](filename, currentDirectory, options, environment)) {
+            if (fileManager[isSync ? 'supportsSync' : 'supports'](filename, currentDirectory, context, environment)) {
                 return fileManager;
             }
         }

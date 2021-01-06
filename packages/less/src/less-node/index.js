@@ -4,9 +4,13 @@ import UrlFileManager from './url-file-manager';
 import createFromEnvironment from '../less';
 const less = createFromEnvironment(environment, [new FileManager(), new UrlFileManager()]);
 import lesscHelper from './lessc-helper';
-import path from 'path';
 
-// allow people to create less with their own environment
+/** 
+ * Allows people to create less with their own environment
+ *
+ * @todo - Don't mutate the Less object. Find a better pattern
+ *         to pass needed references. (More direct imports)
+ */
 less.createFromEnvironment = createFromEnvironment;
 less.lesscHelper = lesscHelper;
 less.PluginLoader = require('./plugin-loader').default;

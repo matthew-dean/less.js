@@ -104,6 +104,9 @@ class Declaration extends Node {
         }
         return name;
     }
+    set name(n: string) {
+        this.property = n;
+    }
 
     blocksVisibility() {
         return this.options.isVariable;

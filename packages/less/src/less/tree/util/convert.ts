@@ -35,7 +35,7 @@ export const convertDimension = (node: Dimension, toUnit?: string) => {
         });
         keyed = true;
     }
-    const fromUnit = node.value[1];
+    const fromUnit = node.unit;
     if (!toUnit) {
         const keys = ['length', 'duration', 'angle'];
         const unifyKeys = ['px', 's', 'rad'];
@@ -60,7 +60,7 @@ export const convertDimension = (node: Dimension, toUnit?: string) => {
     const fromFactor = unitConversions[fromType][fromUnit];
     const toFactor = unitConversions[toType][toUnit];
 
-    const fromValue = node.value[0];
+    const fromValue = node.value;
   
     const result = (fromValue * fromFactor * toFactor) / fromFactor;
 

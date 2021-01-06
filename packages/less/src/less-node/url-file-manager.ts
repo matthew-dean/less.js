@@ -3,14 +3,15 @@ import url from 'url';
 let request;
 import AbstractFileManager from '../less/environment/abstract-file-manager.js';
 import logger from '../less/logger';
+import type { Context } from '../less/contexts';
 
 const UrlFileManager = function() {};
 UrlFileManager.prototype = Object.assign(new AbstractFileManager(), {
-    supports(filename, currentDirectory, options, environment) {
+    supports(filename, currentDirectory, context: Context, environment) {
         return isUrlRe.test( filename ) || isUrlRe.test(currentDirectory);
     },
 
-    loadFile(filename, currentDirectory, options, environment) {
+    loadFile(filename, currentDirectory, context: Context, environment) {
         return new Promise((fulfill, reject) => {
             if (request === undefined) {
                 try { request = require('native-request'); }

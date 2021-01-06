@@ -66,7 +66,7 @@ class Operation extends Node {
                 };
             }
 
-            return a.operate(context, op, b).inherit(this);
+            return a.operate(context, op, <Color>b).inherit(this);
         } else {
             return new Operation({ op, operands: [a, b] }, this.options).inherit(this);
         }

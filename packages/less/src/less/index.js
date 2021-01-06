@@ -34,6 +34,15 @@ export default function(environment, fileManagers) {
     const parse = Parse(environment, parseTree, importManager);
 
     const v = parseVersion(`v${version}`);
+
+    /**
+     * @todo
+     * This exported object is way too busy.
+     * Remove everything that isn't intended for the public API.
+     * Main props are `version`, `tree`, `environment`, `render`, `parse`
+     *   (plus the less.atrule() etc. short-hand functions)
+     * -- See if anything else is needed.
+     */
     const initial = {
         version: [v.major, v.minor, v.patch],
         data,
@@ -59,8 +68,15 @@ export default function(environment, fileManagers) {
         logger
     };
 
-    // Create a public API
-
+    /** 
+     * Create a friendlier public API
+     * 
+     * This essentially creates the form of
+     *   `less.atrule([props])` as an alias for
+     *   `new less.tree.AtRule([props])`
+     * 
+     * @todo - put on proper TypeScript types
+     */
     const ctor = function(t) {
         return function() {
             const obj = Object.create(t.prototype);
@@ -89,7 +105,7 @@ export default function(environment, fileManagers) {
      * Some of the functions assume a `this` context of the API object,
      * which causes it to fail when wrapped for ES6 imports.
      * 
-     * An assumed `this` should be removed in the future.
+     * Should a `this` binding necessity be removed in the future?
      */
     initial.parse = initial.parse.bind(api);
     initial.render = initial.render.bind(api);

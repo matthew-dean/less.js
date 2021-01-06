@@ -98,6 +98,7 @@ export class Node {
     filename: string
     functions: any[]
 
+    _nodeId: number
 
     constructor(
         nodes: NodeCollection | Node,
@@ -114,10 +115,7 @@ export class Node {
         /** Place all sub-node keys on `this` */
         nodeKeys.forEach(key => {
             const value = nodesColl[key];
-            Object.defineProperty(this, key, {
-                value,
-                writable: true
-            })
+            this[key] = value;
         })
         if (typeof location === 'number') {
             this.location = { startOffset: location };
@@ -140,26 +138,22 @@ export class Node {
         keys.forEach(key => {
             const nodeVal: NodeValue = this[key]
             if (nodeVal) {
-                if (Array.isArray(nodeVal)) {
+                /** Process Node arrays only */
+                if (Array.isArray(nodeVal) && nodeVal[0] instanceof Node) {
+                    const out = [];
                     for (let i = 0; i < nodeVal.length; i++) {
-                        const node: Primitive = nodeVal[i];
-                        if (node instanceof Node) {
-                            const result = func(node);
-                            if (result) {
-                                nodeVal[i] = result;
-                                continue;
-                            }
-                            /**
-                             * If node processing returns an empty result,
-                             * remove the node
-                             * 
-                             * @todo - insert multiple items if the result
-                             *         returns an array? Visitors do sometimes.
-                             */
-                            nodeVal.splice(i, 1);
-                            i--;
+                        const node = <Node>nodeVal[i];
+                        const result = func(node);
+                        /**
+                         * @todo - insert multiple items if the result
+                         *         returns an array? Visitors do sometimes.
+                         */
+                        if (result) {
+                            out.push(result);
+                            continue;
                         }
                     }
+                    this[key] = out;
                 } else if (nodeVal instanceof Node) {
                     this[key] = func(nodeVal);
                 }

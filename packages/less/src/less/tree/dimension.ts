@@ -100,7 +100,7 @@ class Dimension extends Node {
                 /** Dividing 8px / 1px will yield 8 */
                 if (op === '/') {
                     return new Dimension({ value: result }).inherit(this);
-                } else if (op === '*') {
+                } else if (op === '*' && strictUnits !== false) {
                     throw {
                         message: `Can't multiply a unit by a unit.`,
                         index: this.getIndex(),
@@ -144,7 +144,7 @@ class Dimension extends Node {
             }
         }
 
-        return Node.numericCompare(a.value[0], b.value[0]);
+        return Node.numericCompare(a.value, b.value);
     }
 
     convertTo(unit: string) {

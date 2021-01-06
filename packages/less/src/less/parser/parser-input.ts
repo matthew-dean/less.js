@@ -1,32 +1,30 @@
 import chunker from './chunker';
 
-/** @todo - this is a static file, it doesn't need to be called as a function */
 export default () => {
-    let // Less input string
-        input;
+    // Less input string
+    let input;
+    // current chunk
+    let j;
 
-    let // current chunk
-        j;
+    // holds state for backtracking
+    const saveStack = [];
 
-    const // holds state for backtracking
-        saveStack = [];
+    // furthest index the parser has gone to
+    let furthest;
 
-    let // furthest index the parser has gone to
-        furthest;
+    // if this is furthest we got to, this is the probably cause
+    let furthestPossibleErrorMessage;
 
-    let // if this is furthest we got to, this is the probably cause
-        furthestPossibleErrorMessage;
+    // chunkified input
+    let chunks;
 
-    let // chunkified input
-        chunks;
+    // current chunk
+    let current;
 
-    let // current chunk
-        current;
+    // index of current chunk, in `input`
+    let currentPos;
 
-    let // index of current chunk, in `input`
-        currentPos;
-
-    const parserInput = {};
+    const parserInput: Record<string, any> = {};
     const CHARCODE_SPACE = 32;
     const CHARCODE_TAB = 9;
     const CHARCODE_LF = 10;

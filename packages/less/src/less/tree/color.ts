@@ -172,7 +172,7 @@ class Color extends Node {
     // our result, in the form of an integer triplet,
     // we create a new Color node to hold the result.
     //
-    operate(context: Context, op, other) {
+    operate(context: Context, op: string, other: Color) {
         let {
             rgb,
             alpha

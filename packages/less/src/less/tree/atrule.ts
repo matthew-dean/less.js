@@ -2,14 +2,14 @@ import { NodeArgs, isNodeArgs, IFileInfo, OutputCollector } from './node';
 import { Node, Selector, Ruleset, Anonymous } from '.';
 import type { Context } from '../contexts';
 
-type V1Args = [
+export type V1AtRuleArgs = [
     name: string,
     prelude: Node | string,
     rules: Ruleset[], // I guess?
-    index: number,
-    fileInfo: IFileInfo,
-    debugInfo: boolean,
-    isRooted: boolean
+    index?: number,
+    fileInfo?: IFileInfo,
+    debugInfo?: any,
+    isRooted?: boolean
 ];
 
 /**
@@ -38,7 +38,7 @@ class AtRule extends Node {
     value: Node
     rules: Ruleset[]
 
-    constructor(...args: NodeArgs | V1Args) {
+    constructor(...args: NodeArgs | V1AtRuleArgs) {
         if (isNodeArgs(args)) {
             super(...args);
             return;

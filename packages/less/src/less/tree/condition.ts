@@ -5,8 +5,8 @@ type V1Args = [
     op: string,
     left: Node,
     right: Node,
-    index: number,
-    negate: boolean
+    index?: number,
+    negate?: boolean
 ]
 
 class Condition extends Node {
@@ -28,7 +28,7 @@ class Condition extends Node {
         super(...(<NodeArgs>args));
     }
 
-    eval(context) {
+    eval(context): Bool {
         const { op, lvalue, rvalue } = this;
         const a = lvalue.eval(context);
         const b = rvalue.eval(context);

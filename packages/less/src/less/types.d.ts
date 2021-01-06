@@ -1,3 +1,11 @@
+  // FileInfo = {
+  //  'rewriteUrls' - option - whether to adjust URL's to be relative
+  //  'filename' - full resolved filename of current file
+  //  'rootpath' - path to append to normal URLs for this node
+  //  'currentDirectory' - path to the current file, absolute
+  //  'rootFilename' - filename of the base file
+  //  'entryPath' - absolute path to the entry file
+  //  'reference' - whether the file should not be output and only output parts that are referenced
 export type IFileInfo = {
   filename?: string
   rewriteUrls?: number

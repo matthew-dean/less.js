@@ -1,4 +1,4 @@
-import { Selector, Element, Ruleset, Declaration, DetachedRuleset, Expression, MixinArg } from '.';
+import { Selector, Element, Ruleset, Declaration, DetachedRuleset, Expression, MixinArg, Condition } from '.';
 import * as utils from '../utils';
 import Node, { NodeArgs, isNodeArgs, INodeOptions, ILocationInfo, IFileInfo } from './node';
 import type { Context } from '../contexts';
@@ -19,7 +19,7 @@ type DefinitionArgs = [
         selectors?: Selector[],
         params?: MixinArg[],
         rules: Node[],
-        condition?: Node
+        condition?: Condition
     },
     options: INodeOptions,
     location: ILocationInfo,
@@ -257,7 +257,7 @@ class Definition extends Ruleset {
                 [this.evalParams(context, /* the parameter variables */
                     context.create(this.frames ? this.frames.concat(context.frames) : context.frames), args, [])]
                     .concat(this.frames || []) // the parent namespace/mixin frames
-                    .concat(context.frames)))
+                    .concat(context.frames))).value
         ) { // the current environment frames
             return false;
         }

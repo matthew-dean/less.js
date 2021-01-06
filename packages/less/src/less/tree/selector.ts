@@ -1,5 +1,5 @@
 import Node, { IFileInfo, NodeArgs, isNodeArgs, OutputCollector } from './node';
-import { Element } from '.';
+import { Element, Condition } from '.';
 import LessError from '../less-error';
 import type { Context } from '../contexts';
 
@@ -20,7 +20,7 @@ class Selector extends Node {
     evaldCondition: boolean
     elements: Element[]
     extendList: Node[]
-    condition: Node
+    condition: Condition
 
     /** @todo - document */
     mediaEmpty: boolean
@@ -150,7 +150,7 @@ class Selector extends Node {
     }
 
     eval(context: Context) {
-        const evaldCondition = this.condition && this.condition.eval(context);
+        const evaldCondition = this.condition && this.condition.eval(context).value;
         let elements = this.elements;
         let extendList = this.extendList;
 

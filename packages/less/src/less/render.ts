@@ -1,5 +1,7 @@
 import * as utils from './utils';
+import type { Context } from './contexts';
 
+/** @todo - refine types */
 export default function(environment, ParseTree, ImportManager) {
     const render = function (input, options, callback) {
         if (typeof options === 'function') {
@@ -22,13 +24,13 @@ export default function(environment, ParseTree, ImportManager) {
                 });
             });
         } else {
-            this.parse(input, options, function(err, root, imports, options) {
+            this.parse(input, options, function(err, root, imports, context: Context) {
                 if (err) { return callback(err); }
 
                 let result;
                 try {
                     const parseTree = new ParseTree(root, imports);
-                    result = parseTree.toCSS(options);
+                    result = parseTree.toCSS(context);
                 }
                 catch (err) { return callback(err); }
 

@@ -1,12 +1,11 @@
-import contexts from './contexts';
+import type { Context } from './contexts';
 import visitor from './visitors';
 import * as tree from './tree';
 
-export default function(root, options) {
-    options = options || {};
+export default function(root, context: Context) {
+    const options = context.options;
     let evaldRoot;
     let variables = options.variables;
-    const context = new contexts.Eval(options);
 
     //
     // Allows setting variables with a hash, so:
@@ -31,7 +30,7 @@ export default function(root, options) {
                 }
                 value = new tree.Value([value]);
             }
-            return new tree.Declaration(`@${k}`, value, false, null, 0);
+            return new tree.Declaration(`@${k}`, value, '', null, 0);
         });
         context.frames = [new tree.Ruleset(null, variables)];
     }
@@ -52,8 +51,8 @@ export default function(root, options) {
      * 
      * @todo refactor/simplify when `@plugin` is removed
      */
-    if (options.pluginManager) {
-        visitorIterator = options.pluginManager.visitor();
+    if (context.pluginManager) {
+        visitorIterator = context.pluginManager.visitor();
         for (var i = 0; i < 2; i++) {
             visitorIterator.first();
             while ((v = visitorIterator.get())) {
@@ -90,7 +89,7 @@ export default function(root, options) {
      * 
      * @deprecated
      */
-    if (options.pluginManager) {
+    if (context.pluginManager) {
         visitorIterator.first();
         while ((v = visitorIterator.get())) {
             if (visitors.indexOf(v) === -1 && preEvalVisitors.indexOf(v) === -1) {

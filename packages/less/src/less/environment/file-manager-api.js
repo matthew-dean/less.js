@@ -1,3 +1,7 @@
+
+/**
+ * @todo - Make this part of the abstract file manager class
+ */
 export default {
     /**
      * Given the full path to a file, return the path component
@@ -56,21 +60,21 @@ export default {
      * Provided by AbstractFileManager (returns false)
      * @param {string} filename
      * @param {string} currentDirectory
-     * @param {object} options
+     * @param {Context} context
      * @param {less.environment.environment} environment
      * @returns {bool}
      */
-    supportsSync: function(filename, currentDirectory, options, environment) {
+    supportsSync: function(filename, currentDirectory, context, environment) {
     },
     /**
      *
      * @param {string} filename
      * @param {string} currentDirectory
-     * @param {object} options
+     * @param {Context} context
      * @param {less.environment.environment} environment
      * @returns {bool}
      */
-    supports: function(filename, currentDirectory, options, environment) {
+    supports: function(filename, currentDirectory, context, environment) {
     },
     /**
      * Loads a file asynchronously. Expects a promise that either rejects with an error or fulfills with an
@@ -80,11 +84,11 @@ export default {
      *
      * @param {string} filename
      * @param {string} currentDirectory
-     * @param {object} options
+     * @param {Context} context
      * @param {less.environment.environment} environment
      * @returns {Promise}
      */
-    loadFile: function(filename, currentDirectory, options, environment) {
+    loadFile: function(filename, currentDirectory, context, environment) {
     },
     /**
      * Loads a file synchronously. Expects an immediate return with an object containing
@@ -94,10 +98,10 @@ export default {
      *
      * @param {string} filename
      * @param {string} currentDirectory
-     * @param {object} options
+     * @param {Context} context
      * @param {less.environment.environment} environment
      * @returns {object} should be an object containing error or contents and filename
      */
-    loadFileSync: function(filename, currentDirectory, options, environment) {
+    loadFileSync: function(filename, currentDirectory, context, environment) {
     }
 };

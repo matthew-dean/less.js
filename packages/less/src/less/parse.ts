@@ -1,6 +1,6 @@
-import contexts from './contexts';
+import { Context } from './contexts';
 import Parser from './parser/parser';
-import PluginManager from './plugin-manager';
+import { PluginManager } from './plugin-manager';
 import LessError from './less-error';
 import * as utils from './utils';
 
@@ -27,19 +27,18 @@ export default function(environment, ParseTree, ImportManager) {
                 });
             });
         } else {
-            let context;
             let rootFileInfo;
-
             /**
              * @todo
-             * This is hacky. Find a way to do this without attaching to `options`.
-             * 
              * This may not be needed when `@plugin` is removed.
              */
-            const pluginManager = new PluginManager(this, !options.reUsePluginManager);
-            options.pluginManager = pluginManager;
+            const pluginManager = new PluginManager(this, new this.PluginLoader(this));
 
-            context = new contexts.Parse(options);
+            /**
+             * This is now our context for this parsing / evaluating session
+             */
+            const context = new Context(options);
+            context.pluginManager = pluginManager;
 
             if (options.rootFileInfo) {
                 rootFileInfo = options.rootFileInfo;
@@ -48,8 +47,8 @@ export default function(environment, ParseTree, ImportManager) {
                 const entryPath = filename.replace(/[^\/\\]*$/, '');
                 rootFileInfo = {
                     filename,
-                    rewriteUrls: context.rewriteUrls,
-                    rootpath: context.rootpath || '',
+                    rewriteUrls: context.options.rewriteUrls,
+                    rootpath: context.options.rootpath || '',
                     currentDirectory: entryPath,
                     entryPath,
                     rootFilename: filename
@@ -61,7 +60,7 @@ export default function(environment, ParseTree, ImportManager) {
             }
 
             const imports = new ImportManager(this, context, rootFileInfo);
-            this.importManager = imports;
+            context.importManager = imports;
 
             // TODO: allow the plugins to be just a list of paths or names
             // Do an async plugin queue like lessc
@@ -84,7 +83,7 @@ export default function(environment, ParseTree, ImportManager) {
             Parser(context, imports, rootFileInfo)
                 .parse(input, function (e, root) {
                     if (e) { return callback(e); }
-                    callback(null, root, imports, options);
+                    callback(null, root, imports, context);
                 }, options);
         }
     };

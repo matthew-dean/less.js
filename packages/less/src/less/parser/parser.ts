@@ -4,6 +4,7 @@ import visitors from '../visitors';
 import getParserInput from './parser-input';
 import * as utils from '../utils';
 import functionRegistry from '../functions/function-registry';
+import type { Context } from '../contexts';
 
 //
 // less.js - parser
@@ -38,13 +39,12 @@ import functionRegistry from '../functions/function-registry';
 //    It also takes care of moving all the indices forwards.
 //
 
-const Parser = function Parser(context, imports, fileInfo) {
+const Parser = function Parser(context: Context, imports, fileInfo) {
     let parsers;
-    /** @todo - hoist parserInput as a imported object */
     const parserInput = getParserInput();
 
     /** Hoist these functions out of this top function */
-    function error(msg, type) {
+    function error(msg, type?) {
         throw new LessError(
             {
                 index: parserInput.i,
@@ -56,7 +56,7 @@ const Parser = function Parser(context, imports, fileInfo) {
         );
     }
 
-    function expect(arg, msg) {
+    function expect(arg, msg?) {
         // some older browsers return typeof 'function' for RegExp
         const result = (arg instanceof Function) ? arg.call(parsers) : parserInput.$re(arg);
         if (result) {
@@ -69,7 +69,7 @@ const Parser = function Parser(context, imports, fileInfo) {
     }
 
     // Specialization of expect()
-    function expectChar(arg, msg) {
+    function expectChar(arg, msg?) {
         if (parserInput.$char(arg)) {
             return arg;
         }
@@ -149,7 +149,7 @@ const Parser = function Parser(context, imports, fileInfo) {
         // @param callback call `callback` when done.
         // @param [additionalData] An optional map which can contains vars - a map (key, value) of variables to apply
         //
-        parse: function (str, callback, additionalData) {
+        parse: function (str: string, callback, additionalData?) {
             let root;
             let error = null;
             let globalVars;
@@ -160,8 +160,8 @@ const Parser = function Parser(context, imports, fileInfo) {
             globalVars = (additionalData && additionalData.globalVars) ? `${Parser.serializeVars(additionalData.globalVars)}\n` : '';
             modifyVars = (additionalData && additionalData.modifyVars) ? `\n${Parser.serializeVars(additionalData.modifyVars)}` : '';
 
-            if (context.options.pluginManager) {
-                const preProcessors = context.options.pluginManager.getPreProcessors();
+            if (context.pluginManager) {
+                const preProcessors = context.pluginManager.getPreProcessors();
                 for (let i = 0; i < preProcessors.length; i++) {
                     str = preProcessors[i].process(str, { context, imports, fileInfo });
                 }
@@ -236,7 +236,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                 }, imports);
             }
 
-            const finish = e => {
+            const finish = (e?) => {
                 e = error || e || imports.error;
 
                 if (e) {
@@ -252,6 +252,11 @@ const Parser = function Parser(context, imports, fileInfo) {
             };
 
             if (context.options.processImports !== false) {
+                /**
+                 * @todo
+                 * Figure out how to move the import visitor out of here
+                 * in order to enable other Less parsers.
+                 */
                 new visitors.ImportVisitor(imports, finish)
                     .run(root);
             } else {
@@ -470,7 +475,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                         'if':    f(condition)
                     }[name.toLowerCase()];
 
-                    function f(parse, stop) {
+                    function f(parse, stop?) {
                         return {
                             parse, // parsing function
                             stop   // when true - stop after parse() and return its result, 
@@ -1545,7 +1550,7 @@ const Parser = function Parser(context, imports, fileInfo) {
                         if (value) {
                             parserInput.forget();
                             // anonymous values absorb the end ';' which is required for them to work
-                            return new(tree.Declaration)(name, value, false, merge, index, fileInfo);
+                            return new(tree.Declaration)(name, value, '', merge, index, fileInfo);
                         }
 
                         if (!value) {
@@ -2008,7 +2013,7 @@ const Parser = function Parser(context, imports, fileInfo) {
             //
             value: function () {
                 let e;
-                const expressions = [];
+                const expressions: tree.Expression[] = [];
                 const index = parserInput.i;
 
                 do {
@@ -2238,10 +2243,9 @@ const Parser = function Parser(context, imports, fileInfo) {
                 let c;
                 let op;
 
-                function cond() {
+                const cond = () => {
                     return this.addition() || entities.keyword() || entities.quoted() || entities.mixinLookup();
                 }
-                cond = cond.bind(this);
 
                 a = cond();
                 if (a) {

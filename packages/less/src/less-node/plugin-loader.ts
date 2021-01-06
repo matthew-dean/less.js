@@ -1,5 +1,6 @@
 import path from 'path';
 import AbstractPluginLoader from '../less/environment/abstract-plugin-loader.js';
+import type { Context } from '../less/contexts';
 
 /**
  * Node Plugin Loader
@@ -21,14 +22,14 @@ const PluginLoader = function(less) {
 };
 
 PluginLoader.prototype = Object.assign(new AbstractPluginLoader(), {
-    loadPlugin(filename, basePath, context, environment, fileManager) {
+    loadPlugin(filename, basePath, context: Context, environment, fileManager) {
         const prefix = filename.slice(0, 1);
         const explicit = prefix === '.' || prefix === '/' || filename.slice(-3).toLowerCase() === '.js';
         if (!explicit) {
-            context.prefixes = ['less-plugin-', ''];
+            context.options.prefixes = ['less-plugin-', ''];
         }
 
-        if (context.syncImport) {
+        if (context.options.syncImport) {
             return fileManager.loadFileSync(filename, basePath, context, environment);
         }
 
@@ -49,8 +50,12 @@ PluginLoader.prototype = Object.assign(new AbstractPluginLoader(), {
         });
     },
 
-    loadPluginSync(filename, basePath, context, environment, fileManager) {
-        context.syncImport = true;
+    loadPluginSync(filename, basePath, context: Context, environment, fileManager) {
+        /**
+         * @todo
+         * Is mutating options the best way to do this?
+         */
+        context.options.syncImport = true;
         return this.loadPlugin(filename, basePath, context, environment, fileManager);
     }
 });
