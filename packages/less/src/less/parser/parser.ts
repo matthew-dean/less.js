@@ -716,9 +716,7 @@ const Parser = function Parser(context: Context, imports, fileInfo) {
                 // U+0??  or U+00A1-00A9
                 //
                 unicodeDescriptor: function () {
-                    let ud;
-
-                    ud = parserInput.$re(/^U\+[0-9a-fA-F?]+(\-[0-9a-fA-F?]+)?/);
+                    let ud = parserInput.$re(/^U\+[0-9a-fA-F?]+(\-[0-9a-fA-F?]+)?/);
                     if (ud) {
                         return new(tree.UnicodeDescriptor)(ud[0]);
                     }

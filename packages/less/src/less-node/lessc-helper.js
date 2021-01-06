@@ -1,6 +1,7 @@
-// lessc_helper.js
-//
-//      helper functions for lessc
+/** lessc_helper.js
+ *
+ *      helper functions for lessc
+ */
 const lessc_helper = {
 
     // Stylize a string
@@ -18,7 +19,11 @@ const lessc_helper = {
         return `\x1b[${styles[style][0]}m${str}\x1b[${styles[style][1]}m`;
     },
 
-    // Print command line options
+    /** 
+     * Print command line options
+     *
+     * @todo - Simplify w/ using 'args' NPM package
+     */
     printUsage: function() {
         console.log('usage: lessc [option option=parameter ...] <source> [destination]');
         console.log('');

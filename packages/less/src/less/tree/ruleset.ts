@@ -682,7 +682,17 @@ class Ruleset extends Node {
         }
     }
 
-    joinSelectors(paths, context, selectors) {
+    /**
+     * @todo
+     * This should not even be necessary. Instead, the `&` should be a
+     * "context lookup"-type node, that searches `context.frames` for
+     * the next Ruleset up and then returns those selectors. Selectors,
+     * in turn, should have "auto-merging" list / expression strategies.
+     * 
+     * If done right, we never have to manually "merge" selectors because
+     * selectors lists/expressions should merge themselves when eval'd.
+     */
+    joinSelectors(paths: any[], context: any[], selectors: Selector[]) {
         for (let s = 0; s < selectors.length; s++) {
             this.joinSelector(paths, context, selectors[s]);
         }
@@ -691,7 +701,7 @@ class Ruleset extends Node {
     /**
      * @todo - This is far too complex. Rewrite from scratch. 
      */
-    joinSelector(paths, context, selector) {
+    joinSelector(paths: any[], context: any[], selector: Selector) {
 
         function createParenthesis(elementsToPak, originalElement) {
             let replacementParen, j;

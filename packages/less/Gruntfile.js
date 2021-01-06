@@ -402,7 +402,6 @@ module.exports = function(grunt) {
 
     // Quickly build and run Node tests
     grunt.registerTask("quicktest", [
-        "shell:testcjs",
         "shell:test"
     ]);
 

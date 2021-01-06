@@ -101,12 +101,13 @@ export class Node {
     _nodeId: number
 
     constructor(
-        nodes: NodeCollection | Node,
+        nodes: NodeCollection | NodeValue,
         options?: INodeOptions,
         location?: ILocationInfo | number,
         fileInfo?: IFileInfo
     ) {
-        const nodesColl = nodes instanceof Node ? { value: nodes } : nodes
+        /** Allows us to pass through old-style API */
+        const nodesColl = isNodeArgs([nodes]) ? <NodeCollection>nodes : <NodeCollection>{ value: nodes }
         this.nodes = nodesColl
 
         const nodeKeys = Object.keys(nodesColl);

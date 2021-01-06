@@ -1,4 +1,4 @@
-import mathHelper from './math-helper.js';
+import mathHelper from './math-helper';
 
 const mathFunctions: Record<string, any> = {
     // name,  unit

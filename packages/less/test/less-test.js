@@ -1,31 +1,32 @@
-/* jshint latedef: nofunc */
-
+/**
+ * @todo - This could use some love.
+ */
 module.exports = function() {
     var path = require('path'),
         fs = require('fs'),
         clone = require('copy-anything').copy;
 
-    var less = require('../');
-
-    var stylize = require('../lib/less-node/lessc-helper').stylize;
+    /**
+     * Imports Less from src/ using ts-node in index.js
+     */
+    var less = require('../src/less-node').default;
+    var stylize = require('../src/less-node/lessc-helper').stylize;
 
     var globals = Object.keys(global);
 
-    var oneTestOnly = process.argv[2],
-        isFinished = false;
+    /**
+     * Can choose just one test to run (simple text match of [name].less)
+     */
+    var oneTestOnly = process.argv.find(function(arg) {
+        return /\.less$/.test(arg)
+    });
+
+    var isFinished = false;
 
     var isVerbose = process.env.npm_config_loglevel !== 'concise';
 
     var testFolder = path.dirname(require.resolve('@less/test-data'));
     var lessFolder = path.join(testFolder, 'less');
-
-    // Define String.prototype.endsWith if it doesn't exist (in older versions of node)
-    // This is required by the testSourceMap function below
-    if (typeof String.prototype.endsWith !== 'function') {
-        String.prototype.endsWith = function (str) {
-            return this.slice(-str.length) === str;
-        };
-    }
 
     less.logger.addListener({
         info: function(msg) {
@@ -318,7 +319,7 @@ module.exports = function() {
 
             var name = getBasename(file);
 
-            if (oneTestOnly && name !== oneTestOnly) {
+            if (oneTestOnly && file.indexOf(oneTestOnly) === -1) {
                 return;
             }
 

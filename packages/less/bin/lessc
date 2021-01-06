@@ -22,6 +22,10 @@ var pluginManager = new less.PluginManager(less);
 var fileManager = new less.FileManager();
 var plugins = [];
 var queuePlugins = [];
+
+/**
+ * @todo - refactor using 'args' NPM package
+ */
 var args = process.argv.slice(1);
 var silent = false;
 var verbose = false;

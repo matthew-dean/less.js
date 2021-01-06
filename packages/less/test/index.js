@@ -1,7 +1,9 @@
+require('ts-node').register();
+
 var lessTest = require('./less-test'),
     lessTester = lessTest(),
     path = require('path'),
-    stylize = require('../lib/less-node/lessc-helper').stylize;
+    stylize = require('../src/less-node/lessc-helper').stylize;
 
 console.log('\n' + stylize('Less', 'underline') + '\n');
 
@@ -11,7 +13,7 @@ var testMap = [
         relativeUrls: true,
         silent: true,
         javascriptEnabled: true
-    }, '_main/'],
+    }, '_tmp/'],
     // [{}, 'namespacing/'],
     // [{
     //     math: 'parens'

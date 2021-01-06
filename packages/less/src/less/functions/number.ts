@@ -1,6 +1,6 @@
 import Dimension from '../tree/dimension';
 import Anonymous from '../tree/anonymous';
-import mathHelper from './math-helper.js';
+import mathHelper from './math-helper';
 
 const minMax = function (isMin, args) {
     args = Array.prototype.slice.call(args);

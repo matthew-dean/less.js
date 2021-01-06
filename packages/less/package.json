@@ -58,6 +58,7 @@
 		"@less/test-data": "^4.0.0",
 		"@less/test-import-module": "^4.0.0",
 		"@rollup/plugin-json": "^4.1.0",
+		"args": "^5.0.1",
 		"benny": "^3.6.12",
 		"bootstrap-less-port": "0.3.0",
 		"chai": "^4.2.0",
