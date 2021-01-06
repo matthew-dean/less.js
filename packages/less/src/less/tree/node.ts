@@ -58,8 +58,8 @@ export class Node {
      *   nodes: ['string', Node] -- ok
      *   nodes: [Node[]]         -- bad, too complex
      */
-    nodes: NodeCollection
-    nodeKeys: string[]
+    // _nodes: NodeCollection
+    _nodeKeys: string[]
     value: NodeValue
 
     nodeVisible: boolean
@@ -108,10 +108,8 @@ export class Node {
     ) {
         /** Allows us to pass through old-style API */
         const nodesColl = isNodeArgs([nodes]) ? <NodeCollection>nodes : <NodeCollection>{ value: nodes }
-        this.nodes = nodesColl
-
         const nodeKeys = Object.keys(nodesColl);
-        this.nodeKeys = nodeKeys;
+        this._nodeKeys = nodeKeys;
 
         /** Place all sub-node keys on `this` */
         nodeKeys.forEach(key => {
@@ -135,7 +133,7 @@ export class Node {
      * Processes all Node values in `value`
      */
     processNodes(func: (n: Node) => Node) {
-        const keys = this.nodeKeys
+        const keys = this._nodeKeys
         keys.forEach(key => {
             const nodeVal: NodeValue = this[key]
             if (nodeVal) {
@@ -220,7 +218,7 @@ export class Node {
      *         so that processNodes can be better abstracted
      */
     accept(visitor: Visitor) {
-        const keys = this.nodeKeys;
+        const keys = this._nodeKeys;
         keys.forEach(key => {
             const nodeVal: NodeValue = this[key]
             if (nodeVal) {
@@ -256,12 +254,18 @@ export class Node {
     /**
      * Creates a copy of the current node.
      *
-     * @param shallow - doesn't deeply clone nodes (retains references)
+     * @param deep - Perform a deep node clone (usually not necessary)
      */
-    clone(shallow: boolean = false): this {
+    clone(deep: boolean = false): this {
         const Clazz = Object.getPrototypeOf(this).constructor;
+        const nodeKeys = this._nodeKeys;
+
+        const nodes: Record<string, any> = {};
+        nodeKeys.forEach(key => {
+            nodes[key] = this[key];
+        }) 
         const newNode = new Clazz(
-            this.nodes,
+            nodes,
             {...this.options},
             /** For now, there's no reason to mutate location,
              * so its reference is just copied */
@@ -270,8 +274,8 @@ export class Node {
         );
 
         /**
-         * First copy over Node-derived-specific props. We eliminate any props specific
-         * to the base Node class.
+         * First copy over Node-derived-specific props.
+         * We eliminate any props specific to the base Node class.
          */
         for (let prop in this) {
             if (this.hasOwnProperty(prop)) {
@@ -282,7 +286,7 @@ export class Node {
         /** Copy inheritance props */
         newNode.inherit(this);
 
-        if (!shallow) {
+        if (deep) {
             /**
              * Perform a deep clone
              * This will overwrite the parent / root props of children nodes.

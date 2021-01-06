@@ -81,10 +81,6 @@ class Ruleset extends Node {
 
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
-            const nodes = args[0];
-            if (!nodes.paths) {
-                nodes.paths = [];
-            }
             super(...args);
         } else {
             let [
@@ -96,7 +92,7 @@ class Ruleset extends Node {
                 {
                     selectors,
                     rules: rules || [],
-                    paths: []
+                    paths: undefined
                 },
                 { strictImports }
             );
@@ -105,6 +101,20 @@ class Ruleset extends Node {
         this._lookups = {};
         this._variables = null;
         this._properties = null;
+    }
+
+    /**
+     * Has unique visiting rules
+     */
+    accept(visitor: Visitor) {
+        if (this.paths) {
+            this.paths = visitor.visitArray(this.paths, true);
+        } else if (this.selectors) {
+            this.selectors = visitor.visitArray(this.selectors);
+        }
+        if (this.rules && this.rules.length) {
+            this.rules = visitor.visitArray(this.rules);
+        }
     }
 
     isRulesetLike() { return true; }
@@ -703,7 +713,7 @@ class Ruleset extends Node {
      */
     joinSelector(paths: any[], context: any[], selector: Selector) {
 
-        function createParenthesis(elementsToPak, originalElement) {
+        function createParenthesis(elementsToPak: Element[], originalElement: Element) {
             let replacementParen, j;
             if (elementsToPak.length === 0) {
                 replacementParen = new Paren(elementsToPak[0]);
@@ -713,7 +723,7 @@ class Ruleset extends Node {
                     insideParent[j] = new Element(
                         null,
                         elementsToPak[j],
-                        originalElement.isVariable,
+                        originalElement.options.isVariable,
                         originalElement._index,
                         originalElement.fileInfo
                     );
@@ -723,9 +733,15 @@ class Ruleset extends Node {
             return replacementParen;
         }
 
-        function createSelector(containedElement, originalElement) {
+        function createSelector(containedElement, originalElement: Element) {
             let element, selector;
-            element = new Element(null, containedElement, originalElement.isVariable, originalElement._index, originalElement.fileInfo);
+            element = new Element(
+                null,
+                containedElement,
+                originalElement.options.isVariable, 
+                originalElement._index,
+                originalElement.fileInfo
+            );
             selector = new Selector([element]);
             return selector;
         }
@@ -791,7 +807,7 @@ class Ruleset extends Node {
         // joins selector path from `beginningPath` with every selector path in `addPaths` array
         // `replacedElement` contains element that is being replaced by `addPath`
         // returns array with all concatenated paths
-        function addAllReplacementsIntoPath( beginningPath, addPaths, replacedElement, originalSelector, result) {
+        function addAllReplacementsIntoPath( beginningPath: any[][], addPaths, replacedElement, originalSelector, result) {
             let j;
             for (j = 0; j < beginningPath.length; j++) {
                 const newSelectorPath = addReplacementIntoPath(beginningPath[j], addPaths, replacedElement, originalSelector);
@@ -800,7 +816,7 @@ class Ruleset extends Node {
             return result;
         }
 
-        function mergeElementsOnToSelectors(elements, selectors) {
+        function mergeElementsOnToSelectors(elements: Element[], selectors: Selector[][]) {
             let i, sel;
 
             if (elements.length === 0) {
@@ -825,7 +841,7 @@ class Ruleset extends Node {
         // replace all parent selectors inside `inSelector` by content of `context` array
         // resulting selectors are returned inside `paths` array
         // returns true if `inSelector` contained at least one parent selector
-        function replaceParentSelector(paths, context, inSelector) {
+        function replaceParentSelector(paths, context, inSelector: Selector) {
             // The paths are [[Selector]]
             // The first list is a list of comma separated selectors
             // The inner list is a list of inheritance separated selectors
@@ -836,7 +852,13 @@ class Ruleset extends Node {
             // }
             // == [[.a] [.c]] [[.b] [.c]]
             //
-            let i, j, k, currentElements, newSelectors, selectorsMultiplied, sel, el, hadParentSelector = false, length, lastSelector;
+            let i: number;
+            let j: number;
+            let k: number;
+            let currentElements: any[];
+            let newSelectors: string | any[];
+            let selectorsMultiplied: string | any[];
+            let sel, el, hadParentSelector = false, length, lastSelector;
             function findNestedSelector(element) {
                 let maybeSelector;
                 if (!(element.value instanceof Paren)) {

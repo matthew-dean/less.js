@@ -220,7 +220,7 @@ class Definition extends Ruleset {
                 return r;
             }
         });
-        const result = this.clone()
+        const result = this.clone();
         result.rules = rules;
         return result;
     }

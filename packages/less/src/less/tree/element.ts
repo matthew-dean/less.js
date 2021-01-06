@@ -17,6 +17,9 @@ class Element extends Node {
     type: 'Element'
     combinator: Combinator
     value: Node | string
+    options: {
+        isVariable: boolean
+    }
 
     constructor(...args: NodeArgs | V1Args) {
         if (isNodeArgs(args)) {
