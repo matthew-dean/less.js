@@ -94,6 +94,10 @@ class Selector extends Node {
         return result;
     }
 
+    /**
+     * @todo - this feels hackish? Is there a better way to set up
+     * later checks?
+     */
     static createEmptySelectors(index: number, fileInfo: IFileInfo) {
         const el = new Element('', '&', false, index, fileInfo);
         const sels = [new Selector([el], null, null, index, fileInfo)];

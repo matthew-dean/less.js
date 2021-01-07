@@ -289,7 +289,8 @@ ToCSSVisitor.prototype = {
             rulesetNode.paths = rulesetNode.paths
                 .filter(p => {
                     let i;
-                    if (p[0].elements[0].combinator.value === ' ') {
+                    if (p[0].elements[0] &&
+                        p[0].elements[0].combinator.value === ' ') {
                         p[0].elements[0].combinator = new(tree.Combinator)('');
                     }
                     for (i = 0; i < p.length; i++) {

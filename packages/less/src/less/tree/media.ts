@@ -64,7 +64,7 @@ class Media extends AtRule {
 
         const media = new Media(
             {
-                value: this.features.eval(context),
+                value: this.value.eval(context),
                 rules: new Ruleset(
                     Selector.createEmptySelectors(this.getIndex(), this.fileInfo),
                     []
@@ -72,6 +72,7 @@ class Media extends AtRule {
             },
             {}, this.location, this.fileInfo
         );
+        media.copyVisibilityInfo(this.visibilityInfo());
         if (this.debugInfo) {
             this.rules[0].debugInfo = this.debugInfo;
             media.debugInfo = this.debugInfo;
@@ -90,15 +91,15 @@ class Media extends AtRule {
             media.evalNested(context);
     }
 
-    evalTop(context: Context) {
-        let result = this;
+    evalTop(context) {
+        let result: Media | Ruleset = this;
 
         // Render all dependent Media blocks.
         if (context.mediaBlocks.length > 1) {
-            const selectors = Selector.createEmptySelectors(this.getIndex(), this.fileInfo);
-            const rules = new Ruleset(selectors, context.mediaBlocks);
-            rules.multiMedia = true;
-            rules.copyVisibilityInfo(this.visibilityInfo());
+            const selectors = Selector.createEmptySelectors(this._index, this.fileInfo);
+            result = new Ruleset(selectors, context.mediaBlocks);
+            result.multiMedia = true;
+            result.copyVisibilityInfo(this.visibilityInfo());
         }
 
         context.mediaBlocks = undefined;
@@ -126,7 +127,7 @@ class Media extends AtRule {
         //    a and e
         //    b and c and d
         //    b and c and e
-        this.features = new List(this.permute(path).map(path => {
+        this.value = new List(this.permute(path).map(path => {
             path = path.map(fragment => fragment.toCSS ? fragment : new Anonymous(fragment));
 
             for (i = path.length - 1; i > 0; i--) {

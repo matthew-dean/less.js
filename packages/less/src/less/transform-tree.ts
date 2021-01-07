@@ -37,8 +37,8 @@ export default function(root, context: Context) {
 
     const visitors = [
         new visitor.JoinSelectorVisitor(),
-        new visitor.MarkVisibleSelectorsVisitor(true),
         new visitor.ExtendVisitor(),
+        new visitor.MarkVisibleSelectorsVisitor(true),
         new visitor.ToCSSVisitor(context)
     ];
 

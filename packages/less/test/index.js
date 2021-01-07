@@ -13,7 +13,7 @@ var testMap = [
         relativeUrls: true,
         silent: true,
         javascriptEnabled: true
-    }, '_tmp/'],
+    }, '_main/'],
     // [{}, 'namespacing/'],
     // [{
     //     math: 'parens'

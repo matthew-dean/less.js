@@ -40,9 +40,6 @@ class Definition extends Ruleset {
 
     optionalParameters: string[];
     frames: Ruleset[];
-    options: {
-        variadic: boolean;
-    }
 
     constructor(...args: DefinitionArgs | V1Args) {
         let name: string
