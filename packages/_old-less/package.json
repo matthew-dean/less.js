@@ -1,7 +1,7 @@
 {
   "name": "@less/old",
   "private": true,
-  "version": "5.0.0-dev.1",
+  "version": "5.0.0-dev.2",
   "description": "Leaner CSS",
   "homepage": "http://lesscss.org",
   "author": {
@@ -46,10 +46,9 @@
     "test": "ts-node test/index.ts",
     "grunt": "grunt"
   },
-  "optionalDependencies": {},
   "dependencies": {
-    "@less/parser": "^5.0.0-dev.1",
-    "@less/core": "^5.0.0-dev.1"
+    "@less/core": "^5.0.0-dev.2",
+    "@less/parser": "^5.0.0-dev.2"
   },
   "devDependencies": {
     "less-plugin-autoprefix": "^1.5.1",

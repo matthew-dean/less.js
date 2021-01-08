@@ -1,6 +1,6 @@
 {
   "name": "@less/core",
-  "version": "5.0.0-dev.1",
+  "version": "5.0.0-dev.2",
   "description": "",
   "main": "dist/index",
   "types": "dist/index",
@@ -23,7 +23,5 @@
     "Alexis Sellier",
     "The Core Less Team"
   ],
-  "license": "Apache-2.0",
-  "dependencies": {},
-  "devDependencies": {}
+  "license": "Apache-2.0"
 }
