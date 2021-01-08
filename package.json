@@ -62,7 +62,5 @@
       "git add"
     ]
   },
-  "dependencies": {
-    "chevrotain": "^7.0.1"
-  }
+  "dependencies": {}
 }
