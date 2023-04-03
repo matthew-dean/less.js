@@ -134,6 +134,7 @@
 	"dependencies": {
 		"copy-anything": "^2.0.1",
 		"parse-node-version": "^1.0.1",
+		"peggy": "^3.0.2",
 		"tslib": "^2.3.0"
 	}
 }

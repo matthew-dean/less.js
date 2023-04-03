@@ -7,3 +7,4 @@ test/sourcemaps/**/*.map
 test/sourcemaps/*.map
 test/sourcemaps/*.css
 test/less-bom
+.antlr
