@@ -113,13 +113,20 @@ fragment NthFunctions
  * Uses nongreedy wildcard
  * @see https://github.com/antlr/antlr4/blob/master/doc/wildcard.md
  */
-Comment     : '/*' .*? '*/' -> skip;
+Comment     : '/*' .*? '*/' -> channel(HIDDEN);
 
 /**
  * Aliased because Less will not skip CSS comments
  *   e.g. (Whitespace | Comment)
  */
-WS          : Whitespace;
+WS          : Whitespace -> channel(HIDDEN);
+
+Cdo         : '<!--' -> skip;
+Cdc         : '-->' -> skip;
+
+/** Ignore BOM */
+UnicodeBOM  : '\uFFFE' -> skip;
+
 Comma       : ',';
 String      : DoubleString | SingleString;
 LCurly      : '{';
@@ -136,6 +143,19 @@ RSquare     : ']';
 UnitlessNum     : Number;
 UnsignedInt     : Digit+;
 SignedInt       : Integer;
+Function        : Ident '(';
+
+Semi            : ';';
+CompareOp       : ('>' | '<') '='? | '<' | '>';
+
+Plus        : '+';
+Minus       : '-';
+Divide      : '/';
+Eq          : '=';
+Tilde       : '~';
+/** a namespace or column combinator */
+Pipe        : '|';
+
 
 /** Simple Selectors */
 Star        : '*' -> mode(Selector);
@@ -144,58 +164,89 @@ ID          : '#' Ident -> mode(Selector);
 Class       : '.' Ident -> mode(Selector);
 Element     : Ident -> mode(Selector);
 
-NthSyntax   : 'odd' | 'even' | Integer | Integer? [nN] (WS* [+-] WS* Digit)?;
-NthChild    : ':' NthFunctions '(' WS* NthSyntax WS* ')';
+fragment NthSyntax   : 'odd' | 'even' | Integer | Integer? [nN] (WS* [+-] WS* Digit)?;
+PseudoNth   : ':' NthFunctions '(' WS* NthSyntax WS* ')' -> mode(Selector);
 Pseudo      : ':' ':'? Ident ('(' .*? ')')? -> mode(Selector);
 /** @todo - lookup */
-Attribute   : LSquare WS* Ident ('=') WS* (Ident | String) WS* () RSquare -> mode(Selector);
+Attribute   : LSquare WS* Ident [*~|^$]? ('=') WS* (Ident | String) WS* ([is] WS*)? RSquare -> mode(Selector);
 
+/** Non-nested */
+ImportRule        : '@import';
+CharsetRule       : '@charset';
+NamespaceRule     : '@namespace';
+
+/** Nested */
+MediaRule         : '@media';
+SupportsRule      : '@supports';
+PageRule          : '@page';
+FontFaceRule      : '@font-face';
+KeyframesRule     : '@keyframes';
+ContainerRule     : '@container';
+PropertyRule      : '@property';
+LayerRule         : '@layer';
+ScopeRule         : '@scope';
+
+AtRule            : '@' Ident;
+
+// Parse specifically later?
+// CounterStyleRule  : '@counter-style';
+// FontFeatureRule   : '@font-feature-values';
+//   SwashRule       : '@swash';
+//   AnnotationRule  : '@annotation';
+//   OrnamentsRule   : '@ornaments';
+//   StylisticRule   : '@stylistic';
+//   StylesetRule    : '@styleset';
+//   CharacterVarRule: '@character-variant';
 
 mode Selector;
-Selector_WS       : WS -> type(WS);
-Selector_Comma    : Comma -> type(Comma);
+/** Un-skipped white-space */
+Sel_WS            : Whitespace -> type(WS);
+Sel_Comma         : Comma -> type(Comma);
 
-Selector_ID       : ID -> type(ID);
-Selector_Class    : Class -> type(Class);
-Selector_Element  : Element -> type(Element);
-Selector_Pseudo   : Pseudo -> type(Pseudo);
-Selector_Star     : Star -> type(Star);
-Selector_Amp      : Ampersand -> type(Ampersand);
-Selector_Attribute: Attribute -> type(Attribute);
-Selector_LCurly   : LCurly -> type(LCurly), pushMode(DeclarationList);
+Sel_Star          : Star -> type(Star);
+Sel_Amp           : Ampersand -> type(Ampersand);
+Sel_ID            : ID -> type(ID);
+Sel_Class         : Class -> type(Class);
+Sel_Element       : Ident -> type(Element);
+Sel_PseudoNth     : PseudoNth -> type(PseudoNth);
+Sel_Pseudo        : Pseudo -> type(Pseudo);
+Sel_Attribute     : Attribute -> type(Attribute);
+
+Sel_Combinator    : [~>+] | '||';
+Sel_LCurly        : LCurly -> type(LCurly), pushMode(DeclarationList);
 
 mode DeclarationList;
 
+DList_WS          : Whitespace -> channel(HIDDEN);
+DList_Comma       : Comma -> mode(Selector), type(Comma);
 
-ColorIdentStart : '#' [a-f];
+DList_Star        : Star -> mode(Selector), type(Star);
+DList_Amp         : Ampersand -> mode(Selector), type(Ampersand);
+DList_ID          : ID -> mode(Selector), type(ID);
+DList_Class       : Class -> mode(Selector), type(Class);
+// DeclarationList_Element -- not valid
+DList_PseudoNth   : PseudoNth -> mode(Selector), type(PseudoNth);
+DList_Pseudo      : Pseudo -> mode(Selector), type(Pseudo);
+DList_Attribute   : Attribute -> mode(Selector), type(Attribute);
 
-CompareOp   : (Gt | '<') '='?;
+/** Can start with a combinator in some modes */
+DList_Combinator  : Sel_Combinator -> mode(Selector);
+DList_CustomProp  : '--' NmStart NmChar* WS* ':' -> mode(CustomPropertyValue);
 
-Semi        : ';';
-Colon       : ':';
-PropAssign  : Colon;
+mode CustomPropertyValue;
 
-Plus : '+';
-Minus       : '-';
-Divide      : '/';
-Eq          : '=';
-Tilde       : '~';
-/** a namespace or column combinator */
-Pipe        : '|';
+/** Just needs matching blocks */
+Custom_Value
+  : ~[{(['"]+
+  | String
+  | '{' Custom_Value? '}'
+  | '[' Custom_Value? ']'
+  | '(' Custom_Value? ')'
+  ;
 
-Combinator  : Plus | Gt | Tilde | Pipe;
-AttrMatch   : [*~|^$] '=';
-PlainIdent  : Ident;
-CustomProp  : '--' Ident;
+Custom_Semi       : ';' -> type(Semi), popMode;
 
-Cdo         : '<!--' -> skip;
-Cdc         : '-->' -> skip;
 
-/** Ignore BOM */
-UnicodeBOM  : '\uFFFE' -> skip;
-
-AttrFlag    : [is];
-Function    : Ident '(';
 
 
 
