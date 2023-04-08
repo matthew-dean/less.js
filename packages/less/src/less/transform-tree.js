@@ -37,11 +37,14 @@ export default function(root, options) {
     }
 
     const visitors = [
-        new visitor.JoinSelectorVisitor(),
         new visitor.MarkVisibleSelectorsVisitor(true),
         new visitor.ExtendVisitor(),
         new visitor.ToCSSVisitor({compress: Boolean(options.compress)})
     ];
+
+    if (!options.preserveNesting) {
+        visitors.unshift(new visitor.JoinSelectorVisitor())
+    }
 
     const preEvalVisitors = [];
     let v;

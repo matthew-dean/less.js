@@ -65,6 +65,12 @@ export default function() {
         modifyVars: null,
 
         /* This option allows you to specify a argument to go on to every URL.  */
-        urlArgs: ''
+        urlArgs: '',
+
+        /**
+         * Leaves CSS Nesting as-is in output
+         * @see https://www.w3.org/TR/css-nesting-1/
+         */
+        preserveNesting: false
     }
 }
