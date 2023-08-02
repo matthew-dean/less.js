@@ -186,6 +186,7 @@ PropertyRule      : '@property';
 LayerRule         : '@layer';
 ScopeRule         : '@scope';
 
+/** CSS allows any at-rule definition */
 AtRule            : '@' Ident;
 
 // Parse specifically later?
