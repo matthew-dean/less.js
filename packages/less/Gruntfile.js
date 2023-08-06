@@ -185,10 +185,6 @@ module.exports = function(grunt) {
 
     var path = require('path');
 
-    // Handle async / await in Rollup build for tests
-    const tsNodeRuntime = path.resolve(path.join('node_modules', '.bin', 'ts-node'));
-    const crossEnv = path.resolve(path.join('node_modules', '.bin', 'cross-env'));
-
     // Project configuration.
     grunt.initConfig({
         shell: {
@@ -224,10 +220,13 @@ module.exports = function(grunt) {
             test: {
                 command: [
                     // https://github.com/TypeStrong/ts-node/issues/693#issuecomment-848907036
-                    crossEnv + " TS_NODE_SCOPE=true",
-                    tsNodeRuntime + " test/test-es6.ts",
+                    "cross-env" + " TS_NODE_SCOPE=true",
+                    "ts-node" + " test/test-es6.ts",
                     "node test/index.js"
                 ].join(' && ')
+            },
+            copybrowsertestdata: {
+                command: 'npm run copy:browser-test-data'
             },
             generatebrowser: {
                 command: 'node test/browser/generator/generate.js'
@@ -330,6 +329,7 @@ module.exports = function(grunt) {
     // Run all browser tests
     grunt.registerTask("browsertest", [
         "browsertest-lessjs",
+        "shell:copybrowsertestdata",
         "connect",
         "shell:runbrowser"
     ]);
@@ -372,8 +372,9 @@ module.exports = function(grunt) {
         "shell:test",
         "shell:opts",
         "shell:plugin",
+        "shell:copybrowsertestdata",
         "connect",
-        "shell:runbrowser"
+        "shell:runbrowser",
     ];
 
     if (

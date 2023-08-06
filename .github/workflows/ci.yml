@@ -30,15 +30,17 @@ jobs:
      - name: Print put node & npm version
        # Output useful info for debugging.
        run: node --version && npm --version 
+     - name: Print ts and ts-node version
+       run: cd packages/less && npm install ts-node@latest && npm list typescript && npm list ts-node
      - name: Run unit test
-       run: cd packages/less && npm test
+       run: npm run test -w packages/less
 
   fast_node_test:
     name: 'Tests on ${{matrix.os}} with node${{matrix.node}}'
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: [10, 12, 14, 16, 19]
+        node: [16, 20]
     runs-on: ${{ matrix.os }}
     steps:
      - uses: actions/checkout@v2
@@ -49,5 +51,7 @@ jobs:
        run: npm install
      - name: Print put node & npm version
        run: node --version && npm --version 
+     - name: Print ts and ts-node version
+       run: cd packages/less && npm install ts-node@latest && npm list typescript && npm list ts-node
      - name: Run unit test
-       run: cd packages/less && npm test
+       run: npm run test -w packages/less
