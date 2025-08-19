@@ -7,7 +7,7 @@ const styleExpression = function (args) {
         case 0: throw { type: 'Argument', message: 'one or more arguments required' };
     }
     
-    const entityList = [new Variable(args[0].value, this.index, this.currentFileInfo).eval(this.context)];
+    const entityList = [new Variable(args[0].value, this.index, this.currentFileInfo).eval(this.context)]; // @ts-ignore - Variable has eval method
        
     args = entityList.map(a => { return a.toCSS(this.context); }).join(this.context.compress ? ',' : ', ');
     

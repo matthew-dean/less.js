@@ -19,7 +19,7 @@ export default environment => {
 
     // register functions
     functionRegistry.addMultiple(boolean);
-    functionRegistry.add('default', defaultFunc.eval.bind(defaultFunc));
+    functionRegistry.add('default', defaultFunc.eval.bind(defaultFunc)); // @ts-ignore - bind can take arguments
     functionRegistry.addMultiple(color);
     functionRegistry.addMultiple(colorBlending);
     functionRegistry.addMultiple(dataUri(environment));

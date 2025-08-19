@@ -1,21 +1,36 @@
 {
   "compilerOptions": {
-    "outDir": "./lib",
+    "noEmit": true,
     "moduleResolution": "node",
     "rootDir": ".",
     "allowJs": true,
-    "sourceMap": true,
-    "inlineSources": true,
+    "checkJs": true,
     "esModuleInterop": true,
     "importHelpers": true,
-    "noImplicitAny": true,
-    "target": "ES5"
+    "noImplicitAny": false,
+    "strict": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "skipLibCheck": true,
+    "target": "ES2015",
+    "lib": ["ES2015"]
   },
   "ts-node": {
     "compilerOptions": {
       "rootDir": "."
     }
   },
-  "include": ["**/*"],
-  "exclude": ["node_modules", "lib/**/*"]
+  "include": [
+    "src/less/constants.js",
+    "src/less/contexts.js",
+    "src/less/logger.js",
+    "src/less/types.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "dist",
+    "test",
+    "benchmark"
+  ]
 }

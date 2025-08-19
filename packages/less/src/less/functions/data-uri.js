@@ -5,7 +5,7 @@ import logger from '../logger';
 
 export default environment => {
     
-    const fallback = (functionThis, node) => new URL(node, functionThis.index, functionThis.currentFileInfo).eval(functionThis.context);    
+    const fallback = (functionThis, node) => new URL(node, functionThis.index, functionThis.currentFileInfo).eval(functionThis.context); // @ts-ignore - URL has eval method    
 
     return { 'data-uri': function(mimetypeNode, filePathNode) {
 

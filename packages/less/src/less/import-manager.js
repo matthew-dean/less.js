@@ -130,7 +130,7 @@ export default function(environment) {
                         fileParsedFunc(null, importManager.files[resolvedFilename].root, resolvedFilename);
                     }
                     else {
-                        new Parser(newEnv, importManager, newFileInfo).parse(contents, function (e, root) {
+                        new Parser(newEnv, importManager, newFileInfo).parse(contents, function (e, root) { // @ts-ignore - Parser is a constructor
                             fileParsedFunc(e, root, resolvedFilename);
                         });
                     }

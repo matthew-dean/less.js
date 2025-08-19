@@ -5,6 +5,21 @@ import * as Constants from '../constants';
 const MATH = Constants.Math;
 
 
+/**
+ * @typedef {Object} Operation
+ * @property {string} op - The operation operator
+ * @property {Array} operands - Array of operands
+ * @property {boolean} isSpaced - Whether the operation has spaces
+ * @property {string} type - Always 'Operation'
+ */
+
+/**
+ * An operation between two values
+ * @param {string} op - The operation operator
+ * @param {Array} operands - Array of operands
+ * @param {boolean} isSpaced - Whether the operation has spaces
+ * @returns {Operation}
+ */
 const Operation = function(op, operands, isSpaced) {
     this.op = op.trim();
     this.operands = operands;

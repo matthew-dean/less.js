@@ -76,7 +76,7 @@ class AbstractFileManager {
      * This should be replaceable by newer Node / Browser APIs
      * 
      * @param {string} url 
-     * @param {string} baseUrl
+     * @param {string} [baseUrl]
      */
     extractUrlParts(url, baseUrl) {
         // urlParts[1] = protocol://hostname/ OR /

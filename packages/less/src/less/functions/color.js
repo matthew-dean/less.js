@@ -37,9 +37,16 @@ function toHSV(color) {
     }
 }
 
+/**
+ * Convert a value to a number
+ * @param {any} n - The value to convert
+ * @returns {number} The converted number
+ */
 function number(n) {
     if (n instanceof Dimension) {
-        return parseFloat(n.unit.is('%') ? n.value / 100 : n.value);
+        // TypeScript doesn't know Dimension has unit and value properties
+        const dim = /** @type {any} */ (n);
+        return parseFloat(dim.unit.is('%') ? dim.value / 100 : dim.value);
     } else if (typeof n === 'number') {
         return n;
     } else {
@@ -49,8 +56,15 @@ function number(n) {
         };
     }
 }
+/**
+ * Scale a value by a factor
+ * @param {any} n - The value to scale
+ * @param {number} size - The scaling factor
+ * @returns {number} The scaled value
+ */
 function scaled(n, size) {
     if (n instanceof Dimension && n.unit.is('%')) {
+        // @ts-ignore - Dimension has unit and value properties
         return parseFloat(n.value * size / 100);
     } else {
         return number(n);
@@ -74,7 +88,9 @@ colorFunctions = {
              */
             if (b instanceof Operation) {
                 const op = b
+                // @ts-ignore - Operation has operands property
                 b = op.operands[0]
+                // @ts-ignore - Operation has operands property
                 a = op.operands[1]
             }
         }
@@ -90,8 +106,10 @@ colorFunctions = {
                 if (g) {
                     a = number(g);
                 } else {
+                    // @ts-ignore - Color has alpha property
                     a = r.alpha;
                 }
+                // @ts-ignore - Color has rgb property
                 return new Color(r.rgb, a, 'rgba');
             }
             const rgb = [r, g, b].map(c => scaled(c, 255));

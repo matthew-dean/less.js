@@ -4,7 +4,7 @@ import JavaScript from '../tree/javascript';
 
 export default {
     e: function (str) {
-        return new Quoted('"', str instanceof JavaScript ? str.evaluated : str.value, true);
+        return new Quoted('"', str instanceof JavaScript ? str.evaluated : str.value, true); // @ts-ignore - JavaScript has evaluated property
     },
     escape: function (str) {
         return new Anonymous(

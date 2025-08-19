@@ -2,9 +2,18 @@ import functionRegistry from '../functions/function-registry';
 import LessError from '../less-error';
 
 class AbstractPluginLoader {
+    /** @type {Object} */
+    less;
+    /** @type {Object} */
+    context;
+    
     constructor() {
         // Implemented by Node.js plugin loader
-        this.require = function() {
+        /**
+         * @param {string} filename - The filename to require
+         * @returns {any} The required module
+         */
+        this.require = function(filename) {
             return null;
         }
     }

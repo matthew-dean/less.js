@@ -7,6 +7,24 @@ import Color from './color';
 //
 // A number with a unit
 //
+/**
+ * A number with a unit
+ * @constructor
+ * @param {number|string} value - The numeric value
+ * @param {string|import('./unit').default} [unit] - The unit (optional)
+ * @this {{
+ *   value: number,
+ *   unit: import('./unit').default,
+ *   type: string,
+ *   setParent: function(any, any): void,
+ *   accept: function(any): void,
+ *   eval: function(any): any,
+ *   toColor: function(): any,
+ *   genCSS: function(any, any): void,
+ *   operate: function(any, any, any): any,
+ *   fround: function(any, number): number
+ * }}
+ */
 const Dimension = function(value, unit) {
     this.value = parseFloat(value);
     if (isNaN(this.value)) {

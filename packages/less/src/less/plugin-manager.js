@@ -29,7 +29,8 @@ class PluginManager {
     /**
      *
      * @param plugin
-     * @param {String} filename
+     * @param {String} [filename]
+     * @param {Object} [functionRegistry]
      */
     addPlugin(plugin, filename, functionRegistry) {
         this.installedPlugins.push(plugin);

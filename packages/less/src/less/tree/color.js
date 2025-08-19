@@ -4,6 +4,21 @@ import colors from '../data/colors';
 //
 // RGB Colors - #ff0014, #eee
 //
+/**
+ * @typedef {Object} Color
+ * @property {Array<number>} rgb - RGB values array
+ * @property {number} alpha - Alpha value
+ * @property {string} [value] - Original form value
+ * @property {string} type - Always 'Color'
+ */
+
+/**
+ * RGB Colors - #ff0014, #eee
+ * @param {Array<number>|string} rgb - RGB values or hex string
+ * @param {number} [a] - Alpha value
+ * @param {string} [originalForm] - Original form
+ * @returns {Color}
+ */
 const Color = function(rgb, a, originalForm) {
     const self = this;
     //

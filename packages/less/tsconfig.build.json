@@ -1,7 +1,15 @@
 {
-  "extends": "./tsconfig",
   "compilerOptions": {
+    "outDir": "./lib",
+    "moduleResolution": "node",
     "rootDir": "./src",
+    "allowJs": true,
+    "sourceMap": true,
+    "inlineSources": true,
+    "esModuleInterop": true,
+    "importHelpers": true,
+    "target": "ES5",
+    "lib": ["ES5"]
   },
   "include": ["src/**/*"]
 }

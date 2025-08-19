@@ -5,9 +5,9 @@ const MathHelper = (fn, unit, n) => {
         throw { type: 'Argument', message: 'argument must be a number' };
     }
     if (unit === null) {
-        unit = n.unit;
+        unit = n.unit; // @ts-ignore - Dimension has unit property
     } else {
-        n = n.unify();
+        n = n.unify(); // @ts-ignore - Dimension has unify method
     }
     return new Dimension(fn(parseFloat(n.value)), unit);
 };

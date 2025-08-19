@@ -20,7 +20,7 @@ class Environment {
             if (environmentFunc) {
                 this[propName] = environmentFunc.bind(externalEnvironment);
             } else if (i < requiredFunctions.length) {
-                this.warn(`missing required function in environment - ${propName}`);
+                logger.warn(`missing required function in environment - ${propName}`);
             }
         }
     }

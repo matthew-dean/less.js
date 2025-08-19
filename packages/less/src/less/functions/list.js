@@ -42,7 +42,7 @@ export default {
      * Modeled after Lodash's range function, also exists natively in PHP
      * 
      * @param {Dimension} [start=1]
-     * @param {Dimension} end  - e.g. 10 or 10px - unit is added to output
+     * @param {Dimension} [end] - e.g. 10 or 10px - unit is added to output
      * @param {Dimension} [step=1] 
      */
     range: function(start, end, step) {
@@ -68,6 +68,9 @@ export default {
 
         return new Expression(list);
     },
+    /**
+     * @this {import('../types').FunctionContext}
+     */
     each: function(list, rs) {
         const rules = [];
         let newRules;

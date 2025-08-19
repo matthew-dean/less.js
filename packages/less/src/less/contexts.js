@@ -2,6 +2,12 @@ const contexts = {};
 export default contexts;
 import * as Constants from './constants';
 
+/**
+ * Copy properties from original object to destination object
+ * @param {Object} original - The source object
+ * @param {Object} destination - The target object
+ * @param {string[]} propertiesToCopy - Array of property names to copy
+ */
 const copyFromOriginal = function copyFromOriginal(original, destination, propertiesToCopy) {
     if (!original) { return; }
 
@@ -35,6 +41,12 @@ const parseCopyProperties = [
     'quiet',            // option - whether to log warnings
 ];
 
+/**
+ * Parse context constructor
+ * @constructor
+ * @param {import('./types').ParseContext} options - Parse options
+ * @this {import('./types').ParseContext}
+ */
 contexts.Parse = function(options) {
     copyFromOriginal(options, this, parseCopyProperties);
 
@@ -55,6 +67,13 @@ const evalCopyProperties = [
     'rewriteUrls'        // option - whether to adjust URL's to be relative
 ];
 
+/**
+ * Eval context constructor
+ * @constructor
+ * @param {import('./types').EvalContext} options - Evaluation options
+ * @param {Array<any>} [frames] - Evaluation frames (optional)
+ * @this {import('./types').EvalContext}
+ */
 contexts.Eval = function(options, frames) {
     copyFromOriginal(options, this, evalCopyProperties);
 
@@ -64,6 +83,10 @@ contexts.Eval = function(options, frames) {
     this.importantScope = this.importantScope || [];
 };
 
+/**
+ * Enter a calc() function context
+ * @this {import('./types').EvalContext}
+ */
 contexts.Eval.prototype.enterCalc = function () {
     if (!this.calcStack) {
         this.calcStack = [];
@@ -72,6 +95,10 @@ contexts.Eval.prototype.enterCalc = function () {
     this.inCalc = true;
 };
 
+/**
+ * Exit a calc() function context
+ * @this {import('./types').EvalContext}
+ */
 contexts.Eval.prototype.exitCalc = function () {
     this.calcStack.pop();
     if (!this.calcStack.length) {
@@ -79,6 +106,10 @@ contexts.Eval.prototype.exitCalc = function () {
     }
 };
 
+/**
+ * Enter a parenthesis context
+ * @this {import('./types').EvalContext}
+ */
 contexts.Eval.prototype.inParenthesis = function () {
     if (!this.parensStack) {
         this.parensStack = [];
@@ -86,12 +117,26 @@ contexts.Eval.prototype.inParenthesis = function () {
     this.parensStack.push(true);
 };
 
+/**
+ * Exit a parenthesis context
+ * @this {import('./types').EvalContext}
+ */
 contexts.Eval.prototype.outOfParenthesis = function () {
     this.parensStack.pop();
 };
 
+/** @type {boolean} */
 contexts.Eval.prototype.inCalc = false;
+/** @type {boolean} */
 contexts.Eval.prototype.mathOn = true;
+
+
+/**
+ * Check if math operations are enabled for the given operator
+ * @param {string} op - The operator to check
+ * @returns {boolean} Whether math is enabled for this operator
+ * @this {import('./types').EvalContext}
+ */
 contexts.Eval.prototype.isMathOn = function (op) {
     if (!this.mathOn) {
         return false;
@@ -100,17 +145,40 @@ contexts.Eval.prototype.isMathOn = function (op) {
         return false;
     }
     if (this.math > Constants.Math.PARENS_DIVISION) {
-        return this.parensStack && this.parensStack.length;
+        return Boolean(this.parensStack && this.parensStack.length);
     }
     return true;
 };
 
-contexts.Eval.prototype.pathRequiresRewrite = function (path) {
+/**
+ * Check if a path is relative
+ * @param {string} path - The path to check
+ * @returns {boolean} Whether the path is relative
+ * @this {import('./types').EvalContext}
+ */
+contexts.Eval.prototype.isPathRelative = function (path) {
     const isRelative = this.rewriteUrls === Constants.RewriteUrls.LOCAL ? isPathLocalRelative : isPathRelative;
-
     return isRelative(path);
 };
 
+/**
+ * Check if a path requires rewriting
+ * @param {string} path - The path to check
+ * @returns {boolean} Whether the path requires rewriting
+ * @this {import('./types').EvalContext}
+ */
+contexts.Eval.prototype.pathRequiresRewrite = function (path) {
+    const isRelative = this.rewriteUrls === Constants.RewriteUrls.LOCAL ? isPathLocalRelative : isPathRelative;
+    return isRelative(path);
+};
+
+/**
+ * Rewrite a path with rootpath
+ * @param {string} path - The path to rewrite
+ * @param {string} rootpath - The root path to prepend
+ * @returns {string} The rewritten path
+ * @this {import('./types').EvalContext}
+ */
 contexts.Eval.prototype.rewritePath = function (path, rootpath) {
     let newPath;
 
@@ -128,36 +196,52 @@ contexts.Eval.prototype.rewritePath = function (path, rootpath) {
     return newPath;
 };
 
+/**
+ * Normalize a path by resolving . and .. segments
+ * @param {string} path - The path to normalize
+ * @returns {string} The normalized path
+ * @this {import('./types').EvalContext}
+ */
 contexts.Eval.prototype.normalizePath = function (path) {
     const segments = path.split('/').reverse();
     let segment;
 
-    path = [];
+    const pathArray = [];
     while (segments.length !== 0) {
         segment = segments.pop();
         switch ( segment ) {
             case '.':
                 break;
             case '..':
-                if ((path.length === 0) || (path[path.length - 1] === '..')) {
-                    path.push( segment );
+                if ((pathArray.length === 0) || (pathArray[pathArray.length - 1] === '..')) {
+                    pathArray.push( segment );
                 } else {
-                    path.pop();
+                    pathArray.pop();
                 }
                 break;
             default:
-                path.push(segment);
+                pathArray.push(segment);
                 break;
         }
     }
 
-    return path.join('/');
+    return pathArray.join('/');
 };
 
+/**
+ * Check if a path is relative (not absolute)
+ * @param {string} path - The path to check
+ * @returns {boolean} Whether the path is relative
+ */
 function isPathRelative(path) {
     return !/^(?:[a-z-]+:|\/|#)/i.test(path);
 }
 
+/**
+ * Check if a path is locally relative (starts with .)
+ * @param {string} path - The path to check
+ * @returns {boolean} Whether the path is locally relative
+ */
 function isPathLocalRelative(path) {
     return path.charAt(0) === '.';
 }
