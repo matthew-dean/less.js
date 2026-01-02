@@ -19,11 +19,9 @@
   margin: 2cm;
   size: A4;
 }
-@media screen {
-  @media (max-width: 768px) {
-    .nested {
-      display: block;
-    }
+@media screen and (max-width: 768px) {
+  .nested {
+    display: block;
   }
 }
 @media screen {
