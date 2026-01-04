@@ -74,7 +74,7 @@
     } 
 }
 
-@container (width > 760px) not (height > 670px) {
+@container (width > 760px) and (not (height > 670px)) {
     .card-content h2 {
         padding: 0;
         margin: 0.5em 0 0 0;
@@ -95,7 +95,7 @@
     } 
 }
 
-@container (width < 500px) or (height < 500px) and (inline-size >= 0px) {
+@container ((width < 500px) or (height < 500px)) and (inline-size >= 0px) {
     .card-content p {
         padding: 0;
 
@@ -105,7 +105,7 @@
     } 
 }
 
-@container my-page-layout (width < 500px) or (height < 500px) and (block-size > 12em) {
+@container my-page-layout ((width < 500px) or (height < 500px)) and (block-size > 12em) {
     .card-content p {
         padding: 0;
 
@@ -115,7 +115,7 @@
     } 
 }
 
-@container (width < 500px) or (height < 500px) and (aspect-ratio: 3/2) {
+@container ((width < 500px) or (height < 500px)) and (aspect-ratio: 3/2) {
     .card-content p {
         padding: 0;
 
@@ -125,7 +125,7 @@
     } 
 }
 
-@container (width < 500px) or (height < 500px) and (orientation: portrait) {
+@container ((width < 500px) or (height < 500px)) and (orientation: portrait) {
     .card-content p {
         padding: 0;
 
@@ -159,7 +159,7 @@
     }
 }
 
-@container ( width < 500px ) or (height<500px) and (orientation: portrait) {
+@container ((width < 500px) or (height < 500px)) and (orientation: portrait) {
     .card-content p {
         padding: 0;
 
@@ -169,7 +169,7 @@
     } 
 }
 
-@container my-page-layout ( width< 500px) or ( height<500px) and ( block-size>12em ) {
+@container my-page-layout (( width< 500px) or ( height<500px)) and ( block-size>12em ) {
     .card-content p {
         padding: 0;
 
