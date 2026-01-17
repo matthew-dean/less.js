@@ -8,10 +8,13 @@
 .d {
   color: black;
 }
-:is(.g, :is(.i, .k).j).h {
+.g.h,
+.i.j.h,
+.k.j.h {
   color: black;
 }
-:is(.i, .k).j {
+.i.j,
+.k.j {
   color: inherit;
 }
 .l,
@@ -69,10 +72,10 @@
   .mc {
     color: inherit;
   }
-  @media (plasma) {
-    .me,
-    .mf {
-      background: red;
-    }
+}
+@media (tv) and (plasma) {
+  .me,
+  .mf {
+    background: red;
   }
 }
