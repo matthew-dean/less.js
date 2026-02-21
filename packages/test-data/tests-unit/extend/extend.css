@@ -47,16 +47,19 @@ div:is(.ext5, .ext7),
 .aa,
 .cc {
   color: black;
-}
-.aa :is(.dd, .ee) {
-  background: red;
+  .dd,
+  .ee,
+  .ff {
+    background: red;
+  }
 }
 .bb,
 .cc,
 .ee,
 .ff {
   background: red;
-}
-:is(.bb, .ff) :is(.bb, .ff) {
-  color: black;
+  .bb,
+  .ff {
+    color: black;
+  }
 }

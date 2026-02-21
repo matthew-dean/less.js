@@ -22,29 +22,35 @@ div:is(.ext5, .ext7),
 }
 :is(.replace, .rep_ace):is(.replace, .rep_ace),
 .c:is(.replace, .rep_ace) + :is(.replace, .rep_ace) {
-  :is(.replace, .rep_ace),
-  .c {
+  .replace,
+  .c,
+  .rep_ace {
     prop: copy-paste-replace;
   }
 }
 .attributes {
-  :is([data="test"], .attributes .attribute-test) {
+  [data="test"],
+  .attribute-test {
     extend: attributes;
   }
-  :is([data], .attributes .attribute-test2) {
+  [data],
+  .attribute-test2 {
     extend: attributes2;
   }
-  :is([data="test3"], .attributes .attribute-test) {
+  [data="test3"],
+  .attribute-test {
     extend: attributes2;
   }
 }
-:is(.header .header-nav, .footer .footer-nav) {
+.header .header-nav,
+.footer .footer-nav {
   background: red;
   &:before {
     background: blue;
   }
 }
-:is(.issue-2586-bordered, .issue-2586-somepage .content) {
+.issue-2586-bordered,
+.issue-2586-somepage .content {
   border: solid 1px black;
 }
 .issue-2586-somepage {
