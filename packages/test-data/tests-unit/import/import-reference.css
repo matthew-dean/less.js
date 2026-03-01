@@ -15,23 +15,22 @@ div#id.class[a=one][b=two].class:not(.one) {
 .visible {
   color: red;
 }
-.visible .c {
+:is(.visible) .c {
   color: green;
 }
 .visible {
   color: green;
 }
-.visible:hover {
+:is(.visible):hover {
   color: green;
 }
-.only-with-visible + .visible,
-.visible + .only-with-visible,
-.visible + .visible {
+.visible {
   color: green;
 }
-.only-with-visible + .visible .sub,
-.visible + .only-with-visible .sub,
-.visible + .visible .sub {
+:is(.only-with-visible, .visible) + :is(.only-with-visible, .visible) {
+  color: green;
+}
+:is(.only-with-visible, .visible) + :is(.only-with-visible, .visible) .sub {
   color: green;
 }
 @supports (something: else) {
@@ -44,12 +43,17 @@ div#id.class[a=one][b=two].class:not(.one) {
 }
 .b {
   color: red;
-  color: green;
 }
 .b .c {
   color: green;
 }
+.b {
+  color: green;
+}
 .b:hover {
+  color: green;
+}
+.b {
   color: green;
 }
 .b + .b {
