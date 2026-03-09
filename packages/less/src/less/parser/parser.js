@@ -475,21 +475,19 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                     const index = parserInput.i;
 
                     parserInput.save();
-                    
-                    let keywordEntity = this.entities.keyword();
-                    parserInput.restore();
-                    parserInput.save();
-                    
+
                     validCall = parserInput.$re(/^[\w]+\(/);
                     if (!validCall) {
                         parserInput.forget();
                         return;
-                    } else if (validCall && keywordEntity && !functionRegistry.get(validCall.substring(0, validCall.length - 1))) {
+                    }
+
+                    validCall = validCall.substring(0, validCall.length - 1);
+
+                    if (/^(and|or|not|only)$/i.test(validCall)) {
                         parserInput.restore();
                         return;
                     }
-                        
-                    validCall = validCall.substring(0, validCall.length - 1);
 
                     let rule = this.ruleProperty();
                     let value;
@@ -1888,6 +1886,9 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                     if (e) {
                         nodes.push(e);
                         if (e.type === 'Variable') {
+                            spacing = true;
+                        }
+                        if (e.type === 'Keyword' && /^(and|or|not|only)$/i.test(e.value)) {
                             spacing = true;
                         }
                     } else if (parserInput.$char('(')) {
