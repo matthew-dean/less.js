@@ -15,22 +15,19 @@ div#id.class[a=one][b=two].class:not(.one) {
 .visible {
   color: red;
 }
-:is(.visible) .c {
+.visible .c {
   color: green;
 }
 .visible {
   color: green;
 }
-:is(.visible):hover {
+.visible:hover {
   color: green;
 }
-.visible {
+.visible + .visible {
   color: green;
 }
-:is(.only-with-visible, .visible) + :is(.only-with-visible, .visible) {
-  color: green;
-}
-:is(.only-with-visible, .visible) + :is(.only-with-visible, .visible) .sub {
+.visible + .visible .sub {
   color: green;
 }
 @supports (something: else) {
