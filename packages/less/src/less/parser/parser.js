@@ -6,6 +6,7 @@ import * as utils from '../utils';
 import functionRegistry from '../functions/function-registry';
 import { ContainerSyntaxOptions, MediaSyntaxOptions } from '../tree/atrule-syntax';
 import logger from '../logger';
+import { DeprecationHandler } from '../deprecation';
 import Selector from '../tree/selector';
 import Anonymous from '../tree/anonymous';
 
@@ -59,26 +60,30 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
         );
     }
 
+    const deprecationHandler = new DeprecationHandler();
+
     /**
-     * 
-     * @param {string} msg 
-     * @param {number} index 
-     * @param {string} type 
+     * @param {string} msg
+     * @param {number} index
+     * @param {string} type
+     * @param {string} [deprecationId] - stable deprecation ID for repetition limiting
      */
-    function warn(msg, index, type) {
-        if (!context.quiet) {
-            logger.warn(
-                (new LessError(
-                    {
-                        index: index ?? parserInput.i,
-                        filename: fileInfo.filename,
-                        type: type ? `${type.toUpperCase()} WARNING` : 'WARNING',
-                        message: msg
-                    },
-                    imports
-                )).toString()
-            );
-        }
+    function warn(msg, index, type, deprecationId) {
+        if (context.quiet) { return; }
+        if (deprecationId && context.quietDeprecations) { return; }
+        if (deprecationId && !deprecationHandler.shouldWarn(deprecationId)) { return; }
+
+        logger.warn(
+            (new LessError(
+                {
+                    index: index ?? parserInput.i,
+                    filename: fileInfo.filename,
+                    type: type ? `${type.toUpperCase()} WARNING` : 'WARNING',
+                    message: msg
+                },
+                imports
+            )).toString()
+        );
     }
 
     function expect(arg, msg) {
@@ -401,7 +406,7 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                     }
                     parserInput.forget();
 
-                    return new(tree.Quoted)(str.charAt(0), str.substr(1, str.length - 2), isEscaped, index + currentIndex, fileInfo);
+                    return new(tree.Quoted)(str.charAt(0), str.slice(1, -1), isEscaped, index + currentIndex, fileInfo);
                 },
 
                 //
@@ -654,7 +659,8 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                     parserInput.save();
                     if (parserInput.currentChar() === '@' && (name = parserInput.$re(/^@@?[\w-]+/))) {
                         ch = parserInput.currentChar();
-                        if (ch === '(' || ch === '[' && !parserInput.prevChar().match(/^\s/)) {
+                        if ((ch === '(' && !parserInput.prevChar().match(/^\s/))
+                            || (ch === '[' && !parserInput.prevChar().match(/^\s/))) {
                             // this may be a VariableCall lookup
                             const result = parsers.variableCall(name);
                             if (result) {
@@ -691,15 +697,6 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                     }
                 },
 
-                // A property entity useing the protective {} e.g. ${prop}
-                propertyCurly: function () {
-                    let curly;
-                    const index = parserInput.i;
-
-                    if (parserInput.currentChar() === '$' && (curly = parserInput.$re(/^\$\{([\w-]+)\}/))) {
-                        return new(tree.Property)(`$${curly[1]}`, index + currentIndex, fileInfo);
-                    }
-                },
                 //
                 // A Hexadecimal color
                 //
@@ -789,8 +786,9 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
 
                     js = parserInput.$re(/^[^`]*`/);
                     if (js) {
+                        warn('Inline JavaScript evaluation (backtick expressions) is deprecated and will be removed in Less 5.x. Use Less functions or custom plugins instead.', index, 'DEPRECATED', 'js-eval');
                         parserInput.forget();
-                        return new(tree.JavaScript)(js.substr(0, js.length - 1), Boolean(escape), index + currentIndex, fileInfo);
+                        return new(tree.JavaScript)(js.slice(0, -1), Boolean(escape), index + currentIndex, fileInfo);
                     }
                     parserInput.restore('invalid javascript definition');
                 }
@@ -959,13 +957,13 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
 
                     if (elements) {
                         parensIndex = parserInput.i;
-                        if (parserInput.$char('(')) {
-                            parensWS = parserInput.isWhitespace(-2);
+                        parensWS = parserInput.isWhitespace(-1);
+                        if (parserInput.$char('(')) { 
                             args = this.args(true).args;
                             expectChar(')');
                             hasParens = true;
                             if (parensWS) {
-                                warn('Whitespace between a mixin name and parentheses for a mixin call is deprecated', parensIndex, 'DEPRECATED');
+                                warn('Whitespace between a mixin name and parentheses for a mixin call is deprecated', parensIndex, 'DEPRECATED', 'mixin-call-whitespace');
                             }
                         }
 
@@ -995,7 +993,7 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                             }
                             else {
                                 if (!hasParens) {
-                                    warn('Calling a mixin without parentheses is deprecated', parensIndex, 'DEPRECATED');
+                                    warn('Calling a mixin without parentheses is deprecated', parensIndex, 'DEPRECATED', 'mixin-call-no-parens');
                                 }
                                 return mixin;
                             }
@@ -1531,11 +1529,9 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
 
             blockRuleset: function() {
                 let block = this.block();
-
                 if (block) {
-                    block = new tree.Ruleset(null, block);
+                    return new tree.Ruleset(null, block);
                 }
-                return block;
             },
 
             detachedRuleset: function() {
@@ -1775,10 +1771,10 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                             const variableRegex = /@([\w-]+)/g;
                             const propRegex = /\$([\w-]+)/g;
                             if (variableRegex.test(item)) {
-                                warn('@[ident] in unknown values will not be evaluated as variables in the future. Use @{[ident]}', index, 'DEPRECATED');
+                                warn('@[ident] in unknown values will not be evaluated as variables in the future. Use @{[ident]}', index, 'DEPRECATED', 'variable-in-unknown-value');
                             }
                             if (propRegex.test(item)) {
-                                warn('$[ident] in unknown values will not be evaluated as property references in the future. Use ${[ident]}', index, 'DEPRECATED');
+                                warn('$[ident] in unknown values will not be evaluated as property references in the future. Use ${[ident]}', index, 'DEPRECATED', 'property-in-unknown-value');
                             }
                             quote.variableRegex = /@([\w-]+)|@{([\w-]+)}/g;
                             quote.propRegex = /\$([\w-]+)|\${([\w-]+)}/g;
@@ -1884,6 +1880,9 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                     e = entities.declarationCall.bind(this)() || entities.keyword() || entities.variable() || entities.mixinLookup()
                     if (e) {
                         nodes.push(e);
+                        if (e.type === 'Variable') {
+                            spacing = true;
+                        }
                     } else if (parserInput.$char('(')) {
                         p = this.property();
                         parserInput.save();
@@ -1902,7 +1901,7 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                         }
                         if (parserInput.$char(')')) {
                             if (p && !e) {
-                                nodes.push(new (tree.Paren)(new (tree.QueryInParens)(p.op, p.lvalue, p.rvalue, rangeP ? rangeP.op : null, rangeP ? rangeP.rvalue : null, p._index)));				 
+                                nodes.push(new (tree.Paren)(new (tree.QueryInParens)(p.op, p.lvalue, p.rvalue, rangeP ? rangeP.op : null, rangeP ? rangeP.rvalue : null, p._index)));
                                 e = p;
                             } else if (p && e) {
                                 nodes.push(new (tree.Paren)(new (tree.Declaration)(p, e, null, null, parserInput.i + currentIndex, fileInfo, true)));
@@ -1987,12 +1986,12 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                     if (parserInput.$str('@media')) {
                         return this.prepareAndGetNestableAtRule(tree.Media, index, debugInfo, MediaSyntaxOptions);
                     }
-                    
+
                     if (parserInput.$str('@container')) {
                         return this.prepareAndGetNestableAtRule(tree.Container, index, debugInfo, ContainerSyntaxOptions);
                     }
                 }
-                
+
                 parserInput.restore();
             },
 
@@ -2010,6 +2009,7 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                 const dir   = parserInput.$re(/^@plugin\s+/);
 
                 if (dir) {
+                    warn('The @plugin directive is deprecated and will be removed in Less 5.x. Use --plugin CLI option or the programmatic plugin API instead.', index, 'DEPRECATED', 'at-plugin');
                     args = this.pluginArgs();
 
                     if (args) {
@@ -2292,7 +2292,7 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                             let index = parserInput.i;
                             op = parserInput.$str('./');
                             if (op) {
-                                warn('./ operator is deprecated', index, 'DEPRECATED');
+                                warn('./ operator is deprecated', index, 'DEPRECATED', 'dot-slash-operator');
                             }
                         }
 
