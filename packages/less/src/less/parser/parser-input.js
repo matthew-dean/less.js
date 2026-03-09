@@ -45,7 +45,7 @@ export default () => {
      *   prevChar(): string
      *   getInput(): string
      *   peekNotNumeric(): boolean
-     *   start(str: string, chunkInput: boolean, failFunction: (message: string, index?: number) => void): void
+     *   start(str: string): void
      *   end(): {
      *     isFinished: boolean
      *     furthest: number
