@@ -28,25 +28,25 @@ function moduleShim() {
         },
         load(id) {
             if (id === '\0module') {
-                return `export function createRequire() { return require; }`;
+                return 'export function createRequire() { return require; }';
             }
             return null;
         }
     };
 }
 
-/** Inline package.json version - avoid runtime require of ../../package.json from wrong path */
+/** Inline package.json version - avoid runtime require of package.json from wrong path */
 function inlinePackageVersion() {
-    const version = JSON.stringify(pkg.version);
+    const version = JSON.stringify(pkg.version || '5.0.0-alpha.0');
     return {
         name: 'inline-package-version',
         transform(code, id) {
-            if (id.replace(/\\/g, '/').includes('less-node/index.js')) {
+            const normalized = id.replace(/\\/g, '/');
+            if (normalized.includes('lib/version.js')) {
                 return {
-                    code: code.replace(
-                        /const\s*\{\s*version\s*\}\s*=\s*require\s*\(\s*['"]\.\.\/\.\.\/package\.json['"]\s*\)/,
-                        `const version = ${version}`
-                    ),
+                    code: code
+                        .replace(/const require = createRequire\([^)]+\);\s*const pkg = require\([^)]+\);\s*/, '')
+                        .replace(/semver: pkg\.version \|\| '[^']*'/, `semver: ${version}`),
                     map: null
                 };
             }
@@ -59,7 +59,7 @@ async function buildLessNodeCjs() {
     const outFile = path.join(rootPath, outDir, 'less-node.cjs');
     console.log(`Writing ${outDir}/less-node.cjs...`);
     const bundle = await rollup({
-        input: './lib/less-node/index.js',
+        input: './lib/index.js',
         plugins: [
             moduleShim(),
             inlinePackageVersion(),
@@ -71,7 +71,8 @@ async function buildLessNodeCjs() {
     await bundle.write({
         file: outFile,
         format: 'cjs',
-        exports: 'default',
+        exports: 'auto',
+        inlineDynamicImports: true,
         banner
     });
 }
@@ -134,7 +135,13 @@ async function buildBrowser() {
 
 async function build() {
     await buildLessNodeCjs();
-    await buildBrowser();
+    const bootstrapPath = path.join(rootPath, 'lib', 'less-browser', 'bootstrap.js');
+    try {
+        await import('fs').then(fs => fs.promises.access(bootstrapPath));
+        await buildBrowser();
+    } catch {
+        console.log('Skipping browser build (lib/less-browser/bootstrap.js not found)');
+    }
 }
 
 build();

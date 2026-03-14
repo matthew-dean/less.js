@@ -10,13 +10,25 @@
  */
 
 import { Compiler } from 'jess';
-import { createLessOptions, mapRenderResult } from './options.js';
+import { createLessOptions, getCompilerCacheKey, mapRenderResult } from './options.js';
 import { version } from './version.js';
-import { Logger } from './logger.js';
+import { logger } from './logger.js';
 import { lesscHelper } from './lessc-helper.js';
 
-/** @type {import('./logger.js').Logger} */
-const logger = new Logger();
+const compilerCache = new Map();
+
+/**
+ * @param {object} configOptions
+ */
+function getCompiler(configOptions) {
+  const cacheKey = getCompilerCacheKey(configOptions);
+  let compiler = compilerCache.get(cacheKey);
+  if (!compiler) {
+    compiler = new Compiler(configOptions);
+    compilerCache.set(cacheKey, compiler);
+  }
+  return compiler;
+}
 
 /**
  * Render Less source to CSS.
@@ -33,7 +45,7 @@ function render(input, options = {}, callback) {
   }
   const promise = (async () => {
     const { configOptions, filePath } = createLessOptions(options);
-    const compiler = new Compiler(configOptions);
+    const compiler = getCompiler(configOptions);
 
     const result = await compiler.renderToResult(
       { source: input, filePath, language: 'less', extension: '.less' },
@@ -61,7 +73,7 @@ function render(input, options = {}, callback) {
  */
 async function renderFile(filePath, options = {}) {
   const { configOptions } = createLessOptions(options);
-  const compiler = new Compiler(configOptions);
+  const compiler = getCompiler(configOptions);
 
   const result = await compiler.renderToResult(filePath, configOptions);
   return mapRenderResult(result, options);

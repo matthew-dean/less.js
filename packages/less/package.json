@@ -30,9 +30,9 @@
 	"exports": {
 		".": {
 			"browser": "./dist/less.js",
-			"import": "./lib/less-node/index.js",
+			"import": "./lib/index.js",
 			"require": "./dist/less-node.cjs",
-			"default": "./lib/less-node/index.js"
+			"default": "./lib/index.js"
 		},
 		"./lib/*": "./lib/*",
 		"./dist/less-node.cjs": "./dist/less-node.cjs",
@@ -64,6 +64,8 @@
 		"lint:fix": "eslint '**/*.{ts,js}' --fix",
 		"typecheck": "tsc --noEmit",
 		"build": "node build/rollup.js --dist",
+		"benchmark": "node benchmark/benchmark-runner.cjs benchmark/benchmark.less 30 5 --math=always",
+		"benchmark:all": "node benchmark/run-and-compare.mjs",
 		"prepublishOnly": "npm run typecheck && grunt dist && grunt test:node"
 	},
 	"optionalDependencies": {
@@ -158,7 +160,9 @@
 	"rawcurrent": "https://raw.github.com/less/less.js/v",
 	"sourcearchive": "https://github.com/less/less.js/archive/v",
 	"dependencies": {
+		"@jesscss/core": "link:../../../../../oss/jess/packages/core",
 		"copy-anything": "^3.0.5",
+		"jess": "link:../../../../../oss/jess/packages/jess",
 		"parse-node-version": "^1.0.1"
 	},
 	"gitHead": "1df9072ee9ebdadc791bf35dfb1dbc3ef9f1948f"
