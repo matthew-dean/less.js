@@ -1,0 +1,304 @@
+# Linecraft Debug Log
+# This file will be appended to during rendering operations
+# Monitor this file to see debug output from expandTo() and renderNow()
+
+[2026-03-13T22:27:01.556Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.557Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.557Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.557Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.557Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.558Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.558Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.558Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.558Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.558Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.590Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.590Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.590Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.590Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.591Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.591Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.591Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.591Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.591Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.591Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.624Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.624Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.624Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.624Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.624Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.624Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.625Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.625Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.625Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.625Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.656Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.656Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.656Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.656Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.656Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.656Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.656Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.656Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.656Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.657Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.692Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.692Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.692Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.692Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.692Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.692Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.692Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.692Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.692Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.692Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.728Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.728Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.728Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.728Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.728Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.728Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.728Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.728Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.729Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.729Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.763Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.763Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.763Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.763Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.763Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.763Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.763Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.763Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.763Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.763Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.797Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.797Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.797Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.797Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.797Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.797Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.797Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.797Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.797Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.797Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.828Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.829Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.829Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.829Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.829Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.829Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.829Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.829Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.829Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.829Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.862Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.862Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.862Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.862Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.863Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.863Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.863Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.863Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.863Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.863Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.895Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.895Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.896Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.896Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.896Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.896Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.896Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.896Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.896Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.896Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.928Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.928Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.928Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.928Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.928Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.928Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.928Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.928Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.928Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.928Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.961Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.961Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.961Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.961Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.961Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.961Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.961Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.961Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.961Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.961Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.995Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.995Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.995Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.995Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.995Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.995Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.995Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.995Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:01.995Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:01.995Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.028Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.028Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.028Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.028Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.028Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.028Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.029Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.029Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.029Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.029Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.062Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.062Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.062Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.062Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.062Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.062Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.062Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.062Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.062Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.062Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.097Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.097Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.097Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.097Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.097Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.097Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.097Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.097Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.097Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.097Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.129Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.129Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.130Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.130Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.130Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.130Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.130Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.130Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.130Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.130Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.164Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.164Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.164Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.164Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.164Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.164Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.164Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.165Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.165Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.165Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.196Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.197Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.197Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.197Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.197Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.197Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.197Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.197Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.197Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.197Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.231Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.231Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.231Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.231Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.231Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.231Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.231Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.231Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.231Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.231Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.266Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.266Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.266Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.266Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.266Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.266Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.266Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.266Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.266Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.266Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.298Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.298Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.298Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.298Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.298Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.298Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.298Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.298Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.298Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.298Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.331Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.331Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.331Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.331Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.331Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.331Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.331Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.331Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.332Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.332Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.364Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.364Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.364Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.364Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.364Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.364Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.364Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.364Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.364Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.365Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.397Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.397Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.397Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.397Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.397Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.397Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.397Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.397Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.397Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.397Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.428Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.428Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.428Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.428Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.429Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.429Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.429Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.429Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.429Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.429Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.461Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.461Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.461Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.461Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.461Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.462Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.462Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.462Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.462Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.462Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.495Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.495Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.495Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.495Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.495Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.495Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.495Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.495Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.495Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.495Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.526Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.526Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.526Z] [code-debug] Width: 76, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.526Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.526Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.526Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.526Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.526Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4
+[2026-03-13T22:27:02.526Z] [code-debug] Width: 75, OriginalCol: 1, DisplayPos: 1, Char: '?' (expected '?'), VisibleRange: 1-0, Truncated: "..."
+[2026-03-13T22:27:02.526Z] [code-debug] lineNumWidth: 1, spacesBefore: 0, connectCol: 1, underlineStartInCode: 1, connectPosInIndicator: 4

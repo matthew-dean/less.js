@@ -29,6 +29,9 @@ export function createLessOptions(options) {
   const opts = options || {};
   const filePath = opts.filename || undefined;
 
+  // Jess Compiler expects { compile: {}, output: {}, language: {} }
+  // compile.searchPaths → context opts.searchPaths (for @import resolution)
+  // compile.plugins adds to core less plugin (e.g. less-compat for @plugin)
   const math = /** @type {number|string|undefined} */ (opts.math);
   const mathMode =
     math === 0 || math === 'always' ? 'always' :

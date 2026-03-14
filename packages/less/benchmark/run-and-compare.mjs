@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * Run benchmarks and compare against historical data.
+ * Usage: node benchmark/run-and-compare.mjs [--runs 30] [--warmup 5]
  */
 
 import { spawn } from 'child_process';
@@ -18,86 +19,89 @@ const RUNS = parseInt(process.env.BENCH_RUNS || '30');
 const WARMUP = parseInt(process.env.BENCH_WARMUP || '5');
 
 function runBenchmark(file) {
-  return new Promise((resolve, reject) => {
-    const proc = spawn('node', [
-      path.join(BENCH_DIR, 'benchmark-runner.cjs'),
-      path.join(BENCH_DIR, file),
-      String(RUNS),
-      String(WARMUP),
-      '--math=always'
-    ], {
-      cwd: path.join(BENCH_DIR, '..'),
-      stdio: ['ignore', 'pipe', 'pipe']
+    return new Promise((resolve, reject) => {
+        const proc = spawn('node', [
+            path.join(BENCH_DIR, 'benchmark-runner.cjs'),
+            path.join(BENCH_DIR, file),
+            String(RUNS),
+            String(WARMUP),
+            '--math=always'
+        ], {
+            cwd: path.join(BENCH_DIR, '..'),
+            stdio: ['ignore', 'pipe', 'pipe']
+        });
+        let out = '';
+        let err = '';
+        proc.stdout.on('data', (d) => { out += d; });
+        proc.stderr.on('data', (d) => { err += d; });
+        proc.on('close', (code) => {
+            if (code !== 0) {
+                reject(new Error(`benchmark-runner exited ${code}: ${err || out}`));
+                return;
+            }
+            try {
+                resolve(JSON.parse(out.trim()));
+            } catch (e) {
+                reject(new Error(`Failed to parse output: ${out}`));
+            }
+        });
     });
-    let out = '';
-    let err = '';
-    proc.stdout.on('data', d => { out += d; });
-    proc.stderr.on('data', d => { err += d; });
-    proc.on('close', code => {
-      if (code !== 0) {
-        reject(new Error(`benchmark-runner exited ${code}: ${err || out}`));
-        return;
-      }
-      try {
-        resolve(JSON.parse(out.trim()));
-      } catch {
-        reject(new Error(`Failed to parse output: ${out}`));
-      }
-    });
-  });
 }
 
 function loadHistorical() {
-  if (!existsSync(LATEST_FILE)) return null;
-  const data = JSON.parse(readFileSync(LATEST_FILE, 'utf8'));
-  const v4 = data.versions?.find(v => v.version?.startsWith('4.5'))
-    || data.versions?.filter(v => v.version?.startsWith('4.')).pop();
-  return v4?.benchmarks || null;
+    if (!existsSync(LATEST_FILE)) return null;
+    const data = JSON.parse(readFileSync(LATEST_FILE, 'utf8'));
+    // Find v4.5.1 (or latest v4.x) for comparison
+    const v4 = data.versions?.find((v) => v.version?.startsWith('4.5')) ||
+    data.versions?.filter((v) => v.version?.startsWith('4.')).pop();
+    return v4?.benchmarks || null;
 }
 
 async function main() {
-  console.log('Running benchmarks (Jess wrapper)...\n');
-  const results = {};
-  for (const file of FILES) {
-    process.stderr.write(`  ${file}... `);
-    try {
-      const result = await runBenchmark(file);
-      results[file] = result;
-      process.stderr.write(`avg ${result.render?.avg?.toFixed(1)}ms\n`);
-    } catch (error) {
-      results[file] = { error: error.message };
-      process.stderr.write('ERROR\n');
+    console.log('Running benchmarks (Jess wrapper)...\n');
+    const results = {};
+    for (const file of FILES) {
+        process.stderr.write(`  ${file}... `);
+        try {
+            const r = await runBenchmark(file);
+            results[file] = r;
+            process.stderr.write(`avg ${r.render?.avg?.toFixed(1)}ms\n`);
+        } catch (e) {
+            results[file] = { error: e.message };
+            process.stderr.write('ERROR\n');
+        }
     }
-  }
 
-  const historical = loadHistorical();
-  console.log('\n--- Comparison vs Less v4.5.x (historical) ---\n');
-  const rows = FILES.map(file => {
-    const jess = results[file];
-    const hist = historical?.[file];
-    const jessAvg = jess?.render?.avg;
-    const histAvg = hist?.render?.avg;
-    const ratio = jessAvg && histAvg ? (jessAvg / histAvg).toFixed(1) : '-';
-    return {
-      file,
-      jess: jessAvg != null ? `${jessAvg.toFixed(1)}ms` : (jess?.error || '-'),
-      less: histAvg != null ? `${histAvg.toFixed(1)}ms` : '-',
-      ratio: histAvg ? `${ratio}x` : '-'
-    };
-  });
+    const historical = loadHistorical();
+    console.log('\n--- Comparison vs Less v4.5.x (historical) ---\n');
 
-  const col = (s, w) => String(s).padEnd(w);
-  console.log(`${col('File', 22)} ${col('Jess (avg)', 12)} ${col('Less 4.5', 12)} ${col('Ratio', 8)}`);
-  console.log('-'.repeat(58));
-  for (const row of rows) {
-    console.log(`${col(row.file, 22)} ${col(row.jess, 12)} ${col(row.less, 12)} ${col(row.ratio, 8)}`);
-  }
+    const rows = [];
+    for (const file of FILES) {
+        const jess = results[file];
+        const hist = historical?.[file];
+        const jessAvg = jess?.render?.avg;
+        const histAvg = hist?.render?.avg;
+        const ratio = jessAvg && histAvg ? (jessAvg / histAvg).toFixed(1) : '-';
+        rows.push({
+            file,
+            jess: jessAvg != null ? `${jessAvg.toFixed(1)}ms` : (jess?.error || '-'),
+            less: histAvg != null ? `${histAvg.toFixed(1)}ms` : '-',
+            ratio: histAvg ? `${ratio}x` : '-'
+        });
+    }
 
-  console.log('\n(Historical data from benchmark/results/latest/macbook-pro_arm64.json)');
-  console.log('Same machine (M4 Pro) for fair comparison. Jess is a new compiler; Less has years of optimization.');
+    const col = (s, w) => String(s).padEnd(w);
+    console.log(`${col('File', 22)} ${col('Jess (avg)', 12)} ${col('Less 4.5', 12)} ${col('Ratio', 8)}`);
+    console.log('-'.repeat(58));
+    for (const r of rows) {
+        console.log(`${col(r.file, 22)} ${col(r.jess, 12)} ${col(r.less, 12)} ${col(r.ratio, 8)}`);
+    }
+
+    console.log('\n(Historical data from benchmark/results/latest/macbook-pro_arm64.json)');
+    console.log('Same machine (M4 Pro) for fair comparison. Jess is a new compiler; Less has years of optimization.');
 }
 
-main().catch(error => {
-  console.error(error);
-  process.exit(1);
+main().catch((e) => {
+    console.error(e);
+    process.exit(1);
 });

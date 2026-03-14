@@ -18,7 +18,7 @@ let verbose = false;
 
 function printUsage() {
   less.lesscHelper.printUsage();
-  process.exit(0);
+   process.exit(0);
 }
 
 function parseArgs() {
@@ -99,7 +99,7 @@ async function run() {
       const data = await new Promise((resolve, reject) => {
         let buf = '';
         process.stdin.setEncoding('utf8');
-        process.stdin.on('data', chunk => { buf += chunk; });
+        process.stdin.on('data', (chunk) => { buf += chunk; });
         process.stdin.on('end', () => resolve(buf));
         process.stdin.on('error', reject);
       });
