@@ -48,8 +48,7 @@ div:is(.ext5, .ext7),
 .cc {
   color: black;
   .dd,
-  .ee,
-  .ff {
+  .ee {
     background: red;
   }
 }
