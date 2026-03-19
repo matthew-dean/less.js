@@ -12,10 +12,6 @@
 	"bugs": {
 		"url": "https://github.com/less/less.js/issues"
 	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/less/less.js.git"
-	},
 	"license": "Apache-2.0",
 	"repository": {
 		"type": "git",

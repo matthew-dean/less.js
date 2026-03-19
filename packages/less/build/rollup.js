@@ -5,6 +5,7 @@ import { nodeResolve as resolve } from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 import banner from './banner.js';
 import path from 'path';
+import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { createRequire } from 'module';
 import minimist from 'minimist';
@@ -18,6 +19,7 @@ const args = minimist(process.argv.slice(2));
 
 let outDir = args.dist ? './dist' : './tmp';
 
+/** Virtual 'module' for CJS bundle - provides createRequire that returns CJS require */
 function moduleShim() {
   return {
     name: 'module-shim',
@@ -34,6 +36,7 @@ function moduleShim() {
   };
 }
 
+/** Inline package.json version - avoid runtime require of package.json from wrong path */
 function inlinePackageVersion() {
   const version = JSON.stringify(pkg.version || '5.0.0-alpha.0');
   return {
@@ -133,10 +136,9 @@ async function buildBrowser() {
 async function build() {
   await buildLessNodeCjs();
   const bootstrapPath = path.join(rootPath, 'lib', 'less-browser', 'bootstrap.js');
-  try {
-    await import('fs').then(fs => fs.promises.access(bootstrapPath));
+  if (existsSync(bootstrapPath)) {
     await buildBrowser();
-  } catch {
+  } else {
     console.log('Skipping browser build (lib/less-browser/bootstrap.js not found)');
   }
 }

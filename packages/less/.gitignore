@@ -1,4 +1,5 @@
 # project-specific
+lib.bak
 tmp
 dist
 test/browser/less.min.js
