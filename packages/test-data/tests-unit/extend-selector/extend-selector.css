@@ -1,62 +1,87 @@
-:is(.foo, .ext1 .ext2, .ext3, .ext4) .bar,
-:is(.foo, .ext1 .ext2, .ext3, .ext4) .baz {
+.error,
+.badError {
+  border: 1px #f00;
+  background: #fdd;
+}
+.error.intrusion,
+.badError.intrusion {
+  font-size: 1.3em;
+  font-weight: bold;
+}
+.intrusion .error,
+.intrusion .badError {
   display: none;
 }
-div:is(.ext5, .ext7),
-.ext6 > :is(.ext5, .ext7) {
+.badError {
+  border-width: 3px;
+}
+.foo .bar,
+.foo .baz,
+.ext1 .ext2 .bar,
+.ext1 .ext2 .baz,
+.ext3 .bar,
+.ext3 .baz,
+.ext4 .bar,
+.ext4 .baz {
+  display: none;
+}
+div.ext5,
+.ext6 > .ext5,
+div.ext7,
+.ext6 > .ext7 {
   width: 100px;
 }
 .ext,
-:is(.a, .b) .c {
+.a .c,
+.b .c {
   test: 1;
 }
 .a,
 .b {
   test: 2;
-  .c {
-    test: 3;
-    .d {
-      test: 4;
-    }
-  }
 }
-:is(.replace, .rep_ace):is(.replace, .rep_ace),
-.c:is(.replace, .rep_ace) + :is(.replace, .rep_ace) {
-  .replace,
-  .c,
-  .rep_ace {
-    prop: copy-paste-replace;
-  }
+.a .c,
+.b .c {
+  test: 3;
 }
-.attributes {
-  [data="test"],
-  .attribute-test {
-    extend: attributes;
-  }
-  [data],
-  .attribute-test2 {
-    extend: attributes2;
-  }
-  [data="test3"],
-  .attribute-test {
-    extend: attributes2;
-  }
+.a .c .d,
+.b .c .d {
+  test: 4;
+}
+.replace.replace .replace,
+.c.replace + .replace .replace,
+.replace.replace .c,
+.c.replace + .replace .c,
+.rep_ace.rep_ace .rep_ace,
+.c.rep_ace + .rep_ace .rep_ace,
+.rep_ace.rep_ace .c,
+.c.rep_ace + .rep_ace .c {
+  prop: copy-paste-replace;
+}
+.attributes [data="test"],
+.attributes .attributes .attribute-test {
+  extend: attributes;
+}
+.attributes [data],
+.attributes .attributes .attribute-test2 {
+  extend: attributes2;
+}
+.attributes [data="test3"],
+.attributes .attributes .attribute-test {
+  extend: attributes2;
 }
 .header .header-nav,
 .footer .footer-nav {
   background: red;
-  &:before {
-    background: blue;
-  }
+}
+.header .header-nav:before,
+.footer .footer-nav:before {
+  background: blue;
 }
 .issue-2586-bordered,
 .issue-2586-somepage .content {
   border: solid 1px black;
 }
-.issue-2586-somepage {
-  .content {
-    & > span {
-      margin-bottom: 10px;
-    }
-  }
+.issue-2586-somepage .content > span {
+  margin-bottom: 10px;
 }

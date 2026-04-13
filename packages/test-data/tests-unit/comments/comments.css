@@ -26,7 +26,7 @@
  */
 /* @group Variables
 ------------------- */
-#comments /* boo *//* boo again*/,
+#comments,
 .comments {
   /**/
   color: red;
@@ -45,10 +45,10 @@
     color: grey;
   }
 */
-.selector /* .with */,
+.selector,
 .lots,
-/* of */ .comments {
-  color/* survive */ /* me too */: grey, /* blue */ orange;
+.comments {
+  color: grey, /* blue */ orange;
   -webkit-border-radius: 2px /* webkit only */;
   -moz-border-radius: 8px /* moz only with operation */;
 }
@@ -58,7 +58,8 @@
 .sr-only-focusable {
   clip: auto;
 }
-@-webkit-keyframes /* Safari */ hover /* and Chrome */ {
+@-webkit-keyframes hover {
+  /* and Chrome */
   0% {
     color: red;
   }

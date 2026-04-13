@@ -44,6 +44,7 @@ function inlinePackageVersion() {
         return {
           code: code
             .replace(/const require = createRequire\([^)]+\);\s*const pkg = require\([^)]+\);\s*/, '')
+            .replace(/const semver = pkg\.version \|\| '[^']*';/, `const semver = ${version};`)
             .replace(/semver: pkg\.version \|\| '[^']*'/, `semver: ${version}`),
           map: null
         };

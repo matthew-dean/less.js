@@ -16,6 +16,7 @@ import { logger } from './logger.js';
 import { lesscHelper } from './lessc-helper.js';
 
 const compilerCache = new Map();
+const lessVersion = version.array;
 
 /**
  * @param {object} configOptions
@@ -81,7 +82,7 @@ async function renderFile(filePath, options = {}) {
 
 /** @type {import('./types.js').LessStatic} */
 const less = {
-  version: version.semver,
+  version: lessVersion,
   render,
   renderFile,
   logger,
@@ -90,4 +91,4 @@ const less = {
 };
 
 export default less;
-export { render, renderFile, version, logger, lesscHelper, Compiler };
+export { render, renderFile, logger, lesscHelper, Compiler, lessVersion as version };

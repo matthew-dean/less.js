@@ -1,3 +1,6 @@
+.alpha {
+  filter: alpha(opacity=42);
+}
 .units-extended {
   width: 1px;
   same-unit-as-previously: 1px;

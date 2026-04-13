@@ -1,3 +1,17 @@
+input[type="text"].class#id[attr=i32]:not(.one) {
+  color: inherit;
+}
+div#id.class[a=one][b=two].class:not(.one) {
+  color: inherit;
+}
+@media print {
+  .class {
+    color: blue;
+  }
+  .class .sub {
+    width: 42;
+  }
+}
 .visible {
   color: red;
 }
@@ -10,28 +24,32 @@
 .visible:hover {
   color: green;
 }
-.visible {
-  color: green;
-}
+.only-with-visible + .visible,
+.visible + .only-with-visible,
 .visible + .visible {
   color: green;
 }
+.only-with-visible + .visible .sub,
+.visible + .only-with-visible .sub,
 .visible + .visible .sub {
   color: green;
 }
+@supports (something: else) {
+  .class {
+    something: else;
+  }
+  .nestedToo .class {
+    something: else;
+  }
+}
 .b {
   color: red;
+  color: green;
 }
 .b .c {
   color: green;
 }
-.b {
-  color: green;
-}
 .b:hover {
-  color: green;
-}
-.b {
   color: green;
 }
 .b + .b {

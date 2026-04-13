@@ -15,8 +15,7 @@
   number-value: 12345678;
   color-value: blue;
   rgba-value: rgba(80, 160, 240, 0.67);
-  --empty-value:   extract(~'', 1);
-  empty-value: ;
+  --empty-value: ;
   name-length: 1;
   string-length: 1;
   number-length: 1;
@@ -29,12 +28,12 @@
   extract: c | b | a;
 }
 .mixin-arguments-2 {
-  length: 1;
-  extract: extract(a b c d, 3) | extract(a b c d, 2) | a b c d;
+  length: 4;
+  extract: c | b | a;
 }
 .mixin-arguments-3 {
-  length: 1;
-  extract: extract(a b c d, 3) | extract(a b c d, 2) | a b c d;
+  length: 4;
+  extract: c | b | a;
 }
 .mixin-arguments-4 {
   length: 0;

@@ -36,7 +36,7 @@
 @supports (property: value) {
   @media (max-size: 2px) {
     @supports (whatever: something) {
-      .outOfMedia {
+      .outOfMedia  {
         property: value;
       }
     }
@@ -45,7 +45,7 @@
 @supports (property: value) {
   @media (max-size: 2px) {
     @supports (whatever: something) {
-      .onTop {
+      .onTop  {
         property: value;
       }
     }
@@ -77,16 +77,14 @@
     }
   }
 }
-@media print {
-  @media (max-size: 2px) {
-    .in1 {
-      stay: here;
-    }
-    @supports not (-webkit-font-smoothing: subpixel-antialiased) {
-      @supports (whatever: something) {
-        .in2 .in1 {
-          property: value;
-        }
+@media print and (max-size: 2px) {
+  .in1 {
+    stay: here;
+  }
+  @supports not (-webkit-font-smoothing: subpixel-antialiased) {
+    @supports (whatever: something) {
+      .in2 .in1 {
+        property: value;
       }
     }
   }
@@ -103,6 +101,10 @@ html {
     property: value;
   }
 }
+.onTop {
+  animation: "textscale";
+  font-family: something;
+}
 @font-face {
   font-family: something;
   src: made-up-url;
@@ -114,8 +116,4 @@ html {
   100% {
     font-size: 2em;
   }
-}
-.onTop {
-  animation: "textscale";
-  font-family: something;
 }

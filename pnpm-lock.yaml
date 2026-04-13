@@ -30,14 +30,17 @@ importers:
   packages/less:
     dependencies:
       '@jesscss/core':
-        specifier: link:../../../../jess-dev/packages/core
-        version: link:../../../../jess-dev/packages/core
+        specifier: link:../../../../oss/jess/packages/core
+        version: link:../../../jess/packages/core
+      '@jesscss/plugin-less-compat':
+        specifier: link:../../../../oss/jess/packages/jess-plugin-less-compat
+        version: link:../../../jess/packages/jess-plugin-less-compat
       copy-anything:
         specifier: ^3.0.5
         version: 3.0.5
       jess:
-        specifier: link:../../../../jess-dev/packages/jess
-        version: link:../../../../jess-dev/packages/jess
+        specifier: link:../../../../oss/jess/packages/jess
+        version: link:../../../jess/packages/jess
       parse-node-version:
         specifier: ^1.0.1
         version: 1.0.1

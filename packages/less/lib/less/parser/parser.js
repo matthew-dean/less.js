@@ -1891,22 +1891,61 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
                             spacing = true;
                         }
                     } else if (parserInput.$char('(')) {
+                        let closed = false;
                         p = this.property();
                         parserInput.save();
-                        if (!p && syntaxOptions.queryInParens && parserInput.$re(/^[0-9a-z-]*\s*([<>]=|<=|>=|[<>]|=)/)) {
+                        if (!p && syntaxOptions.queryInParens) {
                             parserInput.restore();
-                            p = this.condition();
-
                             parserInput.save();
-                            rangeP = this.atomicCondition(null, p.rvalue);
-                            if (!rangeP) {
+                            const queryCondition = this.condition();
+
+                            // Keep plain boolean features like `(hover)` and `(color)` as values so
+                            // they round-trip unchanged; only treat richer conditions as queries.
+                            if (queryCondition && (
+                                queryCondition.negate ||
+                                /^(and|or)$/i.test(queryCondition.op) ||
+                                (queryCondition.op === '=' &&
+                                    queryCondition.rvalue && queryCondition.rvalue.type === 'Keyword' && queryCondition.rvalue.value === 'true')
+                            )) {
                                 parserInput.restore();
+                            } else {
+                                parserInput.forget();
+                                p = queryCondition;
+                            }
+
+                            if (p) {
+                                parserInput.save();
+                                rangeP = this.atomicCondition(null, p.rvalue);
+                                if (!rangeP) {
+                                    parserInput.restore();
+                                }
+                            } else {
+                                parserInput.save();
+                                e = this.value();
+                                if (e && parserInput.$char(')')) {
+                                    closed = true;
+                                    parserInput.forget();
+                                } else {
+                                    parserInput.restore();
+                                    e = this.mediaFeature(syntaxOptions);
+                                }
                             }
                         } else {
                             parserInput.restore();
+                            parserInput.save();
                             e = this.value();
+                            if (e && parserInput.$char(')')) {
+                                closed = true;
+                                parserInput.forget();
+                            } else {
+                                parserInput.restore();
+                                e = this.mediaFeature(syntaxOptions);
+                            }
                         }
-                        if (parserInput.$char(')')) {
+                        if (!closed && parserInput.$char(')')) {
+                            closed = true;
+                        }
+                        if (closed) {
                             if (p && !e) {
                                 nodes.push(new (tree.Paren)(new (tree.QueryInParens)(p.op, p.lvalue, p.rvalue, rangeP ? rangeP.op : null, rangeP ? rangeP.rvalue : null, p._index)));
                                 e = p;
@@ -2423,7 +2462,7 @@ const Parser = function Parser(context, imports, fileInfo, currentIndex) {
             },
             negatedCondition: function (needsParens) {
                 if (parserInput.$str('not')) {
-                    const result = this.parenthesisCondition(needsParens);
+                    const result = this.parenthesisCondition(needsParens) || this.atomicCondition(needsParens);
                     if (result) {
                         result.negate = !result.negate;
                     }
