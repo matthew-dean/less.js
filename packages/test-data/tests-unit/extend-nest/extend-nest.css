@@ -23,17 +23,14 @@
 .submit {
   color: black;
 }
-.button:hover,
-.submit:hover {
+:is(.button, .submit):hover {
   color: inherit;
 }
 .button2 :hover {
   nested: white;
-}
-.button2 :hover {
   notnested: black;
 }
 .amp-test-h,
-.amp-test-f:is(.amp-test-c :is(.amp-test-a, .amp-test-b).amp-test-d:is(.amp-test-a, .amp-test-b).amp-test-e) + :is(.amp-test-c :is(.amp-test-a, .amp-test-b).amp-test-d:is(.amp-test-a, .amp-test-b).amp-test-e).amp-test-g {
+.amp-test-f:is(.amp-test-c :is(.amp-test-a, .amp-test-b).amp-test-d:is(.amp-test-a, .amp-test-b).amp-test-e ) + :is(.amp-test-c :is(.amp-test-a, .amp-test-b).amp-test-d:is(.amp-test-a, .amp-test-b).amp-test-e ).amp-test-g {
   test: extended by masses of selectors;
 }

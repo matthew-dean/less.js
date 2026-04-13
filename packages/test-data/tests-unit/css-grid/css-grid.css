@@ -2,8 +2,6 @@
   display: grid;
   grid-template-columns: [col1-start] 9fr [col1-end] 10px [col2-start] 3fr [col2-end];
   grid-template-rows: auto;
-}
-.wrapper {
   display: grid;
   grid-template-columns: [left-bound] auto [container-left] 1170px [container-right] auto [right-bound];
   grid-template-rows: [row-1-start] 140px [row-2-start] 390px [row-3-start] 200px [row-4-start] 120px [row-5-start] 120px [row-6-start] 120px;

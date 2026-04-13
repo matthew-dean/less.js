@@ -10,9 +10,6 @@
 .visible:hover {
   color: green;
 }
-.visible {
-  color: green;
-}
 .visible + .visible {
   color: green;
 }
