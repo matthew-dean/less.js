@@ -9,7 +9,7 @@
   desaturate: #29332f;
   desaturate-relative: #233930;
   greyscale: #2e2e2e;
-  hsl-clamp: hsl(20, 100%, 100%);
+  hsl-clamp: hsl(0, 0%, 100%);
   spin-p: hsl(20, 50%, 50%);
   spin-n: hsl(350, 50%, 50%);
   luma-white: 100%;
@@ -114,7 +114,7 @@
   color-quoted-digit: #dda0dd;
   color-quoted-keyword: #dda0dd;
   color-color: #dda0dd;
-  color-keyword: plum;
+  color-keyword: #dda0dd;
   tint: #898989;
   tint-full: #ffffff;
   tint-percent: #898989;
@@ -129,13 +129,13 @@
   fade-in-relative: rgba(255, 0, 0, 0.945);
   fade-out2: rgba(255, 0, 0, 0);
   fade-out2-relative: rgba(255, 0, 0, 0.25);
-  hsv: hsl(5, 33.33333333%, 22.5%);
+  hsv: #4d2926;
   hsva: rgba(77, 40, 38, 0.2);
   mix: #ff3300;
   mix-0: #ffff00;
   mix-100: #ff0000;
   mix-weightless: #ff8000;
-  mixt: #ff000080;
+  mixt: rgba(255, 0, 0, 0.5);
 }
 #built-in .is-a {
   rules-defined: true;
