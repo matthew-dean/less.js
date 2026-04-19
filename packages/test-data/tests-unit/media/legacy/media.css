@@ -269,13 +269,3 @@
     color: red;
   }
 }
-@media screen and (max-width: 1280px) {
-  .form-process-table {
-    color: red;
-  }
-}
-@media ((color) and (hover)), all {
-  body {
-    background: green;
-  }
-}

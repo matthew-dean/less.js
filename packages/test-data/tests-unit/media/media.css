@@ -216,11 +216,6 @@
       display: table-cell;
     }
   }
-  @media (min-width: 480px) {
-    .menu > li {
-      display: table-cell;
-    }
-  }
 }
 @media all and (tv) {
   .all-and-tv-variables {
@@ -283,10 +278,5 @@
 @media screen and (max-width: 1280px) {
   .form-process-table {
     color: red;
-  }
-}
-@media ((color) and (hover)), all {
-  body {
-    background: green;
   }
 }

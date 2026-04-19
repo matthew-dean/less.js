@@ -3,14 +3,10 @@
 }
 .foo {
   a: 1;
-}
-.foo {
   a: 2;
 }
 #foo {
   a: 3;
-}
-#foo {
   a: 4;
 }
 mi-test-a {
