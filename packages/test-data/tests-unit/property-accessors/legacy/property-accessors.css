@@ -27,23 +27,23 @@
 }
 .block_3 {
   color: red;
+  color: yellow;
 }
 .block_3 .three {
   background-color: blue;
 }
 .block_3 {
-  color: yellow;
   color: blue;
 }
 .block_4 {
   color: red;
+  color: yellow;
 }
 .block_4 .four {
   background-color: yellow;
 }
 .block_4 {
   color: blue;
-  color: yellow;
 }
 a {
   background-color: red, foo;
