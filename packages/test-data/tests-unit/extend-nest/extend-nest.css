@@ -23,8 +23,7 @@
 .submit {
   color: black;
 }
-.button:hover,
-.submit:hover {
+:is(.button, .submit):hover {
   color: inherit;
 }
 .button2 :hover {
