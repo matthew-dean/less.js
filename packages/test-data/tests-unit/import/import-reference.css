@@ -63,6 +63,7 @@ div#id.class[a=one][b=two].class:not(.one) {
 .y {
   pulled-in: yes;
 }
+/* comment pulled in */
 .visible {
   extend: test;
 }
