@@ -106,7 +106,19 @@ async function renderFile(filePath, options = {}) {
   return mapRenderResult(result, options);
 }
 
-/** @type {import('./types.js').LessStatic} */
+/**
+ * COMPAT GAP (v5): the Less 4.x `less.functions` (custom-function registry via
+ * `less.functions.functionRegistry.add/addMultiple`) and `less.tree` (node
+ * constructors) are intentionally NOT present on the Jess-backed build. Jess
+ * registers custom functions with `defineFunction(name, fn, opts)` supplied
+ * through the compiler config/plugins, and its values are Jess nodes, not
+ * `less.tree.*`. Providing these as throwing stubs would break feature-detection
+ * (`if (less.functions)`), so they are left absent until a real compat surface
+ * (registry -> defineFunction bridge + tree-node shims) is built. Tracked for
+ * the broader Less-runner/API-parity work; see also test/less-test.js guards.
+ *
+ * @type {import('./types.js').LessStatic}
+ */
 const less = {
   version: lessVersion,
   render,
