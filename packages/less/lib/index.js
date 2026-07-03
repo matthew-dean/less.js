@@ -11,7 +11,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { Compiler } from 'jess';
-import { createLessOptions, getCompilerCacheKey, mapRenderResult } from './options.js';
+import { createLessOptions, getCompilerCacheKey, mapRenderResult, functionRegistry, tree } from './options.js';
 import { version } from './version.js';
 import { logger } from './logger.js';
 import { lesscHelper } from './lessc-helper.js';
@@ -107,15 +107,17 @@ async function renderFile(filePath, options = {}) {
 }
 
 /**
- * COMPAT GAP (v5): the Less 4.x `less.functions` (custom-function registry via
- * `less.functions.functionRegistry.add/addMultiple`) and `less.tree` (node
- * constructors) are intentionally NOT present on the Jess-backed build. Jess
- * registers custom functions with `defineFunction(name, fn, opts)` supplied
- * through the compiler config/plugins, and its values are Jess nodes, not
- * `less.tree.*`. Providing these as throwing stubs would break feature-detection
- * (`if (less.functions)`), so they are left absent until a real compat surface
- * (registry -> defineFunction bridge + tree-node shims) is built. Tracked for
- * the broader Less-runner/API-parity work; see also test/less-test.js guards.
+ * Less 4.x compat surface (v5):
+ *
+ * - `less.functions.functionRegistry.add/addMultiple/get` collects custom
+ *   functions into a global store (see options.js). On each render they are
+ *   bridged into Jess by the `@jesscss/plugin-less-compat` plugin, which binds
+ *   them onto every compiled tree's root scope using the same
+ *   `setFunctionBinding` mechanism as the built-in Less functions.
+ * - `less.tree.*` exposes Less-4.x-style node constructors (Dimension, Color,
+ *   Anonymous, …). v4 custom functions return `less.tree.*` values; the compat
+ *   layer converts those Less-shaped nodes back into Jess nodes at the
+ *   function-registry boundary.
  *
  * @type {import('./types.js').LessStatic}
  */
@@ -126,6 +128,8 @@ const less = {
   logger,
   lesscHelper,
   Compiler,
+  functions: { functionRegistry },
+  tree,
 };
 
 export default less;

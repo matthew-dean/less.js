@@ -63,22 +63,17 @@ export default function(testFilter) {
         passedTests = 0,
         finishTimer = setInterval(endTest, 500);
 
-    // The Jess-backed Less API does not expose functions/tree; guard so the
-    // harness can load for the paths that don't need custom test functions
-    // (e.g. warning/error assertions). Full harness parity is separate work.
-    if (less.functions && less.functions.functionRegistry && less.tree) {
-        less.functions.functionRegistry.addMultiple({
-            add: function (a, b) {
-                return new(less.tree.Dimension)(a.value + b.value);
-            },
-            increment: function (a) {
-                return new(less.tree.Dimension)(a.value + 1);
-            },
-            _color: function (str) {
-                if (str.value === 'evil red') { return new(less.tree.Color)('600'); }
-            }
-        });
-    }
+    less.functions.functionRegistry.addMultiple({
+        add: function (a, b) {
+            return new(less.tree.Dimension)(a.value + b.value);
+        },
+        increment: function (a) {
+            return new(less.tree.Dimension)(a.value + 1);
+        },
+        _color: function (str) {
+            if (str.value === 'evil red') { return new(less.tree.Color)('600'); }
+        }
+    });
 
     function validateSourcemapMappings(sourcemap, lessFile, compiledCSS) {
         var SourceMapConsumer = require('source-map').SourceMapConsumer;
@@ -413,10 +408,6 @@ export default function(testFilter) {
 
     // https://github.com/less/less.js/issues/3112
     function testJSImport() {
-        // Needs the legacy function/tree API the Jess-backed Less does not expose.
-        if (!(less.functions && less.functions.functionRegistry && less.tree)) {
-            return;
-        }
         process.stdout.write('- Testing root function registry');
         less.functions.functionRegistry.add('ext', function() {
             return new less.tree.Anonymous('file');

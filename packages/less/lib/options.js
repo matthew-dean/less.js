@@ -3,9 +3,55 @@
  * @module less/lib/options
  */
 
-import { lessCompatPlugin } from '@jesscss/plugin-less-compat';
+import { lessCompatPlugin, LessTreeConstructors } from '@jesscss/plugin-less-compat';
 
 const AT_PLUGIN_RE = /(^|[\r\n])\s*@plugin\b/m;
+
+/**
+ * Global custom-function store backing `less.functions.functionRegistry`.
+ * Keyed by lower-cased function name. Shared by reference into every compat
+ * plugin instance so functions registered at any time are picked up on the next
+ * render, even by cached compilers.
+ * @type {Record<string, Function>}
+ */
+export const customFunctions = {};
+
+/**
+ * Less 4.x-compatible function registry. Custom functions registered here are
+ * bridged into Jess (via the less-compat plugin) and bound onto every compiled
+ * tree's root scope, exactly like the built-in Less functions.
+ */
+export const functionRegistry = {
+  /**
+   * @param {string} name
+   * @param {Function} fn
+   */
+  add(name, fn) {
+    customFunctions[String(name).toLowerCase()] = fn;
+  },
+  /**
+   * @param {Record<string, Function>} functions
+   */
+  addMultiple(functions) {
+    Object.keys(functions || {}).forEach((name) => {
+      this.add(name, functions[name]);
+    });
+  },
+  /**
+   * @param {string} name
+   * @returns {Function|undefined}
+   */
+  get(name) {
+    return customFunctions[String(name).toLowerCase()];
+  }
+};
+
+/**
+ * Less 4.x `less.tree.*` node constructors (Dimension, Color, Anonymous, …).
+ * These build Less-shaped nodes that the less-compat layer converts to Jess
+ * nodes at the function-registry boundary.
+ */
+export const tree = LessTreeConstructors;
 
 /**
  * @param {any} value
@@ -33,10 +79,11 @@ function stableStringify(value) {
 export function createLessOptions(options, runtime = {}) {
   const opts = options || {};
   const filePath = opts.filename || undefined;
+  const hasCustomFunctions = Object.keys(customFunctions).length > 0;
   const shouldEnableCompat =
-    Array.isArray(opts.plugins) && opts.plugins.length > 0
-      ? true
-      : typeof runtime.source === 'string' && AT_PLUGIN_RE.test(runtime.source);
+    (Array.isArray(opts.plugins) && opts.plugins.length > 0) ||
+    hasCustomFunctions ||
+    (typeof runtime.source === 'string' && AT_PLUGIN_RE.test(runtime.source));
 
   const math = /** @type {number|string|undefined} */ (opts.math);
   const mathMode =
@@ -49,7 +96,7 @@ export function createLessOptions(options, runtime = {}) {
       searchPaths: opts.paths || [],
       mathMode,
       plugins: shouldEnableCompat
-        ? [lessCompatPlugin({ plugins: opts.plugins || [] })]
+        ? [lessCompatPlugin({ plugins: opts.plugins || [], functions: customFunctions })]
         : [],
     },
     output: {},
