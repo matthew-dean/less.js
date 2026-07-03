@@ -3,9 +3,11 @@ import Module from 'module';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import less from '../lib/less-node/index.js';
-import { stylize } from '../lib/less-node/lessc-helper.js';
+import less from '../lib/index.js';
+import lesscHelper from '../lib/lessc-helper.js';
 import createLessTester from './less-test.js';
+
+const stylize = lesscHelper.stylize;
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -156,6 +158,7 @@ var testMap = [
     { patterns: globPatterns },
     { patterns: ['tests-error/eval/*.less'], verifyFunction: lessTester.testErrors },
     { patterns: ['tests-error/parse/*.less'], verifyFunction: lessTester.testErrors },
+    { patterns: ['tests-warnings/*.less'], verifyFunction: lessTester.testWarnings },
     { patterns: ['tests-config/js-type-errors/*.less'], verifyFunction: lessTester.testTypeErrors },
     { patterns: ['tests-config/no-js-errors/*.less'], verifyFunction: lessTester.testErrors },
     {

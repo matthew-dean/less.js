@@ -3,12 +3,14 @@ import { createRequire } from 'module';
 import path from 'path';
 import fs from 'fs';
 import semver from 'semver';
-import logger from '../lib/less/logger.js';
+import logger from '../lib/logger.js';
 import { cosmiconfigSync } from 'cosmiconfig';
 import { globSync } from 'glob';
 import { copy as clone } from 'copy-anything';
-import less from '../lib/less-node/index.js';
-import { stylize } from '../lib/less-node/lessc-helper.js';
+import less from '../lib/index.js';
+import lesscHelper from '../lib/lessc-helper.js';
+
+const stylize = lesscHelper.stylize;
 
 const require = createRequire(import.meta.url);
 
@@ -61,17 +63,22 @@ export default function(testFilter) {
         passedTests = 0,
         finishTimer = setInterval(endTest, 500);
 
-    less.functions.functionRegistry.addMultiple({
-        add: function (a, b) {
-            return new(less.tree.Dimension)(a.value + b.value);
-        },
-        increment: function (a) {
-            return new(less.tree.Dimension)(a.value + 1);
-        },
-        _color: function (str) {
-            if (str.value === 'evil red') { return new(less.tree.Color)('600'); }
-        }
-    });
+    // The Jess-backed Less API does not expose functions/tree; guard so the
+    // harness can load for the paths that don't need custom test functions
+    // (e.g. warning/error assertions). Full harness parity is separate work.
+    if (less.functions && less.functions.functionRegistry && less.tree) {
+        less.functions.functionRegistry.addMultiple({
+            add: function (a, b) {
+                return new(less.tree.Dimension)(a.value + b.value);
+            },
+            increment: function (a) {
+                return new(less.tree.Dimension)(a.value + 1);
+            },
+            _color: function (str) {
+                if (str.value === 'evil red') { return new(less.tree.Color)('600'); }
+            }
+        });
+    }
 
     function validateSourcemapMappings(sourcemap, lessFile, compiledCSS) {
         var SourceMapConsumer = require('source-map').SourceMapConsumer;
@@ -361,6 +368,27 @@ export default function(testFilter) {
         });
     }
 
+    // Assert the structured Jess warnings emitted during a render against a
+    // golden .txt, mirroring testErrors. Warnings are serialized as pretty JSON;
+    // the fixture's absolute directory is collapsed to {path} so goldens are
+    // portable. Trailing whitespace is ignored.
+    function testWarnings(name, err, compiledLess, doReplacements, sourcemap, baseFolder, imports, getFilename, warnings) {
+        var lessPath = path.join(baseFolder, name) + '.less';
+        var dir = path.dirname(lessPath);
+        var actualWarn = JSON.stringify(warnings || [], null, 2)
+            .split(dir + path.sep).join('{path}')
+            .split(dir).join('{path}');
+        fs.readFile(path.join(baseFolder, name) + '.txt', 'utf8', function (e, expectedWarn) {
+            process.stdout.write('- ' + path.join(baseFolder, name) + ': ');
+            var trimEnd = function (s) { return (s || '').replace(/\s+$/, ''); };
+            if (trimEnd(actualWarn) === trimEnd(expectedWarn)) {
+                ok('OK');
+            } else {
+                difference('FAIL', expectedWarn, actualWarn);
+            }
+        });
+    }
+
     function testTypeErrors(name, err, compiledLess, doReplacements, sourcemap, baseFolder) {
         const fileSuffix = semver.gte(process.version, 'v16.9.0') ? '-2.txt' : '.txt';
         fs.readFile(path.join(baseFolder, name) + fileSuffix, 'utf8', function (e, expectedErr) {
@@ -385,6 +413,10 @@ export default function(testFilter) {
 
     // https://github.com/less/less.js/issues/3112
     function testJSImport() {
+        // Needs the legacy function/tree API the Jess-backed Less does not expose.
+        if (!(less.functions && less.functions.functionRegistry && less.tree)) {
+            return;
+        }
         process.stdout.write('- Testing root function registry');
         less.functions.functionRegistry.add('ext', function() {
             return new less.tree.Anonymous('file');
@@ -528,8 +560,12 @@ export default function(testFilter) {
                     var file = path.basename(filePath);
                     var relativePath = path.relative(baseFolder, path.dirname(filePath)) + '/';
 
+                    // A file is a test if it has a golden .css output OR a .txt
+                    // expectation (error/warning sets assert a .txt instead of
+                    // comparing compiled .css).
                     var cssPath = path.join(path.dirname(filePath), path.basename(file, '.less') + '.css');
-                    if (fs.existsSync(cssPath)) {
+                    var txtPath = path.join(path.dirname(filePath), path.basename(file, '.less') + '.txt');
+                    if (fs.existsSync(cssPath) || fs.existsSync(txtPath)) {
                         processFileWithInfo({
                             file: file,
                             fullPath: filePath,
@@ -612,8 +648,9 @@ export default function(testFilter) {
                     doubleCallCheck = (new Error()).stack;
 
                     if (verifyFunction) {
+                        var warnings = (result && result.warnings) || (err && err.jessWarnings) || [];
                         var verificationResult = verifyFunction(
-                            name, err, result && result.css, doReplacements, result && result.map, baseFolder, result && result.imports, getFilename
+                            name, err, result && result.css, doReplacements, result && result.map, baseFolder, result && result.imports, getFilename, warnings
                         );
                         release();
                         return verificationResult;
@@ -834,6 +871,7 @@ export default function(testFilter) {
         runTestSetNormalOnly: runTestSetNormalOnly,
         testSyncronous: testSyncronous,
         testErrors: testErrors,
+        testWarnings: testWarnings,
         testTypeErrors: testTypeErrors,
         testSourcemap: testSourcemap,
         testSourcemapWithoutUrlAnnotation: testSourcemapWithoutUrlAnnotation,
