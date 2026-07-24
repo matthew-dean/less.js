@@ -19,30 +19,22 @@ function _fireEvent(type, msg) {
   }
 }
 
-// Wrap Jess's logger so Less listeners receive Jess's log output
-const original = {
-  log: jessLogger.log?.bind(jessLogger),
-  info: jessLogger.info?.bind(jessLogger),
-  warn: jessLogger.warn?.bind(jessLogger),
-  error: jessLogger.error?.bind(jessLogger),
-};
-
+// Wrap Jess's logger so Less listeners receive Jess's log output without
+// writing directly to stderr/stdout. Library consumers should be able to catch
+// `less.render()` rejections without surprise terminal output; the CLI owns
+// deciding whether/how to print diagnostics.
 jessLogger.configure?.({
   log(...args) {
     _fireEvent('debug', args.map(String).join(' '));
-    original.log?.(...args);
   },
   info(...args) {
     _fireEvent('info', args.map(String).join(' '));
-    original.info?.(...args);
   },
   warn(...args) {
     _fireEvent('warn', args.map(String).join(' '));
-    original.warn?.(...args);
   },
   error(...args) {
     _fireEvent('error', args.map(String).join(' '));
-    original.error?.(...args);
   },
 });
 
@@ -51,25 +43,21 @@ const logger = {
   /** @param {string} msg */
   error(msg) {
     _fireEvent('error', msg);
-    original.error?.(msg);
   },
 
   /** @param {string} msg */
   warn(msg) {
     _fireEvent('warn', msg);
-    original.warn?.(msg);
   },
 
   /** @param {string} msg */
   info(msg) {
     _fireEvent('info', msg);
-    original.info?.(msg);
   },
 
   /** @param {string} msg */
   debug(msg) {
     _fireEvent('debug', msg);
-    original.log?.(msg);
   },
 
   /** @param {LogListener} listener */

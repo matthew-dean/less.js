@@ -141,9 +141,10 @@ pnpm run test:alpha
 ```
 
 This is the Less 5 alpha release gate. It checks the supported alpha contract
-and prints the unsupported alpha.1 inventory. The full legacy corpus remains
-available through `pnpm run test`; it is intentionally not the alpha.1 publish
-gate until the unsupported buckets are drained.
+and prints the unsupported alpha.1 inventory. The broad legacy corpus remains
+available through `pnpm --dir packages/less run test:legacy-node`, but it is
+not expected to be green yet and is intentionally not the alpha.1 publish gate
+until the unsupported buckets are drained.
 
 ### Test Version Validation
 

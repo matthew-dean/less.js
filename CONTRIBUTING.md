@@ -105,7 +105,9 @@ When code is pushed to specific branches, GitHub Actions automatically:
 **For alpha releases:**
 1. Make your changes on the `alpha` branch
 2. Commit and push
-3. The workflow automatically increments the alpha version and publishes
+3. The workflow creates or updates an alpha release PR
+4. Merging that release PR publishes the committed alpha version to npm with
+   the `alpha` tag
 
 ### Version Override
 
@@ -117,11 +119,14 @@ EXPLICIT_VERSION=4.7.0 pnpm run publish
 
 ### Release Assets
 
-Each GitHub release automatically includes:
+Stable GitHub releases include:
 - `less.js` — the full browser build
 - `less.min.js` — the minified browser build
 
 These are built during the workflow and attached to the release. They are not committed to git (the `dist/` directory is gitignored).
+
+Less 5 alpha.1 does not attach browser build assets; browser compilation will
+return through a future alpha build mechanism.
 
 ### Security
 

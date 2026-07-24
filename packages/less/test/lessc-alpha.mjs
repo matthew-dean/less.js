@@ -149,6 +149,14 @@ try {
     assert.doesNotMatch(help.stdout, /--plugin=/,
         'lessc help must not advertise unsupported plugin flags in alpha.1');
 
+    for (const flag of ['--source-map', '--plugin=less-plugin-clean-css', '--bogus']) {
+        const unsupported = await runLessc([flag, '-'], '.unsupported { color: red; }\n');
+        assert.equal(unsupported.code, 1, `${flag} must fail instead of silently no-oping`);
+        assert.equal(unsupported.stdout, '', `${flag} must not emit CSS after rejecting the option`);
+        assert.match(unsupported.stderr, /not supported in Less 5 alpha\.1|unknown flags are rejected/,
+            `${flag} must explain the alpha CLI surface`);
+    }
+
     const stdin = await runLessc(['-'], '.from-stdin { color: blue; }\n');
     assert.equal(stdin.code, 0, stdin.stderr);
     assert.match(stdin.stdout, /\.from-stdin\s*\{[\s\S]*color:\s*blue;/);
@@ -202,6 +210,17 @@ try {
         'lessc must not reformat Linecraft diagnostics into Less 4-style text');
     assert.doesNotMatch(failureStderr, /^Error: Less parser error\.$/m,
         'lessc must not append a duplicate plain Error after a Linecraft diagnostic');
+
+    const silentFailure = await runLessc(['--silent', broken]);
+    assert.equal(silentFailure.code, 1, '--silent should still fail malformed input');
+    assert.equal(silentFailure.stdout, '');
+    assert.equal(silentFailure.stderr, '', '--silent must suppress Jess diagnostics');
+
+    const noColorFailure = await runLessc(['--no-color', broken]);
+    assert.equal(noColorFailure.code, 1, '--no-color should still fail malformed input');
+    assert.equal(noColorFailure.stdout, '');
+    assert.doesNotMatch(noColorFailure.stderr, /\x1B/u,
+        '--no-color must suppress ANSI and terminal control sequences');
 } finally {
     await rm(tempDir, { recursive: true, force: true });
 }

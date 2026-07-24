@@ -17,6 +17,93 @@ let silent = false;
 let quiet = false;
 let verbose = false;
 
+const unsupportedOptions = new Map([
+  ['--source-map', 'source maps are not supported in Less 5 alpha.1'],
+  ['--source-map-map-inline', 'source maps are not supported in Less 5 alpha.1'],
+  ['--source-map-include-source', 'source maps are not supported in Less 5 alpha.1'],
+  ['--source-map-rootpath', 'source maps are not supported in Less 5 alpha.1'],
+  ['--source-map-basepath', 'source maps are not supported in Less 5 alpha.1'],
+  ['--source-map-url', 'source maps are not supported in Less 5 alpha.1'],
+  ['--plugin', 'legacy lessc plugin flags are not supported in Less 5 alpha.1'],
+  ['--depends', 'dependency-only output is not supported in Less 5 alpha.1'],
+  ['--lint', 'lint-only mode is not supported in Less 5 alpha.1'],
+  ['--compress', 'compressed output is not supported in Less 5 alpha.1'],
+  ['-x', 'compressed output is not supported in Less 5 alpha.1'],
+  ['--clean-css', 'clean-css compression is not supported in Less 5 alpha.1'],
+  ['--rewrite-urls', 'URL rewriting is not supported in Less 5 alpha.1'],
+  ['--rootpath', 'URL rootpath rewriting is not supported in Less 5 alpha.1'],
+  ['--url-args', 'URL argument rewriting is not supported in Less 5 alpha.1'],
+  ['--global-var', 'global variable injection is not supported in Less 5 alpha.1'],
+  ['--modify-var', 'modify-var injection is not supported in Less 5 alpha.1'],
+  ['--js', 'JavaScript evaluation is not supported in Less 5 alpha.1'],
+  ['--no-js', 'JavaScript evaluation flags are not supported in Less 5 alpha.1'],
+  ['--strict-units', 'strict unit mode is not supported in Less 5 alpha.1'],
+]);
+
+function stripTerminalFormatting(value) {
+  return String(value)
+    .replace(/\x1B\]8;;[^\x1B]*(?:\x1B\\|\x07)/gu, '')
+    .replace(/\x1B\[[0-?]*[ -/]*[@-~]/gu, '');
+}
+
+function renderLogMessage(value) {
+  const message = String(value);
+  return options.color === false ? stripTerminalFormatting(message) : message;
+}
+
+function relativeDiagnosticPath(filePath) {
+  return filePath ? path.relative(process.cwd(), filePath) || filePath : '(unknown)';
+}
+
+function diagnosticLines(lines, lineNumber) {
+  if (!lines || typeof lines !== 'object') {
+    return [];
+  }
+  const line = Number(lineNumber) || 1;
+  return [line - 1, line, line + 1]
+    .filter(candidate => candidate > 0 && Object.prototype.hasOwnProperty.call(lines, candidate))
+    .map(candidate => `${String(candidate).padStart(4, ' ')} | ${lines[candidate]}`);
+}
+
+function renderDiagnostic(diagnostic) {
+  const line = Number(diagnostic?.line) || 1;
+  const column = Number(diagnostic?.column) || 1;
+  const header = `error ${diagnostic.code} [${diagnostic.phase || 'compile'}]`;
+  const location = `${relativeDiagnosticPath(diagnostic.filePath)}:${line}:${column}`;
+  const parts = [
+    `${header}`,
+    `${diagnostic.message}`,
+    `--> ${location}`,
+  ];
+  const sourceLines = diagnosticLines(diagnostic.lines, line);
+  if (sourceLines.length) {
+    parts.push(...sourceLines);
+  }
+  return `${parts.join('\n')}\n`;
+}
+
+function renderJessError(err) {
+  if (!Array.isArray(err?.jessErrors) || err.jessErrors.length === 0) {
+    return '';
+  }
+  return err.jessErrors.map(renderDiagnostic).join('');
+}
+
+function splitSearchPaths(value) {
+  return String(value || '')
+    .split(path.delimiter)
+    .filter(Boolean);
+}
+
+function failUnsupportedOption(arg, reason) {
+  console.error(`lessc: ${arg} is not supported in Less 5 alpha.1`);
+  if (reason) {
+    console.error(`lessc: ${reason}`);
+  }
+  console.error('lessc: run `lessc --help` for the supported alpha CLI surface.');
+  process.exit(1);
+}
+
 function printUsage() {
   less.lesscHelper.printUsage();
   process.exit(0);
@@ -48,19 +135,23 @@ function parseArgs() {
       options.collapseNesting = true;
       continue;
     }
+    const optionName = arg.includes('=') ? arg.slice(0, arg.indexOf('=')) : arg;
+    if (unsupportedOptions.has(optionName)) {
+      failUnsupportedOption(optionName, unsupportedOptions.get(optionName));
+    }
     if (arg === '-I' || arg === '--include-path') {
       const match = arg.match(/^-I(.+)$/);
-      const paths = (match ? match[1] : args[++i])?.split(/[:;]/) || [];
+      const paths = splitSearchPaths(match ? match[1] : args[++i]);
       options.paths.push(...paths);
       continue;
     }
     if (arg.startsWith('-I')) {
-      options.paths.push(...arg.slice(2).split(/[:;]/));
+      options.paths.push(...splitSearchPaths(arg.slice(2)));
       continue;
     }
     const includeMatch = arg.match(/^--include-path=(.+)$/);
     if (includeMatch) {
-      options.paths.push(...includeMatch[1].split(/[:;]/));
+      options.paths.push(...splitSearchPaths(includeMatch[1]));
       continue;
     }
     if (arg === '--no-color') {
@@ -73,6 +164,10 @@ function parseArgs() {
       } else if (output === null) {
         output = path.resolve(process.cwd(), arg);
       }
+      continue;
+    }
+    if (arg.startsWith('-')) {
+      failUnsupportedOption(arg, 'unknown flags are rejected in this alpha instead of being silently ignored');
     }
   }
 }
@@ -91,10 +186,10 @@ async function run() {
       if (verbose) console.log(msg);
     },
     warn(msg) {
-      if (!silent && !quiet) console.warn(msg);
+      if (!silent && !quiet) console.warn(renderLogMessage(msg));
     },
     error(msg) {
-      if (!silent) console.error(msg);
+      if (!silent) console.error(renderLogMessage(msg));
     },
   });
 
@@ -118,13 +213,18 @@ async function run() {
     if (output) {
       fs.mkdirSync(path.dirname(output), { recursive: true });
       fs.writeFileSync(output, result.css, 'utf8');
-      if (!silent) less.logger.info(`lessc: wrote ${output}`);
+      if (!silent) console.log(`lessc: wrote ${output}`);
     } else {
       process.stdout.write(result.css);
     }
   } catch (err) {
-    if (!silent && !(Array.isArray(err?.jessErrors) && err.jessErrors.length)) {
-      console.error(err.toString?.() || err.message);
+    if (!silent) {
+      const diagnosticMessage = renderJessError(err);
+      if (diagnosticMessage) {
+        process.stderr.write(renderLogMessage(diagnosticMessage));
+      } else {
+        console.error(renderLogMessage(err.toString?.() || err.message));
+      }
     }
     process.exitCode = 1;
   }

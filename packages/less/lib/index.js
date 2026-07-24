@@ -82,7 +82,7 @@ function render(input, options = {}, callback) {
 
     const result = await compiler.renderToResult(
       { source: input, filePath, language: 'less', extension: '.less' },
-      configOptions
+      { ...configOptions, suppressWarnings: true }
     );
 
     if (result.errors?.length) {
@@ -113,7 +113,7 @@ async function renderFile(filePath, options = {}) {
   const { configOptions } = createLessOptions(options, { source });
   const compiler = getCompiler(configOptions);
 
-  const result = await compiler.renderToResult(filePath, configOptions);
+  const result = await compiler.renderToResult(filePath, { ...configOptions, suppressWarnings: true });
   if (result.errors?.length) {
     throw createRenderErrorFromJessDiagnostic(result, filePath);
   }

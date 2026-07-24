@@ -6,6 +6,31 @@
 import lessPlugin from '@jesscss/plugin-less';
 import { lessCompatPlugin } from '@jesscss/plugin-less-compat';
 
+const unsupportedAlphaOptions = new Map([
+  ['sourceMap', 'source maps are not supported in Less 5 alpha.1'],
+  ['sourceMapFilename', 'source maps are not supported in Less 5 alpha.1'],
+  ['sourceMapRootpath', 'source maps are not supported in Less 5 alpha.1'],
+  ['sourceMapBasepath', 'source maps are not supported in Less 5 alpha.1'],
+  ['sourceMapURL', 'source maps are not supported in Less 5 alpha.1'],
+  ['sourceMapFileInline', 'source maps are not supported in Less 5 alpha.1'],
+  ['globalVars', 'global variable injection is not supported in Less 5 alpha.1'],
+  ['modifyVars', 'modify-var injection is not supported in Less 5 alpha.1'],
+  ['strictUnits', 'strict unit mode is not supported in Less 5 alpha.1'],
+  ['rootpath', 'URL rootpath rewriting is not supported in Less 5 alpha.1'],
+  ['rewriteUrls', 'URL rewriting is not supported in Less 5 alpha.1'],
+  ['urlArgs', 'URL argument rewriting is not supported in Less 5 alpha.1'],
+  ['javascriptEnabled', 'JavaScript evaluation is not supported in Less 5 alpha.1'],
+  ['compress', 'compressed output is not supported in Less 5 alpha.1'],
+]);
+
+function validateAlphaOptions(options) {
+  for (const [name, reason] of unsupportedAlphaOptions) {
+    if (Object.prototype.hasOwnProperty.call(options, name)) {
+      throw new Error(`${name} is not supported in Less 5 alpha.1: ${reason}`);
+    }
+  }
+}
+
 /**
  * @param {any} value
  * @param {WeakSet<object>} [seen]
@@ -44,6 +69,7 @@ function stableStringify(value, seen = new WeakSet()) {
  */
 export function createLessOptions(options) {
   const opts = options || {};
+  validateAlphaOptions(opts);
   const filePath = opts.filename || undefined;
   const lessPlugins = Array.isArray(opts.plugins) ? opts.plugins : [];
   const skipLessCompat =
@@ -102,10 +128,6 @@ export function mapRenderResult(result, options) {
   const out = {
     css: result.css ?? '',
   };
-
-  if (opts.sourceMap && result.map != null) {
-    out.map = typeof result.map === 'string' ? result.map : JSON.stringify(result.map);
-  }
 
   if (result.imports && Array.isArray(result.imports)) {
     out.imports = result.imports;

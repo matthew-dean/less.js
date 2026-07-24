@@ -180,27 +180,11 @@ jobs:
             fi
           fi
 
-          COMMITTED=false
           if git diff --cached --quiet; then
-            echo "No version changes; branch is already at v${NEXT_VERSION}"
+            echo "No manifest changes; creating an explicit release commit for v${NEXT_VERSION}"
+            git commit --allow-empty -m "${TITLE}"
           else
             git commit -m "${TITLE}"
-            COMMITTED=true
-          fi
-
-          # If no new commit was created the release branch has no commits
-          # ahead of master, so pushing it and trying to open a PR would fail
-          # with "no commits between head and base". Instead, just report
-          # whether an existing release PR is open and exit cleanly.
-          if [ "$COMMITTED" = "false" ]; then
-            EXISTING=$(gh pr list --head "${RELEASE_BRANCH}" --base "${RELEASE_BASE}" \
-              --json number --jq '.[0].number' 2>/dev/null || echo "")
-            if [ -n "${EXISTING}" ]; then
-              echo "✅ No new changes; release PR #${EXISTING} already exists"
-            else
-              echo "✅ No version bump needed and no existing release PR; nothing to do"
-            fi
-            exit 0
           fi
 
           # --force-with-lease refuses to overwrite if the remote has advanced

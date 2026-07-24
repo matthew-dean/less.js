@@ -10,6 +10,14 @@
 
 > The dynamic stylesheet language. [lesscss.org](http://lesscss.org)
 
+> [!IMPORTANT]
+> This package README is for Less 5 alpha.1. Less 5 is a Jess-powered compiler
+> preview for early testing and is not yet a drop-in replacement for Less 4.x.
+> Alpha.1 focuses on Node.js `less.render()`, `less.renderFile()`, `lessc`,
+> variables, arithmetic, mixins, sibling file imports, and nested-rule output.
+> Source maps, browser compilation, legacy plugin host APIs, URL rewriting, and
+> compressed-output parity are still work in progress.
+
 Less extends CSS with variables, mixins, functions, nesting, and more — then compiles to standard CSS. Write cleaner stylesheets with less code.
 
 ```less
@@ -26,7 +34,13 @@ Less extends CSS with variables, mixins, functions, nesting, and more — then c
 ## Install
 
 ```sh
-npm install less
+npm install less@alpha
+```
+
+For a pinned first alpha:
+
+```sh
+npm install less@5.0.0-alpha.1
 ```
 
 ## Usage

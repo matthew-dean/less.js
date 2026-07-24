@@ -97,26 +97,41 @@ async function assertSupportedCompileSurface() {
 }
 
 async function assertUnsupportedSyntaxHasPreciseDiagnostic() {
-    await assert.rejects(
-        less.render('@Eight: 8;\n@charset "UTF-@{Eight}";\n', {
-            filename: 'alpha-unsupported.less'
-        }),
-        error => {
-            assert.equal(error.type, 'parse');
-            assert.equal(error.filename, 'alpha-unsupported.less');
-            assert.equal(error.line, 2);
-            assert.equal(error.column, 1);
-            assert.deepEqual(error.extract, [
-                '@Eight: 8;',
-                '@charset "UTF-@{Eight}";',
-                ''
-            ]);
-            assert.equal(error.jessErrors?.[0]?.code, 'parse/dynamic-charset');
-            assert.equal(String(error), 'Error: Less 5 does not support interpolation in @charset.');
-            assert.doesNotMatch(String(error), /offset/i);
-            return true;
+    const stderrWrites = [];
+    const originalStderrWrite = process.stderr.write;
+    process.stderr.write = function captureStderr(chunk, ...args) {
+        stderrWrites.push(String(chunk));
+        if (typeof args.at(-1) === 'function') {
+            args.at(-1)();
         }
-    );
+        return true;
+    };
+    try {
+        await assert.rejects(
+            less.render('@Eight: 8;\n@charset "UTF-@{Eight}";\n', {
+                filename: 'alpha-unsupported.less'
+            }),
+            error => {
+                assert.equal(error.type, 'parse');
+                assert.equal(error.filename, 'alpha-unsupported.less');
+                assert.equal(error.line, 2);
+                assert.equal(error.column, 1);
+                assert.deepEqual(error.extract, [
+                    '@Eight: 8;',
+                    '@charset "UTF-@{Eight}";',
+                    ''
+                ]);
+                assert.equal(error.jessErrors?.[0]?.code, 'parse/dynamic-charset');
+                assert.equal(String(error), 'Error: Less 5 does not support interpolation in @charset.');
+                assert.doesNotMatch(String(error), /offset/i);
+                return true;
+            }
+        );
+    } finally {
+        process.stderr.write = originalStderrWrite;
+    }
+    assert.equal(stderrWrites.join(''), '',
+        'programmatic less.render() failures must not print diagnostics before the caller handles the rejection');
 }
 
 async function assertBareStructuralAtRuleVariablesReject() {
@@ -140,9 +155,35 @@ async function assertBareStructuralAtRuleVariablesReject() {
     );
 }
 
+async function assertUnsupportedApiOptionsReject() {
+    const unsupported = [
+        'sourceMap',
+        'globalVars',
+        'modifyVars',
+        'compress',
+        'rewriteUrls',
+        'urlArgs',
+        'javascriptEnabled',
+        'strictUnits',
+        'rootpath'
+    ];
+    for (const option of unsupported) {
+        await assert.rejects(
+            less.render('.x { color: red; }\n', { [option]: true }),
+            error => {
+                assert.match(error.message, /not supported in Less 5 alpha\.1/);
+                assert.match(error.message, new RegExp(option));
+                return true;
+            },
+            `${option} must reject instead of silently no-oping`
+        );
+    }
+}
+
 await assertSupportedCompileSurface();
 await assertUnsupportedSyntaxHasPreciseDiagnostic();
 await assertBareStructuralAtRuleVariablesReject();
+await assertUnsupportedApiOptionsReject();
 await assertFixtureRendersByteIdentical('at-rule-variable-interpolation');
 await assertFixtureRendersByteIdentical('mixins-named-args');
 printUnsupportedInventory();

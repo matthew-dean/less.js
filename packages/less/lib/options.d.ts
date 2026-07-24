@@ -5,22 +5,13 @@
 export interface LessRenderOptions {
   filename?: string;
   paths?: string[];
+  /**
+   * Legacy Less render plugins are routed through the alpha compatibility
+   * layer. File-manager, pre/post-processor, and @plugin execution are not
+   * alpha.1-supported surfaces yet.
+   */
   plugins?: unknown[];
-  sourceMap?: boolean;
-  sourceMapFilename?: string;
-  sourceMapRootpath?: string;
-  sourceMapBasepath?: string;
-  sourceMapURL?: string;
-  sourceMapFileInline?: boolean;
-  globalVars?: object;
-  modifyVars?: object;
   math?: number | 'always' | 'parens-division' | 'parens' | 'strict';
-  strictUnits?: boolean;
-  rootpath?: string;
-  rewriteUrls?: boolean | string;
-  urlArgs?: string;
-  javascriptEnabled?: boolean;
-  compress?: boolean;
   /**
    * Opt into Less 4-style flattened output. Less v5 preserves authored nesting
    * by default.
