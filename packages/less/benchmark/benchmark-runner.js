@@ -127,7 +127,6 @@ var fileDir = path.dirname(filePath);
 
 // Use less.render() - stable across all versions
 var renderTimes = [];
-var parseTimes = [];
 var completed = 0;
 var errors = [];
 
@@ -197,8 +196,8 @@ function analyze(times, skipWarmup) {
 
     // Standard deviation and coefficient of variation
     var sumSqDiff = 0;
-    for (var i = 0; i < effective.length; i++) {
-        sumSqDiff += (effective[i] - avg) * (effective[i] - avg);
+    for (var j = 0; j < effective.length; j++) {
+        sumSqDiff += (effective[j] - avg) * (effective[j] - avg);
     }
     var stddev = Math.sqrt(sumSqDiff / effective.length);
     var variancePct = avg === 0 ? 0 : (stddev / avg) * 100;

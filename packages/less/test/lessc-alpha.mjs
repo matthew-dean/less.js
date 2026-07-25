@@ -219,7 +219,7 @@ try {
     const noColorFailure = await runLessc(['--no-color', broken]);
     assert.equal(noColorFailure.code, 1, '--no-color should still fail malformed input');
     assert.equal(noColorFailure.stdout, '');
-    assert.doesNotMatch(noColorFailure.stderr, /\x1B/u,
+    assert.equal(noColorFailure.stderr.includes(String.fromCharCode(0x1B)), false,
         '--no-color must suppress ANSI and terminal control sequences');
 } finally {
     await rm(tempDir, { recursive: true, force: true });
