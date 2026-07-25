@@ -101,12 +101,12 @@
   min: 5;
   min: 1pt;
   min: 3mm;
-  min: min(1, 4ex, 2pt);
+  min: min(6em, 5, 4ex, 3, 2pt, 1);
   min: min(calc(1em + 1vw), 1);
   min: min(var(--width), 802px);
   max: 3;
   max: 5em;
-  max: max(5m, 3em);
+  max: max(1px, 2, 3em, 4, 5m, 6);
   max: min(var(--body-max-width), calc(100vw - 20px));
   max: max(1, calc(1em + 1vw));
   max-native: max(10vw, 100px);
