@@ -1,3 +1,6 @@
+/* Less 4.x output, recorded when this fixture graduated to v5.
+   Historical record only — no test reads this file. */
+
 .multiunit {
   length: 6;
   extract: abc "abc" 1 1px 1% #123;

@@ -1,3 +1,6 @@
+/* Less 4.x output, recorded when this fixture graduated to v5.
+   Historical record only — no test reads this file. */
+
 foo {
   color: #0080ff;
   color: rgba(0, 128, 255, 0.5);

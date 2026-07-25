@@ -1,3 +1,6 @@
+/* Less 4.x output, recorded when this fixture graduated to v5.
+   Historical record only — no test reads this file. */
+
 @import url("/import/layer-import-2.css") layer(foo);
 @import url("/import/layer-import-3.css") layer(responsive) supports(display: flex) screen and (max-width: 768px);
 @import url("/import/layer-import-4.css") layer(print) print;
