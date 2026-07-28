@@ -416,6 +416,25 @@ function assertForwardedJessDiagnostic(error) {
     assert.ok(Array.isArray(error?.jessErrors), 'diagnostic should expose Jess diagnostics');
     assert.ok(error.jessErrors.length > 0, 'diagnostic should include at least one Jess error');
     assert.equal(Object.prototype.hasOwnProperty.call(error, 'offset'), false, 'diagnostic should not leak raw offsets');
+
+    const diagnostic = error.jessErrors[0];
+    assert.equal(typeof diagnostic?.code, 'string', 'Jess diagnostic should preserve code');
+    assert.equal(typeof diagnostic?.phase, 'string', 'Jess diagnostic should preserve phase');
+    assert.equal(typeof diagnostic?.message, 'string', 'Jess diagnostic should preserve message');
+    assert.equal(typeof diagnostic?.reason, 'string', 'Jess diagnostic should preserve reason');
+    assert.equal(typeof diagnostic?.fix, 'string', 'Jess diagnostic should preserve fix');
+    if (diagnostic?.filePath !== undefined) {
+        assert.equal(diagnostic.filePath, error.filename, 'Jess diagnostic should preserve filePath');
+    }
+    if (diagnostic?.line !== undefined && diagnostic.line > 0) {
+        assert.equal(diagnostic.line, error.line, 'Jess diagnostic should preserve line');
+    }
+    if (diagnostic?.column !== undefined && diagnostic.column > 0) {
+        assert.equal(diagnostic.column, error.column, 'Jess diagnostic should preserve column');
+    }
+    if (diagnostic?.lines !== undefined) {
+        assert.equal(typeof diagnostic.lines, 'object', 'Jess diagnostic should preserve source lines for Linecraft frames');
+    }
 }
 
 function formatError(error) {

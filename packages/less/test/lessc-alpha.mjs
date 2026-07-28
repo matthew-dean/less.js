@@ -9,6 +9,8 @@ import { createLessOptions } from '../lib/options.js';
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lessc = path.join(packageRoot, 'bin', 'lessc');
+const ESC = String.fromCharCode(0x1B);
+const BEL = String.fromCharCode(0x07);
 
 function runLessc(args, input = '') {
     return new Promise((resolve, reject) => {
@@ -30,9 +32,11 @@ function runLessc(args, input = '') {
 }
 
 function stripTerminalFormatting(value) {
+    const osc8Link = new RegExp(`${ESC}\\]8;;[^${ESC}]*(?:${ESC}\\\\|${BEL})`, 'gu');
+    const terminalCode = new RegExp(`${ESC}\\[[0-?]*[ -/]*[@-~]`, 'gu');
     return value
-        .replace(/\x1B\]8;;[^\x1B]*(?:\x1B\\|\x07)/gu, '')
-        .replace(/\x1B\[[0-?]*[ -/]*[@-~]/gu, '');
+        .replace(osc8Link, '')
+        .replace(terminalCode, '');
 }
 
 const compilerEntrypoint = fileURLToPath(import.meta.resolve('@jesscss/compiler'));
@@ -211,7 +215,7 @@ try {
     const failure = await runLessc([broken]);
     assert.equal(failure.code, 1, 'a Less error is a failing lessc process');
     assert.equal(failure.stdout, '');
-    assert.match(failure.stderr, /\x1B\[[0-?]*[ -/]*m/,
+    assert.ok(failure.stderr.includes(`${ESC}[91m`),
         'lessc reports colored Linecraft diagnostics by default');
     assert.match(failure.stderr, /[\u256d\u2570]/u,
         'lessc reports Linecraft source framing by default');
@@ -237,7 +241,7 @@ try {
     const noColorFailure = await runLessc(['--no-color', broken]);
     assert.equal(noColorFailure.code, 1, '--no-color should still fail malformed input');
     assert.equal(noColorFailure.stdout, '');
-    assert.equal(noColorFailure.stderr.includes(String.fromCharCode(0x1B)), false,
+    assert.equal(noColorFailure.stderr.includes(ESC), false,
         '--no-color must suppress ANSI and terminal control sequences');
 } finally {
     await rm(tempDir, { recursive: true, force: true });
