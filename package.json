@@ -14,6 +14,7 @@
 		"changelog": "github-changes -o less -r less.js -a --only-pulls --use-commit-body -m \"(YYYY-MM-DD)\"",
 		"test": "pnpm run test:alpha",
 		"test:node": "cd packages/less && npm run test:legacy-node",
+		"test:release": "node scripts/test-release-automation.js",
 		"postinstall": "npx only-allow pnpm"
 	},
 	"author": "Alexis Sellier <self@cloudhead.net>",

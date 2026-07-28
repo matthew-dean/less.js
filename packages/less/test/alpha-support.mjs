@@ -50,14 +50,14 @@ function printUnsupportedInventory() {
     }
 }
 
-async function assertFixtureRendersByteIdentical(name) {
-    const sourcePath = path.join(testDataRoot, name, `${name}.less`);
-    const expectedPath = path.join(testDataRoot, name, `${name}.css`);
+async function assertFixtureRendersByteIdentical(fixturePath) {
+    const sourcePath = path.join(testDataRoot, `${fixturePath}.less`);
+    const expectedPath = path.join(testDataRoot, `${fixturePath}.css`);
     const [result, expected] = await Promise.all([
         less.renderFile(sourcePath, { paths: [path.dirname(sourcePath)] }),
         readFile(expectedPath, 'utf8')
     ]);
-    assert.equal(result.css, expected, `${name} should render byte-identically`);
+    assert.equal(result.css, expected, `${fixturePath} should render byte-identically`);
 }
 
 async function assertSupportedCompileSurface() {
@@ -184,8 +184,11 @@ await assertSupportedCompileSurface();
 await assertUnsupportedSyntaxHasPreciseDiagnostic();
 await assertBareStructuralAtRuleVariablesReject();
 await assertUnsupportedApiOptionsReject();
-await assertFixtureRendersByteIdentical('at-rule-variable-interpolation');
-await assertFixtureRendersByteIdentical('mixins-named-args');
+await assertFixtureRendersByteIdentical('at-rule-variable-interpolation/at-rule-variable-interpolation');
+await assertFixtureRendersByteIdentical('color-functions/modern');
+await assertFixtureRendersByteIdentical('math-css-vars/math-css-vars');
+await assertFixtureRendersByteIdentical('mixins-guards/mixins-guards');
+await assertFixtureRendersByteIdentical('mixins-named-args/mixins-named-args');
 printUnsupportedInventory();
 
 console.log('\nLess 5 alpha.1 support contract passed');

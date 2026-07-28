@@ -43,6 +43,9 @@ jobs:
         run: node --version && pnpm --version
       - name: Run Less v5 alpha support contract
         run: pnpm run test:alpha
+      - name: Run release automation tests
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 'lts/*'
+        run: pnpm run test:release
 
   copilot-review:
     name: Request Copilot review
