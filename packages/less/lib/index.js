@@ -9,6 +9,7 @@
  * @module less
  */
 
+import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { Compiler } from '@jesscss/compiler';
 import nodeModulesPlugin from '@jesscss/plugin-node-modules';
@@ -20,7 +21,7 @@ import { lesscHelper } from './lessc-helper.js';
 const compilerCache = new Map();
 const lessVersion = version.array;
 
-function normalizeDiagnosticLines(lines, lineNumber) {
+function normalizeDiagnosticLines(lines, lineNumber, filePath) {
   if (Array.isArray(lines)) {
     return lines.map((line) => typeof line === 'string' ? line : String(line));
   }
@@ -32,6 +33,17 @@ function normalizeDiagnosticLines(lines, lineNumber) {
         const value = lines[line];
         return typeof value === 'string' ? value : String(value);
       });
+  }
+  if (typeof filePath === 'string') {
+    try {
+      const sourceLines = readFileSync(filePath, 'utf8').split(/\r?\n/);
+      const current = Number(lineNumber) || 1;
+      return [current - 1, current, current + 1]
+        .filter((line) => line > 0 && line <= sourceLines.length)
+        .map((line) => sourceLines[line - 1]);
+    } catch {
+      return undefined;
+    }
   }
   return undefined;
 }
@@ -70,7 +82,7 @@ function createRenderErrorFromJessDiagnostic(result, filePath) {
   error.filename = diagnostic?.filePath || filePath;
   error.line = diagnostic?.line || 1;
   error.column = diagnostic?.column || 1;
-  error.extract = normalizeDiagnosticLines(diagnostic?.lines, error.line);
+  error.extract = normalizeDiagnosticLines(diagnostic?.lines, error.line, error.filename);
   error.jessErrors = errors;
   error.jessWarnings = result?.warnings || [];
 

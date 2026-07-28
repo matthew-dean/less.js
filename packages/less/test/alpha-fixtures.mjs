@@ -103,6 +103,28 @@ const expectedFailureFixtures = new Map([
     ['tests-unit/functions/functions.less', 'Jess keeps un-operated hsl() calls authored instead of Less 4 clamp/canonicalization']
 ]);
 
+const expectedErrorPasses = new Map([
+    ['tests-error/eval/add-mixed-units.less', 'unit compatibility errors are not emitted yet'],
+    ['tests-error/eval/add-mixed-units2.less', 'unit compatibility errors are not emitted yet'],
+    ['tests-error/eval/color-func-invalid-color-2.less', 'color function argument errors are not emitted yet'],
+    ['tests-error/eval/color-func-invalid-color.less', 'color function argument errors are not emitted yet'],
+    ['tests-error/eval/divide-mixed-units.less', 'unit compatibility errors are not emitted yet'],
+    ['tests-error/eval/multiply-mixed-units.less', 'unit compatibility errors are not emitted yet'],
+    ['tests-error/eval/percentage-non-number-argument.less', 'function argument type errors are not emitted yet'],
+    ['tests-error/eval/svg-gradient1.less', 'svg-gradient argument validation errors are not emitted yet'],
+    ['tests-error/eval/svg-gradient2.less', 'svg-gradient argument validation errors are not emitted yet'],
+    ['tests-error/eval/svg-gradient3.less', 'svg-gradient argument validation errors are not emitted yet'],
+    ['tests-error/eval/svg-gradient4.less', 'svg-gradient argument validation errors are not emitted yet'],
+    ['tests-error/eval/svg-gradient5.less', 'svg-gradient argument validation errors are not emitted yet'],
+    ['tests-error/eval/svg-gradient6.less', 'svg-gradient argument validation errors are not emitted yet'],
+    ['tests-error/eval/unit-function.less', 'unit() argument validation errors are not emitted yet']
+]);
+
+const expectedMissingWarnings = new Map([
+    ['tests-warnings/parentless-ampersand-nested.less', 'parentless ampersand warning is not emitted yet'],
+    ['tests-warnings/parentless-ampersand.less', 'parentless ampersand warning is not emitted yet']
+]);
+
 const files = globSync('{tests-unit/*/*.less,tests-config/*/*.less}', {
     cwd: testDataRoot,
     nodir: true,
@@ -114,6 +136,10 @@ const files = globSync('{tests-unit/*/*.less,tests-config/*/*.less}', {
 
 let passed = 0;
 let expectedFailed = 0;
+let errored = 0;
+let expectedErrorPassed = 0;
+let warned = 0;
+let expectedWarningMissing = 0;
 const failures = [];
 
 for (const file of files) {
@@ -139,6 +165,65 @@ for (const file of files) {
     }
 }
 
+const errorFiles = globSync('tests-error/{eval,parse}/*.less', {
+    cwd: testDataRoot,
+    nodir: true,
+    posix: true
+}).sort();
+
+for (const file of errorFiles) {
+    const fixturePath = path.join(testDataRoot, file);
+    try {
+        await less.renderFile(fixturePath, { collapseNesting: true });
+        const expectedReason = expectedErrorPasses.get(file);
+        if (expectedReason) {
+            expectedErrorPassed += 1;
+        } else {
+            failures.push(`${file} rendered unexpectedly; expected a friendly diagnostic`);
+        }
+    } catch (error) {
+        if (expectedErrorPasses.has(file)) {
+            failures.push(`${file} now rejects; remove expected error gap: ${expectedErrorPasses.get(file)}`);
+            continue;
+        }
+        try {
+            assertFriendlySourceError(error);
+            errored += 1;
+        } catch (assertionError) {
+            failures.push(`${file}\n${formatError(assertionError)}`);
+        }
+    }
+}
+
+const warningFiles = globSync('tests-warnings/*.less', {
+    cwd: testDataRoot,
+    nodir: true,
+    posix: true
+}).sort();
+
+for (const file of warningFiles) {
+    const fixturePath = path.join(testDataRoot, file);
+    try {
+        const result = await less.renderFile(fixturePath, { collapseNesting: true });
+        const warnings = Array.isArray(result.warnings) ? result.warnings : [];
+        if (warnings.length > 0) {
+            if (expectedMissingWarnings.has(file)) {
+                failures.push(`${file} now emits warnings; remove expected warning gap: ${expectedMissingWarnings.get(file)}`);
+            } else {
+                warned += 1;
+            }
+            continue;
+        }
+        if (expectedMissingWarnings.has(file)) {
+            expectedWarningMissing += 1;
+        } else {
+            failures.push(`${file} rendered without warnings`);
+        }
+    } catch (error) {
+        failures.push(`${file} rejected while checking warnings\n${formatError(error)}`);
+    }
+}
+
 if (failures.length > 0) {
     console.error(`Less alpha fixture gate failed (${failures.length}):\n`);
     for (const failure of failures) {
@@ -146,7 +231,7 @@ if (failures.length > 0) {
     }
     process.exitCode = 1;
 } else {
-    console.log(`Less alpha fixtures passed: ${passed} rendered, ${expectedFailed} expected failures, ${skippedFixtures.size} skipped.`);
+    console.log(`Less alpha fixtures passed: ${passed} rendered, ${expectedFailed} expected render failures, ${errored} friendly errors, ${expectedErrorPassed} expected missing errors, ${warned} warnings, ${expectedWarningMissing} expected missing warnings, ${skippedFixtures.size} skipped.`);
 }
 
 async function assertFixtureRenders(testCase) {
@@ -319,6 +404,19 @@ function readStringFunctionArg(value) {
     }
     const primitive = value?.valueOf?.() ?? value;
     return String(primitive).replace(/^(['"])(.*)\1$/, '$2');
+}
+
+function assertFriendlySourceError(error) {
+    assert.equal(typeof error?.message, 'string', 'diagnostic should expose a message');
+    assert.equal(typeof error?.type, 'string', 'diagnostic should expose a type');
+    assert.equal(typeof error?.filename, 'string', 'diagnostic should preserve filename');
+    assert.ok(error.filename.startsWith(testDataRoot), 'diagnostic filename should stay inside the fixture corpus');
+    assert.equal(typeof error?.line, 'number', 'diagnostic should expose a line');
+    assert.equal(typeof error?.column, 'number', 'diagnostic should expose a column');
+    assert.ok(Array.isArray(error?.extract), 'diagnostic should expose source extract lines');
+    assert.ok(Array.isArray(error?.jessErrors), 'diagnostic should expose Jess diagnostics');
+    assert.ok(error.jessErrors.length > 0, 'diagnostic should include at least one Jess error');
+    assert.equal(Object.prototype.hasOwnProperty.call(error, 'offset'), false, 'diagnostic should not leak raw offsets');
 }
 
 function formatError(error) {
