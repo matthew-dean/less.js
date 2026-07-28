@@ -37,7 +37,7 @@ const lessJessDependencies = [
 ];
 const optionalScriptPluginPeer = '@jesscss/plugin-js';
 const forbiddenLessRuntimeDependencies = ['jess'];
-const expectedJessVersion = '2.0.0-alpha.10';
+const alphaVersionPattern = /^\d+\.\d+\.\d+-alpha\.\d+$/u;
 
 function fail(message) {
   throw new Error(message);
@@ -72,9 +72,30 @@ function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, 'utf8'));
 }
 
+function readExpectedJessVersion(manifest = readJson(path.join(lessPackageDir, 'package.json'))) {
+  const versions = [];
+  for (const name of lessJessDependencies) {
+    const version = manifest.dependencies?.[name];
+    assert(typeof version === 'string' && alphaVersionPattern.test(version),
+      `Committed Less dependency ${name} must be an exact Jess alpha version, found ${version ?? '(missing)'}`);
+    versions.push(version);
+  }
+  const unique = [...new Set(versions)];
+  assert(unique.length === 1,
+    `Committed Less Jess runtime dependencies must share one version, found ${unique.join(', ')}`);
+  const expected = unique[0];
+  assert(manifest.peerDependencies?.[optionalScriptPluginPeer] === expected,
+    `${optionalScriptPluginPeer} must be declared as an optional peer at ${expected}`);
+  assert(manifest.peerDependenciesMeta?.[optionalScriptPluginPeer]?.optional === true,
+    `${optionalScriptPluginPeer} peer dependency must be marked optional`);
+  return expected;
+}
+
 function writeJson(filePath, value) {
   writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
+
+const expectedJessVersion = readExpectedJessVersion();
 
 function packageDirFor(name) {
   return name.startsWith('@') ? path.join(...name.split('/')) : name;
