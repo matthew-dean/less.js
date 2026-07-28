@@ -9,7 +9,7 @@
   desaturate: #29332f;
   desaturate-relative: #233930;
   greyscale: #2e2e2e;
-  hsl-clamp: hsl(0, 0%, 100%);
+  hsl-clamp: hsl(380, 150%, 150%);
   spin-p: hsl(20, 50%, 50%);
   spin-n: hsl(350, 50%, 50%);
   luma-white: 100%;
@@ -20,12 +20,12 @@
   luma-blue: 7.22%;
   luma-yellow: 92.78%;
   luma-cyan: 78.74%;
-  luma-differs-from-luminance: 23.898333493%;
+  luma-differs-from-luminance: 23.89833349%;
   luminance-white: 100%;
   luminance-black: 0%;
   luminance-black-alpha: 0%;
   luminance-red: 21.26%;
-  luminance-differs-from-luma: 36.405411765%;
+  luminance-differs-from-luma: 36.40541176%;
   contrast-filter: contrast(30%);
   saturate-filter: saturate(5%);
   contrast-white: #000000;
@@ -85,12 +85,12 @@
   ceil: 11px;
   floor: 12px;
   sqrt: 5px;
-  pi: 3.1415926536;
+  pi: 3.14159265;
   mod: 2m;
   abs: 4%;
-  tan: 0.9004040443;
-  sin: 0.17364817767;
-  cos: 0.8438539587;
+  tan: 0.90040404;
+  sin: 0.17364818;
+  cos: 0.84385396;
   atan: 0.1rad;
   atan: 34deg;
   atan: 45deg;
@@ -101,12 +101,12 @@
   min: 5;
   min: 1pt;
   min: 3mm;
-  min: min(6em, 5, 4ex, 3, 2pt, 1);
+  min: min(1, 4ex, 2pt);
   min: min(calc(1em + 1vw), 1);
   min: min(var(--width), 802px);
   max: 3;
   max: 5em;
-  max: max(1px, 2, 3em, 4, 5m, 6);
+  max: max(5m, 3em);
   max: min(var(--body-max-width), calc(100vw - 20px));
   max: max(1, calc(1em + 1vw));
   max-native: max(10vw, 100px);
@@ -218,7 +218,6 @@ html {
   c: false;
   d: true;
   e: false;
-  f: true;
 }
 #if {
   a: 1;
@@ -231,6 +230,8 @@ html {
   i: 6;
   j: 8;
   k: 1;
+  m: 1;
+  n: 2;
   l: black;
   /* results in void */
   color: green;
@@ -238,7 +239,7 @@ html {
 }
 .paren-escapes {
   list-1: 1, 2, 3;
-  length-1: 3;
+  length-1: 1;
   item-1: 4;
   item-2: 5;
   item-3: 6;

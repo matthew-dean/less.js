@@ -3,7 +3,7 @@
   container-type: inline-size;
 }
 @container (max-width: 350px) {
-  :is(.widget.discoverresults, .widget.repositoriesresults) .cite .wdr-authors {
+  .widget.discoverresults .cite .wdr-authors {
     display: none;
   }
 }
@@ -22,11 +22,11 @@
     border: 1px solid grey;
   }
 }
-@container size(min-width: 60ch) {
+@container size (min-width: 60ch) {
   .article--post header {
     grid-template-areas:
-        "avatar name"
-        "avatar headline";
+      "avatar name"
+            "avatar headline";
     align-items: start;
   }
   .article--post {
@@ -53,6 +53,21 @@
   .card h2 .card-content h2 {
     padding: 0;
     margin: 0.5em 0 0 0;
+  }
+}
+@container contactBody (min-width: 1300px) {
+  .named-container {
+    width: 25%;
+  }
+}
+@container _body (min-width: 1300px) {
+  .underscored-container {
+    width: 25%;
+  }
+}
+@container café (min-width: 1300px) {
+  .nonascii-container {
+    width: 25%;
   }
 }
 @container (width >= 500px) and (height >= 500px) {
@@ -254,17 +269,17 @@
   position: sticky;
   container-type: scroll-state;
 }
-@container scroll-state(stuck: top) {
+@container scroll-state (stuck: top) {
   #sticky-child {
     font-size: 75%;
   }
 }
-@container scroll-state(snapped: x) {
+@container scroll-state (snapped: x) {
   #sticky-child {
     font-size: 75%;
   }
 }
-@container scroll-state(scrollable: top) {
+@container scroll-state (scrollable: top) {
   #sticky-child {
     font-size: 75%;
   }
@@ -272,5 +287,23 @@
 @container foo (min-width: 400px) {
   #sticky-child {
     font-size: 75%;
+  }
+}
+@container name (width < 125px) {
+  .mixin-container-test {
+    display: none;
+  }
+}
+.mixin-container-test {
+  color: red;
+}
+@container sidebar (width < 500px) {
+  .sidebar-test {
+    display: none;
+  }
+}
+@container header (width < 800px) {
+  .header-test {
+    display: none;
   }
 }
