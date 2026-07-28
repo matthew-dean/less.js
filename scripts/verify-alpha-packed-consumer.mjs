@@ -271,6 +271,12 @@ function run(args, options = {}) {
   return result;
 }
 
+function stripTerminalFormatting(value) {
+  return String(value)
+    .replace(/\\x1B\\]8;;[^\\x1B]*(?:\\x1B\\\\|\\x07)/gu, '')
+    .replace(/\\x1B\\[[0-?]*[ -/]*[@-~]/gu, '');
+}
+
 const version = run(['--version']);
 assert.equal(version.status, 0, version.stderr);
 assert.match(version.stdout, /^lessc 5\\.0\\.0-alpha\\.1 \\(Less Compiler\\) \\[Jess\\]\\n$/u);
@@ -292,6 +298,21 @@ writeFileSync(path.join(fixture, 'bad.less'), '.broken { color: }\\n.next {\\n')
 const malformed = run(['bad.less']);
 assert.notEqual(malformed.status, 0, 'lessc accepted malformed input');
 assert.ok(malformed.stderr.trim().length > 0, 'lessc emitted no malformed-input diagnostic');
+assert.match(malformed.stderr, /\\x1B\\[[0-?]*[ -/]*m/u,
+  'packed lessc must emit colored Linecraft diagnostics by default');
+assert.match(malformed.stderr, /[\\u256d\\u2570]/u,
+  'packed lessc must emit Linecraft source framing by default');
+const malformedPlain = stripTerminalFormatting(malformed.stderr);
+assert.match(malformedPlain, /parse\\/syntax-error \\[parse\\]/u,
+  'packed lessc must report the Linecraft diagnostic code');
+assert.match(malformedPlain, /bad\\.less:2:1/u,
+  'packed lessc must report filename, line, and column');
+assert.match(malformedPlain, /\\.next \\{/u,
+  'packed lessc must report the malformed source line');
+assert.doesNotMatch(malformedPlain, / on line \\d+, column \\d+/u,
+  'packed lessc must not reformat diagnostics into Less 4-style text');
+assert.doesNotMatch(malformedPlain, /^Error: Less parser error\\.$/m,
+  'packed lessc must not append a duplicate plain Error after a Linecraft diagnostic');
 console.log('packed lessc stdin, file/import, and malformed-input paths passed');
 `.trimStart());
   return checkPath;
