@@ -27,7 +27,7 @@
  *
  *   5. create-release-pr no-op safety (isolated temp git repo)
  *      - when a version bump produces changes → a commit is created
- *      - when no version changes are needed  → exits cleanly with no commit
+ *      - when no version changes are needed  → creates an empty sync commit
  *
  * Run:
  *   node scripts/test-release-automation.js
@@ -108,7 +108,10 @@ function section(title) {
  *     (github.event.pull_request.base.ref == 'master' &&
  *      startsWith(github.event.pull_request.title, 'chore: release v')) ||
  *     (github.event.pull_request.base.ref == 'alpha' &&
- *      startsWith(github.event.pull_request.title, 'chore: alpha release v'))
+ *      (
+ *        startsWith(github.event.pull_request.title, 'chore: release v') ||
+ *        startsWith(github.event.pull_request.title, 'chore: alpha release v')
+ *      ))
  *   )
  */
 function publishShouldRun({ repo, prMerged, prBaseRef, prTitle }) {
@@ -134,13 +137,15 @@ function publishShouldRun({ repo, prMerged, prBaseRef, prTitle }) {
 /**
  * create-release-pr.yml `if:` condition:
  *
+ *   github.event_name == 'push' &&
  *   github.repository == 'less/less.js' &&
  *   !contains(github.event.head_commit.message, 'chore: release v') &&
  *   !contains(github.event.head_commit.message, 'chore: alpha release v') &&
  *   !contains(github.event.head_commit.message, '/release-v') &&
  *   !contains(github.event.head_commit.message, '/alpha-release-v')
  */
-function createReleasePRShouldRun({ repo, commitMessage }) {
+function createReleasePRShouldRun({ repo, eventName, commitMessage }) {
+  if (eventName !== 'push') return false;
   if (repo !== 'less/less.js') return false;
   if (commitMessage.includes('chore: release v')) return false;
   if (commitMessage.includes('chore: alpha release v')) return false;
@@ -222,6 +227,33 @@ function makeFakeRepo({ packageVersion }) {
 function runBumpAndPublish(fakeRoot, extraEnv = {}) {
   const scriptsDir = path.join(fakeRoot, 'scripts');
   fs.mkdirSync(scriptsDir, { recursive: true });
+  const binDir = path.join(fakeRoot, '.test-bin');
+  fs.mkdirSync(binDir, { recursive: true });
+  fs.writeFileSync(path.join(binDir, 'npm'), `#!/bin/sh
+set -eu
+if [ "$1" = "view" ] && [ "$2" = "less" ] && [ "$3" = "version" ]; then
+  printf '%s\\n' "\${TEST_NPM_LATEST_VERSION:-4.8.1}"
+  exit 0
+fi
+if [ "$1" = "view" ] && [ "$2" = "less" ] && [ "$3" = "dist-tags.alpha" ]; then
+  if [ "\${TEST_NPM_ALPHA_VERSION:-}" ]; then
+    printf '%s\\n' "$TEST_NPM_ALPHA_VERSION"
+    exit 0
+  fi
+  exit 1
+fi
+case "$2" in
+  less@*)
+    if [ "\${TEST_NPM_EXACT_VERSION:-}" ]; then
+      printf '%s\\n' "$TEST_NPM_EXACT_VERSION"
+      exit 0
+    fi
+    exit 1
+    ;;
+esac
+exit 1
+`);
+  fs.chmodSync(path.join(binDir, 'npm'), 0o755);
 
   // Read the production script and patch the ROOT_DIR line.
   let src = fs.readFileSync(path.join(ROOT_DIR, 'scripts', 'bump-and-publish.js'), 'utf8');
@@ -253,6 +285,7 @@ function runBumpAndPublish(fakeRoot, extraEnv = {}) {
     env: {
       ...process.env,
       ...extraEnv,
+      PATH: `${binDir}:${process.env.PATH}`,
     },
     encoding: 'utf8',
   });
@@ -282,6 +315,17 @@ function runCreateReleasePRStep({ repoDir, nextVersion, releaseBranch }) {
   const ghLog = path.join(repoDir, 'gh-calls.log');
   fs.writeFileSync(path.join(binDir, 'gh'), `#!/bin/sh\necho "$@" >> "${ghLog}"\n`);
   fs.chmodSync(path.join(binDir, 'gh'), 0o755);
+  const scriptsDir = path.join(repoDir, 'scripts');
+  fs.mkdirSync(scriptsDir, { recursive: true });
+  let releaseScript = fs.readFileSync(path.join(ROOT_DIR, 'scripts', 'release-metadata.js'), 'utf8')
+    .replace(/^#!.*\n/, '');
+  if (SEMVER_PATH) {
+    releaseScript = releaseScript.replace(
+      /require\('semver'\)/g,
+      `require(${JSON.stringify(SEMVER_PATH)})`,
+    );
+  }
+  fs.writeFileSync(path.join(scriptsDir, 'release-metadata.js'), releaseScript);
 
   const initialHead = execSync('git rev-parse HEAD', { cwd: repoDir, encoding: 'utf8' }).trim();
 
@@ -293,29 +337,14 @@ TITLE="chore: release v\${NEXT_VERSION}"
 
 git checkout -b "\${RELEASE_BRANCH}"
 
-node -e "
-  const fs = require('fs');
-  const version = process.env.NEXT_VERSION;
-  const dirs = fs.readdirSync('packages', { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .map(d => 'packages/' + d.name + '/package.json');
-  for (const f of ['package.json', ...dirs].filter(f => fs.existsSync(f))) {
-    const pkg = JSON.parse(fs.readFileSync(f, 'utf8'));
-    if (!pkg.version) continue;
-    pkg.version = version;
-    fs.writeFileSync(f, JSON.stringify(pkg, null, '\\t') + '\\n');
-  }
-"
+node scripts/release-metadata.js sync-package-versions "\${NEXT_VERSION}"
 
 git add package.json packages/*/package.json
-COMMITTED=false
 if git diff --cached --quiet; then
   echo "STATUS:NO_CHANGES"
-else
-  git commit -m "\${TITLE}"
-  COMMITTED=true
 fi
-echo "STATUS:COMMITTED=\${COMMITTED}"
+git commit --allow-empty -m "\${TITLE}"
+echo "STATUS:COMMITTED=true"
 `;
 
   const result = spawnSync('bash', ['-c', script], {
@@ -537,6 +566,17 @@ test('npm alpha check rejects an alpha title version that is already published',
   );
 });
 
+test('next version rejects invalid npm version input', () => {
+  assert.throws(
+    () => releaseMetadata.nextVersion('master', '4.9.0', 'npm ERR registry unavailable'),
+    /Invalid npm version: npm ERR registry unavailable/,
+  );
+  assert.throws(
+    () => releaseMetadata.nextVersion('alpha', '5.0.0-alpha.3', 'not-a-version'),
+    /Invalid npm version: not-a-version/,
+  );
+});
+
 test('title sync rejects versions lower than the release branch package version', () => {
   assert.throws(
     () => releaseMetadata.validateTitleSync('master', '4.8.0', '4.9.0', '4.7.0'),
@@ -629,28 +669,28 @@ section('2. create-release-pr.yml — workflow trigger conditions');
 
 test('normal merge to master → SHOULD trigger', () => {
   assert.strictEqual(
-    createReleasePRShouldRun({ repo: 'less/less.js', commitMessage: 'fix: correct color parsing' }),
+    createReleasePRShouldRun({ repo: 'less/less.js', eventName: 'push', commitMessage: 'fix: correct color parsing' }),
     true,
   );
 });
 
 test('normal merge to alpha → SHOULD trigger', () => {
   assert.strictEqual(
-    createReleasePRShouldRun({ repo: 'less/less.js', commitMessage: 'feat: new feature for next major' }),
+    createReleasePRShouldRun({ repo: 'less/less.js', eventName: 'push', commitMessage: 'feat: new feature for next major' }),
     true,
   );
 });
 
 test('master release PR merge → should NOT trigger (loop guard)', () => {
   assert.strictEqual(
-    createReleasePRShouldRun({ repo: 'less/less.js', commitMessage: 'chore: release v4.6.4' }),
+    createReleasePRShouldRun({ repo: 'less/less.js', eventName: 'push', commitMessage: 'chore: release v4.6.4' }),
     false,
   );
 });
 
 test('alpha release PR merge → should NOT trigger (loop guard)', () => {
   assert.strictEqual(
-    createReleasePRShouldRun({ repo: 'less/less.js', commitMessage: 'chore: alpha release v5.0.0-alpha.2' }),
+    createReleasePRShouldRun({ repo: 'less/less.js', eventName: 'push', commitMessage: 'chore: alpha release v5.0.0-alpha.2' }),
     false,
   );
 });
@@ -659,6 +699,7 @@ test('release branch ref in commit message → should NOT trigger (loop guard fo
   assert.strictEqual(
     createReleasePRShouldRun({
       repo: 'less/less.js',
+      eventName: 'push',
       commitMessage: 'Merge chore/release-v4.6.4 into master',
     }),
     false,
@@ -669,6 +710,7 @@ test('alpha release branch ref in commit message → should NOT trigger (loop gu
   assert.strictEqual(
     createReleasePRShouldRun({
       repo: 'less/less.js',
+      eventName: 'push',
       commitMessage: 'Merge chore/alpha-release-v5.0.0-alpha.2 into alpha',
     }),
     false,
@@ -677,7 +719,14 @@ test('alpha release branch ref in commit message → should NOT trigger (loop gu
 
 test('wrong repository → should NOT trigger', () => {
   assert.strictEqual(
-    createReleasePRShouldRun({ repo: 'fork/less.js', commitMessage: 'fix: something' }),
+    createReleasePRShouldRun({ repo: 'fork/less.js', eventName: 'push', commitMessage: 'fix: something' }),
+    false,
+  );
+});
+
+test('pull request event → should NOT trigger', () => {
+  assert.strictEqual(
+    createReleasePRShouldRun({ repo: 'less/less.js', eventName: 'pull_request', commitMessage: 'fix: something' }),
     false,
   );
 });
@@ -953,8 +1002,8 @@ test('version bump needed: creates a commit on the release branch', () => {
   }
 });
 
-test('no version bump needed: exits cleanly, no new commit, no gh calls', () => {
-  // Repo starts at 4.6.4 (target version) → no diff → no commit
+test('no version bump needed: creates empty sync commit, no gh calls', () => {
+  // Repo starts at 4.6.4 (target version) → no diff → empty sync commit
   const repoDir = makeFakeRepo({ packageVersion: '4.6.4' });
   try {
     const res = runCreateReleasePRStep({
@@ -963,10 +1012,14 @@ test('no version bump needed: exits cleanly, no new commit, no gh calls', () => 
       releaseBranch: 'chore/release-v4.6.4',
     });
     assert.strictEqual(res.exitCode, 0, `Script exited ${res.exitCode}.\nSTDOUT: ${res.stdout}\nSTDERR: ${res.stderr}`);
-    assert.ok(!res.newCommitCreated, 'Expected NO new commit when version is already at target');
+    assert.ok(res.newCommitCreated, 'Expected an empty sync commit when version is already at target');
     assert.ok(
       res.stdout.includes('STATUS:NO_CHANGES'),
       `Expected NO_CHANGES status.\nSTDOUT: ${res.stdout}`,
+    );
+    assert.ok(
+      res.stdout.includes('STATUS:COMMITTED=true'),
+      `Expected COMMITTED=true status.\nSTDOUT: ${res.stdout}`,
     );
     assert.strictEqual(
       res.ghCalls, '',

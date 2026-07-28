@@ -83,6 +83,11 @@ jobs:
           if [ -n "$EXISTING_TITLE" ]; then
             NEXT=$(node scripts/release-metadata.js parse-title "$BRANCH" "$EXISTING_TITLE")
             RELEASE_BRANCH="$EXISTING_BRANCH"
+            if ! node scripts/release-metadata.js validate "$BRANCH" "$NEXT" "$NPM_VERSION" 2>/dev/null; then
+              echo "Existing release PR title v${NEXT} is no longer publishable; falling back to v${DEFAULT_NEXT}"
+              NEXT="$DEFAULT_NEXT"
+              RELEASE_BRANCH=$(node scripts/release-metadata.js branch "$BRANCH" "$NEXT")
+            fi
           else
             NEXT="$DEFAULT_NEXT"
             RELEASE_BRANCH=$(node scripts/release-metadata.js branch "$BRANCH" "$NEXT")
@@ -250,9 +255,9 @@ jobs:
           PREVIOUS_VERSION=$(node -p "require('./packages/less/package.json').version")
           VERSION=$(node .release-scripts/release-metadata.js parse-title "$RELEASE_BASE" "$RELEASE_TITLE")
           if [ "$RELEASE_BASE" = "alpha" ]; then
-            NPM_VERSION=$(npm view less dist-tags.alpha)
+            NPM_VERSION=$(npm view less dist-tags.alpha 2>/dev/null || echo "")
           else
-            NPM_VERSION=$(npm view less version)
+            NPM_VERSION=$(npm view less version 2>/dev/null || echo "")
           fi
           node .release-scripts/release-metadata.js validate-title-sync "$RELEASE_BASE" "$VERSION" "$PREVIOUS_VERSION" "$NPM_VERSION"
           TITLE=$(node .release-scripts/release-metadata.js title "$RELEASE_BASE" "$VERSION")
@@ -282,9 +287,8 @@ jobs:
           fi
 
           if git diff --cached --quiet; then
-            echo "Release files already match v${VERSION}"
-            exit 0
+            echo "Release files already match v${VERSION}; creating an empty sync commit"
           fi
 
-          git commit -m "$TITLE"
+          git commit --allow-empty -m "$TITLE"
           git push "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:${HEAD_REF}"

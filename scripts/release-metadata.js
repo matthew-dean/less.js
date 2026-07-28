@@ -105,6 +105,9 @@ function nextVersion(base, currentVersion, npmVersion) {
   if (!semver.valid(currentVersion)) {
     throw new Error(`Invalid current package version: ${currentVersion}`);
   }
+  if (npmVersion && !semver.valid(npmVersion)) {
+    throw new Error(`Invalid npm version: ${npmVersion}`);
+  }
 
   if (isAlphaBase(base)) {
     const current = semver.parse(currentVersion);
@@ -112,12 +115,12 @@ function nextVersion(base, currentVersion, npmVersion) {
       current.prerelease.length === 2 &&
       current.prerelease[0] === 'alpha' &&
       typeof current.prerelease[1] === 'number' &&
-      (!npmVersion || !semver.valid(npmVersion) || semver.gt(currentVersion, npmVersion))
+      (!npmVersion || semver.gt(currentVersion, npmVersion))
     ) {
       return currentVersion;
     }
 
-    const baseVersion = npmVersion && semver.valid(npmVersion) && semver.gt(npmVersion, currentVersion)
+    const baseVersion = npmVersion && semver.gt(npmVersion, currentVersion)
       ? npmVersion
       : currentVersion;
     const match = baseVersion.match(/^(\d+\.\d+\.\d+)-alpha\.(\d+)$/);
@@ -128,7 +131,7 @@ function nextVersion(base, currentVersion, npmVersion) {
     return `${parsed.major + 1}.0.0-alpha.1`;
   }
 
-  if (npmVersion && semver.valid(npmVersion) && semver.gt(currentVersion, npmVersion)) {
+  if (npmVersion && semver.gt(currentVersion, npmVersion)) {
     return currentVersion;
   }
   return semver.inc(npmVersion || currentVersion, 'patch');

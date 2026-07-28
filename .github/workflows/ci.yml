@@ -43,6 +43,8 @@ jobs:
         run: node --version && pnpm --version
       - name: Run Less v5 alpha support contract
         run: pnpm run test:alpha
+      - name: Run Less v5 Node module smoke tests
+        run: pnpm run test:node
       - name: Run release automation tests
         if: matrix.os == 'ubuntu-latest' && matrix.node == 'lts/*'
         run: pnpm run test:release

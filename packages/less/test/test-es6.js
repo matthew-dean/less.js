@@ -20,7 +20,7 @@ body {
     b: 2;
     c: 30;
     d: 4;
-}`, {sourceMap: {}},  function(error, output) {
+}`, function(error, output) {
     if (error) {
         console.error('Callback test FAILED:', error);
         process.exit(1);
