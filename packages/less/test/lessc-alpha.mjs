@@ -109,6 +109,7 @@ try {
     const nested = path.join(tempDir, 'nested.less');
     const nestedOutput = path.join(tempDir, 'nested.css');
     const broken = path.join(tempDir, 'broken.less');
+    const dynamicCharset = path.join(tempDir, 'dynamic-charset.less');
 
     await writeFile(path.join(tempDir, 'styles.config.cjs'), [
         'module.exports = {',
@@ -120,6 +121,7 @@ try {
     await writeFile(input, '@import "imported.less";\n.from-file { width: (1 + 1); }\n');
     await writeFile(nested, '.parent { before: 1; .child { inside: 2; } after: 3; }\n');
     await writeFile(broken, '.broken { color: red;\n');
+    await writeFile(dynamicCharset, '@Eight: 8;\n@charset "UTF-@{Eight}";\n');
 
     const collapsedCss = `.parent {
   before: 1;
@@ -233,6 +235,17 @@ try {
         'lessc must not reformat Linecraft diagnostics into Less 4-style text');
     assert.doesNotMatch(failureStderr, /^Error: Less parser error\.$/m,
         'lessc must not append a duplicate plain Error after a Linecraft diagnostic');
+
+    const dynamicCharsetFailure = await runLessc([dynamicCharset]);
+    assert.equal(dynamicCharsetFailure.code, 1, 'dynamic @charset is a failing lessc process');
+    assert.equal(dynamicCharsetFailure.stdout, '');
+    const dynamicCharsetStderr = stripTerminalFormatting(dynamicCharsetFailure.stderr);
+    assert.match(dynamicCharsetStderr, /parse\/dynamic-charset \[parse\]/,
+        'lessc reports the canonical Jess diagnostic code for dynamic @charset');
+    assert.match(dynamicCharsetStderr, /Interpolation is not valid in @charset\./,
+        'lessc preserves the canonical Jess diagnostic message');
+    assert.doesNotMatch(dynamicCharsetStderr, /Interpolation in @charset is not supported\./,
+        'lessc must not restore the old Less wrapper message rewrite');
 
     const silentFailure = await runLessc(['--silent', broken]);
     assert.equal(silentFailure.code, 1, '--silent should still fail malformed input');
