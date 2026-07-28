@@ -298,6 +298,13 @@ function stripTerminalFormatting(value) {
     .replace(/\\x1B\\[[0-?]*[ -/]*[@-~]/gu, '');
 }
 
+function assertNoUiControlSequences(value, label) {
+  assert.doesNotMatch(value, /\\x1B\\[\\?\\d+[hl]/u,
+    label + ' must not use alternate-screen or private terminal mode controls');
+  assert.doesNotMatch(value, /\\x1B\\]9;/u,
+    label + ' must not use OSC live-region controls');
+}
+
 const version = run(['--version']);
 assert.equal(version.status, 0, version.stderr);
 assert.match(version.stdout, /^lessc 5\\.0\\.0-alpha\\.1 \\(Less Compiler\\) \\[Jess\\]\\n$/u);
@@ -321,6 +328,7 @@ assert.notEqual(malformed.status, 0, 'lessc accepted malformed input');
 assert.ok(malformed.stderr.trim().length > 0, 'lessc emitted no malformed-input diagnostic');
 assert.match(malformed.stderr, /\\x1B\\[[0-?]*[ -/]*m/u,
   'packed lessc must emit colored Linecraft diagnostics by default');
+assertNoUiControlSequences(malformed.stderr, 'packed lessc diagnostics');
 assert.match(malformed.stderr, /[\\u256d\\u2570]/u,
   'packed lessc must emit Linecraft source framing by default');
 const malformedPlain = stripTerminalFormatting(malformed.stderr);

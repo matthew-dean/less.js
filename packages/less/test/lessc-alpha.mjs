@@ -39,6 +39,13 @@ function stripTerminalFormatting(value) {
         .replace(terminalCode, '');
 }
 
+function assertNoUiControlSequences(value, label) {
+    assert.doesNotMatch(value, new RegExp(`${ESC}\\[\\?\\d+[hl]`, 'u'),
+        `${label} must not use alternate-screen or private terminal mode controls`);
+    assert.doesNotMatch(value, new RegExp(`${ESC}\\]9;`, 'u'),
+        `${label} must not use OSC live-region controls`);
+}
+
 const compilerEntrypoint = fileURLToPath(import.meta.resolve('@jesscss/compiler'));
 assert.match(compilerEntrypoint, /[/\\]@jesscss[/\\]compiler[/\\]lib[/\\]index\.js$/,
     'the Less CLI must resolve the built generic Jess compiler entrypoint');
@@ -220,12 +227,13 @@ try {
     assert.equal(failure.stdout, '');
     assert.ok(failure.stderr.includes(`${ESC}[91m`),
         'lessc reports colored Linecraft diagnostics by default');
+    assertNoUiControlSequences(failure.stderr, 'lessc diagnostics');
     assert.match(failure.stderr, /[\u256d\u2570]/u,
         'lessc reports Linecraft source framing by default');
     const failureStderr = stripTerminalFormatting(failure.stderr);
     assert.match(failureStderr, /parse\/syntax-error \[parse\]/,
         'lessc reports the Linecraft diagnostic code on stderr');
-    assert.match(failureStderr, /broken\.less:1:1/,
+    assert.match(failureStderr, /broken\.less:2:1/,
         'lessc reports filename, line, and column on stderr');
     assert.match(failureStderr, /\.broken \{ color: red;/,
         'lessc reports the source line on stderr');

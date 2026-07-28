@@ -48,7 +48,10 @@ const { spawnSync, execSync } = require('child_process');
 const releaseMetadata = require('./release-metadata');
 
 const ROOT_DIR = path.resolve(__dirname, '..');
-const JESS_TEST_VERSION = '2.0.0-alpha.10';
+const LESS_MANIFEST = JSON.parse(
+  fs.readFileSync(path.join(ROOT_DIR, 'packages', 'less', 'package.json'), 'utf8')
+);
+const JESS_TEST_VERSION = LESS_MANIFEST.dependencies['@jesscss/compiler'];
 
 // ---------------------------------------------------------------------------
 // Resolve semver — works both after `pnpm install` and in a bare sandbox
