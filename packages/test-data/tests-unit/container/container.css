@@ -3,7 +3,8 @@
   container-type: inline-size;
 }
 @container (max-width: 350px) {
-  .widget.discoverresults .cite .wdr-authors {
+  .widget.discoverresults .cite .wdr-authors,
+  .widget.repositoriesresults .cite .wdr-authors {
     display: none;
   }
 }
@@ -269,17 +270,17 @@
   position: sticky;
   container-type: scroll-state;
 }
-@container scroll-state (stuck: top) {
+@container scroll-state(stuck: top) {
   #sticky-child {
     font-size: 75%;
   }
 }
-@container scroll-state (snapped: x) {
+@container scroll-state(snapped: x) {
   #sticky-child {
     font-size: 75%;
   }
 }
-@container scroll-state (scrollable: top) {
+@container scroll-state(scrollable: top) {
   #sticky-child {
     font-size: 75%;
   }
