@@ -7,7 +7,8 @@ const {
   determineAlphaVersion,
   getAlreadyPublishedPackages,
   getJessPublishVersion,
-  verifyJessPublishedVersion,
+  verifyJessRuntimePublishedVersion,
+  verifyScriptPluginOptionalPeer,
   verifyReleaseManifestVersions,
   verifyUnpublishedVersion,
 } = require('./bump-and-publish.js');
@@ -34,17 +35,52 @@ test('rejects an environment version that does not match the committed alpha', (
 });
 
 test('requires an exact Jess alpha for a Less alpha publish', () => {
-  assert.equal(getJessPublishVersion(), '2.0.0-alpha.9');
+  assert.equal(getJessPublishVersion(), '2.0.0-alpha.10');
 });
 
-test('requires Jess to be published before a non-dry Less alpha publish', () => {
+test('requires Jess runtime packages to be published before a non-dry Less alpha publish', () => {
   assert.equal(
-    verifyJessPublishedVersion('2.0.0-alpha.9', (_name, version) => version),
-    '2.0.0-alpha.9',
+    verifyJessRuntimePublishedVersion('2.0.0-alpha.10', (_name, version) => version),
+    '2.0.0-alpha.10',
   );
   assert.throws(
-    () => verifyJessPublishedVersion('2.0.0-alpha.9', () => null),
-    /must be published before a Less alpha publish/u,
+    () => verifyJessRuntimePublishedVersion('2.0.0-alpha.10', name =>
+      name === '@jesscss/compiler' ? null : '2.0.0-alpha.10'),
+    /@jesscss\/compiler@2\.0\.0-alpha\.10/u,
+  );
+});
+
+test('keeps plugin-js as an optional peer instead of a shipped dependency', () => {
+  assert.equal(
+    verifyScriptPluginOptionalPeer('2.0.0-alpha.10', {
+      peerDependencies: { '@jesscss/plugin-js': '2.0.0-alpha.10' },
+      peerDependenciesMeta: { '@jesscss/plugin-js': { optional: true } }
+    }),
+    '2.0.0-alpha.10',
+  );
+  assert.throws(
+    () => verifyScriptPluginOptionalPeer('2.0.0-alpha.10', {
+      dependencies: { '@jesscss/plugin-js': '2.0.0-alpha.10' },
+      peerDependencies: { '@jesscss/plugin-js': '2.0.0-alpha.10' },
+      peerDependenciesMeta: { '@jesscss/plugin-js': { optional: true } }
+    }),
+    /must not be a Less runtime dependency/u,
+  );
+  assert.throws(
+    () => verifyScriptPluginOptionalPeer('2.0.0-alpha.10', {
+      optionalDependencies: { '@jesscss/plugin-js': '2.0.0-alpha.10' },
+      peerDependencies: { '@jesscss/plugin-js': '2.0.0-alpha.10' },
+      peerDependenciesMeta: { '@jesscss/plugin-js': { optional: true } }
+    }),
+    /not an optionalDependency/u,
+  );
+  assert.throws(
+    () => verifyScriptPluginOptionalPeer('2.0.0-alpha.10', {
+      dependencies: { jess: '2.0.0-alpha.10' },
+      peerDependencies: { '@jesscss/plugin-js': '2.0.0-alpha.10' },
+      peerDependenciesMeta: { '@jesscss/plugin-js': { optional: true } }
+    }),
+    /jess must not be a Less runtime dependency/u,
   );
 });
 

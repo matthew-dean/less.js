@@ -7,26 +7,26 @@ import lessPlugin from '@jesscss/plugin-less';
 import { lessCompatPlugin } from '@jesscss/plugin-less-compat';
 
 const unsupportedAlphaOptions = new Map([
-  ['sourceMap', 'source maps are not supported in Less 5 alpha.1'],
-  ['sourceMapFilename', 'source maps are not supported in Less 5 alpha.1'],
-  ['sourceMapRootpath', 'source maps are not supported in Less 5 alpha.1'],
-  ['sourceMapBasepath', 'source maps are not supported in Less 5 alpha.1'],
-  ['sourceMapURL', 'source maps are not supported in Less 5 alpha.1'],
-  ['sourceMapFileInline', 'source maps are not supported in Less 5 alpha.1'],
-  ['globalVars', 'global variable injection is not supported in Less 5 alpha.1'],
-  ['modifyVars', 'modify-var injection is not supported in Less 5 alpha.1'],
-  ['strictUnits', 'strict unit mode is not supported in Less 5 alpha.1'],
-  ['rootpath', 'URL rootpath rewriting is not supported in Less 5 alpha.1'],
-  ['rewriteUrls', 'URL rewriting is not supported in Less 5 alpha.1'],
-  ['urlArgs', 'URL argument rewriting is not supported in Less 5 alpha.1'],
-  ['javascriptEnabled', 'JavaScript evaluation is not supported in Less 5 alpha.1'],
-  ['compress', 'compressed output is not supported in Less 5 alpha.1'],
+  ['sourceMap', 'source maps are not supported'],
+  ['sourceMapFilename', 'source maps are not supported'],
+  ['sourceMapRootpath', 'source maps are not supported'],
+  ['sourceMapBasepath', 'source maps are not supported'],
+  ['sourceMapURL', 'source maps are not supported'],
+  ['sourceMapFileInline', 'source maps are not supported'],
+  ['globalVars', 'global variable injection is not supported'],
+  ['modifyVars', 'modify-var injection is not supported'],
+  ['strictUnits', 'strict unit mode is not supported'],
+  ['rootpath', 'URL rootpath rewriting is not supported'],
+  ['rewriteUrls', 'URL rewriting is not supported'],
+  ['urlArgs', 'URL argument rewriting is not supported'],
+  ['javascriptEnabled', 'JavaScript evaluation is not supported'],
+  ['compress', 'compressed output is not supported'],
 ]);
 
 function validateAlphaOptions(options) {
   for (const [name, reason] of unsupportedAlphaOptions) {
     if (Object.prototype.hasOwnProperty.call(options, name)) {
-      throw new Error(`${name} is not supported in Less 5 alpha.1: ${reason}`);
+      throw new Error(`${name} is not supported: ${reason}`);
     }
   }
 }

@@ -28,11 +28,14 @@ const semver = require('semver');
 const ROOT_DIR = path.resolve(__dirname, '..');
 const PACKAGES_DIR = path.join(ROOT_DIR, 'packages');
 const JESS_RUNTIME_DEPENDENCIES = [
+  '@jesscss/compiler',
   '@jesscss/core',
   '@jesscss/plugin-less',
   '@jesscss/plugin-less-compat',
-  'jess'
+  '@jesscss/plugin-node-modules'
 ];
+const OPTIONAL_SCRIPT_PLUGIN_PEER = '@jesscss/plugin-js';
+const FORBIDDEN_LESS_RUNTIME_DEPENDENCIES = ['jess'];
 
 // Get all package.json files
 function getPackageFiles() {
@@ -162,13 +165,38 @@ function getJessPublishVersion() {
 }
 
 /**
- * A non-dry alpha publish must name a Jess alpha that is already on npm. Keep
- * this guard ahead of all release mutations: failing it must not create a Less
- * commit, tag, or push.
+ * A non-dry alpha publish must name Jess runtime packages that are already on
+ * npm. Keep this guard ahead of all release mutations: failing it must not
+ * create a Less commit, tag, or push.
  */
-function verifyJessPublishedVersion(version, lookup = getExactNpmVersion) {
-  if (lookup('jess', version) !== version) {
-    throw new Error(`Jess ${version} must be published before a Less alpha publish`);
+function verifyJessRuntimePublishedVersion(version, lookup = getExactNpmVersion) {
+  const missing = JESS_RUNTIME_DEPENDENCIES.filter(name => lookup(name, version) !== version);
+  if (missing.length > 0) {
+    throw new Error(`Jess runtime packages must be published before a Less alpha publish: ${missing.join(', ')}@${version}`);
+  }
+  return version;
+}
+
+function verifyScriptPluginOptionalPeer(version, manifest = readPackage(path.join(PACKAGES_DIR, 'less', 'package.json'))) {
+  for (const name of FORBIDDEN_LESS_RUNTIME_DEPENDENCIES) {
+    if (manifest.dependencies && name in manifest.dependencies) {
+      throw new Error(`${name} must not be a Less runtime dependency`);
+    }
+    if (manifest.optionalDependencies && name in manifest.optionalDependencies) {
+      throw new Error(`${name} must not be a Less optionalDependency`);
+    }
+  }
+  if (manifest.dependencies && OPTIONAL_SCRIPT_PLUGIN_PEER in manifest.dependencies) {
+    throw new Error(`${OPTIONAL_SCRIPT_PLUGIN_PEER} must not be a Less runtime dependency`);
+  }
+  if (manifest.optionalDependencies && OPTIONAL_SCRIPT_PLUGIN_PEER in manifest.optionalDependencies) {
+    throw new Error(`${OPTIONAL_SCRIPT_PLUGIN_PEER} must be an optional peer, not an optionalDependency`);
+  }
+  if (manifest.peerDependencies?.[OPTIONAL_SCRIPT_PLUGIN_PEER] !== version) {
+    throw new Error(`${OPTIONAL_SCRIPT_PLUGIN_PEER} optional peer must be pinned to ${version}`);
+  }
+  if (manifest.peerDependenciesMeta?.[OPTIONAL_SCRIPT_PLUGIN_PEER]?.optional !== true) {
+    throw new Error(`${OPTIONAL_SCRIPT_PLUGIN_PEER} peer dependency must be marked optional`);
   }
   return version;
 }
@@ -384,8 +412,9 @@ function main() {
       console.log(`📦 Using committed alpha version: ${nextVersion}`);
 
       jessPublishVersion = getJessPublishVersion();
+      verifyScriptPluginOptionalPeer(jessPublishVersion);
       if (!dryRun) {
-        verifyJessPublishedVersion(jessPublishVersion);
+        verifyJessRuntimePublishedVersion(jessPublishVersion);
       }
       console.log(`✅ Less package will publish against Jess ${jessPublishVersion}`);
     } catch (error) {
@@ -674,7 +703,8 @@ module.exports = {
   determineAlphaVersion,
   getAlreadyPublishedPackages,
   getJessPublishVersion,
-  verifyJessPublishedVersion,
+  verifyJessRuntimePublishedVersion,
+  verifyScriptPluginOptionalPeer,
   verifyReleaseManifestVersions,
   verifyUnpublishedVersion,
   main

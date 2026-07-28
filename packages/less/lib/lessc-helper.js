@@ -39,7 +39,7 @@ const lesscHelper = {
     console.log('  --verbose                    Be verbose.');
     console.log('  --collapse-nesting           Flatten nested rules after preserving source-order cascade.');
     console.log('');
-    console.log('Less 5 alpha.1 intentionally supports a smaller CLI surface than Less 4.');
+    console.log('This release intentionally supports a smaller CLI surface.');
     console.log('Source maps, browser compilation, legacy plugin flags, lint-only mode, and');
     console.log('URL rewrite flags will be revisited in later alphas.');
     console.log('');

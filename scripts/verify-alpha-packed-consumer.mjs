@@ -29,12 +29,15 @@ const lessRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const lessPackageDir = path.join(lessRoot, 'packages', 'less');
 const keep = process.argv.includes('--keep');
 const lessJessDependencies = [
+  '@jesscss/compiler',
   '@jesscss/core',
   '@jesscss/plugin-less',
   '@jesscss/plugin-less-compat',
-  'jess'
+  '@jesscss/plugin-node-modules'
 ];
-const expectedJessVersion = '2.0.0-alpha.9';
+const optionalScriptPluginPeer = '@jesscss/plugin-js';
+const forbiddenLessRuntimeDependencies = ['jess'];
+const expectedJessVersion = '2.0.0-alpha.10';
 
 function fail(message) {
   throw new Error(message);
@@ -123,6 +126,20 @@ function packTemporaryLess(packDir) {
     assert(specifier === expectedJessVersion,
       `Expected committed Less dependency ${name} to be ${expectedJessVersion}, found ${specifier}`);
   }
+  for (const name of forbiddenLessRuntimeDependencies) {
+    assert(manifest.dependencies?.[name] === undefined,
+      `Committed Less must not depend on ${name}`);
+    assert(manifest.optionalDependencies?.[name] === undefined,
+      `Committed Less must not ship ${name} as an optionalDependency`);
+  }
+  assert(manifest.dependencies?.[optionalScriptPluginPeer] === undefined,
+    `${optionalScriptPluginPeer} must not be a Less runtime dependency`);
+  assert(manifest.optionalDependencies?.[optionalScriptPluginPeer] === undefined,
+    `${optionalScriptPluginPeer} must not be a Less optionalDependency because package managers install optional dependencies by default`);
+  assert(manifest.peerDependencies?.[optionalScriptPluginPeer] === expectedJessVersion,
+    `${optionalScriptPluginPeer} must be declared as an optional peer at ${expectedJessVersion}`);
+  assert(manifest.peerDependenciesMeta?.[optionalScriptPluginPeer]?.optional === true,
+    `${optionalScriptPluginPeer} peer dependency must be marked optional`);
   run('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', packDir], tempLessDir);
   const tarball = findPackedTarball(packDir, 'less');
   const packed = readPackedManifest(tarball);
@@ -132,6 +149,20 @@ function packTemporaryLess(packDir) {
     assert(specifier === expectedJessVersion,
       `Packed Less dependency ${name} is ${specifier}, expected ${expectedJessVersion}`);
   }
+  for (const name of forbiddenLessRuntimeDependencies) {
+    assert(packed.dependencies?.[name] === undefined,
+      `Packed Less must not depend on ${name}`);
+    assert(packed.optionalDependencies?.[name] === undefined,
+      `Packed Less must not ship ${name} as an optionalDependency`);
+  }
+  assert(packed.dependencies?.[optionalScriptPluginPeer] === undefined,
+    `Packed Less must not ship ${optionalScriptPluginPeer} as a runtime dependency`);
+  assert(packed.optionalDependencies?.[optionalScriptPluginPeer] === undefined,
+    `Packed Less must not ship ${optionalScriptPluginPeer} as an optionalDependency`);
+  assert(packed.peerDependencies?.[optionalScriptPluginPeer] === expectedJessVersion,
+    `Packed Less peer ${optionalScriptPluginPeer} is ${packed.peerDependencies?.[optionalScriptPluginPeer]}, expected ${expectedJessVersion}`);
+  assert(packed.peerDependenciesMeta?.[optionalScriptPluginPeer]?.optional === true,
+    `Packed Less peer ${optionalScriptPluginPeer} must be marked optional`);
   return { tarball, version: manifest.version };
 }
 
@@ -197,11 +228,8 @@ function assertConsumerRegistryPackages(consumerDir, forbiddenRoots, packageName
     assert(entry.version === expectedJessVersion,
       `consumer lock installed ${name}@${entry.version ?? '(missing version)'}, expected ${expectedJessVersion}`);
   }
-  const jessManifest = readJson(path.join(modulesDir, 'jess', 'package.json'));
-  assert(!Object.prototype.hasOwnProperty.call(jessManifest.bin ?? {}, 'lessc'),
-    'consumer jess package declares the Less-owned lessc command');
-  assert(!existsSync(path.join(modulesDir, 'jess', 'bin', 'lessc.mjs')),
-    'consumer jess package contains the removed Less-owned lessc bin');
+  assert(!existsSync(path.join(modulesDir, 'jess')),
+    'consumer installed the batteries-included jess package; less should depend only on the generic compiler and Less plugins');
 }
 
 function writeConsumerChecks(consumerDir) {

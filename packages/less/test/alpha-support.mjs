@@ -122,7 +122,7 @@ async function assertUnsupportedSyntaxHasPreciseDiagnostic() {
                     ''
                 ]);
                 assert.equal(error.jessErrors?.[0]?.code, 'parse/dynamic-charset');
-                assert.equal(String(error), 'Error: Less 5 does not support interpolation in @charset.');
+                assert.equal(String(error), 'Error: Interpolation in @charset is not supported.');
                 assert.doesNotMatch(String(error), /offset/i);
                 return true;
             }
@@ -143,7 +143,7 @@ async function assertBareStructuralAtRuleVariablesReject() {
             assert.equal(error.type, 'parse');
             assert.equal(error.filename, 'bare-at-rule-var.less');
             assert.equal(error.line, 2);
-            assert.equal(error.column, 1);
+            assert.equal(error.column, 12);
             assert.deepEqual(error.extract, [
                 '@varfoo: foo;',
                 '@container @varfoo (min-width: 400px) { .x { color: red; } }',
@@ -171,7 +171,7 @@ async function assertUnsupportedApiOptionsReject() {
         await assert.rejects(
             less.render('.x { color: red; }\n', { [option]: true }),
             error => {
-                assert.match(error.message, /not supported in Less 5 alpha\.1/);
+                assert.match(error.message, /not supported/);
                 assert.match(error.message, new RegExp(option));
                 return true;
             },

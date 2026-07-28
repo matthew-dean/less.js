@@ -35,10 +35,10 @@ function stripTerminalFormatting(value) {
         .replace(/\x1B\[[0-?]*[ -/]*[@-~]/gu, '');
 }
 
-const jessEntrypoint = fileURLToPath(import.meta.resolve('jess'));
-assert.match(jessEntrypoint, /[/\\]jess[/\\]lib[/\\]index\.js$/,
-    'the Less CLI must resolve the built Jess package entrypoint');
-await realpath(jessEntrypoint);
+const compilerEntrypoint = fileURLToPath(import.meta.resolve('@jesscss/compiler'));
+assert.match(compilerEntrypoint, /[/\\]@jesscss[/\\]compiler[/\\]lib[/\\]index\.js$/,
+    'the Less CLI must resolve the built generic Jess compiler entrypoint');
+await realpath(compilerEntrypoint);
 
 {
     assert.deepEqual(createLessOptions({}).configOptions.output, {});
@@ -73,7 +73,7 @@ await realpath(jessEntrypoint);
         }),
         error => {
             assert.equal(error.type, 'parse');
-            assert.equal(error.message, 'Less 5 does not support interpolation in @charset.');
+            assert.equal(error.message, 'Interpolation in @charset is not supported.');
             assert.equal(error.filename, 'dynamic-charset.less');
             assert.equal(error.line, 2);
             assert.equal(error.column, 1);
@@ -82,7 +82,7 @@ await realpath(jessEntrypoint);
                 '@charset "UTF-@{Eight}";',
                 ''
             ]);
-            assert.equal(String(error), 'Error: Less 5 does not support interpolation in @charset.');
+            assert.equal(String(error), 'Error: Interpolation in @charset is not supported.');
             assert.doesNotMatch(String(error), /offset/i);
             assert.equal(error.jessErrors?.[0]?.code, 'parse/dynamic-charset');
             assert.deepEqual(error.jessErrors?.[0]?.lines, {
@@ -142,8 +142,8 @@ try {
     assert.equal(help.code, 0, help.stderr);
     assert.match(help.stdout, /--collapse-nesting/,
         'lessc help documents the supported alpha nesting flag');
-    assert.match(help.stdout, /Less 5 alpha\.1 intentionally supports a smaller CLI surface/,
-        'lessc help explicitly scopes the alpha CLI surface');
+    assert.match(help.stdout, /This release intentionally supports a smaller CLI surface/,
+        'lessc help explicitly scopes the supported CLI surface');
     assert.doesNotMatch(help.stdout, /--source-map/,
         'lessc help must not advertise unsupported source-map flags in alpha.1');
     assert.doesNotMatch(help.stdout, /--plugin=/,
@@ -153,7 +153,7 @@ try {
         const unsupported = await runLessc([flag, '-'], '.unsupported { color: red; }\n');
         assert.equal(unsupported.code, 1, `${flag} must fail instead of silently no-oping`);
         assert.equal(unsupported.stdout, '', `${flag} must not emit CSS after rejecting the option`);
-        assert.match(unsupported.stderr, /not supported in Less 5 alpha\.1|unknown flags are rejected/,
+        assert.match(unsupported.stderr, /not supported/,
             `${flag} must explain the alpha CLI surface`);
     }
 

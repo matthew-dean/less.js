@@ -10,7 +10,8 @@
  */
 
 import { readFile } from 'node:fs/promises';
-import { Compiler } from 'jess';
+import { Compiler } from '@jesscss/compiler';
+import nodeModulesPlugin from '@jesscss/plugin-node-modules';
 import { createLessOptions, getCompilerCacheKey, mapRenderResult } from './options.js';
 import { version } from './version.js';
 import { logger } from './logger.js';
@@ -35,8 +36,34 @@ function normalizeDiagnosticLines(lines, lineNumber) {
   return undefined;
 }
 
+function normalizeUnsupportedMessage(message) {
+  if (typeof message !== 'string') {
+    return message;
+  }
+  const match = /^Less(?: \d+(?:\.\d+){0,2}(?:-[\w.]+)?)? does not support (.+?)(\.)?$/u.exec(message);
+  if (!match) {
+    const invalidMatch = /^(.+?) is not valid in (.+?)\.$/u.exec(message);
+    if (!invalidMatch) {
+      return message;
+    }
+    const subject = invalidMatch[1].charAt(0).toUpperCase() + invalidMatch[1].slice(1);
+    return `${subject} in ${invalidMatch[2]} is not supported.`;
+  }
+  const subject = match[1].charAt(0).toUpperCase() + match[1].slice(1);
+  return `${subject} is not supported.`;
+}
+
+function normalizeDiagnostic(diagnostic) {
+  if (!diagnostic || typeof diagnostic !== 'object') {
+    return diagnostic;
+  }
+  const message = normalizeUnsupportedMessage(diagnostic.message);
+  return message === diagnostic.message ? diagnostic : { ...diagnostic, message };
+}
+
 function createRenderErrorFromJessDiagnostic(result, filePath) {
-  const diagnostic = result?.errors?.[0];
+  const errors = (result?.errors || []).map(normalizeDiagnostic);
+  const diagnostic = errors[0];
   const error = new Error(diagnostic?.message || 'Less render failed');
 
   error.type = diagnostic?.phase || 'Syntax';
@@ -44,7 +71,7 @@ function createRenderErrorFromJessDiagnostic(result, filePath) {
   error.line = diagnostic?.line || 1;
   error.column = diagnostic?.column || 1;
   error.extract = normalizeDiagnosticLines(diagnostic?.lines, error.line);
-  error.jessErrors = result?.errors || [];
+  error.jessErrors = errors;
   error.jessWarnings = result?.warnings || [];
 
   return error;
@@ -57,7 +84,11 @@ function getCompiler(configOptions) {
   const cacheKey = getCompilerCacheKey(configOptions);
   let compiler = compilerCache.get(cacheKey);
   if (!compiler) {
-    compiler = new Compiler(configOptions);
+    compiler = new Compiler(configOptions, {
+      defaultPlugins: context => [nodeModulesPlugin({ basePath: context.resolutionBaseDir })],
+      scriptPluginSpecifier: '@jesscss/plugin-js',
+      scriptPluginResolveFrom: import.meta.url
+    });
     compilerCache.set(cacheKey, compiler);
   }
   return compiler;
@@ -120,7 +151,19 @@ async function renderFile(filePath, options = {}) {
   return mapRenderResult(result, options);
 }
 
-/** @type {import('./types.js').LessStatic} */
+/**
+ * COMPAT GAP (v5): the Less 4.x `less.functions` (custom-function registry via
+ * `less.functions.functionRegistry.add/addMultiple`) and `less.tree` (node
+ * constructors) are intentionally NOT present on the Jess-backed build. Jess
+ * registers custom functions with `defineFunction(name, fn, opts)` supplied
+ * through the compiler config/plugins, and its values are Jess nodes, not
+ * `less.tree.*`. Providing these as throwing stubs would break feature-detection
+ * (`if (less.functions)`), so they are left absent until a real compat surface
+ * (registry -> defineFunction bridge + tree-node shims) is built. Tracked for
+ * the broader Less-runner/API-parity work; see also test/less-test.js guards.
+ *
+ * @type {import('./types.js').LessStatic}
+ */
 const less = {
   version: lessVersion,
   render,

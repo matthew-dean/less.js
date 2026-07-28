@@ -18,26 +18,26 @@ let quiet = false;
 let verbose = false;
 
 const unsupportedOptions = new Map([
-  ['--source-map', 'source maps are not supported in Less 5 alpha.1'],
-  ['--source-map-map-inline', 'source maps are not supported in Less 5 alpha.1'],
-  ['--source-map-include-source', 'source maps are not supported in Less 5 alpha.1'],
-  ['--source-map-rootpath', 'source maps are not supported in Less 5 alpha.1'],
-  ['--source-map-basepath', 'source maps are not supported in Less 5 alpha.1'],
-  ['--source-map-url', 'source maps are not supported in Less 5 alpha.1'],
-  ['--plugin', 'legacy lessc plugin flags are not supported in Less 5 alpha.1'],
-  ['--depends', 'dependency-only output is not supported in Less 5 alpha.1'],
-  ['--lint', 'lint-only mode is not supported in Less 5 alpha.1'],
-  ['--compress', 'compressed output is not supported in Less 5 alpha.1'],
-  ['-x', 'compressed output is not supported in Less 5 alpha.1'],
-  ['--clean-css', 'clean-css compression is not supported in Less 5 alpha.1'],
-  ['--rewrite-urls', 'URL rewriting is not supported in Less 5 alpha.1'],
-  ['--rootpath', 'URL rootpath rewriting is not supported in Less 5 alpha.1'],
-  ['--url-args', 'URL argument rewriting is not supported in Less 5 alpha.1'],
-  ['--global-var', 'global variable injection is not supported in Less 5 alpha.1'],
-  ['--modify-var', 'modify-var injection is not supported in Less 5 alpha.1'],
-  ['--js', 'JavaScript evaluation is not supported in Less 5 alpha.1'],
-  ['--no-js', 'JavaScript evaluation flags are not supported in Less 5 alpha.1'],
-  ['--strict-units', 'strict unit mode is not supported in Less 5 alpha.1'],
+  ['--source-map', 'source maps are not supported'],
+  ['--source-map-map-inline', 'source maps are not supported'],
+  ['--source-map-include-source', 'source maps are not supported'],
+  ['--source-map-rootpath', 'source maps are not supported'],
+  ['--source-map-basepath', 'source maps are not supported'],
+  ['--source-map-url', 'source maps are not supported'],
+  ['--plugin', 'legacy lessc plugin flags are not supported'],
+  ['--depends', 'dependency-only output is not supported'],
+  ['--lint', 'lint-only mode is not supported'],
+  ['--compress', 'compressed output is not supported'],
+  ['-x', 'compressed output is not supported'],
+  ['--clean-css', 'clean-css compression is not supported'],
+  ['--rewrite-urls', 'URL rewriting is not supported'],
+  ['--rootpath', 'URL rootpath rewriting is not supported'],
+  ['--url-args', 'URL argument rewriting is not supported'],
+  ['--global-var', 'global variable injection is not supported'],
+  ['--modify-var', 'modify-var injection is not supported'],
+  ['--js', 'JavaScript evaluation is not supported'],
+  ['--no-js', 'JavaScript evaluation flags are not supported'],
+  ['--strict-units', 'strict unit mode is not supported'],
 ]);
 
 function stripTerminalFormatting(value) {
@@ -96,11 +96,11 @@ function splitSearchPaths(value) {
 }
 
 function failUnsupportedOption(arg, reason) {
-  console.error(`lessc: ${arg} is not supported in Less 5 alpha.1`);
+  console.error(`lessc: ${arg} is not supported`);
   if (reason) {
     console.error(`lessc: ${reason}`);
   }
-  console.error('lessc: run `lessc --help` for the supported alpha CLI surface.');
+  console.error('lessc: run `lessc --help` for supported options.');
   process.exit(1);
 }
 
@@ -167,7 +167,7 @@ function parseArgs() {
       continue;
     }
     if (arg.startsWith('-')) {
-      failUnsupportedOption(arg, 'unknown flags are rejected in this alpha instead of being silently ignored');
+      failUnsupportedOption(arg, 'unknown flags are not supported');
     }
   }
 }
