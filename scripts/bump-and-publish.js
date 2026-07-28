@@ -348,6 +348,14 @@ function getAlreadyPublishedPackages(packages, version, lookup = getExactNpmVers
   return packages.filter(pkg => lookup(pkg.name, version));
 }
 
+function verifyRemoteTagCommit(tagName, remoteTagCommit, headCommit) {
+  if (remoteTagCommit && remoteTagCommit !== headCommit) {
+    throw new Error(
+      `Remote tag ${tagName} points at ${remoteTagCommit}, which differs from HEAD ${headCommit}; aborting publish`
+    );
+  }
+}
+
 // Get packages that should be published (not private)
 function getPublishablePackages() {
   const packageFiles = getPackageFiles();
@@ -482,11 +490,11 @@ function main() {
   // leaving the release stuck until someone deletes the tag by hand.
   //
   // To make reruns safe we check the remote for the tag: if it already exists
-  // we simply skip the tag step and fall straight through to the publish retry.
-  // We do NOT compare it to HEAD — on a rerun `alpha` may have moved past the
-  // original release commit, and the goal here is only to retry publishing the
-  // already-tagged version, not to police where the tag points.  Only when the
-  // tag is genuinely absent do we create + push a fresh annotated tag.
+  // and still points at HEAD, we simply skip the tag step and fall straight
+  // through to the publish retry. If the remote tag points anywhere else,
+  // abort instead of publishing packages for a version tagged to another
+  // commit. Only when the tag is genuinely absent do we create + push a fresh
+  // annotated tag.
   //
   // For master the version-bump commit already lives on the branch (it came
   // from the release PR).  Only the annotated tag is pushed — tag pushes bypass
@@ -516,12 +524,16 @@ function main() {
 
   if (remoteTagCommit) {
     // Rerun-after-failed-publish path: the version is already tagged on the
-    // remote.  Skip create/push and fall through to the publish retry.
-    console.log(`✅ Remote tag ${tagName} already exists — skipping tag create/push, proceeding to publish.`);
+    // remote.  Skip create/push and fall through to the publish retry only if
+    // the tag still points at the checked-out release commit.
     const headCommit = execSync('git rev-parse HEAD', { cwd: ROOT_DIR, encoding: 'utf8' }).trim();
-    if (remoteTagCommit !== headCommit) {
-      console.warn(`⚠️  Remote tag ${tagName} points at ${remoteTagCommit}, which differs from HEAD ${headCommit}. Proceeding to publish anyway.`);
+    try {
+      verifyRemoteTagCommit(tagName, remoteTagCommit, headCommit);
+    } catch (error) {
+      console.error(`❌ ERROR: ${error.message || error}`);
+      process.exit(1);
     }
+    console.log(`✅ Remote tag ${tagName} already exists and points at HEAD; skipping tag create/push, proceeding to publish.`);
   } else if (dryRun) {
     console.log(`   [DRY RUN] Remote tag ${tagName} not found — would create annotated tag and push to origin.`);
   } else {
@@ -706,6 +718,7 @@ module.exports = {
   verifyJessRuntimePublishedVersion,
   verifyScriptPluginOptionalPeer,
   verifyReleaseManifestVersions,
+  verifyRemoteTagCommit,
   verifyUnpublishedVersion,
   main
 };

@@ -10,6 +10,7 @@ const {
   verifyJessRuntimePublishedVersion,
   verifyScriptPluginOptionalPeer,
   verifyReleaseManifestVersions,
+  verifyRemoteTagCommit,
   verifyUnpublishedVersion,
 } = require('./bump-and-publish.js');
 
@@ -121,4 +122,12 @@ test('detects already-published packages for alpha publish reruns', () => {
     name => name === 'less' ? '5.0.0-alpha.1' : null,
   );
   assert.deepEqual(published, [{ name: 'less' }]);
+});
+
+test('rejects a remote release tag that points away from HEAD', () => {
+  assert.doesNotThrow(() => verifyRemoteTagCommit('v5.0.0-alpha.1', 'abc123', 'abc123'));
+  assert.throws(
+    () => verifyRemoteTagCommit('v5.0.0-alpha.1', 'abc123', 'def456'),
+    /Remote tag v5\.0\.0-alpha\.1 points at abc123, which differs from HEAD def456; aborting publish/u,
+  );
 });
