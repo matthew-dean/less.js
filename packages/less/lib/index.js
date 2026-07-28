@@ -48,33 +48,8 @@ function normalizeDiagnosticLines(lines, lineNumber, filePath) {
   return undefined;
 }
 
-function normalizeUnsupportedMessage(message) {
-  if (typeof message !== 'string') {
-    return message;
-  }
-  const match = /^Less(?: \d+(?:\.\d+){0,2}(?:-[\w.]+)?)? does not support (.+?)(\.)?$/u.exec(message);
-  if (!match) {
-    const invalidMatch = /^(.+?) is not valid in (.+?)\.$/u.exec(message);
-    if (!invalidMatch) {
-      return message;
-    }
-    const subject = invalidMatch[1].charAt(0).toUpperCase() + invalidMatch[1].slice(1);
-    return `${subject} in ${invalidMatch[2]} is not supported.`;
-  }
-  const subject = match[1].charAt(0).toUpperCase() + match[1].slice(1);
-  return `${subject} is not supported.`;
-}
-
-function normalizeDiagnostic(diagnostic) {
-  if (!diagnostic || typeof diagnostic !== 'object') {
-    return diagnostic;
-  }
-  const message = normalizeUnsupportedMessage(diagnostic.message);
-  return message === diagnostic.message ? diagnostic : { ...diagnostic, message };
-}
-
 function createRenderErrorFromJessDiagnostic(result, filePath) {
-  const errors = (result?.errors || []).map(normalizeDiagnostic);
+  const errors = result?.errors || [];
   const diagnostic = errors[0];
   const error = new Error(diagnostic?.message || 'Less render failed');
 

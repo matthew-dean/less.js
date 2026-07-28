@@ -118,7 +118,8 @@ async function assertUnsupportedSyntaxHasPreciseDiagnostic() {
                     ''
                 ]);
                 assert.equal(error.jessErrors?.[0]?.code, 'parse/dynamic-charset');
-                assert.equal(String(error), 'Error: Interpolation in @charset is not supported.');
+                assert.equal(error.jessErrors?.[0]?.message, error.message);
+                assert.equal(String(error), 'Error: Interpolation is not valid in @charset.');
                 assert.doesNotMatch(String(error), /offset/i);
                 return true;
             }

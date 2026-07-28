@@ -77,7 +77,7 @@ await realpath(compilerEntrypoint);
         }),
         error => {
             assert.equal(error.type, 'parse');
-            assert.equal(error.message, 'Interpolation in @charset is not supported.');
+            assert.equal(error.message, 'Interpolation is not valid in @charset.');
             assert.equal(error.filename, 'dynamic-charset.less');
             assert.equal(error.line, 2);
             assert.equal(error.column, 1);
@@ -86,9 +86,10 @@ await realpath(compilerEntrypoint);
                 '@charset "UTF-@{Eight}";',
                 ''
             ]);
-            assert.equal(String(error), 'Error: Interpolation in @charset is not supported.');
+            assert.equal(String(error), 'Error: Interpolation is not valid in @charset.');
             assert.doesNotMatch(String(error), /offset/i);
             assert.equal(error.jessErrors?.[0]?.code, 'parse/dynamic-charset');
+            assert.equal(error.jessErrors?.[0]?.message, error.message);
             assert.deepEqual(error.jessErrors?.[0]?.lines, {
                 1: '@Eight: 8;',
                 2: '@charset "UTF-@{Eight}";',
