@@ -47,6 +47,8 @@ npm install less@5.0.0-alpha.1
 
 ### Node.js
 
+Less 5 alpha.1 requires Node.js `^20.19.0 || >=22.12.0`.
+
 ```js
 import less from 'less';
 

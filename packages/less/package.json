@@ -48,7 +48,7 @@
 		"README.md"
 	],
 	"engines": {
-		"node": ">=18"
+		"node": "^20.19.0 || >=22.12.0"
 	},
 	"scripts": {
 		"quicktest": "npm run test:legacy-node",

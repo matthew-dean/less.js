@@ -35,6 +35,9 @@ Less 5 alpha.1 currently focuses on core compile behavior: `less.render()`,
 `less.renderFile()`, `lessc`, variables, arithmetic, mixin calls, sibling file
 imports, and nested-rule output.
 
+Less 5 alpha.1 requires Node.js `^20.19.0 || >=22.12.0`, matching its Jess
+runtime dependencies.
+
 The broader Less 4.x compatibility surface is still in progress. Known
 work-in-progress areas include legacy plugin execution, file-manager and
 pre/post-processor hooks, source maps, URL rewriting options, compressed-output
