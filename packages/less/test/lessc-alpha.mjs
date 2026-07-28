@@ -162,6 +162,20 @@ try {
     assert.match(stdin.stdout, /\.from-stdin\s*\{[\s\S]*color:\s*blue;/);
     assert.equal(stdin.stderr, '');
 
+    const warning = await runLessc(['-'], '.warn { color: lighten(red, nope); }\n');
+    assert.equal(warning.code, 0, warning.stderr);
+    assert.match(warning.stdout, /\.warn\s*\{[\s\S]*color:\s*lighten\(red, nope\);/,
+        'warning-producing compiles still emit CSS on stdout');
+    assert.doesNotMatch(warning.stdout, /function\/unresolved/,
+        'lessc must not mix warnings into CSS stdout');
+    assert.match(warning.stderr, /function\/unresolved/,
+        'lessc prints structured Jess warnings on stderr after successful compiles');
+
+    const quietWarning = await runLessc(['--quiet', '-'], '.warn { color: lighten(red, nope); }\n');
+    assert.equal(quietWarning.code, 0, quietWarning.stderr);
+    assert.match(quietWarning.stdout, /\.warn\s*\{/);
+    assert.equal(quietWarning.stderr, '', '--quiet suppresses successful warning diagnostics');
+
     const collapsed = await runLessc(
         ['--collapse-nesting', '-'],
         '.parent { before: 1; .child { inside: 2; } after: 3; }\n'

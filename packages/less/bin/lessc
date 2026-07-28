@@ -52,38 +52,46 @@ function renderLogMessage(value) {
   return options.color === false ? stripTerminalFormatting(message) : message;
 }
 
-function outputJessError(err) {
-  if (!Array.isArray(err?.jessErrors) || err.jessErrors.length === 0) {
-    return false;
-  }
-  if (options.color !== false) {
-    outputDiagnostics(err.jessErrors, err.jessWarnings || [], {
-      suppressWarnings: quiet,
-      breakOnError: false,
-      verbose
-    });
-    return true;
-  }
-
+function captureJessDiagnostics(errors, warnings) {
+  const originalStdoutWrite = process.stdout.write;
   const originalWrite = process.stderr.write;
   let captured = '';
-  process.stderr.write = function captureDiagnosticWrite(chunk, ...args) {
+  const captureDiagnosticWrite = function captureDiagnosticWrite(chunk, ...args) {
     captured += String(chunk);
     if (typeof args.at(-1) === 'function') {
       args.at(-1)();
     }
     return true;
   };
+  process.stdout.write = captureDiagnosticWrite;
+  process.stderr.write = captureDiagnosticWrite;
   try {
-    outputDiagnostics(err.jessErrors, err.jessWarnings || [], {
+    outputDiagnostics(errors, warnings, {
       suppressWarnings: quiet,
       breakOnError: false,
       verbose
     });
   } finally {
+    process.stdout.write = originalStdoutWrite;
     process.stderr.write = originalWrite;
   }
-  process.stderr.write(stripTerminalFormatting(captured));
+  return options.color === false ? stripTerminalFormatting(captured) : captured;
+}
+
+function outputJessDiagnostics(errors, warnings = []) {
+  const relevantWarnings = quiet ? [] : warnings;
+  if ((!Array.isArray(errors) || errors.length === 0) && relevantWarnings.length === 0) {
+    return false;
+  }
+  process.stderr.write(captureJessDiagnostics(errors || [], relevantWarnings));
+  return true;
+}
+
+function outputJessError(err) {
+  if (!Array.isArray(err?.jessErrors) || err.jessErrors.length === 0) {
+    return false;
+  }
+  outputJessDiagnostics(err.jessErrors, err.jessWarnings || []);
   return true;
 }
 
@@ -211,8 +219,10 @@ async function run() {
     if (output) {
       fs.mkdirSync(path.dirname(output), { recursive: true });
       fs.writeFileSync(output, result.css, 'utf8');
+      if (!silent) outputJessDiagnostics([], result.warnings || []);
       if (!silent) console.log(`lessc: wrote ${output}`);
     } else {
+      if (!silent) outputJessDiagnostics([], result.warnings || []);
       process.stdout.write(result.css);
     }
   } catch (err) {
