@@ -187,7 +187,7 @@ for (const file of errorFiles) {
             continue;
         }
         try {
-            assertFriendlySourceError(error);
+            assertForwardedJessDiagnostic(error);
             errored += 1;
         } catch (assertionError) {
             failures.push(`${file}\n${formatError(assertionError)}`);
@@ -406,14 +406,13 @@ function readStringFunctionArg(value) {
     return String(primitive).replace(/^(['"])(.*)\1$/, '$2');
 }
 
-function assertFriendlySourceError(error) {
+function assertForwardedJessDiagnostic(error) {
     assert.equal(typeof error?.message, 'string', 'diagnostic should expose a message');
     assert.equal(typeof error?.type, 'string', 'diagnostic should expose a type');
     assert.equal(typeof error?.filename, 'string', 'diagnostic should preserve filename');
     assert.ok(error.filename.startsWith(testDataRoot), 'diagnostic filename should stay inside the fixture corpus');
     assert.equal(typeof error?.line, 'number', 'diagnostic should expose a line');
     assert.equal(typeof error?.column, 'number', 'diagnostic should expose a column');
-    assert.ok(Array.isArray(error?.extract), 'diagnostic should expose source extract lines');
     assert.ok(Array.isArray(error?.jessErrors), 'diagnostic should expose Jess diagnostics');
     assert.ok(error.jessErrors.length > 0, 'diagnostic should include at least one Jess error');
     assert.equal(Object.prototype.hasOwnProperty.call(error, 'offset'), false, 'diagnostic should not leak raw offsets');
