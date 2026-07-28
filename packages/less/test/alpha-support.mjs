@@ -10,10 +10,6 @@ const testDataRoot = path.resolve(packageRoot(), '..', 'test-data', 'tests-unit'
 
 const unsupportedForAlpha1 = [
     {
-        area: 'Full Less 4 parity corpus',
-        detail: 'The broad packages/test-data fixture sweep remains a compatibility backlog, not the alpha.1 release gate.'
-    },
-    {
         area: 'Legacy plugin host APIs',
         detail: 'Less @plugin, render-option function plugins, file-manager plugins, and pre/post-processors are wired for future compatibility but are not alpha.1-supported execution paths.'
     },
