@@ -197,6 +197,10 @@ try {
     const failure = await runLessc([broken]);
     assert.equal(failure.code, 1, 'a Less error is a failing lessc process');
     assert.equal(failure.stdout, '');
+    assert.match(failure.stderr, /\x1B\[[0-?]*[ -/]*m/,
+        'lessc reports colored Linecraft diagnostics by default');
+    assert.match(failure.stderr, /[\u256d\u2570]/u,
+        'lessc reports Linecraft source framing by default');
     const failureStderr = stripTerminalFormatting(failure.stderr);
     assert.match(failureStderr, /parse\/syntax-error \[parse\]/,
         'lessc reports the Linecraft diagnostic code on stderr');

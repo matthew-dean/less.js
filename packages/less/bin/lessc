@@ -8,6 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import less from '../lib/index.js';
 import { version as versionInfo } from '../lib/version.js';
+import { outputDiagnostics } from '@jesscss/compiler/diagnostics';
 
 const args = process.argv.slice(1);
 let options = { paths: [], filename: '' };
@@ -51,42 +52,39 @@ function renderLogMessage(value) {
   return options.color === false ? stripTerminalFormatting(message) : message;
 }
 
-function relativeDiagnosticPath(filePath) {
-  return filePath ? path.relative(process.cwd(), filePath) || filePath : '(unknown)';
-}
-
-function diagnosticLines(lines, lineNumber) {
-  if (!lines || typeof lines !== 'object') {
-    return [];
-  }
-  const line = Number(lineNumber) || 1;
-  return [line - 1, line, line + 1]
-    .filter(candidate => candidate > 0 && Object.prototype.hasOwnProperty.call(lines, candidate))
-    .map(candidate => `${String(candidate).padStart(4, ' ')} | ${lines[candidate]}`);
-}
-
-function renderDiagnostic(diagnostic) {
-  const line = Number(diagnostic?.line) || 1;
-  const column = Number(diagnostic?.column) || 1;
-  const header = `error ${diagnostic.code} [${diagnostic.phase || 'compile'}]`;
-  const location = `${relativeDiagnosticPath(diagnostic.filePath)}:${line}:${column}`;
-  const parts = [
-    `${header}`,
-    `${diagnostic.message}`,
-    `--> ${location}`,
-  ];
-  const sourceLines = diagnosticLines(diagnostic.lines, line);
-  if (sourceLines.length) {
-    parts.push(...sourceLines);
-  }
-  return `${parts.join('\n')}\n`;
-}
-
-function renderJessError(err) {
+function outputJessError(err) {
   if (!Array.isArray(err?.jessErrors) || err.jessErrors.length === 0) {
-    return '';
+    return false;
   }
-  return err.jessErrors.map(renderDiagnostic).join('');
+  if (options.color !== false) {
+    outputDiagnostics(err.jessErrors, err.jessWarnings || [], {
+      suppressWarnings: quiet,
+      breakOnError: false,
+      verbose
+    });
+    return true;
+  }
+
+  const originalWrite = process.stderr.write;
+  let captured = '';
+  process.stderr.write = function captureDiagnosticWrite(chunk, ...args) {
+    captured += String(chunk);
+    if (typeof args.at(-1) === 'function') {
+      args.at(-1)();
+    }
+    return true;
+  };
+  try {
+    outputDiagnostics(err.jessErrors, err.jessWarnings || [], {
+      suppressWarnings: quiet,
+      breakOnError: false,
+      verbose
+    });
+  } finally {
+    process.stderr.write = originalWrite;
+  }
+  process.stderr.write(stripTerminalFormatting(captured));
+  return true;
 }
 
 function splitSearchPaths(value) {
@@ -219,10 +217,7 @@ async function run() {
     }
   } catch (err) {
     if (!silent) {
-      const diagnosticMessage = renderJessError(err);
-      if (diagnosticMessage) {
-        process.stderr.write(renderLogMessage(diagnosticMessage));
-      } else {
+      if (!outputJessError(err)) {
         console.error(renderLogMessage(err.toString?.() || err.message));
       }
     }
