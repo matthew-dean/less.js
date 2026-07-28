@@ -11,7 +11,9 @@
   conversion-metric-a: 30mm;
   conversion-metric-b: 3cm;
   conversion-imperial: 3in;
+  /* stylelint-disable-next-line unit-no-unknown -- historical Less 4 custom-unit output */
   custom-unit: 420octocats;
+  /* stylelint-disable-next-line unit-no-unknown -- historical Less 4 custom-unit output */
   custom-unit-cancelling: 18dogs;
   mix-units: 2px;
   invalid-units: 1px;
