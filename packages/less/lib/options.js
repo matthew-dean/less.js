@@ -133,6 +133,12 @@ export function mapRenderResult(result, options) {
     out.imports = result.imports;
   }
 
+  // Structured Jess warnings (e.g. selector/parentless-ampersand). Exposed so
+  // callers and tests can assert them, mirroring how errors surface.
+  if (result.warnings && Array.isArray(result.warnings)) {
+    out.warnings = result.warnings;
+  }
+
   return out;
 }
 

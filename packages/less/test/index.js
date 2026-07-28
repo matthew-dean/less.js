@@ -158,6 +158,7 @@ var testMap = [
     { patterns: globPatterns },
     { patterns: ['tests-error/eval/*.less'], verifyFunction: lessTester.testErrors },
     { patterns: ['tests-error/parse/*.less'], verifyFunction: lessTester.testErrors },
+    { patterns: ['tests-warnings/*.less'], verifyFunction: lessTester.testWarnings },
     { patterns: ['tests-config/js-type-errors/*.less'], verifyFunction: lessTester.testTypeErrors },
     { patterns: ['tests-config/no-js-errors/*.less'], verifyFunction: lessTester.testErrors },
     {
