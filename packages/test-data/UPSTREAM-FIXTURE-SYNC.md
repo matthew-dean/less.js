@@ -1,5 +1,19 @@
 # Upstream Fixture Sync Notes
 
+## Verification snapshot
+
+Rechecked on 2026-07-29 from PR #19 head `4abb411c` after fetching `origin`
+and `upstream`:
+
+- `origin/less-5-alpha.1` is also `4abb411c`.
+- `upstream/alpha` is `330e9d71`; `HEAD...upstream/alpha` is `125 0`.
+- `upstream/master` is `89c33e09`; `HEAD...upstream/master` is `108 40`.
+
+The fixture/test-data commits in `8ae2cc3b..upstream/master` are the entries
+classified below: #4462, #4461, #4469, #4472, #4473, #4477, and #4479, plus
+release metadata commits #4463, #4471, #4475, and #4482. No additional
+upstream fixture commit is currently unclassified for alpha.1.
+
 ## PR #19 scout list
 
 - `48a386f6` selector regression: ported in `tests-unit/selectors`.
