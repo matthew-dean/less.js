@@ -102,6 +102,10 @@ const expectedFailureFixtures = new Map([
     ['tests-unit/functions/functions.less', 'Jess keeps un-operated hsl() calls authored instead of Less 4 clamp/canonicalization']
 ]);
 
+const expectedFailureDiagnosticCodes = new Map([
+    ['tests-unit/import/import.less', 'plugin/load-failed']
+]);
+
 const expectedErrorPasses = new Map([
     ['tests-error/eval/add-mixed-units.less', 'unit compatibility errors are not emitted yet'],
     ['tests-error/eval/add-mixed-units2.less', 'unit compatibility errors are not emitted yet'],
@@ -141,20 +145,60 @@ let warned = 0;
 let expectedWarningMissing = 0;
 const failures = [];
 
+const FIXTURE_TIMEOUT_MS = 15000;
+
+class FixtureTimeoutError extends Error {
+    constructor(label, timeoutMs) {
+        super(`${label} timed out after ${timeoutMs}ms`);
+        this.name = 'FixtureTimeoutError';
+    }
+}
+
+function isFixtureTimeout(error) {
+    return error instanceof FixtureTimeoutError;
+}
+
+async function withFixtureTimeout(label, work, timeoutMs = FIXTURE_TIMEOUT_MS) {
+    let timer;
+    try {
+        return await Promise.race([
+            work(),
+            new Promise((_, reject) => {
+                timer = setTimeout(() => {
+                    reject(new FixtureTimeoutError(label, timeoutMs));
+                }, timeoutMs);
+            })
+        ]);
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
 for (const file of files) {
     const fixturePath = path.join(testDataRoot, file);
     const expectedFailureReason = expectedFailureFixtures.get(file);
+    const expectedDiagnosticCode = expectedFailureDiagnosticCodes.get(file);
     const testCases = await getTestCases(fixturePath);
 
     for (const testCase of testCases) {
         try {
-            await assertFixtureRenders(testCase);
+            if (expectedDiagnosticCode) {
+                await assertExpectedFailureDiagnostic(testCase, expectedDiagnosticCode);
+                expectedFailed += 1;
+                continue;
+            } else {
+                await assertFixtureRenders(testCase);
+            }
             if (expectedFailureReason) {
                 failures.push(`${testCase.label} passed unexpectedly; remove or reclassify expected failure: ${expectedFailureReason}`);
             } else {
                 passed += 1;
             }
         } catch (error) {
+            if (isFixtureTimeout(error)) {
+                failures.push(`${testCase.label}\n${formatError(error)}`);
+                continue;
+            }
             if (expectedFailureReason) {
                 expectedFailed += 1;
                 continue;
@@ -173,7 +217,7 @@ const errorFiles = globSync('tests-error/{eval,parse}/*.less', {
 for (const file of errorFiles) {
     const fixturePath = path.join(testDataRoot, file);
     try {
-        await less.renderFile(fixturePath, { collapseNesting: true });
+        await withFixtureTimeout(file, () => less.renderFile(fixturePath, { collapseNesting: true }));
         const expectedReason = expectedErrorPasses.get(file);
         if (expectedReason) {
             expectedErrorPassed += 1;
@@ -203,7 +247,7 @@ const warningFiles = globSync('tests-warnings/*.less', {
 for (const file of warningFiles) {
     const fixturePath = path.join(testDataRoot, file);
     try {
-        const result = await less.renderFile(fixturePath, { collapseNesting: true });
+        const result = await withFixtureTimeout(file, () => less.renderFile(fixturePath, { collapseNesting: true }));
         const warnings = Array.isArray(result.warnings) ? result.warnings : [];
         if (warnings.length > 0) {
             if (expectedMissingWarnings.has(file)) {
@@ -235,8 +279,24 @@ if (failures.length > 0) {
 
 async function assertFixtureRenders(testCase) {
     const expected = readFileSync(testCase.expectedFile, 'utf8');
-    const result = await less.renderFile(testCase.lessFile, testCase.options);
+    const result = await withFixtureTimeout(testCase.label, () => less.renderFile(testCase.lessFile, testCase.options));
     assert.equal(result.css, expected, `${testCase.label} should render byte-identically`);
+}
+
+async function assertExpectedFailureDiagnostic(testCase, expectedCode) {
+    try {
+        await withFixtureTimeout(testCase.label, () => less.renderFile(testCase.lessFile, testCase.options));
+    } catch (error) {
+        if (isFixtureTimeout(error)) {
+            throw error;
+        }
+        assert.ok(
+            error?.jessErrors?.some?.(diagnostic => diagnostic?.code === expectedCode),
+            `${testCase.label} should surface Jess diagnostic ${expectedCode}; got ${error?.jessErrors?.map?.(diagnostic => diagnostic?.code).join(', ') || 'none'}`
+        );
+        return;
+    }
+    assert.fail(`${testCase.label} rendered successfully instead of surfacing Jess diagnostic ${expectedCode}`);
 }
 
 async function getTestCases(lessFile) {
