@@ -311,7 +311,7 @@ exit 1
 // whether a commit is created when there are (or aren't) version changes.
 // ---------------------------------------------------------------------------
 
-function runCreateReleasePRStep({ repoDir, nextVersion, releaseBranch }) {
+function runCreateReleasePRStep({ repoDir, nextVersion, releaseBranch, releaseBase = releaseBranch.includes('alpha') ? 'alpha' : 'master' }) {
   // Stub `gh` binary so any calls are recorded but do nothing
   const binDir = path.join(repoDir, '.test-bin');
   fs.mkdirSync(binDir, { recursive: true });
@@ -336,11 +336,12 @@ function runCreateReleasePRStep({ repoDir, nextVersion, releaseBranch }) {
 set -euo pipefail
 NEXT_VERSION=${JSON.stringify(nextVersion)}
 RELEASE_BRANCH=${JSON.stringify(releaseBranch)}
+RELEASE_BASE=${JSON.stringify(releaseBase)}
 TITLE="chore: release v\${NEXT_VERSION}"
 
 git checkout -b "\${RELEASE_BRANCH}"
 
-node scripts/release-metadata.js sync-package-versions "\${NEXT_VERSION}"
+node scripts/release-metadata.js sync-package-versions "\${RELEASE_BASE}" "\${NEXT_VERSION}"
 
 git add package.json packages/*/package.json
 if git diff --cached --quiet; then
@@ -569,14 +570,14 @@ test('npm alpha check rejects an alpha title version that is already published',
   );
 });
 
-test('next version rejects invalid npm version input', () => {
-  assert.throws(
-    () => releaseMetadata.nextVersion('master', '4.9.0', 'npm ERR registry unavailable'),
-    /Invalid npm version: npm ERR registry unavailable/,
+test('next version ignores invalid npm version input while choosing a default', () => {
+  assert.strictEqual(
+    releaseMetadata.nextVersion('master', '4.9.0', 'npm ERR registry unavailable'),
+    '4.9.1',
   );
-  assert.throws(
-    () => releaseMetadata.nextVersion('alpha', '5.0.0-alpha.3', 'not-a-version'),
-    /Invalid npm version: not-a-version/,
+  assert.strictEqual(
+    releaseMetadata.nextVersion('alpha', '5.0.0-alpha.3', 'not-a-version'),
+    '5.0.0-alpha.3',
   );
 });
 
