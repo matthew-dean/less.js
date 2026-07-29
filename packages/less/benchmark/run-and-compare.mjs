@@ -5,13 +5,13 @@
 
 import { execSync, spawn } from 'child_process';
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'fs';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BENCH_DIR = __dirname;
 const RESULTS_DIR = path.join(BENCH_DIR, 'results');
-const LATEST_FILE = path.join(RESULTS_DIR, 'latest', 'macbook-pro_arm64.json');
 const ALPHA_RUNS_DIR = path.join(RESULTS_DIR, 'alpha-runs');
 const ALPHA_LATEST_DIR = path.join(RESULTS_DIR, 'alpha-latest');
 const ALPHA_LATEST_FILE = path.join(ALPHA_LATEST_DIR, 'jess-alpha.json');
@@ -27,6 +27,15 @@ if (FILES.length === 0) {
 const RUNS = parseInt(process.env.BENCH_RUNS || '30');
 const WARMUP = parseInt(process.env.BENCH_WARMUP || '5');
 const TIMEOUT_MS = parseInt(process.env.BENCH_TIMEOUT_MS || '0');
+
+function currentSystemId() {
+    const hostname = os.hostname().split('.')[0].toLowerCase().replace(/[^a-zA-Z0-9_-]/g, '-');
+    return `${hostname}_${os.arch()}`;
+}
+
+const HISTORICAL_FILE = process.env.BENCH_HISTORICAL_FILE
+    ? path.resolve(process.env.BENCH_HISTORICAL_FILE)
+    : path.join(RESULTS_DIR, 'latest', `${currentSystemId()}.json`);
 
 function gitValue(cwd, args) {
     try {
@@ -126,8 +135,8 @@ function runBenchmark(file) {
 }
 
 function loadHistorical() {
-    if (!existsSync(LATEST_FILE)) return null;
-    const data = JSON.parse(readFileSync(LATEST_FILE, 'utf8'));
+    if (!existsSync(HISTORICAL_FILE)) return null;
+    const data = JSON.parse(readFileSync(HISTORICAL_FILE, 'utf8'));
     const v4 = data.versions?.find(v => v.version?.startsWith('4.5'))
     || data.versions?.filter(v => v.version?.startsWith('4.')).pop();
     return v4?.benchmarks || null;
@@ -182,10 +191,15 @@ async function main() {
         console.log(`${col(row.file, 22)} ${col(row.jess, 12)} ${col(row.less, 12)} ${col(row.ratio, 8)}`);
     }
 
-    console.log('\n(Historical data from benchmark/results/latest/macbook-pro_arm64.json)');
+    if (historical) {
+        console.log(`\nHistorical data: ${HISTORICAL_FILE}`);
+    } else {
+        console.log(`\nNo current-host historical baseline found at ${HISTORICAL_FILE}.`);
+        console.log('Run benchmark/run-historical.sh on this machine, or set BENCH_HISTORICAL_FILE to compare explicitly.');
+    }
     console.log(`Alpha snapshot: ${snapshotFiles.runFile}`);
     console.log(`Alpha latest:   ${snapshotFiles.latestFile}`);
-    console.log('Same machine (M4 Pro) for fair comparison. Jess is a new compiler; Less has years of optimization.');
+    console.log('Compare ratios only when the historical baseline was recorded on comparable hardware.');
 }
 
 main().catch(error => {

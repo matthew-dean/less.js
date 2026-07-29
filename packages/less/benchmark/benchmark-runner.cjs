@@ -144,10 +144,15 @@ function resolveImportCandidate(importPath, fromDir) {
 
 function literalImports(source, fromDir) {
   var imports = [];
-  var re = /@import\s+(?:\([^)]*\)\s*)?(?:"([^"]+)"|'([^']+)')\s*;/g;
+  var importStatementRe = /@import\b[^;]*;/g;
+  var literalImportRe = /^@import\s+(?:\([^)]*\)\s*)?(?:"([^"]+)"|'([^']+)')\s*;$/;
   var match;
-  while ((match = re.exec(source))) {
-    var importPath = match[1] || match[2];
+  while ((match = importStatementRe.exec(source))) {
+    var literalMatch = literalImportRe.exec(match[0]);
+    if (!literalMatch) {
+      return null;
+    }
+    var importPath = literalMatch[1] || literalMatch[2];
     if (!importPath || /^[a-z]+:/i.test(importPath) || importPath.endsWith('.css')) {
       return null;
     }
