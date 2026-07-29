@@ -11,6 +11,41 @@ import less from '../lib/index.js';
 const require = createRequire(import.meta.url);
 const testDataRoot = path.dirname(require.resolve('@less/test-data'));
 
+function readFixtureFilters(argv) {
+    const filters = [];
+    for (let index = 2; index < argv.length; index++) {
+        const arg = argv[index];
+        if (arg === '--fixture') {
+            const value = argv[index + 1];
+            if (!value) {
+                throw new Error('--fixture requires a fixture path');
+            }
+            filters.push(value);
+            index += 1;
+            continue;
+        }
+        if (arg.startsWith('--fixture=')) {
+            const value = arg.slice('--fixture='.length);
+            if (!value) {
+                throw new Error('--fixture requires a fixture path');
+            }
+            filters.push(value);
+        }
+    }
+    return filters;
+}
+
+const fixtureFilters = readFixtureFilters(process.argv);
+
+function fixtureMatches(file) {
+    if (fixtureFilters.length === 0) {
+        return true;
+    }
+    return fixtureFilters.some(filter =>
+        file === filter || file.includes(filter)
+    );
+}
+
 const fixtureFunctionPlugin = {
     install(pluginLess, _manager, functions) {
         functions.addMultiple({
@@ -76,6 +111,7 @@ const skippedFixtures = new Map([
     ['tests-config/visitorPlugin/visitor.less', 'Less visitor plugin API needs scope decision'],
     ['tests-unit/import/import-remote.less', 'remote URL imports require an explicit network/IO allowlist']
 ]);
+const selectedSkippedCount = [...skippedFixtures.keys()].filter(fixtureMatches).length;
 
 const expectedFailureFixtures = new Map([
     ['tests-unit/import/import-reference.less', 'reference import filtering leaves extra at-rules'],
@@ -133,6 +169,7 @@ const files = globSync('{tests-unit/*/*.less,tests-config/*/*.less}', {
     nodir: true,
     posix: true
 })
+    .filter(fixtureMatches)
     .filter(file => !skippedFixtures.has(file))
     .filter(file => !file.startsWith('tests-unit/plugin-'))
     .sort();
@@ -212,7 +249,9 @@ const errorFiles = globSync('tests-error/{eval,parse}/*.less', {
     cwd: testDataRoot,
     nodir: true,
     posix: true
-}).sort();
+})
+    .filter(fixtureMatches)
+    .sort();
 
 for (const file of errorFiles) {
     const fixturePath = path.join(testDataRoot, file);
@@ -242,7 +281,13 @@ const warningFiles = globSync('tests-warnings/*.less', {
     cwd: testDataRoot,
     nodir: true,
     posix: true
-}).sort();
+})
+    .filter(fixtureMatches)
+    .sort();
+
+if (fixtureFilters.length > 0 && files.length === 0 && errorFiles.length === 0 && warningFiles.length === 0 && selectedSkippedCount === 0) {
+    throw new Error(`No alpha fixtures matched: ${fixtureFilters.join(', ')}`);
+}
 
 for (const file of warningFiles) {
     const fixturePath = path.join(testDataRoot, file);
@@ -274,7 +319,7 @@ if (failures.length > 0) {
     }
     process.exitCode = 1;
 } else {
-    console.log(`Less alpha fixtures passed: ${passed} rendered, ${expectedFailed} expected render failures, ${errored} friendly errors, ${expectedErrorPassed} expected missing errors, ${warned} warnings, ${expectedWarningMissing} expected missing warnings, ${skippedFixtures.size} skipped.`);
+    console.log(`Less alpha fixtures passed: ${passed} rendered, ${expectedFailed} expected render failures, ${errored} friendly errors, ${expectedErrorPassed} expected missing errors, ${warned} warnings, ${expectedWarningMissing} expected missing warnings, ${selectedSkippedCount} skipped.`);
 }
 
 async function assertFixtureRenders(testCase) {
