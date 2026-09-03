@@ -123,7 +123,6 @@ const expectedFailureFixtures = new Map([
     ['tests-config/sourcemaps-include-source/sourcemaps-include-source.less', 'source-map annotation and artifact output need a dedicated harness'],
     ['tests-config/sourcemaps-rootpath/sourcemaps-rootpath.less', 'source-map annotation and artifact output need a dedicated harness'],
     ['tests-config/sourcemaps-url/sourcemaps-url.less', 'source-map annotation and artifact output need a dedicated harness'],
-    ['tests-unit/extract-and-length/extract-and-length.less', 'current published Jess dependency still has list argument evaluation gaps'],
     ['tests-unit/mixins/mixins.less', 'same-named nested ruleset resolves the outer .recursion() mixin; remaining mismatch is fixture-local collapseNesting=false rendering'],
     ['tests-unit/property-name-interp/property-name-interp.less', 'deprecated dash-only @- and @{-} variable names are rejected'],
     ['tests-unit/plugin-module/plugin-module.less', 'legacy CommonJS @plugin graph with require() is not supported by the optional JS runtime'],

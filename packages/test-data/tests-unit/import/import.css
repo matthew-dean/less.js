@@ -7,7 +7,7 @@
   color: red;
   width: 10px;
   height: 30%;
-  value: 3.141592653589793;
+  value: 3.1415926536;
 }
 @media screen and (max-width: 600px) {
   body {
