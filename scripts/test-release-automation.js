@@ -565,6 +565,35 @@ test('release body does not repeat the version', () => {
   assert.ok(releaseMetadata.releaseBody().includes('PR title'));
 });
 
+test('changelog groups commits by conventional type and links references', () => {
+  const changelog = require('./release-changelog');
+  const commits = changelog.parseLog([
+    ['a1', 'feat(parser): add thing (#10)', 'Closes #11'].join('\x00'),
+    ['b2', 'fix: crash on empty input', 'Fixes #12'].join('\x00'),
+    ['c3', 'chore: release v5.0.0-alpha.5', ''].join('\x00'),
+    ['d4', 'random subject without a type', ''].join('\x00'),
+  ].join('\x1e'));
+
+  const out = changelog.buildChangelog(commits, { repo: 'less/less.js', since: 'v5.0.0-alpha.4' });
+
+  assert.ok(out.includes('## Changes since v5.0.0-alpha.4'));
+  // Grouped under readable headings, feat before fix.
+  assert.ok(out.indexOf('### Features') < out.indexOf('### Bug Fixes'));
+  assert.ok(out.includes('**parser:**'));
+  // Inline `#NNN` and body "Closes #NNN" both linked to the repo's issues.
+  assert.ok(out.includes('[#10](https://github.com/less/less.js/issues/10)'));
+  assert.ok(out.includes('(closes [#11](https://github.com/less/less.js/issues/11))'));
+  assert.ok(out.includes('(closes [#12](https://github.com/less/less.js/issues/12))'));
+  // The release bump commit is never listed; untyped commits fall to "Other".
+  assert.ok(!out.includes('chore: release'));
+  assert.ok(out.includes('### Other Changes'));
+});
+
+test('changelog reports an empty range without producing an empty body', () => {
+  const changelog = require('./release-changelog');
+  assert.ok(changelog.buildChangelog([], { since: 'v1.0.0' }).includes('_No changes found'));
+});
+
 test('npm latest check rejects a master title version that is already published', () => {
   assert.throws(
     () => releaseMetadata.validateAgainstNpm('master', '4.9.0', '4.9.0'),
