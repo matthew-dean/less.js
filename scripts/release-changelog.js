@@ -88,9 +88,17 @@ function linkify(text, url) {
   return text.replace(ISSUE_REF, (_, n) => linkIssue(n, url));
 }
 
+// Less variable names like `@block1` or `@1` in subjects would otherwise render
+// as GitHub @-mentions. Emit the `@` as an HTML entity so it stays literal text.
+function escapeMentions(text) {
+  return text.replace(/@(?=[\w-])/g, '&#64;');
+}
+
 function renderCommit(commit, url) {
   const scope = commit.scope ? `**${commit.scope}:** ` : '';
-  let line = `- \`${commit.sha}\` ${scope}${linkify(commit.description, url)}`;
+  // Linkify #refs first, then escape @mentions — the &#64; entity contains a
+  // "#64" that linkify would otherwise mistake for an issue reference.
+  let line = `- \`${commit.sha}\` ${scope}${escapeMentions(linkify(commit.description, url))}`;
 
   // Surface "Closes/Fixes #N" from the body when it isn't already in the subject.
   const inSubject = issuesFrom(commit.subject);
@@ -126,7 +134,49 @@ function git(args) {
   return execFileSync('git', args, { encoding: 'utf8' });
 }
 
-function lastTag() {
+const TAG = /^v?(\d+)\.(\d+)\.(\d+)(?:-alpha\.(\d+))?$/;
+
+function parseTag(tag) {
+  const m = TAG.exec(tag.trim());
+  if (!m) return null;
+  // A stable X.Y.Z sorts above its own -alpha.N; Infinity puts it last-wins.
+  return {
+    tag: tag.trim(),
+    nums: [+m[1], +m[2], +m[3], m[4] === undefined ? Infinity : +m[4]],
+    isAlpha: m[4] !== undefined,
+  };
+}
+
+function compareNums(a, b) {
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return a[i] - b[i];
+  }
+  return 0;
+}
+
+// Pick the newest tag that belongs to the release lane we're publishing, so an
+// alpha PR ranges from the previous alpha (never a stable tag merged into alpha,
+// and vice versa). Tags must already be filtered to HEAD's ancestors.
+function pickPreviousTag(tags, base) {
+  const wantAlpha = base === 'alpha';
+  const candidates = tags
+    .map(parseTag)
+    .filter(Boolean)
+    .filter(t => (base === 'alpha' || base === 'master') ? t.isAlpha === wantAlpha : true)
+    .sort((a, b) => compareNums(b.nums, a.nums));
+  return candidates.length ? candidates[0].tag : '';
+}
+
+function previousReleaseTag(base) {
+  let reachable;
+  try {
+    reachable = git(['tag', '--merged', 'HEAD']).split('\n');
+  } catch {
+    return '';
+  }
+  const picked = pickPreviousTag(reachable, base);
+  if (picked) return picked;
+  // No lane-matching tag (e.g. the first alpha ever): fall back to nearest tag.
   try {
     return git(['describe', '--tags', '--abbrev=0']).trim();
   } catch {
@@ -143,7 +193,7 @@ function readCommits(since, until) {
 }
 
 function generate(argv) {
-  const since = argv[0] || lastTag();
+  const since = argv[0] || previousReleaseTag(process.env.RELEASE_BASE);
   const until = argv[1] || 'HEAD';
   const commits = readCommits(since, until);
   return buildChangelog(commits, { repo: process.env.GITHUB_REPOSITORY, since });
@@ -174,6 +224,18 @@ function selftest() {
   assert.ok(out.includes('### Other Changes'));
   // Empty range yields a friendly note, not an empty body.
   assert.ok(buildChangelog([], { since: 'v1' }).includes('_No changes found'));
+
+  // Lane-aware tag selection: alpha ignores a newer stable tag merged in.
+  const tags = ['v4.9.0', 'v5.0.0-alpha.2', 'v5.0.0-alpha.10', 'v4.9.1'];
+  assert.strictEqual(pickPreviousTag(tags, 'alpha'), 'v5.0.0-alpha.10');
+  assert.strictEqual(pickPreviousTag(tags, 'master'), 'v4.9.1');
+
+  // `@`-prefixed Less variables must not become GitHub mentions.
+  const mention = renderCommit(
+    classify(parseLog(['e5', 'fix(functions): rename @1 to @block1', ''].join('\x00'))[0]),
+    'https://github.com/less/less.js',
+  );
+  assert.ok(!/@block1/.test(mention) && mention.includes('&#64;block1'));
   console.log('release-changelog selftest passed');
 }
 
@@ -193,5 +255,6 @@ module.exports = {
   issuesFrom,
   linkify,
   parseLog,
+  pickPreviousTag,
   renderCommit,
 };

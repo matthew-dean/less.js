@@ -594,6 +594,24 @@ test('changelog reports an empty range without producing an empty body', () => {
   assert.ok(changelog.buildChangelog([], { since: 'v1.0.0' }).includes('_No changes found'));
 });
 
+test('changelog picks the previous tag from the active release lane', () => {
+  const changelog = require('./release-changelog');
+  const tags = ['v4.9.0', 'v4.9.1', 'v5.0.0-alpha.2', 'v5.0.0-alpha.10'];
+  // A stable tag merged into alpha must not become the alpha "since" range.
+  assert.strictEqual(changelog.pickPreviousTag(tags, 'alpha'), 'v5.0.0-alpha.10');
+  assert.strictEqual(changelog.pickPreviousTag(tags, 'master'), 'v4.9.1');
+});
+
+test('changelog does not turn @-prefixed Less variables into GitHub mentions', () => {
+  const changelog = require('./release-changelog');
+  const commit = changelog.classify(
+    changelog.parseLog(['e5', 'fix(functions): rename @1 to @block1', ''].join('\x00'))[0],
+  );
+  const line = changelog.renderCommit(commit, 'https://github.com/less/less.js');
+  assert.ok(!line.includes('@block1'));
+  assert.ok(line.includes('&#64;block1'));
+});
+
 test('npm latest check rejects a master title version that is already published', () => {
   assert.throws(
     () => releaseMetadata.validateAgainstNpm('master', '4.9.0', '4.9.0'),

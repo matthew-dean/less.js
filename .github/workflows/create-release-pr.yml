@@ -199,8 +199,10 @@ jobs:
 
           # Compose the PR body: a short preamble plus a grouped, linked
           # changelog of everything new since the previous release tag.
+          # No fallback: a generation failure aborts the step (set -e) rather
+          # than replacing an existing PR's changelog with an empty one.
           PREAMBLE=$(node scripts/release-metadata.js body)
-          CHANGELOG=$(node scripts/release-changelog.js || echo "")
+          CHANGELOG=$(node scripts/release-changelog.js)
           BODY=$(printf '%s\n\n%s\n' "${PREAMBLE}" "${CHANGELOG}")
 
           # Open a PR if one doesn't already exist for this version.
