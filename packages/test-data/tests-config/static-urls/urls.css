@@ -2,7 +2,8 @@
 @import "folder (1)/import-test-d.css";
 @font-face {
   src: url("/fonts/garamond-pro.ttf");
-  src: local(Futura-Medium), url(folder\ \(1\)/fonts.svg#MyGeometricModern) format("svg");
+  src: local(Futura-Medium),
+       url(folder\ \(1\)/fonts.svg#MyGeometricModern) format("svg");
 }
 #shorthands {
   background: url("http://www.lesscss.org/spec.html") no-repeat 0 4px;
