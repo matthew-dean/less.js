@@ -197,13 +197,19 @@ jobs:
           # second run will fail-fast here and the release branch stays coherent.
           git push origin "${RELEASE_BRANCH}" --force-with-lease
 
+          # Compose the PR body: a short preamble plus a grouped, linked
+          # changelog of everything new since the previous release tag.
+          # No fallback: a generation failure aborts the step (set -e) rather
+          # than replacing an existing PR's changelog with an empty one.
+          PREAMBLE=$(node scripts/release-metadata.js body)
+          CHANGELOG=$(node scripts/release-changelog.js)
+          BODY=$(printf '%s\n\n%s\n' "${PREAMBLE}" "${CHANGELOG}")
+
           # Open a PR if one doesn't already exist for this version.
           EXISTING=$(gh pr list --head "${RELEASE_BRANCH}" --base "${RELEASE_BASE}" \
             --json number --jq '.[0].number' 2>/dev/null || echo "")
 
           if [ -z "${EXISTING}" ]; then
-            BODY=$(node scripts/release-metadata.js body)
-
             gh pr create \
               --title "${TITLE}" \
               --body "${BODY}" \
@@ -211,7 +217,9 @@ jobs:
               --head "${RELEASE_BRANCH}"
             echo "✅ Created release PR for v${NEXT_VERSION}"
           else
-            echo "✅ Release PR #${EXISTING} already exists; branch updated to include latest ${RELEASE_BASE} commits"
+            # Refresh the body so the changelog reflects the latest commits.
+            gh pr edit "${EXISTING}" --body "${BODY}"
+            echo "✅ Release PR #${EXISTING} already exists; branch and changelog updated"
           fi
 
   sync-release-pr-title:
