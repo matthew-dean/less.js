@@ -24,13 +24,9 @@ div#id.class[a=one][b=two].class:not(.one) {
 .visible:hover {
   color: green;
 }
-.only-with-visible + .visible,
-.visible + .only-with-visible,
 .visible + .visible {
   color: green;
 }
-.only-with-visible + .visible .sub,
-.visible + .only-with-visible .sub,
 .visible + .visible .sub {
   color: green;
 }
