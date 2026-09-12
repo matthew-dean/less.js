@@ -30,20 +30,20 @@ importers:
   packages/less:
     dependencies:
       '@jesscss/compiler':
-        specifier: 2.0.0-alpha.17
-        version: 2.0.0-alpha.17(typescript@5.9.3)
+        specifier: 2.0.0-alpha.18
+        version: 2.0.0-alpha.18(typescript@5.9.3)
       '@jesscss/core':
-        specifier: 2.0.0-alpha.17
-        version: 2.0.0-alpha.17
+        specifier: 2.0.0-alpha.18
+        version: 2.0.0-alpha.18
       '@jesscss/plugin-less':
-        specifier: 2.0.0-alpha.17
-        version: 2.0.0-alpha.17(typescript@5.9.3)
+        specifier: 2.0.0-alpha.18
+        version: 2.0.0-alpha.18(typescript@5.9.3)
       '@jesscss/plugin-less-compat':
-        specifier: 2.0.0-alpha.17
-        version: 2.0.0-alpha.17
+        specifier: 2.0.0-alpha.18
+        version: 2.0.0-alpha.18
       '@jesscss/plugin-node-modules':
-        specifier: 2.0.0-alpha.17
-        version: 2.0.0-alpha.17
+        specifier: 2.0.0-alpha.18
+        version: 2.0.0-alpha.18
       parse-node-version:
         specifier: ^1.0.1
         version: 1.0.1
@@ -416,58 +416,58 @@ packages:
     resolution: {integrity: sha512-+Sg6GCR/wy1oSmQDFq4LQDAhm3ETKnorxN+y5nbLULOR3P0c14f2Wurzj3/xqPXtasLFfHd5iRFQ7AJt4KH2cw==}
     engines: {node: '>=8'}
 
-  '@jesscss/awaitable-pipe@2.0.0-alpha.17':
-    resolution: {integrity: sha512-BlJRFKtB5n0mnefAMLT9wyc6QqaE/EnAwJwLhDQMqmtx3evWhniVTLP9SHwiFNeYxHfGBK4jOLf17d+aj7gglg==}
+  '@jesscss/awaitable-pipe@2.0.0-alpha.18':
+    resolution: {integrity: sha512-P5QMGejFz7EFrhOStucaH82ev900J9vDxXvjUPL8yJS1s/+pvmQKcEm8slXJ+hgZ1ri0B3fsjGpXUjWKzywDPw==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@jesscss/compiler@2.0.0-alpha.17':
-    resolution: {integrity: sha512-2O5RkxR1pkVjzB3CrON4+jAAUAezXG42/fnP3FE4vFVGQykdm8QCXmNjTcozxFAsO8p2wS2JTSjy6z4zRcA+lA==}
+  '@jesscss/compiler@2.0.0-alpha.18':
+    resolution: {integrity: sha512-NkKdFF49Himos7k4kSTcL7r0p92PYpw7VIHH8lhYQMH3FpDHdz0fivV1yKlsDcblsecU7aj9mpajA0zeDVPuTQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@jesscss/core@2.0.0-alpha.17':
-    resolution: {integrity: sha512-/7YO8E5QJYWZprNuSqKBRqkwmUQ9dLLPAnERzSsLmp4Okj2f5ghCYo+IZ3QfGe7Mh3yMyYqXZOpGbhx4JpUQHA==}
+  '@jesscss/core@2.0.0-alpha.18':
+    resolution: {integrity: sha512-xop/HqCwlaAvKPNdIHB/K9vgUfyBOUUG+UjJUkfj7H9a7Ybxnv487Oe6GaBk9cDkEheBZQ/Er/WeOK93QumlBg==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@jesscss/css-parser@2.0.0-alpha.17':
-    resolution: {integrity: sha512-tNBFqTyws9/XmldcQY78Zhi1q3Zzq7FtvZgiDfutPb7EosZe1tb6uJsiA3ANfjJu6whFpKsRM76X5/ghQD6oXQ==}
+  '@jesscss/css-parser@2.0.0-alpha.18':
+    resolution: {integrity: sha512-vEQ+TmwfacdSMYgirjO0g4ErClZ3vq+uzIULYKD17sGfbJK6HJ4I4gSCIS/Lh0H3POLdziZjLQK6eH9plGdZ4w==}
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
-      '@jesscss/core': 2.0.0-alpha.17
+      '@jesscss/core': 2.0.0-alpha.18
     peerDependenciesMeta:
       '@jesscss/core':
         optional: true
 
-  '@jesscss/fns@2.0.0-alpha.17':
-    resolution: {integrity: sha512-d2YaYe3cFsXdPhVAdUK6JJ5tB91zb2PkC1NMiA9DUu1PDsYrcFLMRJmgoEDXWwlI7jhTwMwgppjb+WG5BfZitw==}
+  '@jesscss/fns@2.0.0-alpha.18':
+    resolution: {integrity: sha512-wo+dWDix7gm4K4LQcPbZc159qvJV3OjQWPbyTRVP8SC93q8zmG31wQHeropT199BSvA5e+/JTDOkwChMOsyMDg==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@jesscss/less-parser@2.0.0-alpha.17':
-    resolution: {integrity: sha512-lLJpOlCBotZQUp/g4/YxsfHnwYCFDPy5H6HEC+1CLwin83nqTywMsVXD2X6BEi0Ml8krgIkcQrpPzagbu8VI0w==}
+  '@jesscss/less-parser@2.0.0-alpha.18':
+    resolution: {integrity: sha512-tU9J4jZSEl2uO44tEVxiDuFGfNqJ8U9HqmcbPM8layionuipaBIxmMnfmoceWepoR+3shaG+MyAbBuKeRnUsZA==}
     engines: {node: ^20.19.0 || >=22.12.0}
     peerDependencies:
-      '@jesscss/core': 2.0.0-alpha.17
+      '@jesscss/core': 2.0.0-alpha.18
     peerDependenciesMeta:
       '@jesscss/core':
         optional: true
 
-  '@jesscss/parser-shared@2.0.0-alpha.17':
-    resolution: {integrity: sha512-NOBl6vpqYhH9X6+zZ3I9slwjxLdAal7fZGKrB8qg9kse79NPIra/HXK5/2BHBK9TD7qFu42NY18b8WfJIFBUqA==}
+  '@jesscss/parser-shared@2.0.0-alpha.18':
+    resolution: {integrity: sha512-0loWnjdOWPm83BZ1xw2HqejkzrusPw9UJsqTmiw1ZKa/QYdW/iIer8u+WrFYLcWbBkUjgiudn6l4KxghV+IIkQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@jesscss/plugin-less-compat@2.0.0-alpha.17':
-    resolution: {integrity: sha512-WJ0rzBqiagiY+3dVl7ruvIUoZzP0RCFRONKzq9UMYF/mNRXkyYR/GvRcH4DLAcuVzMGR7FP2hHJ3MVJnzc0fnA==}
+  '@jesscss/plugin-less-compat@2.0.0-alpha.18':
+    resolution: {integrity: sha512-c6V8CRwJGNYcSdnrB13EsNwI1CEOo03HbEpMmFxI2k1twVGKzDBRKUDj+dzCZRiL+A26b3lZwBpry8whqsf1+g==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@jesscss/plugin-less@2.0.0-alpha.17':
-    resolution: {integrity: sha512-ipK8lBnCI7AmZU3LUQJpB6XuKxmGbvLPivalVN73TQgf1GT5sP2Q97srL2USQdD6t8oK1pYGr2HLoXG/8WPJkQ==}
+  '@jesscss/plugin-less@2.0.0-alpha.18':
+    resolution: {integrity: sha512-j8SApqOb84Oyd4zg0BBit/caY5zDAGBwQybIojA1HpPdS8RQeVHsGw0NdYjvpDmf8fnwoFe1m6X0hYD0da+V6g==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@jesscss/plugin-node-modules@2.0.0-alpha.17':
-    resolution: {integrity: sha512-n5BCeuwmEubi3hj/Potq3sBpGDJgYiiwNltcOsotd8tkFALuy73ASgHQPjw8ix2td653Nc6pfhKScRWaMMGOeQ==}
+  '@jesscss/plugin-node-modules@2.0.0-alpha.18':
+    resolution: {integrity: sha512-RB+c+v3OhC9NFFvuqafvmsAJ/NyF6o5NN6MZRQlNa5jD9GjxqXh8qpSNyl5yZil1Qs9JItfWvbSq9Vmo7SmJLg==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
-  '@jesscss/style-resolver@2.0.0-alpha.17':
-    resolution: {integrity: sha512-7l1BJYPCLdWTFd0/9sy8f3dhLllqS3vvv/d4WTR93BgBkRe5cytdrGKgZIOJ/vxvBlieD1RNsoIL19Ecm/SJ2Q==}
+  '@jesscss/style-resolver@2.0.0-alpha.18':
+    resolution: {integrity: sha512-WuGkbLNygbJne9wIwjxeaAV2rKZozJxKdxvwCmVYCDsWvz8gApOmJYVPjkbEJCc5ECptQfm7Ism0W/46ITYLgw==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
   '@jest/diff-sequences@30.0.1':
@@ -3066,8 +3066,8 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  styles-config@2.0.0-alpha.17:
-    resolution: {integrity: sha512-LVi03OuFgjt8F7lLERM8o28NzOZGTbyz0vYkIIPWIXHzU5TsnBLIklI2myIYfjZIO28AFpdRkJ2TnyfImsihAg==}
+  styles-config@2.0.0-alpha.18:
+    resolution: {integrity: sha512-CukpCva6MVAi87BAz7XCs4VYP4dWJxXe5lq9FOUW5xuTboiLiIsHkR9sfQvzdnL53er33a14LuAirsM9aCSsSQ==}
     engines: {node: ^20.19.0 || >=22.12.0}
 
   superstruct@1.0.3:
@@ -3581,20 +3581,20 @@ snapshots:
 
   '@istanbuljs/schema@0.1.6': {}
 
-  '@jesscss/awaitable-pipe@2.0.0-alpha.17': {}
+  '@jesscss/awaitable-pipe@2.0.0-alpha.18': {}
 
-  '@jesscss/compiler@2.0.0-alpha.17(typescript@5.9.3)':
+  '@jesscss/compiler@2.0.0-alpha.18(typescript@5.9.3)':
     dependencies:
-      '@jesscss/core': 2.0.0-alpha.17
+      '@jesscss/core': 2.0.0-alpha.18
       linecraft: 0.2.8
       lodash-es: 4.18.1
-      styles-config: 2.0.0-alpha.17(typescript@5.9.3)
+      styles-config: 2.0.0-alpha.18(typescript@5.9.3)
     transitivePeerDependencies:
       - typescript
 
-  '@jesscss/core@2.0.0-alpha.17':
+  '@jesscss/core@2.0.0-alpha.18':
     dependencies:
-      '@jesscss/awaitable-pipe': 2.0.0-alpha.17
+      '@jesscss/awaitable-pipe': 2.0.0-alpha.18
       '@jridgewell/gen-mapping': 0.3.13
       '@ungap/set-methods': 0.1.1
       big.js: 7.0.1
@@ -3605,57 +3605,57 @@ snapshots:
       data-structure-typed: 2.0.5
       lodash-es: 4.18.1
 
-  '@jesscss/css-parser@2.0.0-alpha.17(@jesscss/core@2.0.0-alpha.17)':
+  '@jesscss/css-parser@2.0.0-alpha.18(@jesscss/core@2.0.0-alpha.18)':
     dependencies:
-      '@jesscss/parser-shared': 2.0.0-alpha.17
+      '@jesscss/parser-shared': 2.0.0-alpha.18
       parseman: 0.50.5
     optionalDependencies:
-      '@jesscss/core': 2.0.0-alpha.17
+      '@jesscss/core': 2.0.0-alpha.18
 
-  '@jesscss/fns@2.0.0-alpha.17':
+  '@jesscss/fns@2.0.0-alpha.18':
     dependencies:
-      '@jesscss/awaitable-pipe': 2.0.0-alpha.17
-      '@jesscss/core': 2.0.0-alpha.17
+      '@jesscss/awaitable-pipe': 2.0.0-alpha.18
+      '@jesscss/core': 2.0.0-alpha.18
       big.js: 7.0.1
       color-name: 2.0.2
       lodash-es: 4.18.1
       superstruct: 1.0.3
 
-  '@jesscss/less-parser@2.0.0-alpha.17(@jesscss/core@2.0.0-alpha.17)':
+  '@jesscss/less-parser@2.0.0-alpha.18(@jesscss/core@2.0.0-alpha.18)':
     dependencies:
-      '@jesscss/css-parser': 2.0.0-alpha.17(@jesscss/core@2.0.0-alpha.17)
+      '@jesscss/css-parser': 2.0.0-alpha.18(@jesscss/core@2.0.0-alpha.18)
       known-css-properties: 0.37.0
       parseman: 0.50.5
     optionalDependencies:
-      '@jesscss/core': 2.0.0-alpha.17
+      '@jesscss/core': 2.0.0-alpha.18
 
-  '@jesscss/parser-shared@2.0.0-alpha.17':
+  '@jesscss/parser-shared@2.0.0-alpha.18':
     dependencies:
       parseman: 0.50.5
 
-  '@jesscss/plugin-less-compat@2.0.0-alpha.17':
+  '@jesscss/plugin-less-compat@2.0.0-alpha.18':
     dependencies:
-      '@jesscss/awaitable-pipe': 2.0.0-alpha.17
-      '@jesscss/core': 2.0.0-alpha.17
-      '@jesscss/less-parser': 2.0.0-alpha.17(@jesscss/core@2.0.0-alpha.17)
-      '@jesscss/plugin-node-modules': 2.0.0-alpha.17
+      '@jesscss/awaitable-pipe': 2.0.0-alpha.18
+      '@jesscss/core': 2.0.0-alpha.18
+      '@jesscss/less-parser': 2.0.0-alpha.18(@jesscss/core@2.0.0-alpha.18)
+      '@jesscss/plugin-node-modules': 2.0.0-alpha.18
 
-  '@jesscss/plugin-less@2.0.0-alpha.17(typescript@5.9.3)':
+  '@jesscss/plugin-less@2.0.0-alpha.18(typescript@5.9.3)':
     dependencies:
-      '@jesscss/core': 2.0.0-alpha.17
-      '@jesscss/fns': 2.0.0-alpha.17
-      '@jesscss/less-parser': 2.0.0-alpha.17(@jesscss/core@2.0.0-alpha.17)
-      '@jesscss/plugin-less-compat': 2.0.0-alpha.17
-      '@jesscss/style-resolver': 2.0.0-alpha.17
-      styles-config: 2.0.0-alpha.17(typescript@5.9.3)
+      '@jesscss/core': 2.0.0-alpha.18
+      '@jesscss/fns': 2.0.0-alpha.18
+      '@jesscss/less-parser': 2.0.0-alpha.18(@jesscss/core@2.0.0-alpha.18)
+      '@jesscss/plugin-less-compat': 2.0.0-alpha.18
+      '@jesscss/style-resolver': 2.0.0-alpha.18
+      styles-config: 2.0.0-alpha.18(typescript@5.9.3)
     transitivePeerDependencies:
       - typescript
 
-  '@jesscss/plugin-node-modules@2.0.0-alpha.17':
+  '@jesscss/plugin-node-modules@2.0.0-alpha.18':
     dependencies:
-      '@jesscss/core': 2.0.0-alpha.17
+      '@jesscss/core': 2.0.0-alpha.18
 
-  '@jesscss/style-resolver@2.0.0-alpha.17': {}
+  '@jesscss/style-resolver@2.0.0-alpha.18': {}
 
   '@jest/diff-sequences@30.0.1': {}
 
@@ -6367,9 +6367,9 @@ snapshots:
 
   strip-json-comments@3.1.1: {}
 
-  styles-config@2.0.0-alpha.17(typescript@5.9.3):
+  styles-config@2.0.0-alpha.18(typescript@5.9.3):
     dependencies:
-      '@jesscss/core': 2.0.0-alpha.17
+      '@jesscss/core': 2.0.0-alpha.18
       cosmiconfig: 9.0.2(typescript@5.9.3)
       picomatch: 4.0.5
     transitivePeerDependencies:
