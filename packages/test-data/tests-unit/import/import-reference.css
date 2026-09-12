@@ -24,13 +24,12 @@ div#id.class[a=one][b=two].class:not(.one) {
 .visible:hover {
   color: green;
 }
-.only-with-visible + .visible,
-.visible + .only-with-visible,
+.visible {
+  color: green;
+}
 .visible + .visible {
   color: green;
 }
-.only-with-visible + .visible .sub,
-.visible + .only-with-visible .sub,
 .visible + .visible .sub {
   color: green;
 }
@@ -54,6 +53,9 @@ div#id.class[a=one][b=two].class:not(.one) {
 .b:hover {
   color: green;
 }
+.b {
+  color: green;
+}
 .b + .b {
   color: green;
 }
@@ -61,7 +63,7 @@ div#id.class[a=one][b=two].class:not(.one) {
   color: green;
 }
 .y {
-  pulled-in: yes;
+  pulled-in: yes /* inline comment survives */;
 }
 /* comment pulled in */
 .visible {

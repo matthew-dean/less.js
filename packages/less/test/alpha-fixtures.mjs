@@ -123,7 +123,6 @@ const expectedFailureFixtures = new Map([
     ['tests-config/sourcemaps-include-source/sourcemaps-include-source.less', 'source-map annotation and artifact output need a dedicated harness'],
     ['tests-config/sourcemaps-rootpath/sourcemaps-rootpath.less', 'source-map annotation and artifact output need a dedicated harness'],
     ['tests-config/sourcemaps-url/sourcemaps-url.less', 'source-map annotation and artifact output need a dedicated harness'],
-    ['tests-unit/extract-and-length/extract-and-length.less', 'current published Jess dependency still has list argument evaluation gaps'],
     ['tests-unit/mixins/mixins.less', 'same-named nested ruleset resolves the outer .recursion() mixin; remaining mismatch is fixture-local collapseNesting=false rendering'],
     ['tests-unit/property-name-interp/property-name-interp.less', 'deprecated dash-only @- and @{-} variable names are rejected'],
     ['tests-unit/plugin-module/plugin-module.less', 'legacy CommonJS @plugin graph with require() is not supported by the optional JS runtime'],
@@ -133,9 +132,7 @@ const expectedFailureFixtures = new Map([
     ['tests-unit/parser-slashed-combinator/parser-slashed-combinator.less', 'slashed combinator not yet supported'],
     ['tests-unit/permissive-parse/permissive-parse.less', 'permissive legacy parser corners are not alpha-supported'],
     ['tests-unit/media/media.less', 'top-level bare @var at-rule preludes are rejected'],
-    ['tests-unit/at-rule-variable-deprecated/at-rule-variable-deprecated.less', 'bare @variable references in at-rule structural positions are rejected in Less 5 alpha'],
-    ['tests-unit/color-functions/operations.less', 'Jess keeps un-operated overflowing rgba() calls authored instead of Less 4 channel clamping'],
-    ['tests-unit/functions/functions.less', 'Jess keeps un-operated hsl() calls authored instead of Less 4 clamp/canonicalization']
+    ['tests-unit/at-rule-variable-deprecated/at-rule-variable-deprecated.less', 'bare @variable references in at-rule structural positions are rejected in Less 5 alpha']
 ]);
 
 const expectedFailureDiagnosticCodes = new Map([

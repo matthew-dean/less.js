@@ -1,5 +1,3 @@
 export default {
-  output: [
-    { file: '{name}.css', collapseNesting: false }
-  ]
+  output: { collapseNesting: false }
 }
