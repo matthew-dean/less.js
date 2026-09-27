@@ -69,7 +69,9 @@ npx lessc styles.less styles.css
 A browser build ships in the package (`dist/less-browser-dev.js`) and defines
 `window.less` with the same render API; it powers the online playground. Full
 browser-API parity with Less 4 is still being validated — see the
-[feature status](V5-STATUS.md).
+[feature status](V5-STATUS.md). It builds its parser when it loads, which needs
+`new Function`: a page with a Content-Security-Policy must allow
+`'unsafe-eval'`.
 
 ## Why Less?
 

@@ -4,9 +4,15 @@
  * Produces `dist/less-browser-dev.js`: an IIFE exposing `window.less` with the
  * Less 4.x browser API — `less.render(input, options?, callback?)`.
  *
- * Runtime parseman (the pure-JS table interpreter) IS bundled — it does the
- * parsing. Node file/config built-ins are aliased to browser stubs because a
- * single-file, no-filePath render never touches them (see build/browser-stubs).
+ * The grammar is the INTERPRETER build, not the macro-compiled tables: each
+ * `@jesscss/*-parser` package's `browser` field maps `lib/grammar/<variant>` to
+ * `lib/grammar/interpreter/<variant>`, and `platform: 'browser'` applies that
+ * map. parseman lowers the grammar once when the bundle loads, which uses
+ * `new Function` — the page's Content-Security-Policy must allow
+ * 'unsafe-eval'. The build fails if a compiled table (a module importing
+ * `parseman/table`) reaches the bundle. Node file/config built-ins are aliased
+ * to browser stubs because a single-file, no-filePath render never touches them
+ * (see build/browser-stubs).
  */
 
 import * as esbuild from 'esbuild';
@@ -70,6 +76,15 @@ const result = await esbuild.build({
     cosmiconfig: join(stubs, 'cosmiconfig.js')
   }
 });
+
+const compiledTables = Object.entries(result.metafile.inputs)
+  .filter(([, input]) => input.imports.some(i => i.original === 'parseman/table'))
+  .map(([file]) => file);
+if (compiledTables.length > 0) {
+  console.error('browser bundle must use the interpreter grammar, but these compiled tables were bundled:\n  '
+    + compiledTables.join('\n  '));
+  process.exit(1);
+}
 
 const outBytes = result.metafile.outputs['dist/less-browser-dev.js']?.bytes
   ?? readFileSync(join(pkgRoot, 'dist/less-browser-dev.js')).length;
