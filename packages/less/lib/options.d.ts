@@ -109,6 +109,13 @@ export function createLessOptions(options?: LessRenderOptions): {
   filePath?: string;
 };
 
+export function compilerOptionsOf(configOptions: object): object;
+
+export function lessCompilerHooks(): {
+  normalizeConfiguredPlugin: (plugin: { name: string }, context: object) => object;
+  prepareSource: (source: string, context: object) => { source: string; sourceOffset: number };
+};
+
 export function getCompilerCacheKey(configOptions: object): string;
 
 export function mapRenderResult(

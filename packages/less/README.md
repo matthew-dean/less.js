@@ -48,7 +48,8 @@ npm install less@alpha @jesscss/plugin-js@alpha
 
 Unlike Less 4, a plugin script runs sandboxed: it can read only files under the
 project root (the directory of the `styles.config.*` above the entry file, or
-the entry file's own directory), and by default it has no environment or
+the entry file's own directory; the current working directory for
+`less.render()` without `filename`), and by default it has no environment or
 network access. To load a plugin from elsewhere, set `compile.jsReadRoot` in a
 `styles.config.*` to an absolute path.
 

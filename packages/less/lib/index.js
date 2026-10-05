@@ -12,9 +12,8 @@
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { Compiler } from '@jesscss/compiler';
-import { LessPluginResolver, prepareLessRootSource } from '@jesscss/plugin-less';
 import nodeModulesPlugin from '@jesscss/plugin-node-modules';
-import { createLessOptions, getCompilerCacheKey, mapRenderResult } from './options.js';
+import { compilerOptionsOf, createLessOptions, getCompilerCacheKey, lessCompilerHooks, mapRenderResult } from './options.js';
 import { version } from './version.js';
 import { logger } from './logger.js';
 import { lesscHelper } from './lessc-helper.js';
@@ -66,23 +65,18 @@ function createRenderErrorFromJessDiagnostic(result, filePath) {
 }
 
 /**
+ * The cached compiler for these options. The entry-file text options are left
+ * out of it; each render passes them with the rest of its options.
  * @param {object} configOptions
  */
 function getCompiler(configOptions) {
-  const cacheKey = getCompilerCacheKey(configOptions);
+  const compilerOptions = compilerOptionsOf(configOptions);
+  const cacheKey = getCompilerCacheKey(compilerOptions);
   let compiler = compilerCache.get(cacheKey);
   if (!compiler) {
-    // The Less plugin is rebuilt from the Less options resolved for each file:
-    // the render options merged over a file-local styles.config `language.less`.
-    const lessPluginResolver = new LessPluginResolver();
-    compiler = new Compiler(configOptions, {
+    compiler = new Compiler(compilerOptions, {
+      ...lessCompilerHooks(),
       defaultPlugins: context => [nodeModulesPlugin({ basePath: context.resolutionBaseDir })],
-      normalizeConfiguredPlugin: (plugin, context) => plugin.name === 'less'
-        ? lessPluginResolver.normalizeConfiguredPlugin(plugin, context)
-        : plugin,
-      // `banner` and `globalVars` ahead of the entry source and `modifyVars`
-      // after it, as Less 4 added them; source maps skip the injected text.
-      prepareSource: prepareLessRootSource,
       scriptPluginSpecifier: '@jesscss/plugin-js',
       scriptPluginResolveFrom: import.meta.url
     });

@@ -4,7 +4,7 @@
  */
 
 import { createRequire } from 'node:module';
-import lessPlugin from '@jesscss/plugin-less';
+import lessPlugin, { LessPluginResolver, prepareLessRootSource } from '@jesscss/plugin-less';
 import { lessCompatPlugin } from '@jesscss/plugin-less-compat';
 import { logger } from './logger.js';
 
@@ -282,6 +282,44 @@ export function createLessOptions(options) {
 }
 
 /**
+ * The compiler hooks the Node and browser builds share: the Less plugin is
+ * rebuilt from the Less options resolved for each file (the render options
+ * merged over a file-local styles.config `language.less`), and `prepareSource`
+ * adds `banner` and `globalVars` ahead of the entry file and `modifyVars` after
+ * it, as Less 4 did; source maps skip the added text.
+ * @returns {{ normalizeConfiguredPlugin: Function, prepareSource: Function }}
+ */
+export function lessCompilerHooks() {
+  const lessPluginResolver = new LessPluginResolver();
+  return {
+    normalizeConfiguredPlugin: (plugin, context) => plugin.name === 'less'
+      ? lessPluginResolver.normalizeConfiguredPlugin(plugin, context)
+      : plugin,
+    prepareSource: prepareLessRootSource,
+  };
+}
+
+/** Text the compiler's `prepareSource` hook adds to the entry file. */
+const ENTRY_TEXT_OPTIONS = ['banner', 'globalVars', 'modifyVars'];
+
+/**
+ * The options a cached compiler is built from: `configOptions` without the
+ * entry-file text (`banner`, `globalVars`, `modifyVars`). Each render passes
+ * that text in its own options, so one compiler serves every set of values
+ * instead of one being cached per set.
+ * @param {object} configOptions Jess compiler config from `createLessOptions`
+ * @returns {object}
+ */
+export function compilerOptionsOf(configOptions) {
+  const less = configOptions.language?.less;
+  if (!less || !ENTRY_TEXT_OPTIONS.some((key) => key in less)) {
+    return configOptions;
+  }
+  const rest = Object.fromEntries(Object.entries(less).filter(([key]) => !ENTRY_TEXT_OPTIONS.includes(key)));
+  return { ...configOptions, language: { ...configOptions.language, less: rest } };
+}
+
+/**
  * Stable compiler cache key for a Jess compiler configured from Less options.
  * @param {object} configOptions Jess compiler config
  * @returns {string}
@@ -323,4 +361,4 @@ export function mapRenderResult(result, options) {
   return out;
 }
 
-export default { createLessOptions, getCompilerCacheKey, mapRenderResult };
+export default { createLessOptions, compilerOptionsOf, getCompilerCacheKey, lessCompilerHooks, mapRenderResult };
