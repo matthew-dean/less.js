@@ -2,11 +2,12 @@
  * Build the single-file, browser-loadable Less v5 (jess) bundle.
  *
  * Produces `dist/less-browser-dev.js`: an IIFE exposing `window.less` with the
- * Less 4.x browser API — `less.render(input, options?, callback?)`.
+ * Less 4.x browser API (see lib/browser-dev.js).
  *
- * Runtime parseman (the pure-JS table interpreter) IS bundled — it does the
- * parsing. Node file/config built-ins are aliased to browser stubs because a
- * single-file, no-filePath render never touches them (see build/browser-stubs).
+ * Runtime parseman IS bundled — it does the parsing. Node file/config built-ins
+ * are aliased to browser stubs (see build/browser-stubs): imports are fetched
+ * over HTTP by the entry's own compiler plugin, and config discovery finds no
+ * config file in a browser.
  */
 
 import * as esbuild from 'esbuild';
@@ -49,12 +50,13 @@ const result = await esbuild.build({
   },
   // Leading /*! …*/ marks this as the EXPERIMENTAL dev build. banner is emitted
   // verbatim (not subject to minify/legalComments), so the notice always leads
-  // the file. Then process.cwd() and a couple of globals the jess runtime
-  // touches. Kept tiny.
+  // the file. Then process.cwd() — the page's directory, which a source with no
+  // `filename` resolves its imports against — and a couple of globals the jess
+  // runtime touches. Kept tiny.
   banner: {
     js:
       '/*! Less v5 (alpha) browser build. For live styling in the browser, follow the Less browser guide. Compiling Less in the browser is not intended for production — compile ahead of time (Node "less") for production builds. */\n' +
-      'var process = (typeof globalThis !== "undefined" && globalThis.process) || { env: {}, cwd: function () { return "/"; }, argv: [], platform: "browser" };'
+      'var process = (typeof globalThis !== "undefined" && globalThis.process) || { env: {}, cwd: function () { return typeof location !== "undefined" ? location.pathname.replace(/[^/]*$/, "") : "/"; }, argv: [], platform: "browser" };'
   },
   alias: {
     fs: join(stubs, 'fs.js'),
