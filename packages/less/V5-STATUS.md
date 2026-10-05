@@ -48,7 +48,7 @@ leaves unset.
 | URL rewriting (`rewriteUrls` / `rootpath` / `urlArgs`) | ✅ | ✅ | Rewrites `url(...)` references; the Less 4 `rewrite-urls-*` and `rootpath-rewrite-urls-*` fixtures render byte-identically. |
 | `processImports` | ✅ | ✅ | `false` skips import processing: imported stylesheets are neither loaded nor kept as CSS `@import` statements. |
 | `dumpLineNumbers` | ✅ | ❌ | Deprecated in Less 4. Accepted and ignored, with a deprecation warning; use source maps. |
-| `globalVars` / `modifyVars` injection | ✅ | ❌ | Not supported — these throw rather than silently no-op. |
+| `globalVars` / `modifyVars` / `banner` | ✅ | ✅ | As in Less 4: `globalVars` are declared at the top of the entry file, so the file can override them; `modifyVars` at its end, so they override the file; `banner` is printed ahead of the output. Imported files are unchanged. Source maps still point at the file as written. `lessc --global-var=NAME=VALUE` and `--modify-var=NAME=VALUE` set them. |
 | `javascriptEnabled` | ✅ | ❌ | JavaScript evaluation is not supported. |
 
 ## Plugins (`@plugin`)
@@ -72,7 +72,7 @@ leaves unset.
 | `@use` / `@from` script and data modules | ➖ | ⏳ | `@use "#less";` (the Less built-in functions, as `@less.darken(…)`) works and puts the file in modern mode (see `moduleMode`). JavaScript, TypeScript and JSON modules are in progress on Jess `feat/less-v5-completion`. See the [canonical Modules and Imports source](https://github.com/jesscss/jess/blob/dev/packages/docs/docs-content/docs/shared/02-Language/14-modules-and-imports.mdx). |
 | Browser build (`window.less`) | ✅ | ⏳ | `dist/less-browser-dev.js` ships and powers the playground; Less 4 browser-API parity is in progress on Jess `feat/less-v5-completion`. |
 | `lessc` CLI (compile) | ✅ | ✅ | Compiles files. |
-| `lessc` CLI **flags** for the newer options | ✅ | ✅ | `--compress`/`-x`, `--source-map[=file]` (+ `--source-map-inline` / `-include-source` / `-rootpath` / `-basepath` / `-url`), `--rewrite-urls` / `--rootpath` / `--url-args`, `--math`, `--unit-mode`, `--module-mode`, `--allow-remote-imports` are all wired, as are the deprecated `--strict-math`, `--strict-units` and `--line-numbers` (ignored, with a warning). |
+| `lessc` CLI **flags** for the newer options | ✅ | ✅ | `--compress`/`-x`, `--source-map[=file]` (+ `--source-map-inline` / `-include-source` / `-rootpath` / `-basepath` / `-url`), `--rewrite-urls` / `--rootpath` / `--url-args`, `--math`, `--unit-mode`, `--module-mode`, `--global-var`, `--modify-var`, `--allow-remote-imports` are all wired, as are the deprecated `--strict-math`, `--strict-units` and `--line-numbers` (ignored, with a warning). |
 | Diagnostics (`file:line:column` + excerpt) | ➖ | ✅ | Precise diagnostics, not raw parser offsets. |
 
 ---

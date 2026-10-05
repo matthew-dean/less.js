@@ -137,14 +137,18 @@ await realpath(compilerEntrypoint);
         /allowRemoteImports must be an array of host names; got "cdn\.example\.com"/,
         'a non-array allowRemoteImports is rejected as an option error'
     );
-    // globalVars / modifyVars / javascriptEnabled stay rejected.
-    for (const option of ['globalVars', 'modifyVars', 'javascriptEnabled']) {
-        assert.throws(
-            () => createLessOptions({ [option]: option === 'javascriptEnabled' ? true : {} }),
-            new RegExp(`${option} is not supported`),
-            `${option} still rejected`
-        );
-    }
+    // banner / globalVars / modifyVars reach language.less, where the compiler's
+    // prepareSource hook reads them; javascriptEnabled stays rejected.
+    assert.deepEqual(
+        lessLanguage({ banner: '/* b */\n', globalVars: { a: '1' }, modifyVars: { b: '2' } }),
+        { banner: '/* b */\n', globalVars: { a: '1' }, modifyVars: { b: '2' } },
+        'banner, globalVars and modifyVars reach language.less'
+    );
+    assert.throws(
+        () => createLessOptions({ javascriptEnabled: true }),
+        /javascriptEnabled is not supported/,
+        'javascriptEnabled still rejected'
+    );
 
     // 'native' distributes the child selector list (each branch keeps its own
     // specificity); 'compact' folds it into a single :is().
@@ -306,7 +310,7 @@ try {
         'lessc help documents the supported compress flag');
     assert.match(help.stdout, /--module-mode=MODE/,
         'lessc help documents the module-mode flag');
-    for (const flag of ['--strict-math', '--line-numbers', '--allow-remote-imports=HOSTS']) {
+    for (const flag of ['--strict-math', '--line-numbers', '--allow-remote-imports=HOSTS', '--global-var=NAME=VALUE', '--modify-var=NAME=VALUE']) {
         assert.ok(help.stdout.includes(flag), `lessc help documents ${flag}`);
     }
     assert.doesNotMatch(help.stdout, /--plugin=/,
@@ -394,6 +398,22 @@ try {
     assert.equal(badMode.code, 1, 'an unknown --module-mode value fails');
     assert.equal(badMode.stdout, '');
     assert.match(badMode.stderr, /moduleMode must be 'auto' or 'modern'/);
+
+    // --global-var / --modify-var, repeatable: a global variable the file can
+    // override, and a modified one that overrides the file. The value is
+    // everything after the name's `=`.
+    const vars = await runLessc(
+        ['--global-var=c=red', '--global-var=@d=1px', '--modify-var=d=2px', '--modify-var=e=url(a?b=c)', '-'],
+        '.a { color: @c; width: @d; background: @e; }\n@d: 3px;\n'
+    );
+    assert.equal(vars.code, 0, vars.stderr);
+    assert.equal(vars.stdout, '.a {\n  color: red;\n  width: 2px;\n  background: url(a?b=c);\n}\n');
+    for (const flag of ['--global-var', '--global-var=c', '--modify-var==red']) {
+        const badVar = await runLessc([flag, '-'], '.a { color: red; }\n');
+        assert.equal(badVar.code, 1, `${flag} fails`);
+        assert.equal(badVar.stdout, '');
+        assert.match(badVar.stderr, /-var takes NAME=VALUE/, `${flag} says what it takes`);
+    }
 
     // --strict-math (and -sm), deprecated: on is --math=parens, off the default.
     const sum = '.a { w: 2 + 3; }\n';

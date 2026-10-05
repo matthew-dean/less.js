@@ -58,6 +58,12 @@ export interface LessRenderOptions {
   moduleMode?: 'auto' | 'modern';
   /** `false` skips import processing: imported stylesheets are neither loaded nor kept as CSS `@import` statements. */
   processImports?: boolean;
+  /** Variables declared at the top of the entry file, so the file can override them. A name may carry its `@`. */
+  globalVars?: Record<string, string | number>;
+  /** Variables declared at the end of the entry file, so they override the file. A name may carry its `@`. */
+  modifyVars?: Record<string, string | number>;
+  /** Less source added ahead of the entry file: typically a comment, which is printed ahead of the output. */
+  banner?: string;
   /**
    * Emit a source map. `true` turns it on with defaults; the object form (or the
    * flat legacy `sourceMap*` options) configures it. Returned as `result.map`.

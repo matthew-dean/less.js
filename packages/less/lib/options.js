@@ -10,19 +10,11 @@ import { logger } from './logger.js';
 
 const require = createRequire(import.meta.url);
 
-const unsupportedAlphaOptions = new Map([
-  ['globalVars', 'global variable injection is not supported'],
-  ['modifyVars', 'modify-var injection is not supported'],
-  ['javascriptEnabled', 'JavaScript evaluation is not supported'],
-]);
-
 function validateAlphaOptions(options) {
-  for (const [name, reason] of unsupportedAlphaOptions) {
-    // A falsy value is the 4.x default ("off") and requests nothing, so it is
-    // a no-op here; only an actual request for the feature is unsupported.
-    if (options[name]) {
-      throw new Error(`${name} is not supported: ${reason}`);
-    }
+  // A falsy value is the 4.x default ("off") and requests nothing, so it is a
+  // no-op here; only an actual request for the feature is unsupported.
+  if (options.javascriptEnabled) {
+    throw new Error('javascriptEnabled is not supported: JavaScript evaluation is not supported');
   }
 }
 
@@ -234,6 +226,12 @@ export function createLessOptions(options) {
   if (opts.rewriteUrls !== undefined) language.rewriteUrls = opts.rewriteUrls;
   if (opts.urlArgs !== undefined) language.urlArgs = opts.urlArgs;
   if (opts.moduleMode !== undefined) language.moduleMode = resolveModuleMode(opts.moduleMode);
+  // Text the compiler's `prepareSource` hook (`prepareLessRootSource`) adds to
+  // the entry file only: `banner` and `globalVars` ahead of it, `modifyVars`
+  // after it.
+  if (opts.banner !== undefined) language.banner = opts.banner;
+  if (opts.globalVars !== undefined) language.globalVars = opts.globalVars;
+  if (opts.modifyVars !== undefined) language.modifyVars = opts.modifyVars;
   // Accepted for Less 4.x compatibility with no effect; the compiler warns.
   if (opts.dumpLineNumbers !== undefined) language.dumpLineNumbers = opts.dumpLineNumbers;
 

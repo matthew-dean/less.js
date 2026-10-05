@@ -14,10 +14,10 @@ const testDataRoot = path.resolve(packageRoot(), '..', 'test-data', 'tests-unit'
 // documented under "Implemented" and each rejected one under "Intentionally
 // not", so a support change that doesn't update the public status page — or that
 // files an option under the wrong heading — fails the suite.
-const REJECTED_OPTIONS = ['globalVars', 'modifyVars', 'javascriptEnabled'];
+const REJECTED_OPTIONS = ['javascriptEnabled'];
 const SUPPORTED_OPTIONS = [
     'collapseNesting', 'sourceMap', 'compress', 'rewriteUrls', 'urlArgs', 'rootpath', 'unitMode', 'math',
-    'strictMath', 'moduleMode', 'processImports'
+    'strictMath', 'moduleMode', 'processImports', 'globalVars', 'modifyVars', 'banner'
 ];
 
 const unsupportedForAlpha1 = [
@@ -221,6 +221,21 @@ async function assertOutputApiOptionsSupported() {
     assert.match(rp.css, /url\("\/cdn\/img\/a\.png"\)/, 'rootpath must prepend the path');
 }
 
+async function assertVariableInjectionSupported() {
+    // As in Less 4.x: `globalVars` go ahead of the entry file, so the file can
+    // override them; `modifyVars` go after it, so they override the file; a
+    // name may carry its `@`. `banner` is printed ahead of the output.
+    const source = '.x { a: @g; b: @m; c: @f; }\n@m: file;\n@f: file;\n';
+    const result = await less.render(source, {
+        banner: '/* banner */\n',
+        globalVars: { g: 'global', '@f': 'global' },
+        modifyVars: { m: 'modified' }
+    });
+    assert.equal(result.css, '/* banner */\n.x {\n  a: global;\n  b: modified;\n  c: file;\n}\n');
+    await assert.rejects(less.render('.x { a: @g; }\n'), /not found/i,
+        'a global variable exists only for the render that passes it');
+}
+
 async function assertUnitModeSupported() {
     const source = '.x { width: 1px + 3em; }\n';
     // `unitMode` is the option; `strictUnits` is its deprecated boolean alias.
@@ -324,6 +339,7 @@ await assertBareStructuralAtRuleVariablesReject();
 await assertUnsupportedApiOptionsReject();
 await assertOutputApiOptionsSupported();
 await assertStatusDocInSync();
+await assertVariableInjectionSupported();
 await assertUnitModeSupported();
 await assertMathOptionSupported();
 await assertDumpLineNumbersIgnored();

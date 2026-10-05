@@ -44,6 +44,8 @@ const lesscHelper = {
     console.log('  --strict-units[=on|off]      Deprecated: on is --unit-mode=strict, off is the default (preserve).');
     console.log('  --strict-math[=on|off]       Deprecated: on is --math=parens, off is the default (parens-division).');
     console.log('  --module-mode=MODE           Less built-ins: auto (default; modern if a file uses @use/@compose), or modern (always import them).');
+    console.log('  --global-var=NAME=VALUE      Define @NAME at the top of the entry file; the file can override it. Repeatable.');
+    console.log('  --modify-var=NAME=VALUE      Set @NAME at the end of the entry file, overriding it. Repeatable.');
     console.log('  --source-map[=FILE]          Emit a source map (FILE, or <destination>.map by default).');
     console.log('  --source-map-inline          Embed the source map as a data URI instead of a file.');
     console.log('  --source-map-include-source  Embed the source files in the map (sourcesContent).');

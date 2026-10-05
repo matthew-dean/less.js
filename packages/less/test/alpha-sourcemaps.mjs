@@ -177,4 +177,29 @@ function assertV3Map(json, { allowEmpty = false } = {}) {
     /\/\*# sourceMappingURL=u\.map \*\/$/, 'an explicit sourceMapURL wins');
 }
 
+// 9. Text injected into the entry file (`banner` and `globalVars` ahead of it,
+//    `modifyVars` after it) has no authored position: the mappings still point
+//    at the lines and columns as written, the banner's output line is unmapped,
+//    and `outputSourceFiles` embeds the file as written.
+{
+  const sourcePositions = map => decodeMappings(JSON.parse(map).mappings)
+    .filter(s => 'srcLine' in s)
+    .map(s => `${s.srcLine}:${s.srcCol}`);
+  const plain = await less.render(SRC, { sourceMap: true });
+  const vars = { globalVars: { unused: '1px', other: '2px' }, modifyVars: { last: '3px' } };
+  const injected = await less.render(SRC, { sourceMap: true, ...vars });
+  assert.equal(injected.css, plain.css);
+  assert.equal(injected.map, plain.map, 'globalVars and modifyVars do not move the mappings');
+
+  const bannered = await less.render(SRC, { sourceMap: true, banner: '/* banner */\n', ...vars });
+  assert.equal(bannered.css, `/* banner */\n${plain.css}`);
+  const segments = decodeMappings(JSON.parse(bannered.map).mappings);
+  assert.ok(segments.every(s => s.genLine > 0), 'the banner line is unmapped');
+  assert.deepEqual(sourcePositions(bannered.map), sourcePositions(plain.map),
+    'the banner does not move the source positions');
+
+  const { map } = await less.render(SRC, { sourceMap: { outputSourceFiles: true }, ...vars });
+  assert.deepEqual(JSON.parse(map).sourcesContent, [SRC], 'sourcesContent is the file as written');
+}
+
 console.log('Less 5 alpha source-map artifact checks passed');

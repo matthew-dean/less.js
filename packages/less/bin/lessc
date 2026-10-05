@@ -26,8 +26,6 @@ const unsupportedOptions = new Map([
   ['--depends', 'dependency-only output is not supported'],
   ['--lint', 'lint-only mode is not supported'],
   ['--clean-css', 'clean-css compression is not supported'],
-  ['--global-var', 'global variable injection is not supported'],
-  ['--modify-var', 'modify-var injection is not supported'],
   ['--js', 'JavaScript evaluation is not supported'],
   ['--no-js', 'JavaScript evaluation flags are not supported'],
 ]);
@@ -257,6 +255,22 @@ function parseArgs() {
     const moduleModeMatch = arg.match(/^--module-mode=(.+)$/);
     if (moduleModeMatch) {
       options.moduleMode = moduleModeMatch[1];
+      continue;
+    }
+    // Less 4.x `--global-var=NAME=VALUE` and `--modify-var=NAME=VALUE`,
+    // repeatable. The value is everything after the first `=` after the name.
+    const varMatch = arg.match(/^--(global|modify)-var(?:=(.*))?$/);
+    if (varMatch) {
+      const assignment = varMatch[2] ?? '';
+      const separator = assignment.indexOf('=');
+      if (separator < 1) {
+        failUnsupportedOption(arg, `--${varMatch[1]}-var takes NAME=VALUE`);
+      }
+      const key = `${varMatch[1]}Vars`;
+      options[key] = {
+        ...options[key],
+        [assignment.slice(0, separator)]: assignment.slice(separator + 1)
+      };
       continue;
     }
     const optionName = arg.includes('=') ? arg.slice(0, arg.indexOf('=')) : arg;

@@ -12,7 +12,7 @@
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { Compiler } from '@jesscss/compiler';
-import { LessPluginResolver } from '@jesscss/plugin-less';
+import { LessPluginResolver, prepareLessRootSource } from '@jesscss/plugin-less';
 import nodeModulesPlugin from '@jesscss/plugin-node-modules';
 import { createLessOptions, getCompilerCacheKey, mapRenderResult } from './options.js';
 import { version } from './version.js';
@@ -80,6 +80,9 @@ function getCompiler(configOptions) {
       normalizeConfiguredPlugin: (plugin, context) => plugin.name === 'less'
         ? lessPluginResolver.normalizeConfiguredPlugin(plugin, context)
         : plugin,
+      // `banner` and `globalVars` ahead of the entry source and `modifyVars`
+      // after it, as Less 4 added them; source maps skip the injected text.
+      prepareSource: prepareLessRootSource,
       scriptPluginSpecifier: '@jesscss/plugin-js',
       scriptPluginResolveFrom: import.meta.url
     });
