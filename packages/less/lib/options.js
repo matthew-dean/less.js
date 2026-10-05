@@ -4,7 +4,7 @@
  */
 
 import { createRequire } from 'node:module';
-import lessPlugin from '@jesscss/plugin-less';
+import lessPlugin, { LessPluginResolver, prepareLessRootSource } from '@jesscss/plugin-less';
 import { lessCompatPlugin } from '@jesscss/plugin-less-compat';
 import { logger } from './logger.js';
 
@@ -282,6 +282,24 @@ export function createLessOptions(options) {
 }
 
 /**
+ * The compiler hooks the Node and browser builds share: the Less plugin is
+ * rebuilt from the Less options resolved for each file (the render options
+ * merged over a file-local styles.config `language.less`), and `prepareSource`
+ * adds `banner` and `globalVars` ahead of the entry file and `modifyVars` after
+ * it, as Less 4 did; source maps skip the added text.
+ * @returns {{ normalizeConfiguredPlugin: Function, prepareSource: Function }}
+ */
+export function lessCompilerHooks() {
+  const lessPluginResolver = new LessPluginResolver();
+  return {
+    normalizeConfiguredPlugin: (plugin, context) => plugin.name === 'less'
+      ? lessPluginResolver.normalizeConfiguredPlugin(plugin, context)
+      : plugin,
+    prepareSource: prepareLessRootSource,
+  };
+}
+
+/**
  * Stable compiler cache key for a Jess compiler configured from Less options.
  * @param {object} configOptions Jess compiler config
  * @returns {string}
@@ -323,4 +341,4 @@ export function mapRenderResult(result, options) {
   return out;
 }
 
-export default { createLessOptions, getCompilerCacheKey, mapRenderResult };
+export default { createLessOptions, getCompilerCacheKey, lessCompilerHooks, mapRenderResult };

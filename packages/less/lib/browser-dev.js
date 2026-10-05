@@ -14,7 +14,7 @@
  */
 
 import { Compiler } from '@jesscss/compiler';
-import { createLessOptions, mapRenderResult } from './options.js';
+import { createLessOptions, lessCompilerHooks, mapRenderResult } from './options.js';
 
 /* Injected at build time from packages/less/package.json. */
 /* global __LESS_VERSION__ */
@@ -61,7 +61,7 @@ function render(input, options, callback) {
     // ponytail: fresh Compiler per call — no defaultPlugins hook, so no
     // node-modules import plugin and no @jesscss/plugin-js. Single-file preview
     // rarely re-renders in a hot loop; a cache map is not worth the surface.
-    const compiler = new Compiler(configOptions);
+    const compiler = new Compiler(configOptions, lessCompilerHooks());
     const result = await compiler.renderToResult(
       { source: input, language: 'less', extension: '.less' },
       { ...configOptions, suppressWarnings: true }

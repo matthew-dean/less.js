@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import less from '../lib/index.js';
+import { render as renderInBrowser } from '../lib/browser-dev.js';
 
 const testDataRoot = path.resolve(packageRoot(), '..', 'test-data', 'tests-unit');
 
@@ -226,14 +227,34 @@ async function assertVariableInjectionSupported() {
     // override them; `modifyVars` go after it, so they override the file; a
     // name may carry its `@`. `banner` is printed ahead of the output.
     const source = '.x { a: @g; b: @m; c: @f; }\n@m: file;\n@f: file;\n';
-    const result = await less.render(source, {
+    const options = {
         banner: '/* banner */\n',
         globalVars: { g: 'global', '@f': 'global' },
         modifyVars: { m: 'modified' }
-    });
-    assert.equal(result.css, '/* banner */\n.x {\n  a: global;\n  b: modified;\n  c: file;\n}\n');
+    };
+    const expected = '/* banner */\n.x {\n  a: global;\n  b: modified;\n  c: file;\n}\n';
+    assert.equal((await less.render(source, options)).css, expected);
+    assert.equal((await renderInBrowser(source, options)).css, expected,
+        'the browser build applies them as the Node build does');
     await assert.rejects(less.render('.x { a: @g; }\n'), /not found/i,
         'a global variable exists only for the render that passes it');
+}
+
+async function assertBrowserBuildHonoursLessOptions() {
+    // The browser build rebuilds the Less plugin from the render options as the
+    // Node build does, so the plugin's own options (URL rewriting, moduleMode)
+    // apply there too.
+    const url = '.x { b: url("img/a.png"); }\n';
+    const cases = [
+        [url, { rootpath: '/cdn/' }, 'url("/cdn/img/a.png")'],
+        [url, { urlArgs: 'v=1' }, 'url("img/a.png?v=1")'],
+        ['.x { c: darken(red, 10%); }\n', { moduleMode: 'modern' }, 'darken(red, 10%)'],
+    ];
+    for (const [source, options, text] of cases) {
+        const css = (await renderInBrowser(source, options)).css;
+        assert.ok(css.includes(text), `the browser build honours ${JSON.stringify(options)}; got ${JSON.stringify(css)}`);
+        assert.equal(css, (await less.render(source, options)).css, `browser and Node agree on ${JSON.stringify(options)}`);
+    }
 }
 
 async function assertUnitModeSupported() {
@@ -340,6 +361,7 @@ await assertUnsupportedApiOptionsReject();
 await assertOutputApiOptionsSupported();
 await assertStatusDocInSync();
 await assertVariableInjectionSupported();
+await assertBrowserBuildHonoursLessOptions();
 await assertUnitModeSupported();
 await assertMathOptionSupported();
 await assertDumpLineNumbersIgnored();
