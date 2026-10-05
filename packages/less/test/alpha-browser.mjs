@@ -24,8 +24,13 @@ import { chromium } from 'playwright';
 
 const bundle = readFileSync(fileURLToPath(new URL('../dist/less-browser-dev.js', import.meta.url)));
 
-/* Load plus first render. The interpreter grammar once took 2.8 s to load. */
-const BUDGET_MS = 1500;
+/*
+ * Load plus first render, through the compiled grammar this bundle carries: about
+ * 120 ms on a laptop. The budget leaves room for a slower CI runner and still
+ * fails a multi-fold regression, such as the interpreter grammar whose runtime
+ * compose() took 2.8 s.
+ */
+const BUDGET_MS = 500;
 
 const CSP = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'";
 
