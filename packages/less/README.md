@@ -39,6 +39,13 @@ Less extends CSS with variables, mixins, functions, nesting, and more — then c
 npm install less@alpha
 ```
 
+Function `@plugin` scripts run in the optional `@jesscss/plugin-js` runtime,
+which a default install leaves out. To use them, install it alongside:
+
+```sh
+npm install less@alpha @jesscss/plugin-js@alpha
+```
+
 For a pinned first alpha:
 
 ```sh

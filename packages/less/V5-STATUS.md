@@ -47,7 +47,7 @@ emits nested CSS) instead of always flattening. Opt into flattened output with
 
 | Feature | Less 4 | Less 5 | Notes |
 | --- | :---: | :---: | --- |
-| Function plugins (`functions.add`) | ✅ | ✅ | Via the opt-in `@jesscss/plugin-less-compat` layer — the common `@plugin` shape. |
+| Function plugins (`functions.add`) | ✅ | ✅ | The common `@plugin` shape, through `@jesscss/plugin-less-compat`. The plugin script runs in `@jesscss/plugin-js` (a Deno runtime), an optional peer that a default install leaves out: `npm install less@alpha @jesscss/plugin-js@alpha`. Without it, `@plugin "./x.js"` fails to load. |
 | npm-package imports | ✅ | ✅ | Native via `@jesscss/plugin-node-modules` (the `less-plugin-npm-import` case). |
 | Visitor / tree-visitor ABI, full `less.tree` | ✅ | ❌ | Intentional — the Less 4 tree is not the Less 5 AST; a translation layer isn't worth it. |
 | Pre-/post-processor hooks | ✅ | ❌ | Run PostCSS after Less; minification is native via `compress`. |
