@@ -134,11 +134,12 @@ const expectedFailureDiagnosticCodes = new Map([
     ['tests-unit/import/import.less', 'plugin/load-failed']
 ]);
 
-// Error fixtures Less 5 renders by design, not gaps. A built-in call whose
-// arguments cannot be evaluated is written out verbatim under the default
-// functionMode 'preserve' (jess ledger C17); under functionMode 'error' Jess
-// rejects each such call at the line and column Less 4.x reports.
-const preservedCall = "intended: the default functionMode 'preserve' writes a built-in call it cannot evaluate out verbatim (jess ledger C17)";
+// Error fixtures Less 5 renders by design, not gaps. Under the default
+// functionMode 'preserve' (jess ledger C17) a built-in call that rejects its
+// arguments is kept as a call, its arguments evaluated and canonically spaced
+// (`unit(80/16,rem)` renders `unit(80 / 16, rem)`); under functionMode 'error'
+// Jess rejects each such call at the line and column Less 4.x reports.
+const preservedCall = "intended: under the default functionMode 'preserve' a built-in call that rejects its arguments is kept as a call (jess ledger C17)";
 const expectedErrorPasses = new Map([
     ['tests-error/eval/color-func-invalid-color-2.less', 'intended: variables are lazy (jess ledger R1) and the failing darken() is in a variable nothing references, so it never runs'],
     ['tests-error/eval/color-func-invalid-color.less', preservedCall],
@@ -288,8 +289,9 @@ if (fixtureFilters.length > 0 && files.length === 0 && errorFiles.length === 0 &
 
 for (const file of warningFiles) {
     const fixturePath = path.join(testDataRoot, file);
+    const { lessOptions } = await loadFixtureConfig(path.dirname(fixturePath));
     try {
-        const result = await withFixtureTimeout(file, () => less.renderFile(fixturePath, { collapseNesting: true }));
+        const result = await withFixtureTimeout(file, () => less.renderFile(fixturePath, { ...lessOptions, collapseNesting: true }));
         const warnings = Array.isArray(result.warnings) ? result.warnings : [];
         if (warnings.length > 0) {
             if (expectedMissingWarnings.has(file)) {
