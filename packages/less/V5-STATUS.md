@@ -55,7 +55,7 @@ leaves unset.
 
 | Feature | Less 4 | Less 5 | Notes |
 | --- | :---: | :---: | --- |
-| Function plugins (`functions.add`) | ✅ | ✅ | The common `@plugin` shape, through `@jesscss/plugin-less-compat`. The plugin script runs in `@jesscss/plugin-js` (a Deno runtime), an optional peer that a default install leaves out: `npm install less@alpha @jesscss/plugin-js@alpha`. Without it, `@plugin "./x.js"` fails to load. Unlike Less 4, a plugin script runs sandboxed: it is read, and can read, only under the project root (the entry file's directory, or that of a `styles.config.*` above it). Set `compile.jsReadRoot` in a `styles.config.*` to widen it. |
+| Function plugins (`functions.add`) | ✅ | ✅ | The common `@plugin` shape, through `@jesscss/plugin-less-compat`. The plugin script runs in `@jesscss/plugin-js` (a Deno runtime), an optional peer that a default install leaves out: `npm install less@alpha @jesscss/plugin-js@alpha`. Without it, `@plugin "./x.js"` fails to load. Unlike Less 4, a plugin script runs sandboxed, by design: it is read, and can read, only under the project root (the entry file's directory, or that of a `styles.config.*` above it), and by default it has no environment or network access. Set `compile.jsReadRoot` in a `styles.config.*` to an absolute path to widen the root. |
 | npm-package imports | ✅ | ✅ | Native via `@jesscss/plugin-node-modules` (the `less-plugin-npm-import` case). |
 | Visitor / tree-visitor ABI, full `less.tree` | ✅ | ❌ | Intentional — the Less 4 tree is not the Less 5 AST; a translation layer isn't worth it. |
 | Pre-/post-processor hooks | ✅ | ❌ | Run PostCSS after Less; minification is native via `compress`. |
