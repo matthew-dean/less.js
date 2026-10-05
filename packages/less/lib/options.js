@@ -78,6 +78,8 @@ function resolveCollapseNesting(value) {
  * `'auto'` (the default — a file that uses `@use` or `@compose` is modern, any
  * other file is legacy) or `'modern'` (every file is modern, so a built-in must
  * be imported). Anything else is rejected rather than silently read as `'auto'`.
+ * TODO(jesscss/jess#354): drop this check once the Less plugin validates the
+ * value itself.
  * @param {unknown} value
  * @returns {'auto'|'modern'}
  */
