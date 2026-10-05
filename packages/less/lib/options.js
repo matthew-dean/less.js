@@ -299,6 +299,26 @@ export function lessCompilerHooks() {
   };
 }
 
+/** Text the compiler's `prepareSource` hook adds to the entry file. */
+const ENTRY_TEXT_OPTIONS = ['banner', 'globalVars', 'modifyVars'];
+
+/**
+ * The options a cached compiler is built from: `configOptions` without the
+ * entry-file text (`banner`, `globalVars`, `modifyVars`). Each render passes
+ * that text in its own options, so one compiler serves every set of values
+ * instead of one being cached per set.
+ * @param {object} configOptions Jess compiler config from `createLessOptions`
+ * @returns {object}
+ */
+export function compilerOptionsOf(configOptions) {
+  const less = configOptions.language?.less;
+  if (!less || !ENTRY_TEXT_OPTIONS.some((key) => key in less)) {
+    return configOptions;
+  }
+  const rest = Object.fromEntries(Object.entries(less).filter(([key]) => !ENTRY_TEXT_OPTIONS.includes(key)));
+  return { ...configOptions, language: { ...configOptions.language, less: rest } };
+}
+
 /**
  * Stable compiler cache key for a Jess compiler configured from Less options.
  * @param {object} configOptions Jess compiler config
@@ -341,4 +361,4 @@ export function mapRenderResult(result, options) {
   return out;
 }
 
-export default { createLessOptions, getCompilerCacheKey, lessCompilerHooks, mapRenderResult };
+export default { createLessOptions, compilerOptionsOf, getCompilerCacheKey, lessCompilerHooks, mapRenderResult };

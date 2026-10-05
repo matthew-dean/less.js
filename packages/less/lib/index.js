@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { Compiler } from '@jesscss/compiler';
 import nodeModulesPlugin from '@jesscss/plugin-node-modules';
-import { createLessOptions, getCompilerCacheKey, lessCompilerHooks, mapRenderResult } from './options.js';
+import { compilerOptionsOf, createLessOptions, getCompilerCacheKey, lessCompilerHooks, mapRenderResult } from './options.js';
 import { version } from './version.js';
 import { logger } from './logger.js';
 import { lesscHelper } from './lessc-helper.js';
@@ -65,13 +65,16 @@ function createRenderErrorFromJessDiagnostic(result, filePath) {
 }
 
 /**
+ * The cached compiler for these options. The entry-file text options are left
+ * out of it; each render passes them with the rest of its options.
  * @param {object} configOptions
  */
 function getCompiler(configOptions) {
-  const cacheKey = getCompilerCacheKey(configOptions);
+  const compilerOptions = compilerOptionsOf(configOptions);
+  const cacheKey = getCompilerCacheKey(compilerOptions);
   let compiler = compilerCache.get(cacheKey);
   if (!compiler) {
-    compiler = new Compiler(configOptions, {
+    compiler = new Compiler(compilerOptions, {
       ...lessCompilerHooks(),
       defaultPlugins: context => [nodeModulesPlugin({ basePath: context.resolutionBaseDir })],
       scriptPluginSpecifier: '@jesscss/plugin-js',

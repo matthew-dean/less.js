@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import less from '../lib/index.js';
-import { createLessOptions, getCompilerCacheKey } from '../lib/options.js';
+import { compilerOptionsOf, createLessOptions, getCompilerCacheKey } from '../lib/options.js';
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lessc = path.join(packageRoot, 'bin', 'lessc');
@@ -144,6 +144,17 @@ await realpath(compilerEntrypoint);
         { banner: '/* b */\n', globalVars: { a: '1' }, modifyVars: { b: '2' } },
         'banner, globalVars and modifyVars reach language.less'
     );
+    // Each render passes them, so they are left out of the cached compiler: a
+    // process that renders many themes shares one compiler instead of caching
+    // one per set of values.
+    const compilerKey = options => getCompilerCacheKey(compilerOptionsOf(createLessOptions(options).configOptions));
+    assert.equal(
+        compilerKey({ math: 'always', modifyVars: { b: '2' } }),
+        compilerKey({ math: 'always', modifyVars: { b: '3' }, globalVars: { a: '1' }, banner: '/* b */\n' }),
+        'banner, globalVars and modifyVars are not part of the compiler cache key'
+    );
+    assert.notEqual(compilerKey({ math: 'always' }), compilerKey({ math: 'parens' }),
+        'the other Less options still are');
     assert.throws(
         () => createLessOptions({ javascriptEnabled: true }),
         /javascriptEnabled is not supported/,
