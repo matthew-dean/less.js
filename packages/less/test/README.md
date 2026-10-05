@@ -13,13 +13,36 @@ The alpha gate is intentionally split by contract:
   diagnostics, and warning gaps.
 - `jess-alpha-fast-path.mjs` and the root publish checks own package assembly,
   optional peer behavior, and packed-consumer proof.
+- `alpha-sourcemaps.mjs` owns source-map output.
 - `test-es6.js` and `test-cjs.cjs` are the alpha Node module smoke tests.
   The historical broad Node harness remains under `test:legacy-node` while
-  Less 4 parity-only surfaces such as source maps, remote imports, and legacy
-  plugin-host behavior are outside the alpha gate.
+  Less 4 parity-only surfaces such as remote imports and legacy plugin-host
+  behavior are outside the alpha gate.
 
 Do not grow `alpha-fixtures.mjs` into a second full test framework. Detailed
 diagnostic, warning, CLI, and package-contract assertions belong in focused
 tests. If those focused tests need cases, filtering, snapshots, hooks, or better
 failure reporting, move them to a real test runner instead of expanding the
 Node-script harness.
+
+## Running against a local Jess build
+
+The suite normally runs against the pinned Jess alpha. To measure an unreleased
+Jess branch, build that Jess checkout (`pnpm install && pnpm run build:release`)
+and point this package's `@jesscss/*` dependencies at it. Only `node_modules`
+changes; `pnpm install --frozen-lockfile` restores the pins.
+
+```sh
+JESS=/path/to/jess
+cd packages/less/node_modules/@jesscss
+ln -sfn "$JESS/packages/compiler" compiler
+ln -sfn "$JESS/packages/core" core
+ln -sfn "$JESS/packages/syntax/less/jess-plugin-less" plugin-less
+ln -sfn "$JESS/packages/syntax/less/jess-plugin-less-compat" plugin-less-compat
+ln -sfn "$JESS/packages/jess-plugin-node-modules" plugin-node-modules
+```
+
+The optional `@jesscss/plugin-js` peer stays unlinked, as in a default install.
+While linked, the `lessc-alpha.mjs` check that the CLI resolves an installed
+`@jesscss/compiler/lib/index.js` fails by design (it resolves into the Jess
+checkout); the other checks run as usual.

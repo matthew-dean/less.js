@@ -66,13 +66,11 @@ const fixtureFunctionPlugin = {
 };
 
 const skippedFixtures = new Map([
-    ['tests-config/3rd-party/bootstrap4.less', 'broad third-party fixture; keep out of config smoke progression'],
+    ['tests-config/3rd-party/bootstrap4.less', 'bootstrap-less-port loads `@plugin "plugins/index"`, which needs the optional @jesscss/plugin-js script runtime this suite does not install'],
     ['tests-config/debug/linenumbers.less', 'debug output fixture; no expected CSS in upstream fixture'],
     ['tests-config/filemanagerPlugin/filemanager.less', 'custom Less file manager plugin hook ABI is a deliberate non-goal in v5 (jess ledger A12)'],
     ['tests-config/globalVars/extended.less', 'globalVars injection is not alpha-supported'],
     ['tests-config/globalVars/simple.less', 'globalVars injection is not alpha-supported'],
-    ['tests-config/include-path/include-path.less', 'data-uri() and image-size() file helpers are not alpha-supported'],
-    ['tests-config/include-path-string/include-path-string.less', 'data-uri() file helper is not alpha-supported'],
     ['tests-config/include-path/import-test-e.less', 'helper imported by include-path fixture; no expected CSS'],
     ['tests-config/import-redirect/import-redirect.less', 'no expected CSS in upstream fixture'],
     ['tests-config/js-type-errors/js-type-error.less', 'expected error fixture, not render-to-CSS fixture'],
@@ -90,12 +88,8 @@ const skippedFixtures = new Map([
     ['tests-config/no-js-errors/no-js-errors.less', 'expected error fixture, not render-to-CSS fixture'],
     ['tests-config/postProcessorPlugin/postProcessor.less', 'Less postprocessor plugin hook ABI is a deliberate non-goal in v5 (jess ledger A12)'],
     ['tests-config/preProcessorPlugin/preProcessor.less', 'Less preprocessor plugin hook ABI is a deliberate non-goal in v5 (jess ledger A12)'],
-    ['tests-config/rewrite-urls-all/rewrite-urls-all.less', 'URL rewriting is not alpha-supported'],
-    ['tests-config/rewrite-urls-local/rewrite-urls-local.less', 'URL rewriting is not alpha-supported'],
     ['tests-config/root-registry/file.less', 'no expected CSS in upstream fixture'],
     ['tests-config/root-registry/root.less', 'no expected CSS in upstream fixture'],
-    ['tests-config/rootpath-rewrite-urls-all/rootpath-rewrite-urls-all.less', 'URL rootpath rewriting is not alpha-supported'],
-    ['tests-config/rootpath-rewrite-urls-local/rootpath-rewrite-urls-local.less', 'URL rootpath rewriting is not alpha-supported'],
     ['tests-config/strict-imports/imported.less', 'helper imported by strict-imports fixture; no expected CSS'],
     ['tests-config/sourcemaps/basic.less', 'source-map artifacts are gated by test/alpha-sourcemaps.mjs; this config-only fixture has no plain .css golden to byte-compare'],
     ['tests-config/sourcemaps/custom-props.less', 'source-map artifacts are gated by test/alpha-sourcemaps.mjs; this config-only fixture has no plain .css golden to byte-compare'],
@@ -105,28 +99,37 @@ const skippedFixtures = new Map([
     ['tests-config/sourcemaps-variable-selector/basic.less', 'source-map artifacts are gated by test/alpha-sourcemaps.mjs; this config-only fixture has no plain .css golden to byte-compare'],
     ['tests-config/sourcemaps-variable-selector/vars.less', 'source-map artifacts are gated by test/alpha-sourcemaps.mjs; this config-only fixture has no plain .css golden to byte-compare'],
     ['tests-config/visitorPlugin/visitor.less', 'Less visitor plugin hook ABI is a deliberate non-goal in v5 (jess ledger A12)'],
-    ['tests-unit/import/import-remote.less', 'remote URL imports require an explicit network/IO allowlist']
+    ['tests-unit/import/import-remote.less', 'renders offline only because the Less plugin maps cdn.jsdelivr.net/npm URLs onto the installed @less/test-data package, which is no evidence that remote imports work; the remote-import network policy (jess PR #219 design) is in progress']
 ]);
 const selectedSkippedCount = [...skippedFixtures.keys()].filter(fixtureMatches).length;
 
+// These fixtures' maintained goldens are flattened output, while their
+// directories' configs (shared with siblings whose goldens are nested) say
+// collapseNesting: false. Render them flat so they are compared like for like.
+// (Their nested output has a known bug with `&` in called mixins: jess#345.)
+const flatGoldenFixtures = new Set([
+    'tests-unit/import/import-reference.less',
+    'tests-unit/mixins/mixins.less'
+]);
+
+const SOURCEMAP_ANNOTATION_GAP = 'the golden ends with a `sourceMappingURL=tests-config/<dir>/<name>.css.map` annotation that the Less 4 harness derived from the fixture path; this harness passes no map filename, so none is written. Given one, the only difference is that jess ends the annotation with a newline and the golden does not (owner to decide). Map content is gated by test/alpha-sourcemaps.mjs';
+
 const expectedFailureFixtures = new Map([
-    ['tests-unit/import/import-reference.less', 'reference import filtering leaves extra at-rules'],
-    ['tests-unit/import/import.less', '@plugin executes; renders but differs from the Less 4 golden (root-@import placement, numeric precision). v5 intentionally does NOT merge nested @media (nesting is preserved by design), so that is not a gap'],
-    ['tests-unit/urls/urls.less', 'renders but CSS @import placement and multiline function formatting differ from Less'],
-    ['tests-config/sourcemaps-basepath/sourcemaps-basepath.less', 'map is produced (gated by test/alpha-sourcemaps.mjs) but its source-path normalization/embedded-sources do not byte-match the 4.x golden yet'],
-    ['tests-config/sourcemaps-include-source/sourcemaps-include-source.less', 'map is produced (gated by test/alpha-sourcemaps.mjs) but its source-path normalization/embedded-sources do not byte-match the 4.x golden yet'],
-    ['tests-config/sourcemaps-rootpath/sourcemaps-rootpath.less', 'map is produced (gated by test/alpha-sourcemaps.mjs) but its source-path normalization/embedded-sources do not byte-match the 4.x golden yet'],
-    ['tests-config/sourcemaps-url/sourcemaps-url.less', 'map is produced (gated by test/alpha-sourcemaps.mjs) but its source-path normalization/embedded-sources do not byte-match the 4.x golden yet'],
-    ['tests-unit/mixins/mixins.less', 'same-named nested ruleset resolves the outer .recursion() mixin; remaining mismatch is fixture-local collapseNesting=false rendering'],
-    ['tests-unit/property-name-interp/property-name-interp.less', 'deprecated dash-only @- and @{-} variable names are rejected'],
-    ['tests-unit/plugin-module/plugin-module.less', 'legacy CommonJS @plugin graph with require() is not supported by the optional JS runtime'],
-    ['tests-unit/plugin-preeval/plugin-preeval.less', 'legacy tree visitor ABI is not supported'],
-    ['tests-unit/plugin/plugin.less', '@plugin scripts execute; the Less 4 golden uses the deprecated registerPlugin/(option) lifecycle and flattened output. v5 intentionally does NOT merge nested @media (nesting is preserved by design), so that is not a gap'],
-    ['tests-unit/parse-interpolation/parse-interpolation.less', 'renders but interpolation formatting differs from Less'],
-    ['tests-unit/parser-slashed-combinator/parser-slashed-combinator.less', 'slashed combinator not yet supported'],
-    ['tests-unit/permissive-parse/permissive-parse.less', 'permissive legacy parser corners are not alpha-supported'],
-    ['tests-unit/media/media.less', 'top-level bare @var at-rule preludes are rejected'],
-    ['tests-unit/at-rule-variable-deprecated/at-rule-variable-deprecated.less', 'bare @variable references in at-rule structural positions are rejected in Less 5 alpha']
+    ['tests-unit/import/import.less', '@plugin needs the optional @jesscss/plugin-js script runtime, which this suite does not install. With it installed the script is still refused: it sits outside the default jsReadRoot (the fixture directory, which has its own styles.config), and the wrapper has no jsReadRoot option'],
+    ['tests-unit/urls/urls.less', 'intended divergence (jess §12.3b): the interpolated target in `.add_an_import("file.css")` is a compile-time import, so import resolution reports the missing file'],
+    ['tests-config/sourcemaps-basepath/sourcemaps-basepath.less', SOURCEMAP_ANNOTATION_GAP],
+    ['tests-config/sourcemaps-include-source/sourcemaps-include-source.less', SOURCEMAP_ANNOTATION_GAP],
+    ['tests-config/sourcemaps-rootpath/sourcemaps-rootpath.less', SOURCEMAP_ANNOTATION_GAP],
+    ['tests-config/sourcemaps-url/sourcemaps-url.less', 'jess ends the sourceMappingURL annotation with a newline and the golden does not (owner to decide); map content is gated by test/alpha-sourcemaps.mjs'],
+    ['tests-unit/property-name-interp/property-name-interp.less', 'open (jess ledger F7(a)): repeated `@{p}@{p}` loses the `/* foo */` comment carried inside each complex interpolated value; awaits an owner ruling'],
+    ['tests-unit/plugin-module/plugin-module.less', 'legacy CommonJS @plugin graph with require() is not supported by the optional JS runtime (not installed here either)'],
+    ['tests-unit/plugin-preeval/plugin-preeval.less', 'legacy tree visitor ABI is a deliberate non-goal in v5 (jess ledger A12)'],
+    ['tests-unit/plugin/plugin.less', '@plugin needs the optional @jesscss/plugin-js script runtime, which this suite does not install; beyond that, intended divergence (owner 2026-08-18): the golden uses the deprecated `@plugin (option)` / registerPlugin lifecycle, which v5 does not build'],
+    ['tests-unit/parse-interpolation/parse-interpolation.less', 'jess prints leading whitespace from an escaped selector at a nested header, which O8(b) canonicalizes away (jess#347). The golden needs owner updates: it keeps `.d:is(.a, .b, .c)&:hover, baz-cap` on one line where O8(a) prints one branch per line, says `foo: bar` where the source says `foo: baz`, and flattens the final `@{list-cap}` block that collapseNesting: false keeps nested (owner 2026-08-22)'],
+    ['tests-unit/parser-slashed-combinator/parser-slashed-combinator.less', 'every case is commented out because slashed combinators are not selectors and v5 rejects them (jess ledger G37), so it renders nothing while the golden is a newline; the fixture belongs in tests-error (jess#247)'],
+    ['tests-unit/permissive-parse/permissive-parse.less', 'intended divergence (jess ledger P7): it starts with a bare `@function-name` in an at-rule prelude, which v5 rejects in favor of `@{function-name}`'],
+    ['tests-unit/media/media.less', 'a block comment at the top of an @media body is dropped (jess#346). The rest needs the owner: the golden leaves a mixin-expanded nested @media at column 0 where jess indents it to the at-rule body (jess ledger F10), prints escaped `~"2/1"` as `2 / 1` where jess keeps it verbatim, and keeps `(@some-var + 1)` in a media feature as `(60px + 1)` where jess computes `61px`'],
+    ['tests-unit/at-rule-variable-deprecated/at-rule-variable-deprecated.less', 'bare @variable references in at-rule preludes, names and identifiers are rejected in v5; use @{var} interpolation']
 ]);
 
 const expectedFailureDiagnosticCodes = new Map([
@@ -163,7 +166,6 @@ const files = globSync('{tests-unit/*/*.less,tests-config/*/*.less}', {
 })
     .filter(fixtureMatches)
     .filter(file => !skippedFixtures.has(file))
-    .filter(file => !file.startsWith('tests-unit/plugin-'))
     .sort();
 
 let passed = 0;
@@ -339,7 +341,9 @@ async function assertExpectedFailureDiagnostic(testCase, expectedCode) {
 async function getTestCases(lessFile) {
     const relative = path.relative(testDataRoot, lessFile).replace(/\\/g, '/');
     const config = await loadFixtureConfig(path.dirname(lessFile));
-    const outputs = outputEntries(config.output);
+    const outputs = flatGoldenFixtures.has(relative)
+        ? [{ collapseNesting: true }]
+        : outputEntries(config.output);
     const baseName = path.basename(lessFile, '.less');
     const cases = [];
 
@@ -419,7 +423,7 @@ async function loadFixtureConfig(startDir) {
             .map(name => path.join(dir, name))
             .find(existsSync);
         if (configPath) {
-            configs.push(await readConfig(configPath));
+            configs.push({ config: await readConfig(configPath), dir });
         }
         if (dir === testDataRoot) {
             break;
@@ -428,8 +432,8 @@ async function loadFixtureConfig(startDir) {
     }
 
     return configs.reverse().reduce(
-        (merged, config) => ({
-            lessOptions: { ...merged.lessOptions, ...toLessOptions(config) },
+        (merged, { config, dir }) => ({
+            lessOptions: { ...merged.lessOptions, ...toLessOptions(config, dir) },
             output: Object.prototype.hasOwnProperty.call(config, 'output') ? config.output : merged.output
         }),
         { lessOptions: {}, output: { collapseNesting: true } }
@@ -465,13 +469,14 @@ function readTsConfig(configPath) {
     return config;
 }
 
-function toLessOptions(config) {
+// `paths` in a styles.config are relative to that config file's directory.
+function toLessOptions(config, configDir) {
     const lessOptions = { ...(config.language?.less || {}) };
     delete lessOptions.javascriptEnabled;
     delete lessOptions.relativeUrls;
     delete lessOptions.silent;
     if (Array.isArray(lessOptions.paths)) {
-        lessOptions.paths = lessOptions.paths.map(value => path.resolve(testDataRoot, value));
+        lessOptions.paths = lessOptions.paths.map(value => path.resolve(configDir, value));
     }
     const mathMode = config.compile?.mathMode;
     if (mathMode) {
