@@ -3,7 +3,7 @@
  * (they enable `sourceMap` via styles.config, several also use `globalVars`) and
  * ship no plain `.css` golden, so the byte-identical fixture harness cannot gate
  * them. This suite exercises the map artifact directly: v3 shape, the annotation
- * variants (default / URL / inline base64 / disabled), the flat legacy options,
+ * variants (derived / URL / inline base64 / disabled), the flat legacy options,
  * and the empty-input edge.
  */
 import assert from 'node:assert/strict';
@@ -94,12 +94,13 @@ function assertV3Map(json, { allowEmpty = false } = {}) {
 }
 
 // 1. `sourceMap: true` returns a v3 map whose mappings round-trip to the real
-//    source positions; no annotation is written without a URL/inline request.
+//    source positions; with no input or output name there is nothing to name
+//    the map after, so no annotation is written.
 {
   const { css, map } = await less.render(SRC, { sourceMap: true });
   assert.ok(map, 'sourceMap: true must return result.map');
   const { map: parsed, segments } = assertV3Map(map);
-  assert.doesNotMatch(css, /sourceMappingURL/, 'no annotation without a URL/inline request');
+  assert.doesNotMatch(css, /sourceMappingURL/, 'no annotation without an input or output name');
 
   // SRC line 1 (0-based) is `color: red;` and line 2 is the `.b` rule; the
   // mappings must reference those real source lines, not arbitrary positions.
@@ -143,11 +144,12 @@ function assertV3Map(json, { allowEmpty = false } = {}) {
   assert.match(css, /sourceMappingURL=flat\.css\.map/, 'flat sourceMapURL honored');
 }
 
-// 6. Empty input yields a v3 map (possibly empty) and never crashes.
+// 6. Empty output gets neither a map nor an annotation, as in Less 4.x
+//    (`testEmptySourcemap`), and never crashes.
 {
-  const { map } = await less.render('', { sourceMap: true });
-  assert.ok(map, 'empty input still returns a map');
-  assertV3Map(map, { allowEmpty: true });
+  const { css, map } = await less.render('', { filename: 'empty.less', sourceMap: true });
+  assert.equal(css, '', 'empty output stays empty: no annotation');
+  assert.equal(map, undefined, 'empty output returns no map');
 }
 
 // 7. `outputSourceFiles` embeds the original source into sourcesContent.
@@ -158,6 +160,21 @@ function assertV3Map(json, { allowEmpty = false } = {}) {
     'outputSourceFiles must embed every source');
   assert.ok(parsed.sourcesContent[0].includes('color: red'),
     'embedded content must be the original Less source');
+}
+
+// 8. With no `sourceMapURL` or `sourceMapFilename`, the annotation is derived as
+//    Less 4.x `parse-tree.js` derives it: `sourceMapOutputFilename` + `.map`,
+//    else the input file's basename + `.css.map`. It is the CSS's last bytes.
+{
+  const derived = async (options) => (await less.render(SRC, options)).css;
+  assert.match(await derived({ filename: 'styles/in.less', sourceMap: true }),
+    /\}\n\/\*# sourceMappingURL=in\.css\.map \*\/$/, 'named after the input file');
+  assert.match(await derived({ filename: 'styles/in.less', sourceMap: { sourceMapOutputFilename: 'out.css' } }),
+    /\/\*# sourceMappingURL=out\.css\.map \*\/$/, 'named after sourceMapOutputFilename, over the input');
+  assert.match(await derived({ sourceMap: true, sourceMapOutputFilename: 'flat.css' }),
+    /\/\*# sourceMappingURL=flat\.css\.map \*\/$/, 'the flat legacy sourceMapOutputFilename too');
+  assert.match(await derived({ filename: 'styles/in.less', sourceMap: { sourceMapURL: 'u.map', sourceMapOutputFilename: 'out.css' } }),
+    /\/\*# sourceMappingURL=u\.map \*\/$/, 'an explicit sourceMapURL wins');
 }
 
 console.log('Less 5 alpha source-map artifact checks passed');

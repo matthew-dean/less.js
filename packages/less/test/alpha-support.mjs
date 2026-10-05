@@ -285,10 +285,13 @@ async function assertMathOptionSupported() {
 }
 
 async function assertDumpLineNumbersIgnored() {
-    // Less 4.x `dumpLineNumbers` is accepted and has no effect.
+    // Less 4.x `dumpLineNumbers` is accepted and has no effect; the result
+    // carries a deprecation warning saying so.
     const source = '.x { width: 2 + 3; }\n';
     const result = await less.render(source, { dumpLineNumbers: 'comments' });
     assert.equal(result.css, (await less.render(source)).css, 'dumpLineNumbers changes nothing in the CSS');
+    assert.ok(result.warnings?.some(warning => warning.code === 'deprecation/dump-line-numbers-option'),
+        `dumpLineNumbers must warn; got ${JSON.stringify(result.warnings?.map(warning => warning.code))}`);
 }
 
 async function assertModuleModeSupported() {

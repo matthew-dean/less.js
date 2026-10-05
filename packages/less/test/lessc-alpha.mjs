@@ -368,11 +368,12 @@ try {
     assert.match(strictMathOff.stdout, /w: 5;/, '--strict-math=off is the default math');
     assert.match(strictMathOff.stderr, /strictMath: false now means math: 'parens-division'/);
 
-    // --line-numbers, deprecated: accepted as in Less 4.x and ignored.
+    // --line-numbers, deprecated: accepted as in Less 4.x, ignored, and warned about.
     for (const flag of ['--line-numbers', '--line-numbers=comments', '--line-numbers=mediaquery', '--line-numbers=all']) {
         const lineNumbers = await runLessc(['--no-color', flag, '-'], sum);
         assert.equal(lineNumbers.code, 0, lineNumbers.stderr);
         assert.equal(lineNumbers.stdout, '.a {\n  w: 5;\n}\n', `${flag} has no effect on the CSS`);
+        assert.match(lineNumbers.stderr, /deprecation\/dump-line-numbers-option/, `${flag} warns that it has no effect`);
     }
     const badLineNumbers = await runLessc(['--line-numbers=sass', '-'], sum);
     assert.equal(badLineNumbers.code, 1, 'an unknown --line-numbers type fails');
@@ -418,8 +419,8 @@ try {
     assert.equal(sm.code, 0, sm.stderr);
     assert.match(sm.stdout, /lessc: wrote .+sm\.css\.map\n/, '--source-map reports the sidecar map it wrote');
     const smCss = await readFile(smOutput, 'utf8');
-    assert.match(smCss, /\/\*# sourceMappingURL=sm\.css\.map \*\/\n$/,
-        '--source-map annotates the CSS with the sidecar map basename');
+    assert.match(smCss, /\/\*# sourceMappingURL=sm\.css\.map \*\/$/,
+        '--source-map annotates the CSS with the sidecar map basename, as its last bytes (Less 4.x)');
     const smMap = JSON.parse(await readFile(`${smOutput}.map`, 'utf8'));
     assert.equal(smMap.version, 3, 'the sidecar map is source-map v3');
     assert.equal(smMap.file, 'sm.css', 'map.file is the CSS output name');

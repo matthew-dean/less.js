@@ -112,15 +112,9 @@ const flatGoldenFixtures = new Set([
     'tests-unit/mixins/mixins.less'
 ]);
 
-const SOURCEMAP_ANNOTATION_GAP = 'the golden annotates `sourceMappingURL=tests-config/<dir>/<name>.css.map`, which Less 4 derived from the `sourceMapOutputFilename` its harness passed. Jess writes an annotation only for an explicit sourceMapURL or sourceMapFilename, and this harness passes neither. Given one, Jess also ends the annotation with a newline that the golden lacks. Both are open owner questions (jess#353). Map content is gated by test/alpha-sourcemaps.mjs';
-
 const expectedFailureFixtures = new Map([
     ['tests-unit/import/import.less', '@plugin needs the optional @jesscss/plugin-js script runtime, which this suite does not install. With it installed the script is still refused: `@plugin "../../plugin/plugin-simple"` sits outside the script sandbox root, which is the fixture directory (it has its own styles.config). Less 4 had no sandbox; in v5 a styles.config `compile.jsReadRoot` widens it, and this fixture\'s config sets none'],
     ['tests-unit/urls/urls.less', 'intended divergence (jess §12.3b): the interpolated target in `.add_an_import("file.css")` is a compile-time import, so import resolution reports the missing file'],
-    ['tests-config/sourcemaps-basepath/sourcemaps-basepath.less', SOURCEMAP_ANNOTATION_GAP],
-    ['tests-config/sourcemaps-include-source/sourcemaps-include-source.less', SOURCEMAP_ANNOTATION_GAP],
-    ['tests-config/sourcemaps-rootpath/sourcemaps-rootpath.less', SOURCEMAP_ANNOTATION_GAP],
-    ['tests-config/sourcemaps-url/sourcemaps-url.less', 'Jess ends the sourceMappingURL annotation with a newline that the golden lacks, which is an open owner question (jess#353); otherwise byte-identical. Map content is gated by test/alpha-sourcemaps.mjs'],
     ['tests-unit/property-name-interp/property-name-interp.less', 'open (jess ledger F7(a)): repeated `@{p}@{p}` loses the `/* foo */` comment carried inside each complex interpolated value; awaits an owner ruling'],
     ['tests-unit/plugin-module/plugin-module.less', '`@plugin "clean-css"` uses the short npm name, and v5 does not apply the Less 4 `less-plugin-` prefix, so it fails with import/not-found. less-plugin-clean-css is a postprocessor plugin anyway, and that hook ABI is a deliberate non-goal in v5 (jess ledger A12)'],
     ['tests-unit/plugin-preeval/plugin-preeval.less', 'legacy tree visitor ABI is a deliberate non-goal in v5 (jess ledger A12)'],
@@ -358,7 +352,7 @@ async function getTestCases(lessFile) {
             label: output.file ? `${relative} (${outputName})` : relative,
             lessFile,
             expectedFile,
-            options: renderOptions(config.lessOptions, output)
+            options: renderOptions(config.lessOptions, output, relative)
         });
     }
 
@@ -371,14 +365,14 @@ async function getTestCases(lessFile) {
             label: relative,
             lessFile,
             expectedFile: fallback,
-            options: renderOptions(config.lessOptions, { collapseNesting: true })
+            options: renderOptions(config.lessOptions, { collapseNesting: true }, relative)
         });
     }
 
     return cases;
 }
 
-function renderOptions(lessOptions, output) {
+function renderOptions(lessOptions, output, relativeLessPath) {
     const options = {
         ...lessOptions,
         filename: undefined,
@@ -387,7 +381,29 @@ function renderOptions(lessOptions, output) {
     if (Object.prototype.hasOwnProperty.call(output, 'collapseNesting')) {
         options.collapseNesting = output.collapseNesting === true;
     }
+    const sourceMap = upstreamHarnessSourceMap(lessOptions.sourceMap, relativeLessPath);
+    if (sourceMap) {
+        options.sourceMap = sourceMap;
+    }
     return options;
+}
+
+/**
+ * The source-map options the Less 4 harness (`test/less-test.js`) renders a
+ * fixture with, which its goldens' annotations were generated under: an object
+ * form, non-inline `sourceMap` gets `sourceMapOutputFilename: '<fixture
+ * path>.css'` and `sourceMapRootpath: 'testweb/'` wherever the config leaves
+ * them unset.
+ */
+function upstreamHarnessSourceMap(sourceMap, relativeLessPath) {
+    if (!sourceMap || typeof sourceMap !== 'object' || sourceMap.sourceMapFileInline) {
+        return undefined;
+    }
+    return {
+        ...sourceMap,
+        sourceMapOutputFilename: sourceMap.sourceMapOutputFilename || relativeLessPath.replace(/\.less$/, '.css'),
+        sourceMapRootpath: sourceMap.sourceMapRootpath || 'testweb/'
+    };
 }
 
 function outputEntries(output) {

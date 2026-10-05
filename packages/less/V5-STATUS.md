@@ -42,10 +42,10 @@ block; the config applies to the options the call leaves unset.
 | `unitMode` (formerly `strictUnits`) | ✅ | ✅ | `loose` / `preserve` (default) / `strict`. |
 | `moduleMode` | ➖ | ✅ | `auto` (default): a file that uses `@use` or `@compose` is in modern mode, any other file is legacy and its Less built-in functions compute as in Less 4. `modern`: every file is in modern mode, where a built-in must be imported (`@use "#less";` then `@less.darken(red, 10%)`); an unimported call keeps its name and call shape, with its arguments still evaluated (`min(@a, 1px)` with `@a: 2px + 3px` prints `min(5px, 1px)`). |
 | `compress` | ✅ | ✅ | Minified, but not byte-identical to Less 4 `-x` (nesting preserved by default). |
-| Source maps (`sourceMap`) | ✅ | ✅ | Returns `result.map`; annotation, inline data URI, `outputSourceFiles`, and the `rootpath`/`basepath`/`url` path variants all supported. The annotation is written only for an explicit `sourceMapURL` or `sourceMapFilename` (or inline); Less 4 also derives one from `sourceMapOutputFilename` or the input filename. |
+| Source maps (`sourceMap`) | ✅ | ✅ | Returns `result.map`; annotation, inline data URI, `outputSourceFiles`, and the `rootpath`/`basepath`/`url` path variants all supported. With no `sourceMapURL` or `sourceMapFilename`, the annotation names `sourceMapOutputFilename` + `.map`, else the input file's `<name>.css.map`, as in Less 4. Empty output gets neither a map nor an annotation. |
 | URL rewriting (`rewriteUrls` / `rootpath` / `urlArgs`) | ✅ | ✅ | Rewrites `url(...)` references; the Less 4 `rewrite-urls-*` and `rootpath-rewrite-urls-*` fixtures render byte-identically. |
 | `processImports` | ✅ | ✅ | `false` skips import processing: imported stylesheets are neither loaded nor kept as CSS `@import` statements. |
-| `dumpLineNumbers` | ✅ | ❌ | Deprecated in Less 4. Accepted and ignored; use source maps. |
+| `dumpLineNumbers` | ✅ | ❌ | Deprecated in Less 4. Accepted and ignored, with a deprecation warning; use source maps. |
 | `globalVars` / `modifyVars` injection | ✅ | ❌ | Not supported — these throw rather than silently no-op. |
 | `javascriptEnabled` | ✅ | ❌ | JavaScript evaluation is not supported. |
 
