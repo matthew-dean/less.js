@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -47,8 +47,12 @@ function assertNoUiControlSequences(value, label) {
 }
 
 const compilerEntrypoint = fileURLToPath(import.meta.resolve('@jesscss/compiler'));
-assert.match(compilerEntrypoint, /[/\\]@jesscss[/\\]compiler[/\\]lib[/\\]index\.js$/,
-    'the Less CLI must resolve the built generic Jess compiler entrypoint');
+// A local Jess build linked as test/README.md describes resolves into the Jess
+// checkout instead; LESS_TEST_LINKED_JESS=1 says so, and skips this one check.
+if (process.env.LESS_TEST_LINKED_JESS !== '1') {
+    assert.match(compilerEntrypoint, /[/\\]@jesscss[/\\]compiler[/\\]lib[/\\]index\.js$/,
+        'the Less CLI must resolve the built generic Jess compiler entrypoint');
+}
 await realpath(compilerEntrypoint);
 
 {
@@ -100,14 +104,25 @@ await realpath(compilerEntrypoint);
         [{ collapseNesting: 'native', compress: true, sourceMap: true }],
         'collapseNesting + compress + sourceMap combine in one entry'
     );
-    // moduleMode goes to the Less plugin, unset unless the caller set it.
-    const lessPluginOpts = options => createLessOptions(options).configOptions.compile.plugins[0].opts;
-    assert.equal(lessPluginOpts({}).moduleMode, undefined, 'moduleMode is left to the plugin default');
-    assert.equal(lessPluginOpts({ moduleMode: 'modern' }).moduleMode, 'modern', 'moduleMode reaches the Less plugin');
+    // The Less options the caller set go to `language.less`, which the compiler
+    // merges over a file-local styles.config before building the Less plugin; an
+    // option the caller left unset is left out, so the config or the default applies.
+    const lessLanguage = options => createLessOptions(options).configOptions.language.less;
+    assert.equal(lessLanguage({}), undefined, 'no Less option is set unless the caller set one');
+    assert.deepEqual(
+        lessLanguage({ moduleMode: 'modern', math: 'always', unitMode: 'strict', rootpath: '/cdn/', processImports: false }),
+        { moduleMode: 'modern', mathMode: 'always', unitMode: 'strict', rootpath: '/cdn/', processImports: false },
+        'explicit Less options reach language.less, math as mathMode'
+    );
     assert.throws(
         () => createLessOptions({ moduleMode: 'legacy' }),
         /moduleMode must be 'auto' or 'modern'/,
         'an unknown moduleMode value is rejected'
+    );
+    assert.throws(
+        () => createLessOptions({ math: 'alwys' }),
+        /math must be 'always', 'parens-division', 'parens' or 'strict' \(or 0-3\); got "alwys"/,
+        'an unknown math value is rejected'
     );
     // globalVars / modifyVars / javascriptEnabled stay rejected.
     for (const option of ['globalVars', 'modifyVars', 'javascriptEnabled']) {
@@ -217,6 +232,22 @@ try {
         'an explicit Less renderFile option overrides a file-local output config'
     );
 
+    // A file-local styles.config `language.less` applies to the options a call
+    // leaves unset, and an explicit option wins over it, as for `output`.
+    const configured = path.join(tempDir, 'configured');
+    await mkdir(configured);
+    await writeFile(path.join(configured, 'styles.config.cjs'),
+        "module.exports = { language: { less: { moduleMode: 'modern', math: 'always', rootpath: '/cdn/' } } };\n");
+    const configuredInput = path.join(configured, 'input.less');
+    await writeFile(configuredInput, '.a { p: min(-5px, 1px); w: 2 + 3; b: url(img.png); }\n');
+    assert.equal((await less.renderFile(configuredInput)).css,
+        '.a {\n  p: min(-5px, 1px);\n  w: 5;\n  b: url(/cdn/img.png);\n}\n',
+        'file-local language.less options apply when the call leaves them unset');
+    assert.equal(
+        (await less.renderFile(configuredInput, { moduleMode: 'auto', math: 'parens', rootpath: '/x/' })).css,
+        '.a {\n  p: -5px;\n  w: 2 + 3;\n  b: url(/x/img.png);\n}\n',
+        'an explicit render option wins over the file-local language.less option');
+
     const version = await runLessc(['--version']);
     assert.equal(version.code, 0, version.stderr);
     assert.match(version.stdout, /^lessc \d+\.\d+\.\d+-alpha\.\d+ \(Less Compiler\) \[Jess\]\n$/);
@@ -234,6 +265,9 @@ try {
         'lessc help documents the supported compress flag');
     assert.match(help.stdout, /--module-mode=MODE/,
         'lessc help documents the module-mode flag');
+    for (const flag of ['--strict-math', '--line-numbers', '--allow-remote-imports=HOSTS']) {
+        assert.ok(help.stdout.includes(flag), `lessc help documents ${flag}`);
+    }
     assert.doesNotMatch(help.stdout, /--plugin=/,
         'lessc help must not advertise unsupported plugin flags in alpha.1');
 
@@ -319,6 +353,55 @@ try {
     assert.equal(badMode.code, 1, 'an unknown --module-mode value fails');
     assert.equal(badMode.stdout, '');
     assert.match(badMode.stderr, /moduleMode must be 'auto' or 'modern'/);
+
+    // --strict-math (and -sm), deprecated: on is --math=parens, off the default.
+    const sum = '.a { w: 2 + 3; }\n';
+    for (const flag of ['--strict-math', '--strict-math=on', '-sm=on']) {
+        const strictMath = await runLessc([flag, '-'], sum);
+        assert.equal(strictMath.code, 0, strictMath.stderr);
+        assert.match(strictMath.stdout, /w: 2 \+ 3;/, `${flag} requires parens for math`);
+        assert.match(strictMath.stderr, /strictMath is deprecated; use math\. strictMath: true now means math: 'parens'/,
+            `${flag} warns with the mapping`);
+    }
+    const strictMathOff = await runLessc(['--strict-math=off', '-'], sum);
+    assert.equal(strictMathOff.code, 0, strictMathOff.stderr);
+    assert.match(strictMathOff.stdout, /w: 5;/, '--strict-math=off is the default math');
+    assert.match(strictMathOff.stderr, /strictMath: false now means math: 'parens-division'/);
+
+    // --line-numbers, deprecated: accepted as in Less 4.x and ignored.
+    for (const flag of ['--line-numbers', '--line-numbers=comments', '--line-numbers=mediaquery', '--line-numbers=all']) {
+        const lineNumbers = await runLessc(['--no-color', flag, '-'], sum);
+        assert.equal(lineNumbers.code, 0, lineNumbers.stderr);
+        assert.equal(lineNumbers.stdout, '.a {\n  w: 5;\n}\n', `${flag} has no effect on the CSS`);
+    }
+    const badLineNumbers = await runLessc(['--line-numbers=sass', '-'], sum);
+    assert.equal(badLineNumbers.code, 1, 'an unknown --line-numbers type fails');
+    assert.equal(badLineNumbers.stdout, '');
+    assert.match(badLineNumbers.stderr, /--line-numbers takes comments, mediaquery or all/);
+
+    // --allow-remote-imports, as the jess CLI's flag. The plugin is an optional
+    // install that this suite leaves out (it ships with a later Jess alpha), so a
+    // default install reports that it is missing; with it linked from a local
+    // Jess build, an import from a host off the list is refused before any request.
+    const remote = '@import "https://other.example.com/x.less";\n';
+    let remoteImportPluginInstalled = true;
+    try {
+        import.meta.resolve('@jesscss/plugin-remote-import');
+    } catch {
+        remoteImportPluginInstalled = false;
+    }
+    for (const args of [['--allow-remote-imports=cdn.example.com'], ['--allow-remote-imports', 'cdn.example.com']]) {
+        const allowRemote = await runLessc(['--no-color', ...args, '-'], remote);
+        assert.equal(allowRemote.code, 1, allowRemote.stderr);
+        assert.equal(allowRemote.stdout, '');
+        assert.match(allowRemote.stderr, remoteImportPluginInstalled
+            ? /other\.example\.com is not on the\s+remote-import allow list/
+            : /allowRemoteImports needs @jesscss\/plugin-remote-import\. Install it next to less\./,
+        `${args.join(' ')} wires the remote-import plugin with that allow list`);
+    }
+    const noHosts = await runLessc(['--allow-remote-imports=', '-'], remote);
+    assert.equal(noHosts.code, 1, '--allow-remote-imports needs hosts');
+    assert.match(noHosts.stderr, /--allow-remote-imports needs a comma-separated host list/);
 
     const urlArgs = await runLessc(['--url-args=v=9', urlInput]);
     assert.equal(urlArgs.code, 0, urlArgs.stderr);

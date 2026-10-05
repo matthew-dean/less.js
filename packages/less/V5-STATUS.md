@@ -31,15 +31,21 @@ emits nested CSS) instead of always flattening. Opt into flattened output with
 
 ## Options (`less.render` API)
 
+A `styles.config.*` beside (or above) the file is read as well. An option passed
+to `less.render` or `lessc` wins over the same option in its `language.less`
+block; the config applies to the options the call leaves unset.
+
 | Feature | Less 4 | Less 5 | Notes |
 | --- | :---: | :---: | --- |
-| `math` modes | ✅ | ✅ | `always` / `parens-division` (default) / `parens`. |
+| `math` modes | ✅ | ✅ | `always` / `parens-division` (default) / `parens`. Any other value is rejected. |
+| `strictMath` (deprecated) | ✅ | ✅ | The Less 4 alias of `math`: `true` is `parens`, `false` the default, and an explicit `math` wins. Using it warns. |
 | `unitMode` (formerly `strictUnits`) | ✅ | ✅ | `loose` / `preserve` (default) / `strict`. |
 | `moduleMode` | ➖ | ✅ | `auto` (default): a file that uses `@use` or `@compose` is in modern mode, any other file is legacy and its Less built-in functions compute as in Less 4. `modern`: every file is in modern mode, where a built-in must be imported (`@use "#less";` then `@less.darken(red, 10%)`); an unimported call keeps its name and call shape, with its arguments still evaluated (`min(@a, 1px)` with `@a: 2px + 3px` prints `min(5px, 1px)`). |
 | `compress` | ✅ | ✅ | Minified, but not byte-identical to Less 4 `-x` (nesting preserved by default). |
 | Source maps (`sourceMap`) | ✅ | ✅ | Returns `result.map`; annotation, inline data URI, `outputSourceFiles`, and the `rootpath`/`basepath`/`url` path variants all supported. The annotation is written only for an explicit `sourceMapURL` or `sourceMapFilename` (or inline); Less 4 also derives one from `sourceMapOutputFilename` or the input filename. |
 | URL rewriting (`rewriteUrls` / `rootpath` / `urlArgs`) | ✅ | ✅ | Rewrites `url(...)` references; the Less 4 `rewrite-urls-*` and `rootpath-rewrite-urls-*` fixtures render byte-identically. |
 | `processImports` | ✅ | ✅ | `false` skips import processing: imported stylesheets are neither loaded nor kept as CSS `@import` statements. |
+| `dumpLineNumbers` | ✅ | ❌ | Deprecated in Less 4. Accepted and ignored; use source maps. |
 | `globalVars` / `modifyVars` injection | ✅ | ❌ | Not supported — these throw rather than silently no-op. |
 | `javascriptEnabled` | ✅ | ❌ | JavaScript evaluation is not supported. |
 
@@ -47,7 +53,7 @@ emits nested CSS) instead of always flattening. Opt into flattened output with
 
 | Feature | Less 4 | Less 5 | Notes |
 | --- | :---: | :---: | --- |
-| Function plugins (`functions.add`) | ✅ | ✅ | The common `@plugin` shape, through `@jesscss/plugin-less-compat`. The plugin script runs in `@jesscss/plugin-js` (a Deno runtime), an optional peer that a default install leaves out: `npm install less@alpha @jesscss/plugin-js@alpha`. Without it, `@plugin "./x.js"` fails to load. |
+| Function plugins (`functions.add`) | ✅ | ✅ | The common `@plugin` shape, through `@jesscss/plugin-less-compat`. The plugin script runs in `@jesscss/plugin-js` (a Deno runtime), an optional peer that a default install leaves out: `npm install less@alpha @jesscss/plugin-js@alpha`. Without it, `@plugin "./x.js"` fails to load. Unlike Less 4, a plugin script runs sandboxed: it is read, and can read, only under the project root (the entry file's directory, or that of a `styles.config.*` above it). Set `compile.jsReadRoot` in a `styles.config.*` to widen it. |
 | npm-package imports | ✅ | ✅ | Native via `@jesscss/plugin-node-modules` (the `less-plugin-npm-import` case). |
 | Visitor / tree-visitor ABI, full `less.tree` | ✅ | ❌ | Intentional — the Less 4 tree is not the Less 5 AST; a translation layer isn't worth it. |
 | Pre-/post-processor hooks | ✅ | ❌ | Run PostCSS after Less; minification is native via `compress`. |
@@ -59,12 +65,12 @@ emits nested CSS) instead of always flattening. Opt into flattened output with
 | Feature | Less 4 | Less 5 | Notes |
 | --- | :---: | :---: | --- |
 | Sibling / relative `@import` | ✅ | ✅ | |
-| Remote (`http(s)`) imports | ✅ | ⏳ | In progress on Jess `feat/less-v5-completion`: off by default, enabled only through an explicit network allowlist. |
+| Remote (`http(s)`) imports | ✅ | ⏳ | Off by default: a URL import stays a CSS `@import`. `allowRemoteImports: ['cdn.example.com']` (`lessc --allow-remote-imports=cdn.example.com`) fetches from the hosts listed, through the optional `@jesscss/plugin-remote-import`, which a later Jess alpha publishes. |
 | `@compose` stylesheet modules | ➖ | ⏳ | In progress on Jess `feat/less-v5-completion`. Isolated, non-transitive modules with inferred or explicit namespaces, `as *`, and per-edge `with` or shared `set` configuration. See the [canonical Modules and Imports source](https://github.com/jesscss/jess/blob/dev/packages/docs/docs-content/docs/shared/02-Language/14-modules-and-imports.mdx). |
 | `@use` / `@from` script and data modules | ➖ | ⏳ | `@use "#less";` (the Less built-in functions, as `@less.darken(…)`) works and puts the file in modern mode (see `moduleMode`). JavaScript, TypeScript and JSON modules are in progress on Jess `feat/less-v5-completion`. See the [canonical Modules and Imports source](https://github.com/jesscss/jess/blob/dev/packages/docs/docs-content/docs/shared/02-Language/14-modules-and-imports.mdx). |
 | Browser build (`window.less`) | ✅ | ⏳ | `dist/less-browser-dev.js` ships and powers the playground; Less 4 browser-API parity is in progress on Jess `feat/less-v5-completion`. |
 | `lessc` CLI (compile) | ✅ | ✅ | Compiles files. |
-| `lessc` CLI **flags** for the newer options | ✅ | ✅ | `--compress`/`-x`, `--source-map[=file]` (+ `--source-map-inline` / `-include-source` / `-rootpath` / `-basepath` / `-url`), `--rewrite-urls` / `--rootpath` / `--url-args`, `--math`, `--unit-mode`, `--module-mode` are all wired. |
+| `lessc` CLI **flags** for the newer options | ✅ | ✅ | `--compress`/`-x`, `--source-map[=file]` (+ `--source-map-inline` / `-include-source` / `-rootpath` / `-basepath` / `-url`), `--rewrite-urls` / `--rootpath` / `--url-args`, `--math`, `--unit-mode`, `--module-mode`, `--allow-remote-imports` are all wired, as are the deprecated `--strict-math`, `--strict-units` and `--line-numbers` (ignored, with a warning). |
 | Diagnostics (`file:line:column` + excerpt) | ➖ | ✅ | Precise diagnostics, not raw parser offsets. |
 
 ---

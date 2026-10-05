@@ -3,9 +3,12 @@
  * @module less/lib/options
  */
 
+import { createRequire } from 'node:module';
 import lessPlugin from '@jesscss/plugin-less';
 import { lessCompatPlugin } from '@jesscss/plugin-less-compat';
 import { logger } from './logger.js';
+
+const require = createRequire(import.meta.url);
 
 const unsupportedAlphaOptions = new Map([
   ['globalVars', 'global variable injection is not supported'],
@@ -41,6 +44,9 @@ function stableStringify(value, seen = new WeakSet()) {
   seen.add(value);
   if (Array.isArray(value)) {
     return `[${value.map((item) => stableStringify(item, seen)).join(',')}]`;
+  }
+  if (value instanceof Set) {
+    return stableStringify([...value].sort(), seen);
   }
   if (value.name && typeof value.name === 'string' && ('install' in value || 'parser' in value || 'opts' in value)) {
     return stableStringify({
@@ -91,6 +97,62 @@ function resolveModuleMode(value) {
 }
 
 /**
+ * The Less 4.x `math` values and the `mathMode` each selects. Anything else is
+ * rejected rather than silently read as another mode.
+ */
+const MATH_MODES = new Map([
+  [0, 'always'], ['always', 'always'],
+  [1, 'parens-division'], ['parens-division', 'parens-division'],
+  [2, 'parens'], ['parens', 'parens'], ['strict', 'parens'],
+  [3, 'parens'], ['strict-legacy', 'parens'],
+]);
+
+/**
+ * The `mathMode` an explicit `math` (or its deprecated boolean alias
+ * `strictMath`) selects, or `undefined` when the caller set neither. As in
+ * Less 4.x, `strictMath: true` is `math: 'parens'`; `false` leaves the default.
+ * An explicit `math` wins, and any use of `strictMath` warns.
+ * @param {import('./options.js').LessRenderOptions} opts
+ * @returns {string|undefined}
+ */
+function resolveMathMode(opts) {
+  if (opts.strictMath !== undefined && opts.math === undefined) {
+    logger.warn(
+      `strictMath is deprecated; use math. strictMath: ${String(opts.strictMath)} now means `
+      + `math: '${opts.strictMath ? 'parens' : 'parens-division'}'`
+    );
+  }
+  const math = opts.math !== undefined ? opts.math : opts.strictMath === true ? 'parens' : undefined;
+  if (math === undefined) {
+    return undefined;
+  }
+  const mathMode = MATH_MODES.get(math);
+  if (mathMode === undefined) {
+    throw new Error(
+      `math must be 'always', 'parens-division', 'parens' or 'strict' (or 0-3); got ${JSON.stringify(math)}`
+    );
+  }
+  return mathMode;
+}
+
+/**
+ * The opt-in remote-import plugin for an `allowRemoteImports` host list (the
+ * `lessc --allow-remote-imports` flag). It is an optional install, so it is
+ * loaded only when asked for; the plugin itself rejects an empty or malformed
+ * list.
+ * @param {string[]} hosts
+ */
+function createRemoteImportPlugin(hosts) {
+  let remoteImportPlugin;
+  try {
+    ({ remoteImportPlugin } = require('@jesscss/plugin-remote-import'));
+  } catch {
+    throw new Error('allowRemoteImports needs @jesscss/plugin-remote-import. Install it next to less.');
+  }
+  return remoteImportPlugin({ allow: hosts });
+}
+
+/**
  * Build the compiler's `output.sourceMap` value from Less options. Source maps
  * are enabled when `sourceMap` is truthy; the object form (or the flat legacy
  * `sourceMap*` options) configures the details. Returns `undefined` when no
@@ -133,17 +195,11 @@ export function createLessOptions(options) {
   const skipLessCompat =
     opts.__jessSkipLessCompatWhenPluginFree === true && lessPlugins.length === 0;
 
-  const math = /** @type {number|string|undefined} */ (opts.math);
-  const mathMode =
-    math === 0 || math === 'always' ? 'always' :
-    math === 2 || math === 'parens' || math === 'strict' ? 'parens' :
-    'parens-division';
-
   // `unitMode` is the option ('loose' | 'preserve' | 'strict'); `strictUnits`
   // is its deprecated boolean alias: true → 'strict'; false means "not strict",
   // i.e. the default ('preserve') — never the Less 4.x 'loose' fold, which only
   // an explicit `unitMode: 'loose'` selects. Any use warns so the mapping is
-  // never discovered by staring at output. Left unset so the compiler default applies.
+  // never discovered by staring at output.
   const unitMode = opts.unitMode !== undefined ? opts.unitMode
     : opts.strictUnits === true ? 'strict'
     : undefined;
@@ -154,19 +210,30 @@ export function createLessOptions(options) {
     );
   }
 
-  // URL rewriting (it rewrites `url(...)` during serialization) and `moduleMode`
-  // (the grammar reads it per document) live on the Less plugin, not in
-  // `output`. Only forward keys the caller set so the plugin's own v5 defaults
-  // apply otherwise.
-  const lessPluginOptions = {};
-  if (opts.rootpath !== undefined) lessPluginOptions.rootpath = opts.rootpath;
-  if (opts.rewriteUrls !== undefined) lessPluginOptions.rewriteUrls = opts.rewriteUrls;
-  if (opts.urlArgs !== undefined) lessPluginOptions.urlArgs = opts.urlArgs;
-  if (opts.moduleMode !== undefined) lessPluginOptions.moduleMode = resolveModuleMode(opts.moduleMode);
+  // The Less options the caller set, as `language.less`. The compiler merges
+  // them over a file-local styles.config `language.less`, and the Less plugin is
+  // built from the result, so an explicit option wins, the file's config applies
+  // to whatever the caller left unset, and the plugin's v5 defaults to the rest.
+  // Less 4.x has only the options passed to render; a styles.config stands in
+  // for options, never over them.
+  const language = {};
+  const mathMode = resolveMathMode(opts);
+  if (mathMode !== undefined) language.mathMode = mathMode;
+  if (unitMode !== undefined) language.unitMode = unitMode;
+  if (opts.processImports !== undefined) language.processImports = opts.processImports;
+  if (opts.rootpath !== undefined) language.rootpath = opts.rootpath;
+  if (opts.rewriteUrls !== undefined) language.rewriteUrls = opts.rewriteUrls;
+  if (opts.urlArgs !== undefined) language.urlArgs = opts.urlArgs;
+  if (opts.moduleMode !== undefined) language.moduleMode = resolveModuleMode(opts.moduleMode);
+  // Accepted for Less 4.x compatibility with no effect; the compiler warns.
+  if (opts.dumpLineNumbers !== undefined) language.dumpLineNumbers = opts.dumpLineNumbers;
 
-  const plugins = [lessPlugin(lessPluginOptions)];
+  const plugins = [lessPlugin()];
   if (!skipLessCompat) {
     plugins.push(lessCompatPlugin({ plugins: lessPlugins }));
+  }
+  if (opts.allowRemoteImports !== undefined) {
+    plugins.push(createRemoteImportPlugin(opts.allowRemoteImports));
   }
 
   // The projection/serialization options the compiler reads off `output`:
@@ -190,13 +257,10 @@ export function createLessOptions(options) {
   const configOptions = {
     compile: {
       searchPaths: opts.paths || [],
-      mathMode,
-      ...(unitMode !== undefined && { unitMode }),
-      ...(opts.processImports !== undefined && { processImports: opts.processImports }),
       plugins,
     },
     output,
-    language: {},
+    language: Object.keys(language).length > 0 ? { less: language } : {},
   };
 
   return { configOptions, filePath };

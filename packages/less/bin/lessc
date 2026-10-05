@@ -206,6 +206,37 @@ function parseArgs() {
       options.strictUnits = strictUnitsMatch[1] !== 'off';
       continue;
     }
+    // Deprecated 4.x spellings (--strict-math, --strict-math=on|off, -sm=on|off)
+    // set the deprecated `strictMath` boolean, which `createLessOptions` maps
+    // onto `math` with a warning.
+    const strictMathMatch = arg.match(/^(?:--strict-math|-sm)(?:=(on|off))?$/);
+    if (strictMathMatch) {
+      options.strictMath = strictMathMatch[1] !== 'off';
+      continue;
+    }
+    // Deprecated: accepted as in Less 4.x and has no effect; the compile warns.
+    const lineNumbersMatch = arg.match(/^--line-numbers(?:=(.*))?$/);
+    if (lineNumbersMatch) {
+      const mode = lineNumbersMatch[1] ?? 'all';
+      if (!['comments', 'mediaquery', 'all'].includes(mode)) {
+        failUnsupportedOption(arg, '--line-numbers takes comments, mediaquery or all');
+      }
+      options.dumpLineNumbers = mode;
+      continue;
+    }
+    // Remote imports, as the jess CLI's flag: comma-separated hosts, repeatable,
+    // as `--allow-remote-imports=HOSTS` or `--allow-remote-imports HOSTS`.
+    if (arg === '--allow-remote-imports' || arg.startsWith('--allow-remote-imports=')) {
+      const hosts = arg.includes('=') ? arg.slice(arg.indexOf('=') + 1) : args[++i];
+      if (!hosts) {
+        failUnsupportedOption(arg, '--allow-remote-imports needs a comma-separated host list');
+      }
+      options.allowRemoteImports = [
+        ...(options.allowRemoteImports ?? []),
+        ...hosts.split(',').filter(Boolean)
+      ];
+      continue;
+    }
     const unitModeMatch = arg.match(/^--unit-mode=(.+)$/);
     if (unitModeMatch) {
       options.unitMode = unitModeMatch[1];

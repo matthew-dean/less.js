@@ -43,6 +43,8 @@ ln -sfn "$JESS/packages/jess-plugin-node-modules" plugin-node-modules
 ```
 
 The optional `@jesscss/plugin-js` peer stays unlinked, as in a default install.
-While linked, the `lessc-alpha.mjs` check that the CLI resolves an installed
-`@jesscss/compiler/lib/index.js` fails by design (it resolves into the Jess
-checkout); the other checks run as usual.
+While linked, set `LESS_TEST_LINKED_JESS=1`: the `lessc-alpha.mjs` check that
+the CLI resolves an installed `@jesscss/compiler/lib/index.js` would fail by
+design (it resolves into the Jess checkout) and stop the script, so the variable
+skips that one check. Linking `@jesscss/plugin-remote-import` the same way runs
+the `--allow-remote-imports` checks against the plugin instead of its absence.

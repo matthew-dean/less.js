@@ -115,7 +115,7 @@ const flatGoldenFixtures = new Set([
 const SOURCEMAP_ANNOTATION_GAP = 'the golden annotates `sourceMappingURL=tests-config/<dir>/<name>.css.map`, which Less 4 derived from the `sourceMapOutputFilename` its harness passed. Jess writes an annotation only for an explicit sourceMapURL or sourceMapFilename, and this harness passes neither. Given one, Jess also ends the annotation with a newline that the golden lacks. Both are open owner questions (jess#353). Map content is gated by test/alpha-sourcemaps.mjs';
 
 const expectedFailureFixtures = new Map([
-    ['tests-unit/import/import.less', '@plugin needs the optional @jesscss/plugin-js script runtime, which this suite does not install. With it installed the script is still refused: it sits outside the default jsReadRoot (the fixture directory, which has its own styles.config), and the wrapper has no jsReadRoot option'],
+    ['tests-unit/import/import.less', '@plugin needs the optional @jesscss/plugin-js script runtime, which this suite does not install. With it installed the script is still refused: `@plugin "../../plugin/plugin-simple"` sits outside the script sandbox root, which is the fixture directory (it has its own styles.config). Less 4 had no sandbox; in v5 a styles.config `compile.jsReadRoot` widens it, and this fixture\'s config sets none'],
     ['tests-unit/urls/urls.less', 'intended divergence (jess §12.3b): the interpolated target in `.add_an_import("file.css")` is a compile-time import, so import resolution reports the missing file'],
     ['tests-config/sourcemaps-basepath/sourcemaps-basepath.less', SOURCEMAP_ANNOTATION_GAP],
     ['tests-config/sourcemaps-include-source/sourcemaps-include-source.less', SOURCEMAP_ANNOTATION_GAP],
@@ -139,12 +139,8 @@ const expectedFailureDiagnosticCodes = new Map([
 ]);
 
 const expectedErrorPasses = new Map([
-    ['tests-error/eval/add-mixed-units.less', 'unit compatibility errors are not emitted yet'],
-    ['tests-error/eval/add-mixed-units2.less', 'unit compatibility errors are not emitted yet'],
     ['tests-error/eval/color-func-invalid-color-2.less', 'color function argument errors are not emitted yet'],
     ['tests-error/eval/color-func-invalid-color.less', 'color function argument errors are not emitted yet'],
-    ['tests-error/eval/divide-mixed-units.less', 'unit compatibility errors are not emitted yet'],
-    ['tests-error/eval/multiply-mixed-units.less', 'unit compatibility errors are not emitted yet'],
     ['tests-error/eval/percentage-css-var.less', 'function argument type errors are not emitted yet'],
     ['tests-error/eval/percentage-non-number-argument.less', 'function argument type errors are not emitted yet'],
     ['tests-error/eval/svg-gradient1.less', 'svg-gradient argument validation errors are not emitted yet'],

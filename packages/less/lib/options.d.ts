@@ -2,6 +2,11 @@
  * Options mapping between Less render options and Jess compiler config.
  */
 
+/**
+ * `less.render` / `less.renderFile` options. A `styles.config.*` beside (or
+ * above) the file is read too: an option set here wins over the same option in
+ * its `language.less` block, which applies only to options left unset here.
+ */
 export interface LessRenderOptions {
   filename?: string;
   paths?: string[];
@@ -11,7 +16,21 @@ export interface LessRenderOptions {
    * alpha.1-supported surfaces yet.
    */
   plugins?: unknown[];
-  math?: number | 'always' | 'parens-division' | 'parens' | 'strict';
+  math?: 0 | 1 | 2 | 3 | 'always' | 'parens-division' | 'parens' | 'strict' | 'strict-legacy';
+  /** @deprecated Use `math`. `true` is `math: 'parens'`; `false` leaves the default. Warns. */
+  strictMath?: boolean;
+  /** Unit handling in math: `'preserve'` (the default), `'strict'`, or `'loose'` (the Less 4.x fold). */
+  unitMode?: 'loose' | 'preserve' | 'strict';
+  /** @deprecated Use `unitMode`. `true` is `unitMode: 'strict'`; `false` leaves the default. Warns. */
+  strictUnits?: boolean;
+  /** @deprecated Accepted for Less 4.x compatibility and ignored, with a warning; use `sourceMap`. */
+  dumpLineNumbers?: 'comments' | 'mediaquery' | 'all';
+  /**
+   * Fetch and inline `https` `@import`s from these hosts (exact host names).
+   * Needs the optional `@jesscss/plugin-remote-import` installed next to less.
+   * Without it, no remote import is fetched.
+   */
+  allowRemoteImports?: string[];
   /**
    * How to flatten authored nesting. Less v5 preserves authored nesting by
    * default (`false`). `'native'` applies the CSS Nesting desugaring (parent

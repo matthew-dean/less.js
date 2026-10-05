@@ -12,6 +12,7 @@
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { Compiler } from '@jesscss/compiler';
+import { LessPluginResolver } from '@jesscss/plugin-less';
 import nodeModulesPlugin from '@jesscss/plugin-node-modules';
 import { createLessOptions, getCompilerCacheKey, mapRenderResult } from './options.js';
 import { version } from './version.js';
@@ -71,8 +72,14 @@ function getCompiler(configOptions) {
   const cacheKey = getCompilerCacheKey(configOptions);
   let compiler = compilerCache.get(cacheKey);
   if (!compiler) {
+    // The Less plugin is rebuilt from the Less options resolved for each file:
+    // the render options merged over a file-local styles.config `language.less`.
+    const lessPluginResolver = new LessPluginResolver();
     compiler = new Compiler(configOptions, {
       defaultPlugins: context => [nodeModulesPlugin({ basePath: context.resolutionBaseDir })],
+      normalizeConfiguredPlugin: (plugin, context) => plugin.name === 'less'
+        ? lessPluginResolver.normalizeConfiguredPlugin(plugin, context)
+        : plugin,
       scriptPluginSpecifier: '@jesscss/plugin-js',
       scriptPluginResolveFrom: import.meta.url
     });

@@ -42,6 +42,7 @@ const lesscHelper = {
     console.log('  --math=MODE                  Math mode: parens-division (default), always, or parens.');
     console.log('  --unit-mode=MODE             Unit handling in math: preserve (default), strict, or loose (Less 4.x guessing).');
     console.log('  --strict-units[=on|off]      Deprecated: on is --unit-mode=strict, off is the default (preserve).');
+    console.log('  --strict-math[=on|off]       Deprecated: on is --math=parens, off is the default (parens-division).');
     console.log('  --module-mode=MODE           Less built-ins: auto (default; modern if a file uses @use/@compose), or modern (always import them).');
     console.log('  --source-map[=FILE]          Emit a source map (FILE, or <destination>.map by default).');
     console.log('  --source-map-inline          Embed the source map as a data URI instead of a file.');
@@ -51,7 +52,10 @@ const lesscHelper = {
     console.log('  --source-map-url=URL         Override the sourceMappingURL annotation.');
     console.log('  --rewrite-urls[=all|local|off]  Rewrite url(...) references in imported files.');
     console.log('  --rootpath=PATH              Prepend PATH to url(...) and import references.');
-    console.log('  --url-args=ARGS             Append ARGS (e.g. cache-buster) to every url(...).');
+    console.log('  --url-args=ARGS              Append ARGS (e.g. cache-buster) to every url(...).');
+    console.log('  --allow-remote-imports=HOSTS Fetch and inline https @imports from these hosts (comma-separated;');
+    console.log('                               repeatable). Needs @jesscss/plugin-remote-import installed next to less.');
+    console.log('  --line-numbers[=TYPE]        Deprecated and ignored; use --source-map.');
     console.log('');
     console.log('This release intentionally supports a smaller CLI surface.');
     console.log('Browser compilation, legacy plugin flags, and lint-only mode are not supported.');

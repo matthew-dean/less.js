@@ -17,7 +17,7 @@ const testDataRoot = path.resolve(packageRoot(), '..', 'test-data', 'tests-unit'
 const REJECTED_OPTIONS = ['globalVars', 'modifyVars', 'javascriptEnabled'];
 const SUPPORTED_OPTIONS = [
     'collapseNesting', 'sourceMap', 'compress', 'rewriteUrls', 'urlArgs', 'rootpath', 'unitMode', 'math',
-    'moduleMode', 'processImports'
+    'strictMath', 'moduleMode', 'processImports'
 ];
 
 const unsupportedForAlpha1 = [
@@ -258,6 +258,39 @@ async function assertUnitModeSupported() {
     );
 }
 
+async function assertMathOptionSupported() {
+    const source = '.x { width: 2 + 3; }\n';
+    const parens = (await less.render(source, { math: 'parens' })).css;
+    assert.match(parens, /width: 2 \+ 3;/, "math: 'parens' requires parens");
+    // `strictMath` is the deprecated Less 4.x boolean alias of `math`: true is
+    // 'parens', false the default; an explicit `math` wins. Any use warns.
+    const warnings = [];
+    const listener = { warn(msg) { warnings.push(String(msg)); } };
+    less.logger.addListener(listener);
+    try {
+        assert.equal((await less.render(source, { strictMath: true })).css, parens, "strictMath: true is math: 'parens'");
+        assert.equal((await less.render(source, { strictMath: false })).css, (await less.render(source)).css,
+            'strictMath: false is the default math');
+        assert.match((await less.render(source, { strictMath: true, math: 'always' })).css, /width: 5;/,
+            'an explicit math wins over strictMath');
+    } finally {
+        less.logger.removeListener(listener);
+    }
+    assert.deepEqual(warnings, [
+        "strictMath is deprecated; use math. strictMath: true now means math: 'parens'",
+        "strictMath is deprecated; use math. strictMath: false now means math: 'parens-division'"
+    ]);
+    await assert.rejects(less.render(source, { math: 'alwys' }), /math must be 'always', 'parens-division', 'parens' or 'strict'/,
+        'an unknown math value rejects instead of selecting another mode');
+}
+
+async function assertDumpLineNumbersIgnored() {
+    // Less 4.x `dumpLineNumbers` is accepted and has no effect.
+    const source = '.x { width: 2 + 3; }\n';
+    const result = await less.render(source, { dumpLineNumbers: 'comments' });
+    assert.equal(result.css, (await less.render(source)).css, 'dumpLineNumbers changes nothing in the CSS');
+}
+
 async function assertModuleModeSupported() {
     const source = '.x { padding: min(-5px, 1px); color: darken(red, 10%); }\n';
     // 'auto' (the default): a file with no @use/@compose is legacy, so the Less
@@ -286,6 +319,8 @@ await assertUnsupportedApiOptionsReject();
 await assertOutputApiOptionsSupported();
 await assertStatusDocInSync();
 await assertUnitModeSupported();
+await assertMathOptionSupported();
+await assertDumpLineNumbersIgnored();
 await assertModuleModeSupported();
 await assertFixtureRendersByteIdentical('at-rule-variable-interpolation/at-rule-variable-interpolation');
 await assertFixtureRendersByteIdentical('color-functions/modern');
