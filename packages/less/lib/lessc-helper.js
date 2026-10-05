@@ -42,6 +42,7 @@ const lesscHelper = {
     console.log('  --math=MODE                  Math mode: parens-division (default), always, or parens.');
     console.log('  --unit-mode=MODE             Unit handling in math: preserve (default), strict, or loose (Less 4.x guessing).');
     console.log('  --strict-units[=on|off]      Deprecated: on is --unit-mode=strict, off is the default (preserve).');
+    console.log('  --module-mode=MODE           Less built-ins: auto (default; modern if a file uses @use/@compose), or modern (always import them).');
     console.log('  --source-map[=FILE]          Emit a source map (FILE, or <destination>.map by default).');
     console.log('  --source-map-inline          Embed the source map as a data URI instead of a file.');
     console.log('  --source-map-include-source  Embed the source files in the map (sourcesContent).');

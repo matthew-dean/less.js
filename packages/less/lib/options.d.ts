@@ -30,6 +30,14 @@ export interface LessRenderOptions {
   /** Append a query string to every non-data `url(...)`. */
   urlArgs?: string;
   /**
+   * Whether the Less built-in functions are ambient. `'auto'` (the default)
+   * decides per file: a file that uses `@use` or `@compose` is in modern mode.
+   * `'modern'` puts every file in modern mode, where a built-in must be imported
+   * (`@use "#less";` then `@less.darken(red, 10%)`) and an unimported call keeps
+   * its name and call shape.
+   */
+  moduleMode?: 'auto' | 'modern';
+  /**
    * Emit a source map. `true` turns it on with defaults; the object form (or the
    * flat legacy `sourceMap*` options) configures it. Returned as `result.map`.
    */

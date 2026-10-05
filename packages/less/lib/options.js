@@ -74,6 +74,21 @@ function resolveCollapseNesting(value) {
 }
 
 /**
+ * `moduleMode` decides whether the Less built-in functions are ambient:
+ * `'auto'` (the default — a file that uses `@use` or `@compose` is modern, any
+ * other file is legacy) or `'modern'` (every file is modern, so a built-in must
+ * be imported). Anything else is rejected rather than silently read as `'auto'`.
+ * @param {unknown} value
+ * @returns {'auto'|'modern'}
+ */
+function resolveModuleMode(value) {
+  if (value === 'auto' || value === 'modern') {
+    return value;
+  }
+  throw new Error(`moduleMode must be 'auto' or 'modern'; got ${JSON.stringify(value)}`);
+}
+
+/**
  * Build the compiler's `output.sourceMap` value from Less options. Source maps
  * are enabled when `sourceMap` is truthy; the object form (or the flat legacy
  * `sourceMap*` options) configures the details. Returns `undefined` when no
@@ -137,13 +152,15 @@ export function createLessOptions(options) {
     );
   }
 
-  // URL rewriting lives on the Less plugin (it rewrites `url(...)` during
-  // serialization), not in `output`. Only forward keys the caller set so the
-  // plugin's own v5 defaults apply otherwise.
+  // URL rewriting (it rewrites `url(...)` during serialization) and `moduleMode`
+  // (the grammar reads it per document) live on the Less plugin, not in
+  // `output`. Only forward keys the caller set so the plugin's own v5 defaults
+  // apply otherwise.
   const lessPluginOptions = {};
   if (opts.rootpath !== undefined) lessPluginOptions.rootpath = opts.rootpath;
   if (opts.rewriteUrls !== undefined) lessPluginOptions.rewriteUrls = opts.rewriteUrls;
   if (opts.urlArgs !== undefined) lessPluginOptions.urlArgs = opts.urlArgs;
+  if (opts.moduleMode !== undefined) lessPluginOptions.moduleMode = resolveModuleMode(opts.moduleMode);
 
   const plugins = [lessPlugin(lessPluginOptions)];
   if (!skipLessCompat) {

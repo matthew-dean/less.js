@@ -211,6 +211,11 @@ function parseArgs() {
       options.unitMode = unitModeMatch[1];
       continue;
     }
+    const moduleModeMatch = arg.match(/^--module-mode=(.+)$/);
+    if (moduleModeMatch) {
+      options.moduleMode = moduleModeMatch[1];
+      continue;
+    }
     const optionName = arg.includes('=') ? arg.slice(0, arg.indexOf('=')) : arg;
     if (unsupportedOptions.has(optionName)) {
       failUnsupportedOption(optionName, unsupportedOptions.get(optionName));

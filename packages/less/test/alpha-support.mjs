@@ -16,7 +16,8 @@ const testDataRoot = path.resolve(packageRoot(), '..', 'test-data', 'tests-unit'
 // files an option under the wrong heading — fails the suite.
 const REJECTED_OPTIONS = ['globalVars', 'modifyVars', 'javascriptEnabled'];
 const SUPPORTED_OPTIONS = [
-    'collapseNesting', 'sourceMap', 'compress', 'rewriteUrls', 'urlArgs', 'rootpath', 'unitMode', 'math'
+    'collapseNesting', 'sourceMap', 'compress', 'rewriteUrls', 'urlArgs', 'rootpath', 'unitMode', 'math',
+    'moduleMode'
 ];
 
 const unsupportedForAlpha1 = [
@@ -257,6 +258,26 @@ async function assertUnitModeSupported() {
     );
 }
 
+async function assertModuleModeSupported() {
+    const source = '.x { padding: min(-5px, 1px); color: darken(red, 10%); }\n';
+    // 'auto' (the default): a file with no @use/@compose is legacy, so the Less
+    // built-ins are ambient and compute.
+    for (const options of [{}, { moduleMode: 'auto' }]) {
+        assert.equal((await less.render(source, options)).css,
+            '.x {\n  padding: -5px;\n  color: #cc0000;\n}\n',
+            `${JSON.stringify(options)} computes Less built-ins in a legacy file`);
+    }
+    // 'modern': every file is modern. An unimported built-in keeps its name and
+    // call shape; an imported one computes.
+    assert.equal((await less.render(source, { moduleMode: 'modern' })).css,
+        '.x {\n  padding: min(-5px, 1px);\n  color: darken(red, 10%);\n}\n',
+        "moduleMode: 'modern' leaves unimported built-ins as written");
+    assert.equal(
+        (await less.render('@use "#less";\n.x { color: @less.darken(red, 10%); }\n', { moduleMode: 'modern' })).css,
+        '.x {\n  color: #cc0000;\n}\n',
+        "moduleMode: 'modern' still computes an imported built-in");
+}
+
 await assertSupportedCompileSurface();
 await assertUnsupportedSyntaxHasPreciseDiagnostic();
 await assertBareStructuralAtRuleVariablesReject();
@@ -264,6 +285,7 @@ await assertUnsupportedApiOptionsReject();
 await assertOutputApiOptionsSupported();
 await assertStatusDocInSync();
 await assertUnitModeSupported();
+await assertModuleModeSupported();
 await assertFixtureRendersByteIdentical('at-rule-variable-interpolation/at-rule-variable-interpolation');
 await assertFixtureRendersByteIdentical('color-functions/modern');
 await assertFixtureRendersByteIdentical('math-css-vars/math-css-vars');

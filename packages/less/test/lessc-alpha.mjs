@@ -100,6 +100,15 @@ await realpath(compilerEntrypoint);
         [{ collapseNesting: 'native', compress: true, sourceMap: true }],
         'collapseNesting + compress + sourceMap combine in one entry'
     );
+    // moduleMode goes to the Less plugin, unset unless the caller set it.
+    const lessPluginOpts = options => createLessOptions(options).configOptions.compile.plugins[0].opts;
+    assert.equal(lessPluginOpts({}).moduleMode, undefined, 'moduleMode is left to the plugin default');
+    assert.equal(lessPluginOpts({ moduleMode: 'modern' }).moduleMode, 'modern', 'moduleMode reaches the Less plugin');
+    assert.throws(
+        () => createLessOptions({ moduleMode: 'legacy' }),
+        /moduleMode must be 'auto' or 'modern'/,
+        'an unknown moduleMode value is rejected'
+    );
     // globalVars / modifyVars / javascriptEnabled stay rejected.
     for (const option of ['globalVars', 'modifyVars', 'javascriptEnabled']) {
         assert.throws(
@@ -223,6 +232,8 @@ try {
         'lessc help documents the supported source-map flag');
     assert.match(help.stdout, /--compress/,
         'lessc help documents the supported compress flag');
+    assert.match(help.stdout, /--module-mode=MODE/,
+        'lessc help documents the module-mode flag');
     assert.doesNotMatch(help.stdout, /--plugin=/,
         'lessc help must not advertise unsupported plugin flags in alpha.1');
 
@@ -294,6 +305,20 @@ try {
     const mathAlways = await runLessc(['--math=always', '-'], '.a { width: 2 + 3 * 4; }\n');
     assert.equal(mathAlways.code, 0, mathAlways.stderr);
     assert.match(mathAlways.stdout, /width:\s*14/, '--math=always evaluates unparenthesized math');
+
+    // --module-mode=modern: an unimported Less built-in keeps its call shape.
+    const builtin = '.a { padding: min(-5px, 1px); }\n';
+    const autoMode = await runLessc(['-'], builtin);
+    assert.equal(autoMode.code, 0, autoMode.stderr);
+    assert.match(autoMode.stdout, /padding: -5px;/, 'by default a legacy file computes Less built-ins');
+    const modernMode = await runLessc(['--module-mode=modern', '-'], builtin);
+    assert.equal(modernMode.code, 0, modernMode.stderr);
+    assert.match(modernMode.stdout, /padding: min\(-5px, 1px\);/,
+        '--module-mode=modern leaves an unimported built-in as written');
+    const badMode = await runLessc(['--module-mode=legacy', '-'], builtin);
+    assert.equal(badMode.code, 1, 'an unknown --module-mode value fails');
+    assert.equal(badMode.stdout, '');
+    assert.match(badMode.stderr, /moduleMode must be 'auto' or 'modern'/);
 
     const urlArgs = await runLessc(['--url-args=v=9', urlInput]);
     assert.equal(urlArgs.code, 0, urlArgs.stderr);
