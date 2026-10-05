@@ -112,7 +112,7 @@ const flatGoldenFixtures = new Set([
     'tests-unit/mixins/mixins.less'
 ]);
 
-const SOURCEMAP_ANNOTATION_GAP = 'the golden ends with a `sourceMappingURL=tests-config/<dir>/<name>.css.map` annotation that the Less 4 harness derived from the fixture path; this harness passes no map filename, so none is written. Given one, the only difference is that jess ends the annotation with a newline and the golden does not (owner to decide). Map content is gated by test/alpha-sourcemaps.mjs';
+const SOURCEMAP_ANNOTATION_GAP = 'the golden annotates `sourceMappingURL=tests-config/<dir>/<name>.css.map`, which Less 4 derived from the `sourceMapOutputFilename` its harness passed. Jess writes an annotation only for an explicit sourceMapURL or sourceMapFilename, and this harness passes neither. Given one, Jess also ends the annotation with a newline that the golden lacks. Both are open owner questions (jess#353). Map content is gated by test/alpha-sourcemaps.mjs';
 
 const expectedFailureFixtures = new Map([
     ['tests-unit/import/import.less', '@plugin needs the optional @jesscss/plugin-js script runtime, which this suite does not install. With it installed the script is still refused: it sits outside the default jsReadRoot (the fixture directory, which has its own styles.config), and the wrapper has no jsReadRoot option'],
@@ -120,9 +120,9 @@ const expectedFailureFixtures = new Map([
     ['tests-config/sourcemaps-basepath/sourcemaps-basepath.less', SOURCEMAP_ANNOTATION_GAP],
     ['tests-config/sourcemaps-include-source/sourcemaps-include-source.less', SOURCEMAP_ANNOTATION_GAP],
     ['tests-config/sourcemaps-rootpath/sourcemaps-rootpath.less', SOURCEMAP_ANNOTATION_GAP],
-    ['tests-config/sourcemaps-url/sourcemaps-url.less', 'jess ends the sourceMappingURL annotation with a newline and the golden does not (owner to decide); map content is gated by test/alpha-sourcemaps.mjs'],
+    ['tests-config/sourcemaps-url/sourcemaps-url.less', 'Jess ends the sourceMappingURL annotation with a newline that the golden lacks, which is an open owner question (jess#353); otherwise byte-identical. Map content is gated by test/alpha-sourcemaps.mjs'],
     ['tests-unit/property-name-interp/property-name-interp.less', 'open (jess ledger F7(a)): repeated `@{p}@{p}` loses the `/* foo */` comment carried inside each complex interpolated value; awaits an owner ruling'],
-    ['tests-unit/plugin-module/plugin-module.less', 'legacy CommonJS @plugin graph with require() is not supported by the optional JS runtime (not installed here either)'],
+    ['tests-unit/plugin-module/plugin-module.less', '`@plugin "clean-css"` uses the short npm name, and v5 does not apply the Less 4 `less-plugin-` prefix, so it fails with import/not-found. less-plugin-clean-css is a postprocessor plugin anyway, and that hook ABI is a deliberate non-goal in v5 (jess ledger A12)'],
     ['tests-unit/plugin-preeval/plugin-preeval.less', 'legacy tree visitor ABI is a deliberate non-goal in v5 (jess ledger A12)'],
     ['tests-unit/plugin/plugin.less', '@plugin needs the optional @jesscss/plugin-js script runtime, which this suite does not install; beyond that, intended divergence (owner 2026-08-18): the golden uses the deprecated `@plugin (option)` / registerPlugin lifecycle, which v5 does not build'],
     ['tests-unit/parse-interpolation/parse-interpolation.less', 'jess prints leading whitespace from an escaped selector at a nested header, which O8(b) canonicalizes away (jess#347). The golden needs owner updates: it keeps `.d:is(.a, .b, .c)&:hover, baz-cap` on one line where O8(a) prints one branch per line, says `foo: bar` where the source says `foo: baz`, and flattens the final `@{list-cap}` block that collapseNesting: false keeps nested (owner 2026-08-22)'],
@@ -133,7 +133,9 @@ const expectedFailureFixtures = new Map([
 ]);
 
 const expectedFailureDiagnosticCodes = new Map([
-    ['tests-unit/import/import.less', 'plugin/load-failed']
+    ['tests-unit/import/import.less', 'plugin/load-failed'],
+    ['tests-unit/plugin-module/plugin-module.less', 'import/not-found'],
+    ['tests-unit/plugin/plugin.less', 'plugin/load-failed']
 ]);
 
 const expectedErrorPasses = new Map([
