@@ -2783,8 +2783,8 @@ fieldset:disabled a.btn {
 .btn-group-toggle > .btn-group > .btn {
   margin-bottom: 0;
 }
-.btn-group-toggle > .btn input[type="radio"],
-.btn-group-toggle > .btn input[type="checkbox"] {
+:is(.btn-group-toggle > .btn, .btn-group-toggle > .btn-group > .btn) input[type="radio"],
+:is(.btn-group-toggle > .btn, .btn-group-toggle > .btn-group > .btn) input[type="checkbox"] {
   position: absolute;
   clip: rect(0, 0, 0, 0);
   pointer-events: none;
@@ -2807,9 +2807,9 @@ fieldset:disabled a.btn {
 :is(.input-group > .form-control, .input-group > .custom-select, .input-group > .custom-file):focus {
   z-index: 3;
 }
-.input-group > .form-control + .form-control,
-.input-group > .form-control + .custom-select,
-.input-group > .form-control + .custom-file {
+:is(.input-group > .form-control, .input-group > .custom-select, .input-group > .custom-file) + .form-control,
+:is(.input-group > .form-control, .input-group > .custom-select, .input-group > .custom-file) + .custom-select,
+:is(.input-group > .form-control, .input-group > .custom-select, .input-group > .custom-file) + .custom-file {
   margin-left: -1px;
 }
 :is(.input-group > .form-control, .input-group > .custom-select):not(:last-child) {
