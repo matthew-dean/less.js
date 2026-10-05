@@ -101,6 +101,18 @@ function failUnsupportedOption(arg, reason) {
   process.exit(1);
 }
 
+// A Less 4.x boolean flag value (its checkBooleanArg spellings, any case); a
+// bare flag is on.
+function parseOnOff(arg, value) {
+  if (value === undefined || /^(?:on|t|true|y|yes)$/i.test(value)) {
+    return true;
+  }
+  if (/^(?:off|f|false|n|no)$/i.test(value)) {
+    return false;
+  }
+  failUnsupportedOption(arg, `unable to parse ${value} as a boolean. use one of on/t/true/y/yes/off/f/false/n/no`);
+}
+
 function printUsage() {
   less.lesscHelper.printUsage();
   process.exit(0);
@@ -198,20 +210,20 @@ function parseArgs() {
       }
       continue;
     }
-    // Deprecated 4.x spellings (--strict-units, --strict-units=on|off, -su=on|off)
-    // set the deprecated `strictUnits` boolean; `createLessOptions` maps it to
+    // Deprecated 4.x spellings (--strict-units[=BOOL], -su[=BOOL]) set the
+    // deprecated `strictUnits` boolean; `createLessOptions` maps it to
     // `unitMode` and warns during compile, after the logger listener is attached.
-    const strictUnitsMatch = arg.match(/^(?:--strict-units|-su)(?:=(on|off))?$/);
+    const strictUnitsMatch = arg.match(/^(?:--strict-units|-su)(?:=(.*))?$/);
     if (strictUnitsMatch) {
-      options.strictUnits = strictUnitsMatch[1] !== 'off';
+      options.strictUnits = parseOnOff(arg, strictUnitsMatch[1]);
       continue;
     }
-    // Deprecated 4.x spellings (--strict-math, --strict-math=on|off, -sm=on|off)
-    // set the deprecated `strictMath` boolean, which `createLessOptions` maps
-    // onto `math` with a warning.
-    const strictMathMatch = arg.match(/^(?:--strict-math|-sm)(?:=(on|off))?$/);
+    // Deprecated 4.x spellings (--strict-math[=BOOL], -sm[=BOOL]) set the
+    // deprecated `strictMath` boolean, which `createLessOptions` maps onto
+    // `math` with a warning.
+    const strictMathMatch = arg.match(/^(?:--strict-math|-sm)(?:=(.*))?$/);
     if (strictMathMatch) {
-      options.strictMath = strictMathMatch[1] !== 'off';
+      options.strictMath = parseOnOff(arg, strictMathMatch[1]);
       continue;
     }
     // Deprecated: accepted as in Less 4.x and has no effect; the compile warns.

@@ -138,7 +138,12 @@ async function renderFile(filePath, options = {}) {
   const { configOptions } = createLessOptions(options, { source });
   const compiler = getCompiler(configOptions);
 
-  const result = await compiler.renderToResult(filePath, { ...configOptions, suppressWarnings: true });
+  // The input-object form, as in render(): in the options, `language` is the
+  // per-language config (`language.less`), not the entry's language name.
+  const result = await compiler.renderToResult(
+    { source, filePath, language: 'less', extension: '.less' },
+    { ...configOptions, suppressWarnings: true }
+  );
   if (result.errors?.length) {
     throw createRenderErrorFromJessDiagnostic(result, filePath);
   }

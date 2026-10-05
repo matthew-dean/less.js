@@ -31,14 +31,16 @@ emits nested CSS) instead of always flattening. Opt into flattened output with
 
 ## Options (`less.render` API)
 
-A `styles.config.*` beside (or above) the file is read as well. An option passed
-to `less.render` or `lessc` wins over the same option in its `language.less`
-block; the config applies to the options the call leaves unset.
+A `styles.config.*` beside (or above) the file is read as well, for `less.render`
+and `less.renderFile` alike. An option passed to `less.render` or `lessc` wins
+over the same option in its `language.less` block and over a `compile` mode
+(including the `strict` preset); the config applies to the options the call
+leaves unset.
 
 | Feature | Less 4 | Less 5 | Notes |
 | --- | :---: | :---: | --- |
 | `math` modes | ✅ | ✅ | `always` / `parens-division` (default) / `parens`. Any other value is rejected. |
-| `strictMath` (deprecated) | ✅ | ✅ | The Less 4 alias of `math`: `true` is `parens`, `false` the default, and an explicit `math` wins. Using it warns. |
+| `strictMath` (deprecated) | ✅ | ✅ | The Less 4 alias of `math`: a truthy value is `parens`, a falsy one sets no math, and an explicit `math` wins; otherwise it warns. `lessc --strict-math` / `--strict-units` take the Less 4 spellings `on`/`t`/`true`/`y`/`yes` and `off`/`f`/`false`/`n`/`no`. |
 | `unitMode` (formerly `strictUnits`) | ✅ | ✅ | `loose` / `preserve` (default) / `strict`. |
 | `moduleMode` | ➖ | ✅ | `auto` (default): a file that uses `@use` or `@compose` is in modern mode, any other file is legacy and its Less built-in functions compute as in Less 4. `modern`: every file is in modern mode, where a built-in must be imported (`@use "#less";` then `@less.darken(red, 10%)`); an unimported call keeps its name and call shape, with its arguments still evaluated (`min(@a, 1px)` with `@a: 2px + 3px` prints `min(5px, 1px)`). |
 | `compress` | ✅ | ✅ | Minified, but not byte-identical to Less 4 `-x` (nesting preserved by default). |

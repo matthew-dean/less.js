@@ -271,6 +271,8 @@ async function assertMathOptionSupported() {
         assert.equal((await less.render(source, { strictMath: true })).css, parens, "strictMath: true is math: 'parens'");
         assert.equal((await less.render(source, { strictMath: false })).css, (await less.render(source)).css,
             'strictMath: false is the default math');
+        assert.equal((await less.render(source, { strictMath: 1 })).css, parens,
+            "any truthy strictMath is math: 'parens', as in Less 4.x");
         assert.match((await less.render(source, { strictMath: true, math: 'always' })).css, /width: 5;/,
             'an explicit math wins over strictMath');
     } finally {
@@ -278,7 +280,8 @@ async function assertMathOptionSupported() {
     }
     assert.deepEqual(warnings, [
         "strictMath is deprecated; use math. strictMath: true now means math: 'parens'",
-        "strictMath is deprecated; use math. strictMath: false now means math: 'parens-division'"
+        "strictMath is deprecated; use math. strictMath: false now means no math option (the default is 'parens-division')",
+        "strictMath is deprecated; use math. strictMath: 1 now means math: 'parens'"
     ]);
     await assert.rejects(less.render(source, { math: 'alwys' }), /math must be 'always', 'parens-division', 'parens' or 'strict'/,
         'an unknown math value rejects instead of selecting another mode');

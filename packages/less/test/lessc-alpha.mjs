@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import less from '../lib/index.js';
-import { createLessOptions } from '../lib/options.js';
+import { createLessOptions, getCompilerCacheKey } from '../lib/options.js';
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const lessc = path.join(packageRoot, 'bin', 'lessc');
@@ -123,6 +123,19 @@ await realpath(compilerEntrypoint);
         () => createLessOptions({ math: 'alwys' }),
         /math must be 'always', 'parens-division', 'parens' or 'strict' \(or 0-3\); got "alwys"/,
         'an unknown math value is rejected'
+    );
+    // The compiler cache key tells apart configs that differ only inside a Set
+    // (the remote-import plugin keeps its allow list as one), so a render never
+    // reuses a compiler built for another allow list.
+    assert.notEqual(
+        getCompilerCacheKey({ compile: { plugins: [{ allow: new Set(['a.example.com']) }] } }),
+        getCompilerCacheKey({ compile: { plugins: [{ allow: new Set(['b.example.com']) }] } }),
+        'a Set is part of the compiler cache key'
+    );
+    assert.throws(
+        () => createLessOptions({ allowRemoteImports: 'cdn.example.com' }),
+        /allowRemoteImports must be an array of host names; got "cdn\.example\.com"/,
+        'a non-array allowRemoteImports is rejected as an option error'
     );
     // globalVars / modifyVars / javascriptEnabled stay rejected.
     for (const option of ['globalVars', 'modifyVars', 'javascriptEnabled']) {
@@ -248,6 +261,34 @@ try {
         '.a {\n  p: -5px;\n  w: 2 + 3;\n  b: url(/x/img.png);\n}\n',
         'an explicit render option wins over the file-local language.less option');
 
+    // The same holds for a file-local `compile` mode and the `strict` preset,
+    // which rank below `language.less`: an explicit option still wins.
+    const compileConfigured = path.join(tempDir, 'compile-configured');
+    await mkdir(compileConfigured);
+    await writeFile(path.join(compileConfigured, 'styles.config.cjs'),
+        "module.exports = { compile: { strict: true, mathMode: 'always' } };\n");
+    const compileInput = path.join(compileConfigured, 'input.less');
+    await writeFile(compileInput, '.a { w: 2 + 3; u: (1px + 2em); }\n');
+    await assert.rejects(less.renderFile(compileInput), /Invalid unit arithmetic/,
+        "the file-local strict preset's unitMode applies when the call leaves it unset");
+    assert.equal(
+        (await less.renderFile(compileInput, { math: 'parens', unitMode: 'preserve' })).css,
+        '.a {\n  w: 2 + 3;\n  u: calc(1px + 2em);\n}\n',
+        'an explicit render option wins over a file-local compile mode');
+    const compileLessc = await runLessc(['--math=parens', '--unit-mode=preserve', compileInput]);
+    assert.equal(compileLessc.code, 0, compileLessc.stderr);
+    assert.equal(compileLessc.stdout, '.a {\n  w: 2 + 3;\n  u: calc(1px + 2em);\n}\n',
+        'a lessc flag wins over a file-local compile mode');
+
+    // dumpLineNumbers warns for a file input as for a source string.
+    const fileLineNumbers = await less.renderFile(compileInput, { dumpLineNumbers: 'comments', unitMode: 'preserve' });
+    assert.ok(fileLineNumbers.warnings?.some(warning => warning.code === 'deprecation/dump-line-numbers-option'),
+        `renderFile dumpLineNumbers must warn; got ${JSON.stringify(fileLineNumbers.warnings?.map(warning => warning.code))}`);
+    const fileLineNumbersLessc = await runLessc(['--no-color', '--line-numbers=comments', '--unit-mode=preserve', compileInput]);
+    assert.equal(fileLineNumbersLessc.code, 0, fileLineNumbersLessc.stderr);
+    assert.match(fileLineNumbersLessc.stderr, /deprecation\/dump-line-numbers-option/,
+        '--line-numbers warns for a file input');
+
     const version = await runLessc(['--version']);
     assert.equal(version.code, 0, version.stderr);
     assert.match(version.stdout, /^lessc \d+\.\d+\.\d+-alpha\.\d+ \(Less Compiler\) \[Jess\]\n$/);
@@ -356,17 +397,35 @@ try {
 
     // --strict-math (and -sm), deprecated: on is --math=parens, off the default.
     const sum = '.a { w: 2 + 3; }\n';
-    for (const flag of ['--strict-math', '--strict-math=on', '-sm=on']) {
+    // Every Less 4.x boolean spelling, in any case, is accepted.
+    for (const flag of ['--strict-math', '--strict-math=on', '-sm=on', '--strict-math=true', '--strict-math=YES', '-sm=t']) {
         const strictMath = await runLessc([flag, '-'], sum);
         assert.equal(strictMath.code, 0, strictMath.stderr);
         assert.match(strictMath.stdout, /w: 2 \+ 3;/, `${flag} requires parens for math`);
         assert.match(strictMath.stderr, /strictMath is deprecated; use math\. strictMath: true now means math: 'parens'/,
             `${flag} warns with the mapping`);
     }
-    const strictMathOff = await runLessc(['--strict-math=off', '-'], sum);
-    assert.equal(strictMathOff.code, 0, strictMathOff.stderr);
-    assert.match(strictMathOff.stdout, /w: 5;/, '--strict-math=off is the default math');
-    assert.match(strictMathOff.stderr, /strictMath: false now means math: 'parens-division'/);
+    for (const flag of ['--strict-math=off', '--strict-math=false', '-sm=No']) {
+        const strictMathOff = await runLessc([flag, '-'], sum);
+        assert.equal(strictMathOff.code, 0, strictMathOff.stderr);
+        assert.match(strictMathOff.stdout, /w: 5;/, `${flag} is the default math`);
+        assert.match(strictMathOff.stderr, /strictMath: false now means no math option \(the default is 'parens-division'\)/);
+    }
+    const badStrictMath = await runLessc(['--strict-math=maybe', '-'], sum);
+    assert.equal(badStrictMath.code, 1, 'a non-boolean --strict-math value fails');
+    assert.equal(badStrictMath.stdout, '');
+    assert.match(badStrictMath.stderr, /unable to parse maybe as a boolean\. use one of on\/t\/true\/y\/yes\/off\/f\/false\/n\/no/);
+
+    // --strict-units (and -su) takes the same spellings.
+    const mixedUnits = '.a { u: (1px + 2em); }\n';
+    for (const flag of ['--strict-units=true', '-su=y']) {
+        const strictUnits = await runLessc(['--no-color', flag, '-'], mixedUnits);
+        assert.equal(strictUnits.code, 1, `${flag} is unitMode: 'strict'`);
+        assert.match(strictUnits.stderr, /Invalid unit arithmetic/);
+    }
+    const strictUnitsOff = await runLessc(['--strict-units=false', '-'], mixedUnits);
+    assert.equal(strictUnitsOff.code, 0, strictUnitsOff.stderr);
+    assert.match(strictUnitsOff.stdout, /u: calc\(1px \+ 2em\);/, '--strict-units=false is the default unit mode');
 
     // --line-numbers, deprecated: accepted as in Less 4.x, ignored, and warned about.
     for (const flag of ['--line-numbers', '--line-numbers=comments', '--line-numbers=mediaquery', '--line-numbers=all']) {
@@ -399,6 +458,20 @@ try {
             ? /other\.example\.com is not on the\s+remote-import allow list/
             : /allowRemoteImports needs @jesscss\/plugin-remote-import\. Install it next to less\./,
         `${args.join(' ')} wires the remote-import plugin with that allow list`);
+    }
+    // The render API takes the same list. Two lists never share a compiler,
+    // so one render's allow list cannot leak into another's.
+    if (remoteImportPluginInstalled) {
+        await assert.rejects(less.render(remote, { allowRemoteImports: ['cdn.example.com'] }),
+            /other\.example\.com is not on the\s+remote-import allow list/,
+            'less.render honours allowRemoteImports');
+        const remoteKey = hosts => getCompilerCacheKey(createLessOptions({ allowRemoteImports: hosts }).configOptions);
+        assert.notEqual(remoteKey(['a.example.com']), remoteKey(['b.example.com']),
+            'each allow list gets its own compiler');
+    } else {
+        await assert.rejects(less.render(remote, { allowRemoteImports: ['cdn.example.com'] }),
+            /allowRemoteImports needs @jesscss\/plugin-remote-import\. Install it next to less\./,
+            'less.render reports the missing remote-import plugin');
     }
     const noHosts = await runLessc(['--allow-remote-imports=', '-'], remote);
     assert.equal(noHosts.code, 1, '--allow-remote-imports needs hosts');

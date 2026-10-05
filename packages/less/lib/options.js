@@ -110,8 +110,9 @@ const MATH_MODES = new Map([
 /**
  * The `mathMode` an explicit `math` (or its deprecated boolean alias
  * `strictMath`) selects, or `undefined` when the caller set neither. As in
- * Less 4.x, `strictMath: true` is `math: 'parens'`; `false` leaves the default.
- * An explicit `math` wins, and any use of `strictMath` warns.
+ * Less 4.x, a truthy `strictMath` is `math: 'parens'`; a falsy one sets no
+ * math, so a file-local styles.config or the default applies. An explicit
+ * `math` wins; otherwise `strictMath` warns.
  * @param {import('./options.js').LessRenderOptions} opts
  * @returns {string|undefined}
  */
@@ -119,10 +120,10 @@ function resolveMathMode(opts) {
   if (opts.strictMath !== undefined && opts.math === undefined) {
     logger.warn(
       `strictMath is deprecated; use math. strictMath: ${String(opts.strictMath)} now means `
-      + `math: '${opts.strictMath ? 'parens' : 'parens-division'}'`
+      + (opts.strictMath ? "math: 'parens'" : "no math option (the default is 'parens-division')")
     );
   }
-  const math = opts.math !== undefined ? opts.math : opts.strictMath === true ? 'parens' : undefined;
+  const math = opts.math !== undefined ? opts.math : opts.strictMath ? 'parens' : undefined;
   if (math === undefined) {
     return undefined;
   }
@@ -138,16 +139,24 @@ function resolveMathMode(opts) {
 /**
  * The opt-in remote-import plugin for an `allowRemoteImports` host list (the
  * `lessc --allow-remote-imports` flag). It is an optional install, so it is
- * loaded only when asked for; the plugin itself rejects an empty or malformed
- * list.
- * @param {string[]} hosts
+ * loaded only when asked for; the plugin itself rejects an empty list or a
+ * malformed host.
+ * @param {unknown} hosts
  */
 function createRemoteImportPlugin(hosts) {
+  if (!Array.isArray(hosts) || !hosts.every(host => typeof host === 'string')) {
+    throw new Error(`allowRemoteImports must be an array of host names; got ${JSON.stringify(hosts)}`);
+  }
   let remoteImportPlugin;
   try {
     ({ remoteImportPlugin } = require('@jesscss/plugin-remote-import'));
-  } catch {
-    throw new Error('allowRemoteImports needs @jesscss/plugin-remote-import. Install it next to less.');
+  } catch (error) {
+    // Only the package itself being absent is "not installed"; any other
+    // failure (including a missing dependency of it) is reported as it is.
+    if (error?.code === 'MODULE_NOT_FOUND' && error.message.includes("'@jesscss/plugin-remote-import'")) {
+      throw new Error('allowRemoteImports needs @jesscss/plugin-remote-import. Install it next to less.');
+    }
+    throw error;
   }
   return remoteImportPlugin({ allow: hosts });
 }
