@@ -46,6 +46,9 @@ jobs:
       - name: Run release automation tests
         if: matrix.os == 'ubuntu-latest' && matrix.node == 'lts/*'
         run: pnpm run test:release
+      - name: Run the browser build in Chrome
+        if: matrix.os == 'ubuntu-latest' && matrix.node == 'lts/*'
+        run: pnpm --dir packages/less run test:browser
 
   copilot-review:
     name: Request Copilot review
