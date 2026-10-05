@@ -134,22 +134,23 @@ const expectedFailureDiagnosticCodes = new Map([
     ['tests-unit/import/import.less', 'plugin/load-failed']
 ]);
 
+// Error fixtures Less 5 renders by design, not gaps. A built-in call whose
+// arguments cannot be evaluated is written out verbatim under the default
+// functionMode 'preserve' (jess ledger C17); under functionMode 'error' Jess
+// rejects each such call at the line and column Less 4.x reports.
+const preservedCall = "intended: the default functionMode 'preserve' writes a built-in call it cannot evaluate out verbatim (jess ledger C17)";
 const expectedErrorPasses = new Map([
-    ['tests-error/eval/add-mixed-units.less', 'unit compatibility errors are not emitted yet'],
-    ['tests-error/eval/add-mixed-units2.less', 'unit compatibility errors are not emitted yet'],
-    ['tests-error/eval/color-func-invalid-color-2.less', 'color function argument errors are not emitted yet'],
-    ['tests-error/eval/color-func-invalid-color.less', 'color function argument errors are not emitted yet'],
-    ['tests-error/eval/divide-mixed-units.less', 'unit compatibility errors are not emitted yet'],
-    ['tests-error/eval/multiply-mixed-units.less', 'unit compatibility errors are not emitted yet'],
-    ['tests-error/eval/percentage-css-var.less', 'function argument type errors are not emitted yet'],
-    ['tests-error/eval/percentage-non-number-argument.less', 'function argument type errors are not emitted yet'],
-    ['tests-error/eval/svg-gradient1.less', 'svg-gradient argument validation errors are not emitted yet'],
-    ['tests-error/eval/svg-gradient2.less', 'svg-gradient argument validation errors are not emitted yet'],
-    ['tests-error/eval/svg-gradient3.less', 'svg-gradient argument validation errors are not emitted yet'],
-    ['tests-error/eval/svg-gradient4.less', 'svg-gradient argument validation errors are not emitted yet'],
-    ['tests-error/eval/svg-gradient5.less', 'svg-gradient argument validation errors are not emitted yet'],
-    ['tests-error/eval/svg-gradient6.less', 'svg-gradient argument validation errors are not emitted yet'],
-    ['tests-error/eval/unit-function.less', 'unit() argument validation errors are not emitted yet']
+    ['tests-error/eval/color-func-invalid-color-2.less', 'intended: variables are lazy (jess ledger R1) and the failing darken() is in a variable nothing references, so it never runs'],
+    ['tests-error/eval/color-func-invalid-color.less', preservedCall],
+    ['tests-error/eval/percentage-css-var.less', preservedCall],
+    ['tests-error/eval/percentage-non-number-argument.less', preservedCall],
+    ['tests-error/eval/svg-gradient1.less', preservedCall],
+    ['tests-error/eval/svg-gradient2.less', preservedCall],
+    ['tests-error/eval/svg-gradient3.less', preservedCall],
+    ['tests-error/eval/svg-gradient4.less', preservedCall],
+    ['tests-error/eval/svg-gradient5.less', preservedCall],
+    ['tests-error/eval/svg-gradient6.less', preservedCall],
+    ['tests-error/eval/unit-function.less', preservedCall]
 ]);
 
 const expectedMissingWarnings = new Map([
@@ -248,8 +249,11 @@ const errorFiles = globSync('tests-error/{eval,parse}/*.less', {
 
 for (const file of errorFiles) {
     const fixturePath = path.join(testDataRoot, file);
+    // The error directories carry the options their expectations were written
+    // under (strictUnits: the unit-arithmetic fixtures), as the rendered ones do.
+    const { lessOptions } = await loadFixtureConfig(path.dirname(fixturePath));
     try {
-        await withFixtureTimeout(file, () => less.renderFile(fixturePath, { collapseNesting: true }));
+        await withFixtureTimeout(file, () => less.renderFile(fixturePath, { ...lessOptions, collapseNesting: true }));
         const expectedReason = expectedErrorPasses.get(file);
         if (expectedReason) {
             expectedErrorPassed += 1;
