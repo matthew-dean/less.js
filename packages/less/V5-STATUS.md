@@ -38,7 +38,7 @@ emits nested CSS) instead of always flattening. Opt into flattened output with
 | `moduleMode` | ➖ | ✅ | `auto` (default): a file that uses `@use` or `@compose` is in modern mode, any other file is legacy and its Less built-in functions compute as in Less 4. `modern`: every file is in modern mode, where a built-in must be imported (`@use "#less";` then `@less.darken(red, 10%)`) and an unimported call is left as written. |
 | `compress` | ✅ | ✅ | Minified, but not byte-identical to Less 4 `-x` (nesting preserved by default). |
 | Source maps (`sourceMap`) | ✅ | ✅ | Returns `result.map`; annotation, inline data URI, `outputSourceFiles`, and the `rootpath`/`basepath`/`url` path variants all supported. |
-| URL rewriting (`rewriteUrls` / `rootpath` / `urlArgs`) | ✅ | ✅ | Rewrites `url(...)` references. |
+| URL rewriting (`rewriteUrls` / `rootpath` / `urlArgs`) | ✅ | ✅ | Rewrites `url(...)` references; the Less 4 `rewrite-urls-*` and `rootpath-rewrite-urls-*` fixtures render byte-identically. |
 | `processImports` | ✅ | ✅ | `false` skips import processing: imported stylesheets are neither loaded nor kept as CSS `@import` statements. |
 | `globalVars` / `modifyVars` injection | ✅ | ❌ | Not supported — these throw rather than silently no-op. |
 | `javascriptEnabled` | ✅ | ❌ | JavaScript evaluation is not supported. |
@@ -59,12 +59,12 @@ emits nested CSS) instead of always flattening. Opt into flattened output with
 | Feature | Less 4 | Less 5 | Notes |
 | --- | :---: | :---: | --- |
 | Sibling / relative `@import` | ✅ | ✅ | |
-| Remote (`http(s)`) imports | ✅ | ⏳ | Gated behind an explicit network policy; not on by default. |
-| `@compose` stylesheet modules | ➖ | ✅ | Isolated, non-transitive modules with inferred or explicit namespaces, `as *`, and per-edge `with` or shared `set` configuration. See the [canonical Modules and Imports source](https://github.com/jesscss/jess/blob/dev/packages/docs/docs-content/docs/shared/02-Language/14-modules-and-imports.mdx). |
-| `@use` / `@from` script and data modules | ➖ | ⏳ | Reserved for JavaScript, TypeScript, JSON, and built-in modules; Less 5 does not recognize or execute them as modules yet. See the [canonical Modules and Imports source](https://github.com/jesscss/jess/blob/dev/packages/docs/docs-content/docs/shared/02-Language/14-modules-and-imports.mdx). |
-| Browser build (`window.less`) | ✅ | ✅ | `dist/less-browser-dev.js` ships and powers the playground; full 4.x browser-API parity is ⏳. |
+| Remote (`http(s)`) imports | ✅ | ⏳ | In progress on Jess `feat/less-v5-completion`: off by default, enabled only through an explicit network allowlist. |
+| `@compose` stylesheet modules | ➖ | ⏳ | In progress on Jess `feat/less-v5-completion`. Isolated, non-transitive modules with inferred or explicit namespaces, `as *`, and per-edge `with` or shared `set` configuration. See the [canonical Modules and Imports source](https://github.com/jesscss/jess/blob/dev/packages/docs/docs-content/docs/shared/02-Language/14-modules-and-imports.mdx). |
+| `@use` / `@from` script and data modules | ➖ | ⏳ | `@use "#less";` (the Less built-in functions, as `@less.darken(…)`) works and puts the file in modern mode (see `moduleMode`). JavaScript, TypeScript and JSON modules are in progress on Jess `feat/less-v5-completion`. See the [canonical Modules and Imports source](https://github.com/jesscss/jess/blob/dev/packages/docs/docs-content/docs/shared/02-Language/14-modules-and-imports.mdx). |
+| Browser build (`window.less`) | ✅ | ⏳ | `dist/less-browser-dev.js` ships and powers the playground; Less 4 browser-API parity is in progress on Jess `feat/less-v5-completion`. |
 | `lessc` CLI (compile) | ✅ | ✅ | Compiles files. |
-| `lessc` CLI **flags** for the newer options | ✅ | ✅ | `--compress`/`-x`, `--source-map[=file]` (+ `--source-map-inline` / `-include-source` / `-rootpath` / `-basepath` / `-url`), `--rewrite-urls` / `--rootpath` / `--url-args`, `--math` are all wired. |
+| `lessc` CLI **flags** for the newer options | ✅ | ✅ | `--compress`/`-x`, `--source-map[=file]` (+ `--source-map-inline` / `-include-source` / `-rootpath` / `-basepath` / `-url`), `--rewrite-urls` / `--rootpath` / `--url-args`, `--math`, `--unit-mode`, `--module-mode` are all wired. |
 | Diagnostics (`file:line:column` + excerpt) | ➖ | ✅ | Precise diagnostics, not raw parser offsets. |
 
 ---
