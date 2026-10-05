@@ -65,6 +65,7 @@
 		"typecheck": "tsc --noEmit",
 		"build": "node build/rollup.js --dist",
 		"build:browser": "node build/browser-dev.mjs --minify",
+		"test:browser": "npm run build:browser && node test/alpha-browser.mjs",
 		"benchmark": "node benchmark/benchmark-runner.cjs",
 		"benchmark:all": "node benchmark/run-and-compare.mjs",
 		"prepublishOnly": "npm run typecheck && npm run build && npm run build:browser && npm run test:lessc"

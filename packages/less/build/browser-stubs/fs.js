@@ -1,18 +1,17 @@
 /**
  * Browser stub for `fs` / `node:fs` / `fs/promises`.
  *
- * The single-file browser build never reads files: the entry calls
- * renderToResult with an inline `source` and no filePath, so config discovery
- * and the entry parse never touch fs. The ONLY way execution reaches here is an
- * `@import` (or a file-reading function like data-uri) in the Less source —
- * which is unsupported in the browser preview. Every method throws a clear
- * message so that surfaces as a normal render error rather than a bundling gap.
+ * The browser build has no file system: the entry fetches `@import`s over HTTP
+ * through its own compiler plugin, which the compiler asks before any other.
+ * What still reaches here is a file-reading function such as `data-uri()`, so
+ * every method throws a clear message that surfaces as a normal render error
+ * rather than a bundling gap.
  */
 
 function unsupported() {
   throw new Error(
-    'Less v5 browser preview: file access / @import is unsupported (single-file only). '
-    + 'Use the Node build (`less`) for imports and file-reading functions.'
+    'Less v5 browser build: reading files directly (e.g. data-uri()) is unsupported. '
+    + 'Use the Node build (`less`) for file-reading functions.'
   );
 }
 

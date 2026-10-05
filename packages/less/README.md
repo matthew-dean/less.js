@@ -67,9 +67,11 @@ npx lessc styles.less styles.css
 ### Browser
 
 A browser build ships in the package (`dist/less-browser-dev.js`) and defines
-`window.less` with the same render API; it powers the online playground. Full
-browser-API parity with Less 4 is still being validated — see the
-[feature status](V5-STATUS.md).
+`window.less` with the Less 4 browser API: it compiles the page's
+`<link rel="stylesheet/less">` and `<style type="text/less">` on load, and
+`less.render()`, `less.refresh()` and `less.watch()` work as before. It runs
+under a Content-Security-Policy without `'unsafe-eval'`. See the
+[feature status](V5-STATUS.md) for what is not carried over.
 
 ## Why Less?
 
