@@ -37,6 +37,8 @@ export interface LessRenderOptions {
    * its name and call shape.
    */
   moduleMode?: 'auto' | 'modern';
+  /** `false` skips import processing: imported stylesheets are neither loaded nor kept as CSS `@import` statements. */
+  processImports?: boolean;
   /**
    * Emit a source map. `true` turns it on with defaults; the object form (or the
    * flat legacy `sourceMap*` options) configures it. Returned as `result.map`.

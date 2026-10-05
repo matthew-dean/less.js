@@ -90,7 +90,6 @@ const skippedFixtures = new Map([
     ['tests-config/no-js-errors/no-js-errors.less', 'expected error fixture, not render-to-CSS fixture'],
     ['tests-config/postProcessorPlugin/postProcessor.less', 'Less postprocessor plugin hook ABI is a deliberate non-goal in v5 (jess ledger A12)'],
     ['tests-config/preProcessorPlugin/preProcessor.less', 'Less preprocessor plugin hook ABI is a deliberate non-goal in v5 (jess ledger A12)'],
-    ['tests-config/process-imports/google.less', 'processImports URL import removal is not alpha-supported'],
     ['tests-config/rewrite-urls-all/rewrite-urls-all.less', 'URL rewriting is not alpha-supported'],
     ['tests-config/rewrite-urls-local/rewrite-urls-local.less', 'URL rewriting is not alpha-supported'],
     ['tests-config/root-registry/file.less', 'no expected CSS in upstream fixture'],

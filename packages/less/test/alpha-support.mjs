@@ -17,7 +17,7 @@ const testDataRoot = path.resolve(packageRoot(), '..', 'test-data', 'tests-unit'
 const REJECTED_OPTIONS = ['globalVars', 'modifyVars', 'javascriptEnabled'];
 const SUPPORTED_OPTIONS = [
     'collapseNesting', 'sourceMap', 'compress', 'rewriteUrls', 'urlArgs', 'rootpath', 'unitMode', 'math',
-    'moduleMode'
+    'moduleMode', 'processImports'
 ];
 
 const unsupportedForAlpha1 = [

@@ -190,6 +190,7 @@ export function createLessOptions(options) {
       searchPaths: opts.paths || [],
       mathMode,
       ...(unitMode !== undefined && { unitMode }),
+      ...(opts.processImports !== undefined && { processImports: opts.processImports }),
       plugins,
     },
     output,

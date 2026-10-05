@@ -39,6 +39,7 @@ emits nested CSS) instead of always flattening. Opt into flattened output with
 | `compress` | ✅ | ✅ | Minified, but not byte-identical to Less 4 `-x` (nesting preserved by default). |
 | Source maps (`sourceMap`) | ✅ | ✅ | Returns `result.map`; annotation, inline data URI, `outputSourceFiles`, and the `rootpath`/`basepath`/`url` path variants all supported. |
 | URL rewriting (`rewriteUrls` / `rootpath` / `urlArgs`) | ✅ | ✅ | Rewrites `url(...)` references. |
+| `processImports` | ✅ | ✅ | `false` skips import processing: imported stylesheets are neither loaded nor kept as CSS `@import` statements. |
 | `globalVars` / `modifyVars` injection | ✅ | ❌ | Not supported — these throw rather than silently no-op. |
 | `javascriptEnabled` | ✅ | ❌ | JavaScript evaluation is not supported. |
 
