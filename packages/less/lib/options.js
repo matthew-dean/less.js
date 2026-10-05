@@ -76,8 +76,13 @@ function resolveCollapseNesting(value) {
  * `'auto'` (the default — a file that uses `@use` or `@compose` is modern, any
  * other file is legacy) or `'modern'` (every file is modern, so a built-in must
  * be imported). Anything else is rejected rather than silently read as `'auto'`.
- * TODO(jesscss/jess#354): drop this check once the Less plugin validates the
- * value itself.
+ * TODO(jesscss/jess#354): the pinned Jess 2.0.0-alpha.27 does not check the
+ * value. From the next Jess alpha, the `@jesscss/plugin-less` default export
+ * does: its constructor, which `LessPluginResolver#normalizeConfiguredPlugin`
+ * (this wrapper's `normalizeConfiguredPlugin` hook) runs on the merged Less
+ * options, throws a `plugin/invalid-option` error naming the option and its
+ * allowed values. Once the pin reaches it, forward `opts.moduleMode` unchanged
+ * and delete this function.
  * @param {unknown} value
  * @returns {'auto'|'modern'}
  */
@@ -91,6 +96,9 @@ function resolveModuleMode(value) {
 /**
  * The Less 4.x `math` values and the `mathMode` each selects. Anything else is
  * rejected rather than silently read as another mode.
+ * TODO(jesscss/jess#354): from the next Jess alpha the same plugin constructor
+ * (see `resolveModuleMode`) maps `math` to `mathMode` and rejects any other
+ * value, so this table and its check go: forward `opts.math` as `language.math`.
  */
 const MATH_MODES = new Map([
   [0, 'always'], ['always', 'always'],
