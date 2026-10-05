@@ -60,33 +60,51 @@ async function fetchText(url, init) {
 }
 
 /**
+ * The text of every file fetched, by URL, shared by every render as Less 4's
+ * browser file cache was. `useFileCache: false` skips reading it;
+ * `refresh(true)` and each `watch()` poll empty it.
+ * @type {Map<string, string>}
+ */
+const fileCache = new Map();
+
+/**
+ * Read `url`, from the file cache unless `options.useFileCache` is `false`.
+ * @param {string} url
+ * @param {Record<string, any>} options
+ * @param {RequestInit} [init]
+ */
+async function loadFile(url, options, init) {
+  const cached = options.useFileCache === false ? undefined : fileCache.get(url);
+  if (cached !== undefined) {
+    return cached;
+  }
+  const text = await fetchText(url, init);
+  fileCache.set(url, text);
+  return text;
+}
+
+/**
  * The compiler plugin that reads imports over HTTP. The Less plugin resolves an
  * `@import` to candidate paths against the importing source's path; this
  * locates the first one the server has and hands its text back as the source.
+ * @param {Record<string, any>} options
  * @param {RequestInit} [init]
  */
-function fetchedFiles(init) {
-  /** @type {Map<string, string>} */
-  const sources = new Map();
+function fetchedFiles(options, init) {
   return {
     name: 'less-browser-fetch',
     /** @param {string[]} candidates */
     async locate(candidates) {
       for (const path of candidates) {
-        if (!sources.has(path)) {
-          const text = await fetchText(path, init).catch(() => undefined);
-          if (text === undefined) {
-            continue;
-          }
-          sources.set(path, text);
+        if (await loadFile(path, options, init).then(() => true, () => false)) {
+          return path;
         }
-        return path;
       }
       return null;
     },
     /** @param {string} path */
     async getSource(path) {
-      return sources.get(path) ?? fetchText(path, init);
+      return fileCache.get(path) ?? loadFile(path, options, init);
     }
   };
 }
@@ -98,7 +116,7 @@ function fetchedFiles(init) {
  */
 async function renderLess(input, options, fetchInit) {
   const { configOptions, filePath } = createLessOptions(options);
-  configOptions.compile.plugins.unshift(fetchedFiles(fetchInit));
+  configOptions.compile.plugins.unshift(fetchedFiles(options, fetchInit));
   // ponytail: fresh Compiler per call — no defaultPlugins hook, so no
   // node-modules import plugin and no @jesscss/plugin-js. A page renders a
   // handful of sources; a cache map is not worth the surface.
@@ -326,20 +344,26 @@ function installPageApi(window, less) {
 
   /**
    * Compile the registered sheets again, and the inline `<style type="text/less">`.
-   * `reload` fetches past the HTTP cache. Resolves with Less 4's timing record
-   * once all of them are in the page; rejects with the first failed sheet's
-   * error, after reporting it.
+   * `reload` fetches past the HTTP cache and, unless `clearFileCache` is
+   * `false`, empties the file cache; `clearFileCache: true` empties it alone.
+   * Resolves with Less 4's timing record once all of them are in the page;
+   * rejects with the first failed sheet's error, after reporting it.
    * @param {boolean} [reload]
    * @param {Record<string, string>} [modifyVars]
+   * @param {boolean} [clearFileCache]
    */
-  less.refresh = (reload, modifyVars) => {
+  less.refresh = (reload, modifyVars, clearFileCache) => {
+    if ((reload || clearFileCache) && clearFileCache !== false) {
+      fileCache.clear();
+    }
     const startTime = new Date();
     const fetchInit = reload ? { cache: 'no-cache' } : undefined;
     const styles = refreshStyles(modifyVars);
     const sheets = Promise.all(less.sheets.map(async (sheet) => {
       try {
-        const source = await fetchText(sheet.href, fetchInit);
-        const { css } = await renderLess(source, sourceOptions(sheet.href, sheet, modifyVars), fetchInit);
+        const sheetOptions = sourceOptions(sheet.href, sheet, modifyVars);
+        const source = await loadFile(sheet.href, sheetOptions, fetchInit);
+        const { css } = await renderLess(source, sheetOptions, fetchInit);
         clearError(sheet.href);
         createCSS(css, sheet);
       } catch (error) {
@@ -354,7 +378,7 @@ function installPageApi(window, less) {
     });
   };
 
-  less.modifyVars = (record) => less.refresh(true, record);
+  less.modifyVars = (record) => less.refresh(true, record, false);
   less.refreshStyles = refreshStyles;
 
   /** @type {ReturnType<typeof setInterval> | undefined} */

@@ -53,8 +53,13 @@ const files = {
   '/styles/broken.less': ['text/plain', '.a { color: @nope; }\n'],
 };
 
+/** @type {Record<string, number>} path -> requests served */
+const hits = {};
+
 const server = createServer((req, res) => {
-  const file = files[new URL(req.url, 'http://localhost').pathname];
+  const path = new URL(req.url, 'http://localhost').pathname;
+  hits[path] = (hits[path] ?? 0) + 1;
+  const file = files[path];
   if (!file) {
     res.writeHead(404, { 'Content-Security-Policy': CSP });
     res.end();
@@ -125,6 +130,19 @@ try {
     'env', 'modifyVars', 'pageLoadFinished', 'refresh', 'refreshStyles', 'registerStylesheets',
     'registerStylesheetsImmediately', 'render', 'sheets', 'unwatch', 'version', 'watch', 'watchMode',
   ]);
+
+  // Less 4's file cache (`useFileCache`, on by default): refresh() and
+  // modifyVars() reuse fetched files, render() shares them, refresh(true)
+  // fetches again.
+  const fetched = () => ({ main: hits['/styles/main.less'], colors: hits['/styles/partials/colors.less'] });
+  assert.deepEqual(fetched(), { main: 1, colors: 1 }, 'refresh() and modifyVars() read the file cache');
+  const importColors = '@import "/styles/partials/colors.less";\n.x { color: @brand; }';
+  await page.evaluate((source) => window.less.render(source), importColors);
+  assert.equal(fetched().colors, 1, 'render() reads the same file cache');
+  await page.evaluate((source) => window.less.render(source, { useFileCache: false }), importColors);
+  assert.equal(fetched().colors, 2, 'useFileCache: false fetches again');
+  await page.evaluate(() => window.less.refresh(true));
+  assert.deepEqual(fetched(), { main: 2, colors: 3 }, 'refresh(true) empties the file cache');
 
   const broken = await browser.newPage();
   await broken.goto(`${origin}/broken.html`);
