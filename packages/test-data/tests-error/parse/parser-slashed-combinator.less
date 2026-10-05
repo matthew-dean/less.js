@@ -1,0 +1,18 @@
+// Slashed combinators: /deep/ and /shadow/ were Shadow DOM v0 proposals that
+// never became CSS, and browsers removed them. Less 4 accepted any /word/ as a
+// combinator; Less 5 rejects them and names the removed combinator.
+
+// /deep/ combinator
+.parent /deep/ .child {
+  color: red;
+}
+
+// /shadow/ combinator
+.container /shadow/ .content {
+  background: blue;
+}
+
+// Nested selectors
+.wrapper /deep/ .inner /deep/ .deepest {
+  padding: 10px;
+}

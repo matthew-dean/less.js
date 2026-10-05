@@ -1,0 +1,4 @@
+SyntaxError: The /deep/ combinator was removed in Less v5. in {path}parser-slashed-combinator.less on line 6, column 9:
+5 // /deep/ combinator
+6 .parent /deep/ .child {
+7   color: red;
