@@ -268,10 +268,11 @@ async function assertModuleModeSupported() {
             `${JSON.stringify(options)} computes Less built-ins in a legacy file`);
     }
     // 'modern': every file is modern. An unimported built-in keeps its name and
-    // call shape; an imported one computes.
-    assert.equal((await less.render(source, { moduleMode: 'modern' })).css,
-        '.x {\n  padding: min(-5px, 1px);\n  color: darken(red, 10%);\n}\n',
-        "moduleMode: 'modern' leaves unimported built-ins as written");
+    // call shape, with its arguments evaluated; an imported one computes.
+    assert.equal(
+        (await less.render('@a: 2px + 3px;\n.x { padding: min(@a, 1px); color: darken(red, 10%); }\n', { moduleMode: 'modern' })).css,
+        '.x {\n  padding: min(5px, 1px);\n  color: darken(red, 10%);\n}\n',
+        "moduleMode: 'modern' keeps an unimported built-in's call shape and evaluates its arguments");
     assert.equal(
         (await less.render('@use "#less";\n.x { color: @less.darken(red, 10%); }\n', { moduleMode: 'modern' })).css,
         '.x {\n  color: #cc0000;\n}\n',

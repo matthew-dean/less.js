@@ -314,7 +314,7 @@ try {
     const modernMode = await runLessc(['--module-mode=modern', '-'], builtin);
     assert.equal(modernMode.code, 0, modernMode.stderr);
     assert.match(modernMode.stdout, /padding: min\(-5px, 1px\);/,
-        '--module-mode=modern leaves an unimported built-in as written');
+        "--module-mode=modern keeps an unimported built-in's call shape");
     const badMode = await runLessc(['--module-mode=legacy', '-'], builtin);
     assert.equal(badMode.code, 1, 'an unknown --module-mode value fails');
     assert.equal(badMode.stdout, '');
