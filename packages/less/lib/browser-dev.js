@@ -20,6 +20,7 @@
  */
 
 import { Compiler } from '@jesscss/compiler';
+import { prepareLessRootSource } from '@jesscss/plugin-less';
 import { createLessOptions, mapRenderResult } from './options.js';
 
 /* Injected at build time from packages/less/package.json. */
@@ -119,8 +120,9 @@ async function renderLess(input, options, fetchInit) {
   configOptions.compile.plugins.unshift(fetchedFiles(options, fetchInit));
   // ponytail: fresh Compiler per call — no defaultPlugins hook, so no
   // node-modules import plugin and no @jesscss/plugin-js. A page renders a
-  // handful of sources; a cache map is not worth the surface.
-  const compiler = new Compiler(configOptions);
+  // handful of sources; a cache map is not worth the surface. `prepareSource`
+  // adds `banner`, `globalVars` and `modifyVars` to the source, as in Node.
+  const compiler = new Compiler(configOptions, { prepareSource: prepareLessRootSource });
   const result = await compiler.renderToResult(
     { source: input, filePath, language: 'less', extension: '.less' },
     { ...configOptions, suppressWarnings: true }

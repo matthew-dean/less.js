@@ -10,6 +10,7 @@
  *   options argument omissible;
  * - `less.refresh()` resolves with the timing record; a broken sheet is reported
  *   in the page and rejects `refresh()`;
+ * - `less.modifyVars()` recompiles the sheets with the variables given;
  * - nothing violates the policy, and load plus first render stay inside an
  *   absolute budget.
  *
@@ -115,6 +116,9 @@ try {
     const failed = await new Promise((resolve) => less.render('.a {', {}, (error) => resolve(error?.message)));
     const refreshed = await less.refresh();
     const modifyVars = await less.modifyVars({ brand: 'blue' }).then(() => 'resolved', (error) => error.message);
+    const modifiedColor = getComputedStyle(document.querySelector('.box')).color;
+    await less.refresh();
+    const refreshedColor = getComputedStyle(document.querySelector('.box')).color;
     return {
       version: less.version,
       css: viaPromise.css,
@@ -122,6 +126,8 @@ try {
       failed: typeof failed,
       refreshed: { sheets: refreshed.sheets, ms: typeof refreshed.totalMilliseconds },
       modifyVars,
+      modifiedColor,
+      refreshedColor,
       surface: Object.keys(less).sort(),
     };
   });
@@ -130,7 +136,9 @@ try {
   assert.deepEqual(api.viaCallback, { error: null, css: '.b {\n  c: d;\n}\n' });
   assert.equal(api.failed, 'string', 'a syntax error reaches the callback');
   assert.deepEqual(api.refreshed, { sheets: 1, ms: 'number' });
-  assert.match(api.modifyVars, /modifyVars is not supported/, 'modifyVars rejects like the render option');
+  assert.equal(api.modifyVars, 'resolved');
+  assert.equal(api.modifiedColor, 'rgb(0, 0, 255)', 'modifyVars() recompiles the sheets with the variables given');
+  assert.equal(api.refreshedColor, 'rgb(255, 0, 0)', 'a later refresh() compiles them as written again, as in Less 4');
   assert.deepEqual(api.surface, [
     'env', 'modifyVars', 'pageLoadFinished', 'refresh', 'refreshStyles', 'registerStylesheets',
     'registerStylesheetsImmediately', 'render', 'sheets', 'unwatch', 'version', 'watch', 'watchMode',
