@@ -153,15 +153,16 @@ function parseArgs() {
       continue;
     }
     // URL rewriting (forwarded to the Less plugin). `--rewrite-urls` with no
-    // value is Less 4.x's `all`.
-    const rewriteUrlsMatch = arg.match(/^--rewrite-urls(?:=(.+))?$/);
+    // value is Less 4.x's `all`; `-ru` is its Less 4.x short form.
+    const rewriteUrlsMatch = arg.match(/^(?:--rewrite-urls|-ru)(?:=(.+))?$/);
     if (rewriteUrlsMatch) {
       options.rewriteUrls = rewriteUrlsMatch[1] ?? 'all';
       continue;
     }
     // Deprecated: sets the deprecated `relativeUrls`, which `createLessOptions`
-    // maps to `rewriteUrls: 'all'` with a warning; `--rewrite-urls` wins.
-    if (arg === '--relative-urls') {
+    // maps to `rewriteUrls: 'all'` with a warning; `--rewrite-urls` wins. As in
+    // Less 4.x, a value is ignored.
+    if (/^--relative-urls(?:=.*)?$/.test(arg)) {
       options.relativeUrls = true;
       continue;
     }
@@ -174,7 +175,8 @@ function parseArgs() {
       options.ieCompat = true;
       continue;
     }
-    const rootpathMatch = arg.match(/^--rootpath=(.+)$/);
+    // `-rp` is the Less 4.x short form.
+    const rootpathMatch = arg.match(/^(?:--rootpath|-rp)=(.+)$/);
     if (rootpathMatch) {
       options.rootpath = rootpathMatch[1];
       continue;

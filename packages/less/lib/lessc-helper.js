@@ -52,9 +52,9 @@ const lesscHelper = {
     console.log('  --source-map-rootpath=PATH   Prepend PATH to every source in the map.');
     console.log('  --source-map-basepath=PATH   Strip PATH from the front of every source in the map.');
     console.log('  --source-map-url=URL         Override the sourceMappingURL annotation.');
-    console.log('  --rewrite-urls[=all|local|off]  Rewrite url(...) references in imported files.');
+    console.log('  -ru, --rewrite-urls[=all|local|off]  Rewrite url(...) references in imported files.');
     console.log('  --relative-urls              Deprecated: --rewrite-urls=all (an explicit --rewrite-urls wins).');
-    console.log('  --rootpath=PATH              Prepend PATH to url(...) and import references.');
+    console.log('  -rp, --rootpath=PATH         Prepend PATH to url(...) and import references.');
     console.log('  --url-args=ARGS              Append ARGS (e.g. cache-buster) to every url(...).');
     console.log('  --allow-remote-imports=HOSTS Fetch and inline https @imports from these hosts (comma-separated;');
     console.log('                               repeatable). Needs @jesscss/plugin-remote-import installed next to less.');

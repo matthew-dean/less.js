@@ -333,7 +333,7 @@ try {
         'lessc help documents the module-mode flag');
     for (const flag of [
         '--strict-math', '--line-numbers', '--allow-remote-imports=HOSTS', '--global-var=NAME=VALUE', '--modify-var=NAME=VALUE',
-        '--relative-urls', '--insecure', '--ie-compat'
+        '--relative-urls', '--insecure', '--ie-compat', '-ru, --rewrite-urls', '-rp, --rootpath=PATH'
     ]) {
         assert.ok(help.stdout.includes(flag), `lessc help documents ${flag}`);
     }
@@ -504,6 +504,22 @@ try {
             `${args.join(' ')}: the explicit --rewrite-urls wins`);
         assert.equal(explicit.stderr, '', `${args.join(' ')}: nothing warns`);
     }
+    // As in Less 4.x, --relative-urls ignores a value, and -ru is the short
+    // form of --rewrite-urls, with or without one.
+    const relativeUrlsValue = await runLessc(['--relative-urls=off', relativeInput]);
+    assert.equal(relativeUrlsValue.code, 0, relativeUrlsValue.stderr);
+    assert.equal(relativeUrlsValue.stdout, relativeUrls.stdout, '--relative-urls=VALUE is --relative-urls');
+    assert.equal(relativeUrlsValue.stderr, relativeUrls.stderr, '--relative-urls=VALUE warns as --relative-urls');
+    for (const [args, url] of [[['-ru'], 'sub/img.png'], [['-ru=all'], 'sub/img.png'], [['-ru=off'], 'img.png']]) {
+        const short = await runLessc([...args, relativeInput]);
+        assert.equal(short.code, 0, short.stderr);
+        assert.equal(short.stdout, `.b {\n  background: url(${url});\n}\n`, `${args.join(' ')} is --rewrite-urls`);
+        assert.equal(short.stderr, '', `${args.join(' ')}: nothing warns`);
+    }
+    // -rp=PATH is the short form of --rootpath=PATH.
+    const rootpathShort = await runLessc(['-rp=/cdn/', '-'], '.a { b: url(img.png); }\n');
+    assert.equal(rootpathShort.code, 0, rootpathShort.stderr);
+    assert.equal(rootpathShort.stdout, '.a {\n  b: url(/cdn/img.png);\n}\n', '-rp=PATH is --rootpath=PATH');
 
     // --insecure and --ie-compat: accepted as in Less 4.x, with no effect on the
     // CSS and one warning each.
