@@ -25,6 +25,10 @@ export interface LessRenderOptions {
   strictUnits?: boolean;
   /** @deprecated Accepted for Less 4.x compatibility and ignored, with a warning; use `sourceMap`. */
   dumpLineNumbers?: 'comments' | 'mediaquery' | 'all';
+  /** @deprecated Accepted for Less 4.x compatibility and ignored, with a warning: remote imports always verify the certificate. */
+  insecure?: boolean;
+  /** @deprecated Accepted for Less 4.x compatibility and ignored, with a warning. */
+  ieCompat?: boolean;
   /**
    * Fetch and inline `https` `@import`s from these hosts (exact host names).
    * Needs the optional `@jesscss/plugin-remote-import` installed next to less.
@@ -46,6 +50,8 @@ export interface LessRenderOptions {
   rootpath?: string;
   /** Rewrite relative `url(...)` against the importing file: `'all'` | `'local'` | `'off'` (or boolean). */
   rewriteUrls?: boolean | 'all' | 'local' | 'off';
+  /** @deprecated Use `rewriteUrls`. `true` is `rewriteUrls: 'all'`; `false` leaves the default. An explicit `rewriteUrls` wins. Warns. */
+  relativeUrls?: boolean;
   /** Append a query string to every non-data `url(...)`. */
   urlArgs?: string;
   /**

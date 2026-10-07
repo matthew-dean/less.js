@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,7 +18,7 @@ const testDataRoot = path.resolve(packageRoot(), '..', 'test-data', 'tests-unit'
 const REJECTED_OPTIONS = ['javascriptEnabled'];
 const SUPPORTED_OPTIONS = [
     'collapseNesting', 'sourceMap', 'compress', 'rewriteUrls', 'urlArgs', 'rootpath', 'unitMode', 'math',
-    'strictMath', 'moduleMode', 'processImports', 'globalVars', 'modifyVars', 'banner'
+    'strictMath', 'relativeUrls', 'moduleMode', 'processImports', 'globalVars', 'modifyVars', 'banner'
 ];
 
 const unsupportedForAlpha1 = [
@@ -333,6 +333,63 @@ async function assertDumpLineNumbersIgnored() {
         `dumpLineNumbers must warn; got ${JSON.stringify(result.warnings?.map(warning => warning.code))}`);
 }
 
+async function assertRelativeUrlsSupported() {
+    // `relativeUrls` is the deprecated Less 4.x alias of `rewriteUrls: 'all'`: a
+    // truthy value rewrites an imported url() against the importing file and
+    // warns. An explicit `rewriteUrls` wins, and then nothing warns.
+    const dir = await mkdtemp(path.join(tmpdir(), 'less-relative-urls-'));
+    const warnings = [];
+    const listener = { warn(msg) { warnings.push(String(msg)); } };
+    less.logger.addListener(listener);
+    try {
+        await mkdir(path.join(dir, 'sub'));
+        await writeFile(path.join(dir, 'sub', 'b.less'), '.b { background: url(img.png); }\n');
+        const source = '@import "sub/b.less";\n';
+        const filename = path.join(dir, 'main.less');
+        const asWritten = '.b {\n  background: url(img.png);\n}\n';
+        const rewritten = '.b {\n  background: url(sub/img.png);\n}\n';
+        assert.equal((await less.render(source, { filename, rewriteUrls: 'all' })).css, rewritten);
+        assert.equal((await less.render(source, { filename, relativeUrls: true })).css, rewritten,
+            "relativeUrls: true is rewriteUrls: 'all'");
+        assert.equal((await less.render(source, { filename, relativeUrls: false })).css, asWritten,
+            'relativeUrls: false is the default');
+        assert.equal((await less.render(source, { filename, relativeUrls: true, rewriteUrls: 'off' })).css, asWritten,
+            'an explicit rewriteUrls wins over relativeUrls');
+    } finally {
+        less.logger.removeListener(listener);
+        await rm(dir, { recursive: true, force: true });
+    }
+    assert.deepEqual(warnings, [
+        "relativeUrls is deprecated; use rewriteUrls. relativeUrls: true now means rewriteUrls: 'all'",
+        "relativeUrls is deprecated; use rewriteUrls. relativeUrls: false now means no rewriteUrls option (the default is 'off')"
+    ]);
+}
+
+async function assertNoEffectOptionsWarn() {
+    // Less 4.x `insecure` and `ieCompat` are accepted and have no effect. Each
+    // render that sets one reports one warning: `insecure` on the result, from
+    // the compiler, and `ieCompat` through the logger.
+    const source = '.x { width: 2 + 3; }\n';
+    const css = (await less.render(source)).css;
+    const insecure = await less.render(source, { insecure: true });
+    assert.equal(insecure.css, css, 'insecure changes nothing in the CSS');
+    assert.equal(insecure.warnings?.filter(warning => warning.code === 'deprecation/insecure-option').length, 1,
+        `insecure must warn once; got ${JSON.stringify(insecure.warnings?.map(warning => warning.code))}`);
+
+    const warnings = [];
+    const listener = { warn(msg) { warnings.push(String(msg)); } };
+    less.logger.addListener(listener);
+    try {
+        assert.equal((await less.render(source, { ieCompat: true })).css, css, 'ieCompat changes nothing in the CSS');
+        assert.equal((await less.render(source, { ieCompat: false })).css, css);
+    } finally {
+        less.logger.removeListener(listener);
+    }
+    assert.deepEqual(warnings, [
+        'ieCompat is deprecated and has no effect: Less 5 makes no IE 8 compatibility checks. Remove the option.'
+    ], 'ieCompat: true warns once; ieCompat: false requests nothing');
+}
+
 async function assertModuleModeSupported() {
     const source = '.x { padding: min(-5px, 1px); color: darken(red, 10%); }\n';
     // 'auto' (the default): a file with no @use/@compose is legacy, so the Less
@@ -365,6 +422,8 @@ await assertBrowserBuildHonoursLessOptions();
 await assertUnitModeSupported();
 await assertMathOptionSupported();
 await assertDumpLineNumbersIgnored();
+await assertRelativeUrlsSupported();
+await assertNoEffectOptionsWarn();
 await assertModuleModeSupported();
 await assertFixtureRendersByteIdentical('at-rule-variable-interpolation/at-rule-variable-interpolation');
 await assertFixtureRendersByteIdentical('color-functions/modern');

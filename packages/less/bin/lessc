@@ -159,6 +159,21 @@ function parseArgs() {
       options.rewriteUrls = rewriteUrlsMatch[1] ?? 'all';
       continue;
     }
+    // Deprecated: sets the deprecated `relativeUrls`, which `createLessOptions`
+    // maps to `rewriteUrls: 'all'` with a warning; `--rewrite-urls` wins.
+    if (arg === '--relative-urls') {
+      options.relativeUrls = true;
+      continue;
+    }
+    // Accepted as in Less 4.x with no effect; the compile warns.
+    if (arg === '--insecure') {
+      options.insecure = true;
+      continue;
+    }
+    if (arg === '--ie-compat') {
+      options.ieCompat = true;
+      continue;
+    }
     const rootpathMatch = arg.match(/^--rootpath=(.+)$/);
     if (rootpathMatch) {
       options.rootpath = rootpathMatch[1];

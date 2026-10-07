@@ -137,6 +137,28 @@ function resolveMathMode(opts) {
 }
 
 /**
+ * The `rewriteUrls` the caller asked for, or `undefined` when it is unset.
+ * `relativeUrls` is the Less 4.x boolean alias of `rewriteUrls: 'all'`: a
+ * truthy value is `'all'`, and a falsy one sets nothing. An explicit
+ * `rewriteUrls` wins; otherwise `relativeUrls` warns.
+ * @param {import('./options.js').LessRenderOptions} opts
+ * @returns {boolean|'all'|'local'|'off'|undefined}
+ */
+function resolveRewriteUrls(opts) {
+  if (opts.rewriteUrls !== undefined) {
+    return opts.rewriteUrls;
+  }
+  if (opts.relativeUrls === undefined) {
+    return undefined;
+  }
+  logger.warn(
+    `relativeUrls is deprecated; use rewriteUrls. relativeUrls: ${String(opts.relativeUrls)} now means `
+    + (opts.relativeUrls ? "rewriteUrls: 'all'" : "no rewriteUrls option (the default is 'off')")
+  );
+  return opts.relativeUrls ? 'all' : undefined;
+}
+
+/**
  * The opt-in remote-import plugin for an `allowRemoteImports` host list (the
  * `lessc --allow-remote-imports` flag). It is an optional install, so it is
  * loaded only when asked for; the plugin itself rejects an empty list or a
@@ -231,7 +253,8 @@ export function createLessOptions(options) {
   if (unitMode !== undefined) language.unitMode = unitMode;
   if (opts.processImports !== undefined) language.processImports = opts.processImports;
   if (opts.rootpath !== undefined) language.rootpath = opts.rootpath;
-  if (opts.rewriteUrls !== undefined) language.rewriteUrls = opts.rewriteUrls;
+  const rewriteUrls = resolveRewriteUrls(opts);
+  if (rewriteUrls !== undefined) language.rewriteUrls = rewriteUrls;
   if (opts.urlArgs !== undefined) language.urlArgs = opts.urlArgs;
   if (opts.moduleMode !== undefined) language.moduleMode = resolveModuleMode(opts.moduleMode);
   // Text the compiler's `prepareSource` hook (`prepareLessRootSource`) adds to
@@ -242,6 +265,15 @@ export function createLessOptions(options) {
   if (opts.modifyVars !== undefined) language.modifyVars = opts.modifyVars;
   // Accepted for Less 4.x compatibility with no effect; the compiler warns.
   if (opts.dumpLineNumbers !== undefined) language.dumpLineNumbers = opts.dumpLineNumbers;
+  if (opts.insecure !== undefined) language.insecure = opts.insecure;
+  // Accepted for Less 4.x compatibility with no effect. A falsy value requests
+  // nothing, so only a real request warns, as for `dumpLineNumbers`.
+  // TODO: Jess reports `insecure` itself (deprecation/insecure-option) but has
+  // no `ieCompat` deprecation; once it does, forward `ieCompat` like `insecure`
+  // and drop this warning.
+  if (opts.ieCompat) {
+    logger.warn('ieCompat is deprecated and has no effect: Less 5 makes no IE 8 compatibility checks. Remove the option.');
+  }
 
   const plugins = [lessPlugin()];
   if (!skipLessCompat) {

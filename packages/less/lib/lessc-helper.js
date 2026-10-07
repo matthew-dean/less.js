@@ -53,11 +53,14 @@ const lesscHelper = {
     console.log('  --source-map-basepath=PATH   Strip PATH from the front of every source in the map.');
     console.log('  --source-map-url=URL         Override the sourceMappingURL annotation.');
     console.log('  --rewrite-urls[=all|local|off]  Rewrite url(...) references in imported files.');
+    console.log('  --relative-urls              Deprecated: --rewrite-urls=all (an explicit --rewrite-urls wins).');
     console.log('  --rootpath=PATH              Prepend PATH to url(...) and import references.');
     console.log('  --url-args=ARGS              Append ARGS (e.g. cache-buster) to every url(...).');
     console.log('  --allow-remote-imports=HOSTS Fetch and inline https @imports from these hosts (comma-separated;');
     console.log('                               repeatable). Needs @jesscss/plugin-remote-import installed next to less.');
     console.log('  --line-numbers[=TYPE]        Deprecated and ignored; use --source-map.');
+    console.log('  --insecure                   Deprecated and ignored: remote imports always verify the certificate.');
+    console.log('  --ie-compat                  Deprecated and ignored.');
     console.log('');
     console.log('This release intentionally supports a smaller CLI surface.');
     console.log('Browser compilation, legacy plugin flags, and lint-only mode are not supported.');

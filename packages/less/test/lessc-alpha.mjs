@@ -155,6 +155,16 @@ await realpath(compilerEntrypoint);
     );
     assert.notEqual(compilerKey({ math: 'always' }), compilerKey({ math: 'parens' }),
         'the other Less options still are');
+    // `relativeUrls` is the deprecated Less 4.x alias of `rewriteUrls: 'all'`,
+    // and an explicit `rewriteUrls` wins. `insecure` reaches the compiler, which
+    // warns that it has no effect; `ieCompat` warns here and goes no further.
+    assert.deepEqual(lessLanguage({ relativeUrls: true }), { rewriteUrls: 'all' },
+        "relativeUrls: true is rewriteUrls: 'all'");
+    assert.deepEqual(lessLanguage({ relativeUrls: true, rewriteUrls: 'local' }), { rewriteUrls: 'local' },
+        'an explicit rewriteUrls wins over relativeUrls');
+    assert.equal(lessLanguage({ relativeUrls: false }), undefined, 'relativeUrls: false sets no rewriteUrls');
+    assert.deepEqual(lessLanguage({ insecure: true }), { insecure: true }, 'insecure reaches language.less');
+    assert.equal(lessLanguage({ ieCompat: true }), undefined, 'ieCompat sets no Less option');
     assert.throws(
         () => createLessOptions({ javascriptEnabled: true }),
         /javascriptEnabled is not supported/,
@@ -321,7 +331,10 @@ try {
         'lessc help documents the supported compress flag');
     assert.match(help.stdout, /--module-mode=MODE/,
         'lessc help documents the module-mode flag');
-    for (const flag of ['--strict-math', '--line-numbers', '--allow-remote-imports=HOSTS', '--global-var=NAME=VALUE', '--modify-var=NAME=VALUE']) {
+    for (const flag of [
+        '--strict-math', '--line-numbers', '--allow-remote-imports=HOSTS', '--global-var=NAME=VALUE', '--modify-var=NAME=VALUE',
+        '--relative-urls', '--insecure', '--ie-compat'
+    ]) {
         assert.ok(help.stdout.includes(flag), `lessc help documents ${flag}`);
     }
     assert.doesNotMatch(help.stdout, /--plugin=/,
@@ -469,6 +482,40 @@ try {
     assert.equal(badLineNumbers.code, 1, 'an unknown --line-numbers type fails');
     assert.equal(badLineNumbers.stdout, '');
     assert.match(badLineNumbers.stderr, /--line-numbers takes comments, mediaquery or all/);
+
+    // --relative-urls, deprecated: --rewrite-urls=all, with a warning. An
+    // explicit --rewrite-urls wins, in either order, and then nothing warns.
+    const relativeDir = path.join(tempDir, 'relative');
+    await mkdir(path.join(relativeDir, 'sub'), { recursive: true });
+    await writeFile(path.join(relativeDir, 'sub', 'b.less'), '.b { background: url(img.png); }\n');
+    const relativeInput = path.join(relativeDir, 'main.less');
+    await writeFile(relativeInput, '@import "sub/b.less";\n');
+    const relativeUrls = await runLessc(['--relative-urls', relativeInput]);
+    assert.equal(relativeUrls.code, 0, relativeUrls.stderr);
+    assert.equal(relativeUrls.stdout, '.b {\n  background: url(sub/img.png);\n}\n',
+        '--relative-urls rewrites an imported url() as --rewrite-urls=all');
+    assert.equal(relativeUrls.stderr,
+        "relativeUrls is deprecated; use rewriteUrls. relativeUrls: true now means rewriteUrls: 'all'\n",
+        '--relative-urls warns once, with the mapping');
+    for (const args of [['--rewrite-urls=off', '--relative-urls'], ['--relative-urls', '--rewrite-urls=off']]) {
+        const explicit = await runLessc([...args, relativeInput]);
+        assert.equal(explicit.code, 0, explicit.stderr);
+        assert.equal(explicit.stdout, '.b {\n  background: url(img.png);\n}\n',
+            `${args.join(' ')}: the explicit --rewrite-urls wins`);
+        assert.equal(explicit.stderr, '', `${args.join(' ')}: nothing warns`);
+    }
+
+    // --insecure and --ie-compat: accepted as in Less 4.x, with no effect on the
+    // CSS and one warning each.
+    for (const [flag, warning] of [
+        ['--insecure', /deprecation\/insecure-option/g],
+        ['--ie-compat', /ieCompat is deprecated and has no effect: Less 5 makes no IE 8 compatibility checks/g]
+    ]) {
+        const ignored = await runLessc(['--no-color', flag, '-'], sum);
+        assert.equal(ignored.code, 0, ignored.stderr);
+        assert.equal(ignored.stdout, '.a {\n  w: 5;\n}\n', `${flag} has no effect on the CSS`);
+        assert.equal(ignored.stderr.match(warning)?.length, 1, `${flag} warns once; got ${JSON.stringify(ignored.stderr)}`);
+    }
 
     // --allow-remote-imports, as the jess CLI's flag. The plugin is an optional
     // install that this suite leaves out (it ships with a later Jess alpha), so a
