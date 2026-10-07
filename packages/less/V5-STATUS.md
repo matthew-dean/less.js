@@ -32,10 +32,12 @@ emits nested CSS) instead of always flattening. Opt into flattened output with
 ## Options (`less.render` API)
 
 A `styles.config.*` beside (or above) the file is read as well, for `less.render`
-and `less.renderFile` alike. An option passed to `less.render` or `lessc` wins
-over the same option in its `language.less` block and over a `compile` mode
-(including the `strict` preset); the config applies to the options the call
-leaves unset.
+and `less.renderFile` alike: the nearest one, up to the package root (the first
+folder up with a `package.json`); none under `node_modules`. An option passed to
+`less.render` or `lessc` is a `language.less` option: it wins over the same
+option in the config's `language.less` block and over a `compile` mode
+(including the `strict` preset), and reaches `.less` files only; the config
+applies to the options the call leaves unset.
 
 | Feature | Less 4 | Less 5 | Notes |
 | --- | :---: | :---: | --- |

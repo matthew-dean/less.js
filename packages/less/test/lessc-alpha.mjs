@@ -109,6 +109,13 @@ await realpath(compilerEntrypoint);
     // option the caller left unset is left out, so the config or the default applies.
     const lessLanguage = options => createLessOptions(options).configOptions.language.less;
     assert.equal(lessLanguage({}), undefined, 'no Less option is set unless the caller set one');
+    // A mode the caller sets is a Less option, never a compile mode: a compile
+    // mode would reach every file, an imported .jess or .scss file included, and
+    // with none set the Less default (math 'parens-division') applies.
+    for (const options of [{}, { math: 'parens', strictMath: true, unitMode: 'strict', strictUnits: true }]) {
+        assert.deepEqual(Object.keys(createLessOptions(options).configOptions.compile), ['searchPaths', 'plugins'],
+            `no compile mode is set for ${JSON.stringify(options)}`);
+    }
     assert.deepEqual(
         lessLanguage({ moduleMode: 'modern', math: 'always', unitMode: 'strict', rootpath: '/cdn/', processImports: false }),
         { moduleMode: 'modern', mathMode: 'always', unitMode: 'strict', rootpath: '/cdn/', processImports: false },
