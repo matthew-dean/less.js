@@ -129,7 +129,11 @@ const expectedFailureFixtures = new Map([
     ['tests-unit/media/media.less', 'top-level bare @var at-rule preludes are rejected'],
     ['tests-unit/at-rule-variable-deprecated/at-rule-variable-deprecated.less', 'bare @variable references in at-rule structural positions are rejected in Less 5 alpha'],
     ['tests-unit/calc/calc.less', 'golden carries the owner-accepted v5 output (parens authored inside calc() are kept); the pinned Jess predates it, so remove this entry at the next Jess pin bump'],
-    ['tests-unit/functions/functions.less', 'golden carries the owner-accepted v5 output (`length($list-1)` of `~(1, 2, 3)` is 3); the pinned Jess predates it, so remove this entry at the next Jess pin bump']
+    ['tests-unit/functions/functions.less', 'golden carries the owner-accepted v5 output (`length($list-1)` of `~(1, 2, 3)` is 3); the pinned Jess predates it, so remove this entry at the next Jess pin bump'],
+    ['tests-unit/extend/extend.less', 'golden carries the owner-accepted v5 output (extend :is() groups keep native specificity); the pinned Jess predates it, so remove this entry at the next Jess pin bump'],
+    ['tests-unit/extend-chaining/extend-chaining.less', 'golden carries the owner-accepted v5 output (extend :is() groups keep native specificity); the pinned Jess predates it, so remove this entry at the next Jess pin bump'],
+    ['tests-unit/extend-nest/extend-nest.less', 'golden carries the owner-accepted v5 output (extend :is() groups keep native specificity); the pinned Jess predates it, so remove this entry at the next Jess pin bump'],
+    ['tests-unit/extend-selector/extend-selector.less', 'golden carries the owner-accepted v5 output (extend :is() groups keep native specificity); the pinned Jess predates it, so remove this entry at the next Jess pin bump']
 ]);
 
 const expectedFailureDiagnosticCodes = new Map([

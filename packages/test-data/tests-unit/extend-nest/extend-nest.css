@@ -5,7 +5,8 @@
   width: 300px;
   background: red;
 }
-:is(.sidebar, .sidebar2, .type1 .sidebar3, .type2.sidebar4) .box {
+:is(.sidebar, .sidebar2) .box,
+:is(.type1 .sidebar3, .type2.sidebar4) .box {
   background: #FFF;
   border: 1px solid #000;
   margin: 10px 0;
