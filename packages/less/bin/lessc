@@ -171,6 +171,11 @@ function parseArgs() {
       options.insecure = true;
       continue;
     }
+    // Removed: accepted with no effect; the compile warns.
+    if (arg === '--strict-imports') {
+      options.strictImports = true;
+      continue;
+    }
     if (arg === '--ie-compat') {
       options.ieCompat = true;
       continue;

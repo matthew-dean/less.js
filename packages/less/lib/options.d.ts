@@ -27,6 +27,8 @@ export interface LessRenderOptions {
   dumpLineNumbers?: 'comments' | 'mediaquery' | 'all';
   /** @deprecated Accepted for Less 4.x compatibility and ignored, with a warning: remote imports always verify the certificate. */
   insecure?: boolean;
+  /** @deprecated Removed: accepted and ignored, with a warning. Every `@import` is processed where it is written. */
+  strictImports?: boolean;
   /** @deprecated Accepted for Less 4.x compatibility and ignored, with a warning. */
   ieCompat?: boolean;
   /**

@@ -366,15 +366,18 @@ async function assertRelativeUrlsSupported() {
 }
 
 async function assertNoEffectOptionsWarn() {
-    // Less 4.x `insecure` and `ieCompat` are accepted and have no effect. Each
-    // render that sets one reports one warning: `insecure` on the result, from
-    // the compiler, and `ieCompat` through the logger.
+    // `insecure`, `strictImports` and `ieCompat` are accepted and have no
+    // effect. Each render that sets one reports one warning: `insecure` and
+    // `strictImports` on the result, from the compiler, and `ieCompat` through
+    // the logger.
     const source = '.x { width: 2 + 3; }\n';
     const css = (await less.render(source)).css;
-    const insecure = await less.render(source, { insecure: true });
-    assert.equal(insecure.css, css, 'insecure changes nothing in the CSS');
-    assert.equal(insecure.warnings?.filter(warning => warning.code === 'deprecation/insecure-option').length, 1,
-        `insecure must warn once; got ${JSON.stringify(insecure.warnings?.map(warning => warning.code))}`);
+    for (const [option, code] of [['insecure', 'deprecation/insecure-option'], ['strictImports', 'deprecation/strict-imports-option']]) {
+        const result = await less.render(source, { [option]: true });
+        assert.equal(result.css, css, `${option} changes nothing in the CSS`);
+        assert.equal(result.warnings?.filter(warning => warning.code === code).length, 1,
+            `${option} must warn once; got ${JSON.stringify(result.warnings?.map(warning => warning.code))}`);
+    }
 
     const warnings = [];
     const listener = { warn(msg) { warnings.push(String(msg)); } };

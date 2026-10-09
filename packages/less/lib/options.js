@@ -266,6 +266,8 @@ export function createLessOptions(options) {
   // Accepted for Less 4.x compatibility with no effect; the compiler warns.
   if (opts.dumpLineNumbers !== undefined) language.dumpLineNumbers = opts.dumpLineNumbers;
   if (opts.insecure !== undefined) language.insecure = opts.insecure;
+  // Removed: accepted with no effect; the compiler warns.
+  if (opts.strictImports !== undefined) language.strictImports = opts.strictImports;
   // Accepted for Less 4.x compatibility with no effect. A falsy value requests
   // nothing, so only a real request warns, as for `dumpLineNumbers`.
   // TODO: Jess reports `insecure` itself (deprecation/insecure-option) but has

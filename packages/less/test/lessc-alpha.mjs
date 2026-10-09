@@ -163,14 +163,16 @@ await realpath(compilerEntrypoint);
     assert.notEqual(compilerKey({ math: 'always' }), compilerKey({ math: 'parens' }),
         'the other Less options still are');
     // `relativeUrls` is the deprecated Less 4.x alias of `rewriteUrls: 'all'`,
-    // and an explicit `rewriteUrls` wins. `insecure` reaches the compiler, which
-    // warns that it has no effect; `ieCompat` warns here and goes no further.
+    // and an explicit `rewriteUrls` wins. `insecure` and `strictImports` reach
+    // the compiler, which warns that they have no effect; `ieCompat` warns here
+    // and goes no further.
     assert.deepEqual(lessLanguage({ relativeUrls: true }), { rewriteUrls: 'all' },
         "relativeUrls: true is rewriteUrls: 'all'");
     assert.deepEqual(lessLanguage({ relativeUrls: true, rewriteUrls: 'local' }), { rewriteUrls: 'local' },
         'an explicit rewriteUrls wins over relativeUrls');
     assert.equal(lessLanguage({ relativeUrls: false }), undefined, 'relativeUrls: false sets no rewriteUrls');
     assert.deepEqual(lessLanguage({ insecure: true }), { insecure: true }, 'insecure reaches language.less');
+    assert.deepEqual(lessLanguage({ strictImports: true }), { strictImports: true }, 'strictImports reaches language.less');
     assert.equal(lessLanguage({ ieCompat: true }), undefined, 'ieCompat sets no Less option');
     assert.throws(
         () => createLessOptions({ javascriptEnabled: true }),
@@ -340,7 +342,7 @@ try {
         'lessc help documents the module-mode flag');
     for (const flag of [
         '--strict-math', '--line-numbers', '--allow-remote-imports=HOSTS', '--global-var=NAME=VALUE', '--modify-var=NAME=VALUE',
-        '--relative-urls', '--insecure', '--ie-compat', '-ru, --rewrite-urls', '-rp, --rootpath=PATH'
+        '--relative-urls', '--insecure', '--strict-imports', '--ie-compat', '-ru, --rewrite-urls', '-rp, --rootpath=PATH'
     ]) {
         assert.ok(help.stdout.includes(flag), `lessc help documents ${flag}`);
     }
@@ -528,10 +530,11 @@ try {
     assert.equal(rootpathShort.code, 0, rootpathShort.stderr);
     assert.equal(rootpathShort.stdout, '.a {\n  b: url(/cdn/img.png);\n}\n', '-rp=PATH is --rootpath=PATH');
 
-    // --insecure and --ie-compat: accepted as in Less 4.x, with no effect on the
-    // CSS and one warning each.
+    // --insecure, --strict-imports and --ie-compat: accepted, with no effect on
+    // the CSS and one warning each.
     for (const [flag, warning] of [
         ['--insecure', /deprecation\/insecure-option/g],
+        ['--strict-imports', /deprecation\/strict-imports-option/g],
         ['--ie-compat', /ieCompat is deprecated and has no effect: Less 5 makes no IE 8 compatibility checks/g]
     ]) {
         const ignored = await runLessc(['--no-color', flag, '-'], sum);

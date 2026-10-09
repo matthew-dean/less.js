@@ -60,6 +60,7 @@ const lesscHelper = {
     console.log('                               repeatable). Needs @jesscss/plugin-remote-import installed next to less.');
     console.log('  --line-numbers[=TYPE]        Deprecated and ignored; use --source-map.');
     console.log('  --insecure                   Deprecated and ignored: remote imports always verify the certificate.');
+    console.log('  --strict-imports             Deprecated and ignored: every @import is processed where it is written.');
     console.log('  --ie-compat                  Deprecated and ignored.');
     console.log('');
     console.log('This release intentionally supports a smaller CLI surface.');
