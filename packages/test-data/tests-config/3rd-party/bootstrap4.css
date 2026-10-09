@@ -1315,8 +1315,7 @@ pre code {
   margin-bottom: 1rem;
   background-color: transparent;
 }
-.table th,
-.table td {
+.table :is(th, td) {
   padding: 0.75rem;
   vertical-align: top;
   border-top: 1px solid #dee2e6;
@@ -1331,23 +1330,19 @@ pre code {
 .table .table {
   background-color: #fff;
 }
-.table-sm th,
-.table-sm td {
+.table-sm :is(th, td) {
   padding: 0.3rem;
 }
 .table-bordered {
   border: 1px solid #dee2e6;
 }
-.table-bordered th,
-.table-bordered td {
+.table-bordered :is(th, td) {
   border: 1px solid #dee2e6;
 }
-.table-bordered thead th,
-.table-bordered thead td {
+.table-bordered thead :is(th, td) {
   border-bottom-width: 2px;
 }
-.table-borderless th,
-.table-borderless td,
+.table-borderless :is(th, td),
 .table-borderless thead th,
 .table-borderless tbody + tbody {
   border: 0;
@@ -1480,8 +1475,7 @@ pre code {
   color: #fff;
   background-color: #212529;
 }
-.table-dark th,
-.table-dark td,
+.table-dark :is(th, td),
 .table-dark thead th {
   border-color: #32383e;
 }
@@ -1908,8 +1902,7 @@ select.form-control-lg:not([size]):not([multiple]),
   .form-inline .form-control-plaintext {
     display: inline-block;
   }
-  .form-inline .input-group,
-  .form-inline .custom-select {
+  .form-inline :is(.input-group, .custom-select) {
     width: auto;
   }
   .form-inline .form-check {
@@ -2778,8 +2771,7 @@ fieldset:disabled a.btn {
   align-items: flex-start;
   justify-content: center;
 }
-.btn-group-vertical .btn,
-.btn-group-vertical .btn-group {
+.btn-group-vertical :is(.btn, .btn-group) {
   width: 100%;
 }
 .btn-group-vertical > .btn + .btn,
@@ -2803,8 +2795,7 @@ fieldset:disabled a.btn {
 .btn-group-toggle > .btn-group > .btn {
   margin-bottom: 0;
 }
-:is(.btn-group-toggle > .btn, .btn-group-toggle > .btn-group > .btn) input[type="radio"],
-:is(.btn-group-toggle > .btn, .btn-group-toggle > .btn-group > .btn) input[type="checkbox"] {
+:is(.btn-group-toggle > .btn, .btn-group-toggle > .btn-group > .btn) :is(input[type="radio"], input[type="checkbox"]) {
   position: absolute;
   clip: rect(0, 0, 0, 0);
   pointer-events: none;
@@ -2888,8 +2879,7 @@ fieldset:disabled a.btn {
   border: 1px solid #ced4da;
   border-radius: 0.25rem;
 }
-.input-group-text input[type="radio"],
-.input-group-text input[type="checkbox"] {
+.input-group-text :is(input[type="radio"], input[type="checkbox"]) {
   margin-top: 0;
 }
 .input-group > .input-group-prepend > .btn,
@@ -3534,8 +3524,7 @@ fieldset:disabled a.btn {
 }
 .navbar-light .navbar-nav .show > .nav-link,
 .navbar-light .navbar-nav .active > .nav-link,
-.navbar-light .navbar-nav .nav-link.show,
-.navbar-light .navbar-nav .nav-link.active {
+.navbar-light .navbar-nav :is(.nav-link.show, .nav-link.active) {
   color: rgba(0, 0, 0, 0.9);
 }
 .navbar-light .navbar-toggler {
@@ -3574,8 +3563,7 @@ fieldset:disabled a.btn {
 }
 .navbar-dark .navbar-nav .show > .nav-link,
 .navbar-dark .navbar-nav .active > .nav-link,
-.navbar-dark .navbar-nav .nav-link.show,
-.navbar-dark .navbar-nav .nav-link.active {
+.navbar-dark .navbar-nav :is(.nav-link.show, .nav-link.active) {
   color: #fff;
 }
 .navbar-dark .navbar-toggler {
@@ -3735,46 +3723,37 @@ fieldset:disabled a.btn {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
   }
-  .card-group > .card:first-child .card-img-top,
-  .card-group > .card:first-child .card-header {
+  .card-group > .card:first-child :is(.card-img-top, .card-header) {
     border-top-right-radius: 0;
   }
-  .card-group > .card:first-child .card-img-bottom,
-  .card-group > .card:first-child .card-footer {
+  .card-group > .card:first-child :is(.card-img-bottom, .card-footer) {
     border-bottom-right-radius: 0;
   }
   .card-group > .card:last-child {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
   }
-  .card-group > .card:last-child .card-img-top,
-  .card-group > .card:last-child .card-header {
+  .card-group > .card:last-child :is(.card-img-top, .card-header) {
     border-top-left-radius: 0;
   }
-  .card-group > .card:last-child .card-img-bottom,
-  .card-group > .card:last-child .card-footer {
+  .card-group > .card:last-child :is(.card-img-bottom, .card-footer) {
     border-bottom-left-radius: 0;
   }
   .card-group > .card:only-child {
     border-radius: 0.25rem;
   }
-  .card-group > .card:only-child .card-img-top,
-  .card-group > .card:only-child .card-header {
+  .card-group > .card:only-child :is(.card-img-top, .card-header) {
     border-top-left-radius: 0.25rem;
     border-top-right-radius: 0.25rem;
   }
-  .card-group > .card:only-child .card-img-bottom,
-  .card-group > .card:only-child .card-footer {
+  .card-group > .card:only-child :is(.card-img-bottom, .card-footer) {
     border-bottom-right-radius: 0.25rem;
     border-bottom-left-radius: 0.25rem;
   }
   .card-group > .card:not(:first-child):not(:last-child):not(:only-child) {
     border-radius: 0;
   }
-  .card-group > .card:not(:first-child):not(:last-child):not(:only-child) .card-img-top,
-  .card-group > .card:not(:first-child):not(:last-child):not(:only-child) .card-img-bottom,
-  .card-group > .card:not(:first-child):not(:last-child):not(:only-child) .card-header,
-  .card-group > .card:not(:first-child):not(:last-child):not(:only-child) .card-footer {
+  .card-group > .card:not(:first-child):not(:last-child):not(:only-child) :is(.card-img-top, .card-img-bottom, .card-header, .card-footer) {
     border-radius: 0;
   }
 }
@@ -4837,20 +4816,14 @@ button.close {
   transition-duration: 0.6s;
   transition-property: opacity;
 }
-.carousel-fade .carousel-item.active,
-.carousel-fade .carousel-item-next.carousel-item-left,
-.carousel-fade .carousel-item-prev.carousel-item-right {
+.carousel-fade :is(.carousel-item.active, .carousel-item-next.carousel-item-left, .carousel-item-prev.carousel-item-right) {
   opacity: 1;
 }
-.carousel-fade .active.carousel-item-left,
-.carousel-fade .active.carousel-item-right {
+.carousel-fade :is(.active.carousel-item-left, .active.carousel-item-right) {
   opacity: 0;
 }
-.carousel-fade .carousel-item-next,
-.carousel-fade .carousel-item-prev,
-.carousel-fade .carousel-item.active,
-.carousel-fade .active.carousel-item-left,
-.carousel-fade .active.carousel-item-prev {
+.carousel-fade :is(.carousel-item-next, .carousel-item-prev),
+.carousel-fade :is(.carousel-item.active, .active.carousel-item-left, .active.carousel-item-prev) {
   transform: translateX(0);
 }
 @supports (transform-style: preserve-3d) {
@@ -5309,10 +5282,7 @@ button.close {
   content: "";
 }
 .embed-responsive .embed-responsive-item,
-.embed-responsive iframe,
-.embed-responsive embed,
-.embed-responsive object,
-.embed-responsive video {
+.embed-responsive :is(iframe, embed, object, video) {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -7478,19 +7448,16 @@ a.text-dark:focus {
   .table {
     border-collapse: collapse !important;
   }
-  .table td,
-  .table th {
+  .table :is(td, th) {
     background-color: #fff !important;
   }
-  .table-bordered th,
-  .table-bordered td {
+  .table-bordered :is(th, td) {
     border: 1px solid #dee2e6 !important;
   }
   .table-dark {
     color: inherit;
   }
-  .table-dark th,
-  .table-dark td,
+  .table-dark :is(th, td),
   .table-dark thead th,
   .table-dark tbody + tbody {
     border-color: #dee2e6;
