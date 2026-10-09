@@ -128,7 +128,8 @@ const expectedFailureFixtures = new Map([
     ['tests-unit/permissive-parse/permissive-parse.less', 'permissive legacy parser corners are not alpha-supported'],
     ['tests-unit/media/media.less', 'top-level bare @var at-rule preludes are rejected'],
     ['tests-unit/at-rule-variable-deprecated/at-rule-variable-deprecated.less', 'bare @variable references in at-rule structural positions are rejected in Less 5 alpha'],
-    ['tests-unit/calc/calc.less', 'golden carries the owner-accepted v5 output (parens authored inside calc() are kept); the pinned Jess predates it, so remove this entry at the next Jess pin bump']
+    ['tests-unit/calc/calc.less', 'golden carries the owner-accepted v5 output (parens authored inside calc() are kept); the pinned Jess predates it, so remove this entry at the next Jess pin bump'],
+    ['tests-unit/functions/functions.less', 'golden carries the owner-accepted v5 output (`length($list-1)` of `~(1, 2, 3)` is 3); the pinned Jess predates it, so remove this entry at the next Jess pin bump']
 ]);
 
 const expectedFailureDiagnosticCodes = new Map([
